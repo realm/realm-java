@@ -35,9 +35,9 @@ import kotlin.test.*
 class ManagedSetTester<T : Any>(
         private val testerName: String,
         private val mixedType: MixedType? = null,
-        private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
-        private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
-        private val requiredSetGetter: KFunction1<AllTypes, RealmSet<T>>? = null,
+        private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
+        private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
+        private val requiredSetGetter: KFunction1<SetAllTypes, RealmSet<T>>? = null,
         private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
         private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
         private val initializedSet: List<T?>,
@@ -48,7 +48,7 @@ class ManagedSetTester<T : Any>(
             // Used to assert that the contents of two collections are the same.
            expected == value
         },
-        private val primaryKeyAllTypesSetProperty: KMutableProperty1<AllTypesPrimaryKey, RealmSet<T>>
+        private val primaryKeyAllTypesSetProperty: KMutableProperty1<SetAllTypesPrimaryKey, RealmSet<T>>
 ) : SetTester {
 
     private lateinit var config: RealmConfiguration
@@ -65,14 +65,14 @@ class ManagedSetTester<T : Any>(
 
     override fun tearDown() = realm.close()
 
-    override fun isManaged() = assertTrue(initAndAssertEmptySet().isManaged)
+    override fun isManaged() = assertTrue(initAndAssertEmptySet(id = "id").isManaged)
 
-    override fun isValid() = assertTrue(initAndAssertEmptySet().isValid)
+    override fun isValid() = assertTrue(initAndAssertEmptySet(id = "id").isValid)
 
     override fun isFrozen() = Unit          // Tested in frozen
 
     override fun size() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             initializedSet.forEach { value ->
@@ -83,7 +83,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun isEmpty() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             initializedSet.forEach { value ->
@@ -94,7 +94,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun contains() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         initializedSet.forEach { value ->
             assertFalse(set.contains(value))
@@ -117,7 +117,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun iterator() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         assertNotNull(set.iterator())
         realm.executeTransaction {
@@ -130,7 +130,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun toArray() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         // Empty set
         assertEquals(0, set.toArray().size)
@@ -154,12 +154,12 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun toArrayWithParameter() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
         toArrayManaged.assertToArrayWithParameter(realm, set, initializedSet)
     }
 
     override fun add() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             // Adding a value for the first time returns true
@@ -176,7 +176,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun remove() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.addAll(initializedSet)
@@ -210,7 +210,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun containsAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction { transactionRealm ->
             set.addAll(initializedSet)
@@ -274,7 +274,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun addAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction { transactionRealm ->
             // Changes after adding collection
@@ -356,7 +356,7 @@ class ManagedSetTester<T : Any>(
     // Separate method to allow calls from RealmModelSetManagedTester with unmanaged realm objects
     fun doCopyToRealmTest(expectedSet: List<T?>) {
         // Instantiate container and set Set on container
-        val manualInstance = AllTypes().apply {
+        val manualInstance = SetAllTypes().apply {
             setSetter.call(this, RealmSet<T>().init(expectedSet))
         }
 
@@ -367,7 +367,7 @@ class ManagedSetTester<T : Any>(
         }
 
         // Get set from container from Realm
-        val allTypesObject = realm.where<AllTypes>().findFirst()
+        val allTypesObject = realm.where<SetAllTypes>().findFirst()
         assertNotNull(allTypesObject)
         val set: RealmSet<T> = setGetter.call(allTypesObject)
 
@@ -388,7 +388,7 @@ class ManagedSetTester<T : Any>(
 
     override fun copyToRealmOrUpdate() {
         // Instantiate container and set Set on container
-        val manualInstance = AllTypesPrimaryKey().apply {
+        val manualInstance = SetAllTypesPrimaryKey().apply {
             primaryKeyAllTypesSetProperty.setter(this, RealmSet<T>().init(initializedSet))
         }
 
@@ -399,7 +399,7 @@ class ManagedSetTester<T : Any>(
         }
 
         // Get Set from container from Realm
-        val allTypesPrimaryKey = realm.where<AllTypesPrimaryKey>().findFirst()!!
+        val allTypesPrimaryKey = realm.where<SetAllTypesPrimaryKey>().findFirst()!!
         val set = primaryKeyAllTypesSetProperty.get(allTypesPrimaryKey)
         assertFalse(set.isEmpty())
 
@@ -413,7 +413,7 @@ class ManagedSetTester<T : Any>(
             assertNotNull(allTypesObject)
         }
 
-        val updatedContainer = realm.where<AllTypesPrimaryKey>().findFirst()!!
+        val updatedContainer = realm.where<SetAllTypesPrimaryKey>().findFirst()!!
         val updatedSet = primaryKeyAllTypesSetProperty.get(updatedContainer)
         assertEquals(initializedSet.size + 1, updatedSet.size)
 
@@ -423,7 +423,7 @@ class ManagedSetTester<T : Any>(
     override fun requiredConstraints() {
         // RealmModel and Mixed setters are ignored since they cannot be marked with "@Required"
         if (requiredSetGetter != null) {
-            val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+            val allTypesObject = createAllTypesManagedContainerAndAssert(realm, "id")
             assertNotNull(allTypesObject)
             val set: RealmSet<T> = requiredSetGetter.call(allTypesObject)
             // Check we can't operate with nulls on a RealmSet marked as "@Required"
@@ -481,7 +481,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun retainAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction { transactionRealm ->
             // Does not change after empty set intersects with another collection
@@ -579,8 +579,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun removeAll() {
-        // FIXME: add cases for managed lists just as we do in containsAll
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction { transactionRealm ->
             // Does not change after removing a some values from an empty set
@@ -666,7 +665,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun clear() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.add(notPresentValue)
@@ -677,7 +676,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun freeze() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.addAll(initializedSet)
@@ -690,7 +689,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun setters() {
-        val allFields = createAllTypesManagedContainerAndAssert(realm)
+        val allFields = createAllTypesManagedContainerAndAssert(realm, "id")
         val aSet = RealmSet<T>().init(initializedSet)
 
         realm.executeTransaction {
@@ -709,7 +708,7 @@ class ManagedSetTester<T : Any>(
             val looperThreadRealm = Realm.getInstance(config)
 
             // Get set
-            val set = initAndAssertEmptySet(looperThreadRealm)
+            val set = initAndAssertEmptySet(looperThreadRealm, "id")
 
             // Define operation we perform on the dictionary
             var operation = ChangeListenerOperation.UNDEFINED
@@ -747,7 +746,7 @@ class ManagedSetTester<T : Any>(
             val looperThreadRealm = Realm.getInstance(config)
 
             // Get set
-            val set = initAndAssertEmptySet(looperThreadRealm)
+            val set = initAndAssertEmptySet(looperThreadRealm, "id")
 
             // Define operation we perform on the dictionary
             var operation = ChangeListenerOperation.UNDEFINED
@@ -787,7 +786,7 @@ class ManagedSetTester<T : Any>(
             val looperThreadRealm = Realm.getInstance(config)
 
             // Get set
-            val set = initAndAssertEmptySet(looperThreadRealm)
+            val set = initAndAssertEmptySet(looperThreadRealm, "id")
 
             val listener: (RealmSet<T>) -> Unit = { _ -> /* no-op */ }
             set.addChangeListener(listener)
@@ -804,7 +803,7 @@ class ManagedSetTester<T : Any>(
             val looperThreadRealm = Realm.getInstance(config)
 
             // Get set
-            val set = initAndAssertEmptySet(looperThreadRealm)
+            val set = initAndAssertEmptySet(looperThreadRealm, "id")
 
             val listener: (RealmSet<T>, SetChangeSet) -> Unit = { _, _ -> /* no-op */ }
             set.addChangeListener(listener)
@@ -821,7 +820,7 @@ class ManagedSetTester<T : Any>(
             val looperThreadRealm = Realm.getInstance(config)
 
             // Check for RealmChangeListener
-            val set = initAndAssertEmptySet(looperThreadRealm)
+            val set = initAndAssertEmptySet(looperThreadRealm, "id")
             assertFalse(set.hasListeners())
 
             set.addChangeListener { _ -> /* no-op */ }
@@ -866,139 +865,139 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.LONG ->
                 ManagedSetTester<Long>(
                         testerName = "Long",
-                        setGetter = AllTypes::getColumnLongSet,
-                        setSetter = AllTypes::setColumnLongSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredLongSet,
+                        setGetter = SetAllTypes::getColumnLongSet,
+                        setSetter = SetAllTypes::setColumnLongSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredLongSet,
                         managedSetGetter = SetContainerClass::myLongSet,
                         managedCollectionGetter = SetContainerClass::myLongList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toLong(), VALUE_NUMERIC_BYE.toLong(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong(),
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnLongSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnLongSet,
                         toArrayManaged = ToArrayManaged.LongManaged()
                 )
             SetSupportedType.INTEGER ->
                 ManagedSetTester<Int>(
                         testerName = "Integer",
-                        setGetter = AllTypes::getColumnIntegerSet,
-                        setSetter = AllTypes::setColumnIntegerSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredIntegerSet,
+                        setGetter = SetAllTypes::getColumnIntegerSet,
+                        setSetter = SetAllTypes::setColumnIntegerSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredIntegerSet,
                         managedSetGetter = SetContainerClass::myIntSet,
                         managedCollectionGetter = SetContainerClass::myIntList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO, VALUE_NUMERIC_BYE, null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT,
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnIntegerSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnIntegerSet,
                         toArrayManaged = ToArrayManaged.IntManaged()
                 )
             SetSupportedType.SHORT ->
                 ManagedSetTester<Short>(
                         testerName = "Short",
-                        setGetter = AllTypes::getColumnShortSet,
-                        setSetter = AllTypes::setColumnShortSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredShortSet,
+                        setGetter = SetAllTypes::getColumnShortSet,
+                        setSetter = SetAllTypes::setColumnShortSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredShortSet,
                         managedSetGetter = SetContainerClass::myShortSet,
                         managedCollectionGetter = SetContainerClass::myShortList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toShort(), VALUE_NUMERIC_BYE.toShort(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort(),
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnShortSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnShortSet,
                         toArrayManaged = ToArrayManaged.ShortManaged()
                 )
             SetSupportedType.BYTE ->
                 ManagedSetTester<Byte>(
                         testerName = "Byte",
-                        setGetter = AllTypes::getColumnByteSet,
-                        setSetter = AllTypes::setColumnByteSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredByteSet,
+                        setGetter = SetAllTypes::getColumnByteSet,
+                        setSetter = SetAllTypes::setColumnByteSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredByteSet,
                         managedSetGetter = SetContainerClass::myByteSet,
                         managedCollectionGetter = SetContainerClass::myByteList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toByte(), VALUE_NUMERIC_BYE.toByte(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte(),
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnByteSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnByteSet,
                         toArrayManaged = ToArrayManaged.ByteManaged()
                 )
             SetSupportedType.FLOAT ->
                 ManagedSetTester<Float>(
                         testerName = "Float",
-                        setGetter = AllTypes::getColumnFloatSet,
-                        setSetter = AllTypes::setColumnFloatSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredFloatSet,
+                        setGetter = SetAllTypes::getColumnFloatSet,
+                        setSetter = SetAllTypes::setColumnFloatSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredFloatSet,
                         managedSetGetter = SetContainerClass::myFloatSet,
                         managedCollectionGetter = SetContainerClass::myFloatList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toFloat(), VALUE_NUMERIC_BYE.toFloat(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat(),
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnFloatSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnFloatSet,
                         toArrayManaged = ToArrayManaged.FloatManaged()
                 )
             SetSupportedType.DOUBLE ->
                 ManagedSetTester<Double>(
                         testerName = "Double",
-                        setGetter = AllTypes::getColumnDoubleSet,
-                        setSetter = AllTypes::setColumnDoubleSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredDoubleSet,
+                        setGetter = SetAllTypes::getColumnDoubleSet,
+                        setSetter = SetAllTypes::setColumnDoubleSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredDoubleSet,
                         managedSetGetter = SetContainerClass::myDoubleSet,
                         managedCollectionGetter = SetContainerClass::myDoubleList,
                         initializedSet = listOf(VALUE_NUMERIC_HELLO.toDouble(), VALUE_NUMERIC_BYE.toDouble(), null),
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble(),
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnDoubleSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnDoubleSet,
                         toArrayManaged = ToArrayManaged.DoubleManaged()
                 )
             SetSupportedType.STRING ->
                 ManagedSetTester<String>(
                         testerName = "String",
-                        setGetter = AllTypes::getColumnStringSet,
-                        setSetter = AllTypes::setColumnStringSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredStringSet,
+                        setGetter = SetAllTypes::getColumnStringSet,
+                        setSetter = SetAllTypes::setColumnStringSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredStringSet,
                         managedSetGetter = SetContainerClass::myStringSet,
                         managedCollectionGetter = SetContainerClass::myStringList,
                         initializedSet = listOf(VALUE_STRING_HELLO, VALUE_STRING_BYE, null),
                         notPresentValue = VALUE_STRING_NOT_PRESENT,
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnStringSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnStringSet,
                         toArrayManaged = ToArrayManaged.StringManaged()
                 )
             SetSupportedType.BOOLEAN ->
                 ManagedSetTester<Boolean>(
                         testerName = "Boolean",
-                        setGetter = AllTypes::getColumnBooleanSet,
-                        setSetter = AllTypes::setColumnBooleanSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredBooleanSet,
+                        setGetter = SetAllTypes::getColumnBooleanSet,
+                        setSetter = SetAllTypes::setColumnBooleanSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredBooleanSet,
                         managedSetGetter = SetContainerClass::myBooleanSet,
                         managedCollectionGetter = SetContainerClass::myBooleanList,
                         initializedSet = listOf(VALUE_BOOLEAN_HELLO, null),
                         notPresentValue = VALUE_BOOLEAN_NOT_PRESENT,
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnBooleanSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnBooleanSet,
                         toArrayManaged = ToArrayManaged.BooleanManaged()
                 )
             SetSupportedType.DATE ->
                 ManagedSetTester<Date>(
                         testerName = "Date",
-                        setGetter = AllTypes::getColumnDateSet,
-                        setSetter = AllTypes::setColumnDateSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredDateSet,
+                        setGetter = SetAllTypes::getColumnDateSet,
+                        setSetter = SetAllTypes::setColumnDateSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredDateSet,
                         managedSetGetter = SetContainerClass::myDateSet,
                         managedCollectionGetter = SetContainerClass::myDateList,
                         initializedSet = listOf(VALUE_DATE_HELLO, VALUE_DATE_BYE, null),
                         notPresentValue = VALUE_DATE_NOT_PRESENT,
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnDateSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnDateSet,
                         toArrayManaged = ToArrayManaged.DateManaged()
                 )
             SetSupportedType.DECIMAL128 ->
                 ManagedSetTester<Decimal128>(
                         testerName = "Decimal128",
-                        setGetter = AllTypes::getColumnDecimal128Set,
-                        setSetter = AllTypes::setColumnDecimal128Set,
-                        requiredSetGetter = AllTypes::getColumnRequiredDecimal128Set,
+                        setGetter = SetAllTypes::getColumnDecimal128Set,
+                        setSetter = SetAllTypes::setColumnDecimal128Set,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredDecimal128Set,
                         managedSetGetter = SetContainerClass::myDecimal128Set,
                         managedCollectionGetter = SetContainerClass::myDecimal128List,
                         initializedSet = listOf(VALUE_DECIMAL128_HELLO, VALUE_DECIMAL128_BYE, null),
                         notPresentValue = VALUE_DECIMAL128_NOT_PRESENT,
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnDecimal128Set,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnDecimal128Set,
                         toArrayManaged = ToArrayManaged.Decimal128Managed()
                 )
             SetSupportedType.BINARY ->
                 ManagedSetTester<ByteArray>(
                         testerName = "Binary",
-                        setGetter = AllTypes::getColumnBinarySet,
-                        setSetter = AllTypes::setColumnBinarySet,
-                        requiredSetGetter = AllTypes::getColumnRequiredBinarySet,
+                        setGetter = SetAllTypes::getColumnBinarySet,
+                        setSetter = SetAllTypes::setColumnBinarySet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredBinarySet,
                         managedSetGetter = SetContainerClass::myBinarySet,
                         managedCollectionGetter = SetContainerClass::myBinaryList,
                         initializedSet = listOf(VALUE_BINARY_HELLO, VALUE_BINARY_BYE, null),
@@ -1006,47 +1005,47 @@ fun managedSetFactory(): List<SetTester> {
                         equalsTo = { expected, value ->
                             Arrays.equals(expected, value)
                         },
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnBinarySet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnBinarySet,
                         toArrayManaged = ToArrayManaged.BinaryManaged()
                 )
             SetSupportedType.OBJECT_ID ->
                 ManagedSetTester<ObjectId>(
                         testerName = "ObjectId",
-                        setGetter = AllTypes::getColumnObjectIdSet,
-                        setSetter = AllTypes::setColumnObjectIdSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredObjectIdSet,
+                        setGetter = SetAllTypes::getColumnObjectIdSet,
+                        setSetter = SetAllTypes::setColumnObjectIdSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredObjectIdSet,
                         managedSetGetter = SetContainerClass::myObjectIdSet,
                         managedCollectionGetter = SetContainerClass::myObjectIdList,
                         initializedSet = listOf(VALUE_OBJECT_ID_HELLO, VALUE_OBJECT_ID_BYE, null),
                         notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT,
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnObjectIdSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnObjectIdSet,
                         toArrayManaged = ToArrayManaged.ObjectIdManaged()
                 )
 
             SetSupportedType.UUID ->
                 ManagedSetTester<UUID>(
                         testerName = "UUID",
-                        setGetter = AllTypes::getColumnUUIDSet,
-                        setSetter = AllTypes::setColumnUUIDSet,
-                        requiredSetGetter = AllTypes::getColumnRequiredUUIDSet,
+                        setGetter = SetAllTypes::getColumnUUIDSet,
+                        setSetter = SetAllTypes::setColumnUUIDSet,
+                        requiredSetGetter = SetAllTypes::getColumnRequiredUUIDSet,
                         managedSetGetter = SetContainerClass::myUUIDSet,
                         managedCollectionGetter = SetContainerClass::myUUIDList,
                         initializedSet = listOf(VALUE_UUID_HELLO, VALUE_UUID_BYE, null),
                         notPresentValue = VALUE_UUID_NOT_PRESENT,
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnUUIDSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnUUIDSet,
                         toArrayManaged = ToArrayManaged.UUIDManaged()
                 )
 
             SetSupportedType.LINK ->
                 RealmModelManagedSetTester<DogPrimaryKey>(
                         testerName = "LINK",
-                        setGetter = AllTypes::getColumnRealmModelSet,
-                        setSetter = AllTypes::setColumnRealmModelSet,
+                        setGetter = SetAllTypes::getColumnRealmModelSet,
+                        setSetter = SetAllTypes::setColumnRealmModelSet,
                         managedSetGetter = SetContainerClass::myRealmModelSet,
                         managedCollectionGetter = SetContainerClass::myRealmModelList,
                         unmanagedInitializedSet = listOf(VALUE_LINK_HELLO, VALUE_LINK_BYE),
                         unmanagedNotPresentValue = VALUE_LINK_NOT_PRESENT,
-                        primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnRealmModelSet,
+                        primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnRealmModelSet,
                         toArrayManaged = ToArrayManaged.RealmModelManaged(),
                         insertObjects = { realm, objects ->
                             realm.copyToRealmOrUpdate(objects)
@@ -1071,8 +1070,8 @@ fun managedSetFactory(): List<SetTester> {
             // We add an extra test for Realm models without a PK
             .plus(NoPKRealmModelSetTester<Owner>(
                     testerName = "LINK_NO_PK",
-                    setGetter = AllTypes::getColumnRealmModelNoPkSet,
-                    setSetter = AllTypes::setColumnRealmModelNoPkSet,
+                    setGetter = SetAllTypes::getColumnRealmModelNoPkSet,
+                    setSetter = SetAllTypes::setColumnRealmModelNoPkSet,
                     managedSetGetter = SetContainerClass::myRealmModelNoPkSet,
                     managedCollectionGetter = SetContainerClass::myRealmModelNoPkList,
                     initializedSet = listOf(VALUE_LINK_NO_PK_HELLO, VALUE_LINK_NO_PK_BYE),
@@ -1084,8 +1083,8 @@ fun managedSetFactory(): List<SetTester> {
                 when (mixedType) {
                     MixedType.OBJECT -> RealmModelManagedSetTester<Mixed>(
                             testerName = "MIXED-${mixedType.name}",
-                            setGetter = AllTypes::getColumnMixedSet,
-                            setSetter = AllTypes::setColumnMixedSet,
+                            setGetter = SetAllTypes::getColumnMixedSet,
+                            setSetter = SetAllTypes::setColumnMixedSet,
                             managedSetGetter = SetContainerClass::myMixedSet,
                             managedCollectionGetter = SetContainerClass::myMixedList,
                             unmanagedInitializedSet = getMixedKeyValuePairs(mixedType).map {
@@ -1128,17 +1127,17 @@ fun managedSetFactory(): List<SetTester> {
                                     false
                                 }
                             },
-                            primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnMixedSet
+                            primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnMixedSet
                     )
                     MixedType.NULL -> NullMixedSetTester(
                             testerName = "MIXED-${mixedType.name}",
-                            setGetter = AllTypes::getColumnMixedSet
+                            setGetter = SetAllTypes::getColumnMixedSet
                     )
                     else -> ManagedSetTester<Mixed>(
                             testerName = "MIXED-${mixedType.name}",
                             mixedType = mixedType,
-                            setGetter = AllTypes::getColumnMixedSet,
-                            setSetter = AllTypes::setColumnMixedSet,
+                            setGetter = SetAllTypes::getColumnMixedSet,
+                            setSetter = SetAllTypes::setColumnMixedSet,
                             managedSetGetter = SetContainerClass::myMixedSet,
                             managedCollectionGetter = SetContainerClass::myMixedList,
                             initializedSet = getMixedKeyValuePairs(mixedType).map {
@@ -1149,7 +1148,7 @@ fun managedSetFactory(): List<SetTester> {
                             equalsTo = { expected, value ->
                                 (expected == null && value == Mixed.nullValue()) || ((expected != null) && (expected == value))
                             },
-                            primaryKeyAllTypesSetProperty = AllTypesPrimaryKey::columnMixedSet
+                            primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnMixedSet
                     )
                 }
             })

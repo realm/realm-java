@@ -18,6 +18,7 @@ package io.realm
 
 import io.realm.entities.AllTypes
 import io.realm.entities.DictionaryAllTypes
+import io.realm.entities.SetAllTypes
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
@@ -69,12 +70,12 @@ fun createAllTypesManagedContainerAndAssert(
     realm: Realm,
     id: String? = null,
     inTransaction: Boolean = false
-): AllTypes {
+): SetAllTypes {
     if (!inTransaction) {
         realm.beginTransaction()
     }
 
-    val allTypesObject: AllTypes = realm.createObject()
+    val allTypesObject: SetAllTypes = realm.createObject()
     assertNotNull(allTypesObject)
 
     // Assign id if we have one
@@ -87,9 +88,9 @@ fun createAllTypesManagedContainerAndAssert(
     }
 
     val allTypesObjectFromRealm = if (id == null) {
-        realm.where<AllTypes>().equalTo(AllTypes.FIELD_STRING, "").findFirst()
+        realm.where<SetAllTypes>().equalTo(AllTypes.FIELD_STRING, "").findFirst()
     } else {
-        realm.where<AllTypes>().equalTo(AllTypes.FIELD_STRING, id).findFirst()
+        realm.where<SetAllTypes>().equalTo(AllTypes.FIELD_STRING, id).findFirst()
     }
     assertEquals(allTypesObject, allTypesObjectFromRealm)
     return allTypesObject
