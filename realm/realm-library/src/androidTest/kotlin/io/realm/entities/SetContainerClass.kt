@@ -20,6 +20,7 @@ import io.realm.Mixed
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.RealmSet
+import io.realm.annotations.PrimaryKey
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.util.*
@@ -65,6 +66,38 @@ open class SetContainerClass : RealmObject() {
     }
 }
 
-//open class EmbeddedObjectDictionaryContainerClass : RealmObject() {
-//    val myEmbeddedObjectDictionary = RealmDictionary<EmbeddedSimpleChild>()
-//}
+open class SetContainerMigrationClass : RealmObject() {
+
+    @PrimaryKey
+    var id: String? = ""
+
+    val myRealmModelSet = RealmSet<StringOnly>()
+    val myBooleanSet = RealmSet<Boolean>()
+    val myStringSet = RealmSet<String>()
+    val myIntSet = RealmSet<Int>()
+    val myFloatSet = RealmSet<Float>()
+    val myLongSet = RealmSet<Long>()
+    val myShortSet = RealmSet<Short>()
+    val myDoubleSet = RealmSet<Double>()
+    val myByteSet = RealmSet<Byte>()
+    val myBinarySet = RealmSet<ByteArray>()
+    val myDateSet = RealmSet<Date>()
+    val myObjectIdSet = RealmSet<ObjectId>()
+    val myUUIDSet = RealmSet<UUID>()
+    val myDecimal128Set = RealmSet<Decimal128>()
+    val myMixedSet = RealmSet<Mixed>()
+
+    companion object {
+        const val CLASS_NAME = "SetContainerMigrationClass"
+    }
+}
+
+open class SetContainerAfterMigrationClass : RealmObject() {
+
+    @PrimaryKey
+    var id: String? = ""
+
+    companion object {
+        const val CLASS_NAME = "SetContainerAfterMigrationClass"
+    }
+}

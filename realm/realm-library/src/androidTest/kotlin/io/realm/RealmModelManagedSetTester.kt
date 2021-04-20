@@ -16,14 +16,13 @@
 
 package io.realm
 
-import io.realm.entities.AllTypes
-import io.realm.entities.AllTypesPrimaryKey
 import io.realm.entities.DogPrimaryKey
 import io.realm.entities.SetContainerClass
 import io.realm.kotlin.createObject
 import io.realm.rule.BlockingLooperThread
 import java.lang.IllegalArgumentException
-import java.lang.UnsupportedOperationException
+import io.realm.entities.SetAllTypes
+import io.realm.entities.SetAllTypesPrimaryKey
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 import kotlin.reflect.KMutableProperty1
@@ -39,8 +38,8 @@ import kotlin.test.*
 class RealmModelManagedSetTester<T : Any>(
     private val testerName: String,
     private val mixedType: MixedType? = null,
-    private val setGetter: KFunction1<AllTypes, RealmSet<T>>,
-    private val setSetter: KFunction2<AllTypes, RealmSet<T>, Unit>,
+    private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
+    private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
     private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
     private val managedCollectionGetter: KProperty1<SetContainerClass, RealmList<T>>,
     private val unmanagedInitializedSet: List<T?>,
@@ -50,7 +49,7 @@ class RealmModelManagedSetTester<T : Any>(
     private val deleteObjects: (objects: List<T?>) -> Unit,
     private val nullable: Boolean,
     private val equalsTo: (expected: T?, value: T?) -> Boolean,
-    private val primaryKeyAllTypesSetProperty: KMutableProperty1<AllTypesPrimaryKey, RealmSet<T>>
+    private val primaryKeyAllTypesSetProperty: KMutableProperty1<SetAllTypesPrimaryKey, RealmSet<T>>
 ) : SetTester {
 
     private lateinit var managedTester: ManagedSetTester<T>
@@ -426,7 +425,7 @@ class RealmModelManagedSetTester<T : Any>(
     override fun hasListeners() = Unit
 
     override fun aggregations() {
-        if (mixedType == null){
+        if (mixedType == null) {
             val set = initAndAssertEmptySet()
 
             realm.executeTransaction {
@@ -447,7 +446,7 @@ class RealmModelManagedSetTester<T : Any>(
                 set.deleteAllFromRealm()
                 assertTrue(set.isEmpty())
 
-                for (element in managedInitializedSet){
+                for (element in managedInitializedSet) {
                     assertFalse(RealmObject.isValid(element as RealmModel))
                 }
             }

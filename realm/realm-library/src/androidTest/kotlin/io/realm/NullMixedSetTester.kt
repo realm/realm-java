@@ -16,7 +16,7 @@
 
 package io.realm
 
-import io.realm.entities.AllTypes
+import io.realm.entities.SetAllTypes
 import io.realm.rule.BlockingLooperThread
 import java.util.*
 import kotlin.reflect.KFunction1
@@ -28,7 +28,7 @@ import kotlin.test.*
  */
 class NullMixedSetTester(
     private val testerName: String,
-    private val setGetter: KFunction1<AllTypes, RealmSet<Mixed>>
+    private val setGetter: KFunction1<SetAllTypes, RealmSet<Mixed>>
 ) : SetTester {
     private lateinit var config: RealmConfiguration
     private lateinit var looperThread: BlockingLooperThread
@@ -44,9 +44,9 @@ class NullMixedSetTester(
 
     override fun tearDown() = realm.close()
 
-    override fun isManaged() = assertTrue(initAndAssertEmptySet().isManaged)
+    override fun isManaged() = assertTrue(initAndAssertEmptySet(id = "id").isManaged)
 
-    override fun isValid() = assertTrue(initAndAssertEmptySet().isValid)
+    override fun isValid() = assertTrue(initAndAssertEmptySet(id = "id").isValid)
 
     override fun isFrozen() = Unit // Tested in frozen
 
@@ -55,7 +55,7 @@ class NullMixedSetTester(
     override fun copyToRealmOrUpdate() = Unit // Not applicable
 
     override fun size() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.add(Mixed.nullValue())
@@ -67,7 +67,7 @@ class NullMixedSetTester(
     }
 
     override fun isEmpty() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         assertTrue(set.isEmpty())
 
@@ -80,7 +80,7 @@ class NullMixedSetTester(
     }
 
     override fun contains() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         assertFalse(set.contains(Mixed.nullValue()))
         assertFalse(set.contains(Mixed.nullValue()))
@@ -95,7 +95,7 @@ class NullMixedSetTester(
     override fun toArrayWithParameter() = Unit // Not tested
 
     override fun add() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             assertTrue(set.add(Mixed.nullValue()))
@@ -107,7 +107,7 @@ class NullMixedSetTester(
     }
 
     override fun remove() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.add(Mixed.nullValue())
@@ -124,7 +124,7 @@ class NullMixedSetTester(
     }
 
     override fun containsAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             assertFalse(set.containsAll(listOf(Mixed.nullValue(), Mixed.nullValue())))
@@ -143,7 +143,7 @@ class NullMixedSetTester(
     }
 
     override fun addAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             // Changes after adding collection
@@ -165,7 +165,7 @@ class NullMixedSetTester(
     }
 
     override fun retainAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             // Does not change after empty set intersects with another collection
@@ -185,7 +185,7 @@ class NullMixedSetTester(
     }
 
     override fun removeAll() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             // Does not change after removing a some values from an empty set
@@ -207,7 +207,7 @@ class NullMixedSetTester(
     }
 
     override fun clear() {
-        val set = initAndAssertEmptySet()
+        val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
             set.add(Mixed.nullValue())
@@ -237,8 +237,11 @@ class NullMixedSetTester(
     // Private stuff
     //----------------------------------
 
-    private fun initAndAssertEmptySet(realm: Realm = this.realm): RealmSet<Mixed> {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+    private fun initAndAssertEmptySet(
+        realm: Realm = this.realm,
+        id: String? = null
+    ): RealmSet<Mixed> {
+        val allTypesObject = createAllTypesManagedContainerAndAssert(realm, id)
         assertNotNull(allTypesObject)
         val set = setGetter.call(allTypesObject)
         assertTrue(set.isEmpty())
