@@ -265,14 +265,14 @@ class SyncSessionTests {
     fun uploadDownloadAllChangesWithFloatFails() {
         val config = configFactory
                 .createSyncConfigurationBuilder(user, syncConfiguration.partitionValue)
-                .testSchema(SyncAllTypesWithFloat::class.java, SyncDog::class.java, SyncPerson::class.java)
+                .testSchema(SyncAllTypesWithFloat::class.java, SyncAllTypes::class.java, SyncDog::class.java, SyncPerson::class.java)
                 .build()
 
         Realm.getInstance(config).use { realm ->
             realm.executeTransaction {
                 realm.createObject(SyncAllTypesWithFloat::class.java, ObjectId())
             }
-            assertFailsWithErrorCode(ErrorCode.INVALID_SCHEMA_CHANGE) {
+            assertFailsWithErrorCode(ErrorCode.BAD_CHANGESET) {
                 realm.syncSession.uploadAllLocalChanges()
             }
         }
