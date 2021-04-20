@@ -15,8 +15,6 @@
  */
 package io.realm;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.junit.Test;
@@ -25,6 +23,7 @@ import org.junit.runner.RunWith;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.BacklinksTarget;
 import io.realm.entities.NullTypes;
@@ -473,18 +472,40 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
                     break;
                 case STRING_TO_MIXED_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_MIXED_DICTIONARY).count());
+                    break;
                 case STRING_TO_BOOLEAN_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN_DICTIONARY).count());
+                    break;
                 case STRING_TO_STRING_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_STRING_DICTIONARY).count());
+                    break;
                 case STRING_TO_INTEGER_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_INTEGER_DICTIONARY).count());
+                    break;
                 case STRING_TO_FLOAT_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_FLOAT_DICTIONARY).count());
+                    break;
                 case STRING_TO_DOUBLE_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DOUBLE_DICTIONARY).count());
+                    break;
                 case STRING_TO_BINARY_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BINARY_DICTIONARY).count());
+                    break;
                 case STRING_TO_DATE_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DATE_DICTIONARY).count());
+                    break;
                 case STRING_TO_OBJECT_ID_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    break;
                 case STRING_TO_UUID_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_UUID_DICTIONARY).count());
+                    break;
                 case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DECIMAL128_DICTIONARY).count());
+                    break;
                 case STRING_TO_LINK_MAP:
-                    // TODO: fix this when adding support for dictionary in AllJavaTypes
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -560,18 +581,40 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
                     break;
                 case STRING_TO_MIXED_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_MIXED_DICTIONARY).count());
+                    break;
                 case STRING_TO_BOOLEAN_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BOOLEAN_DICTIONARY).count());
+                    break;
                 case STRING_TO_STRING_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING_DICTIONARY).count());
+                    break;
                 case STRING_TO_INTEGER_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_INTEGER_DICTIONARY).count());
+                    break;
                 case STRING_TO_FLOAT_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_FLOAT_DICTIONARY).count());
+                    break;
                 case STRING_TO_DOUBLE_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DOUBLE_DICTIONARY).count());
+                    break;
                 case STRING_TO_BINARY_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY_DICTIONARY).count());
+                    break;
                 case STRING_TO_DATE_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DATE_DICTIONARY).count());
+                    break;
                 case STRING_TO_OBJECT_ID_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    break;
                 case STRING_TO_UUID_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_UUID_DICTIONARY).count());
+                    break;
                 case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DECIMAL128_DICTIONARY).count());
+                    break;
                 case STRING_TO_LINK_MAP:
-                    // TODO: fix this when adding support for dictionary in AllJavaTypes
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -674,18 +717,40 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
                     break;
                 case STRING_TO_MIXED_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_MIXED_DICTIONARY).count());
+                    break;
                 case STRING_TO_BOOLEAN_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN_DICTIONARY).count());
+                    break;
                 case STRING_TO_STRING_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_STRING_DICTIONARY).count());
+                    break;
                 case STRING_TO_INTEGER_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_INTEGER_DICTIONARY).count());
+                    break;
                 case STRING_TO_FLOAT_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_FLOAT_DICTIONARY).count());
+                    break;
                 case STRING_TO_DOUBLE_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DOUBLE_DICTIONARY).count());
+                    break;
                 case STRING_TO_BINARY_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BINARY_DICTIONARY).count());
+                    break;
                 case STRING_TO_DATE_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DATE_DICTIONARY).count());
+                    break;
                 case STRING_TO_OBJECT_ID_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    break;
                 case STRING_TO_UUID_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_UUID_DICTIONARY).count());
+                    break;
                 case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DECIMAL128_DICTIONARY).count());
+                    break;
                 case STRING_TO_LINK_MAP:
-                    // TODO: fix this when adding support for dictionary in AllJavaTypes
+                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -759,18 +824,40 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
                     break;
                 case STRING_TO_MIXED_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_MIXED_DICTIONARY).count());
+                    break;
                 case STRING_TO_BOOLEAN_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BOOLEAN_DICTIONARY).count());
+                    break;
                 case STRING_TO_STRING_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING_DICTIONARY).count());
+                    break;
                 case STRING_TO_INTEGER_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_INTEGER_DICTIONARY).count());
+                    break;
                 case STRING_TO_FLOAT_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_FLOAT_DICTIONARY).count());
+                    break;
                 case STRING_TO_DOUBLE_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DOUBLE_DICTIONARY).count());
+                    break;
                 case STRING_TO_BINARY_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY_DICTIONARY).count());
+                    break;
                 case STRING_TO_DATE_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DATE_DICTIONARY).count());
+                    break;
                 case STRING_TO_OBJECT_ID_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    break;
                 case STRING_TO_UUID_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_UUID_DICTIONARY).count());
+                    break;
                 case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DECIMAL128_DICTIONARY).count());
+                    break;
                 case STRING_TO_LINK_MAP:
-                    // TODO: fix this when adding support for dictionary in AllJavaTypes
+                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
