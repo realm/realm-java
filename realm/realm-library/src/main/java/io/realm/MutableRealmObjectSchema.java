@@ -188,6 +188,33 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     }
 
     @Override
+    public RealmObjectSchema addRealmSetField(String fieldName, RealmObjectSchema objectSchema) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+        table.addColumnSetLink(RealmFieldType.LINK_SET, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        return this;
+    }
+
+    @Override
+    public RealmObjectSchema addRealmSetField(String fieldName, Class<?> primitiveType) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+
+        FieldMetaData metadata = SUPPORTED_SET_SIMPLE_FIELDS.get(primitiveType);
+        if (metadata == null) {
+            if (primitiveType.equals(RealmObjectSchema.class) || RealmModel.class.isAssignableFrom(primitiveType)) {
+                throw new IllegalArgumentException("Use 'addRealmSetField(String name, RealmObjectSchema schema)' instead to add sets that link to other RealmObjects: " + fieldName);
+            } else {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "RealmSet does not support sets with this type: %s(%s)",
+                        fieldName, primitiveType));
+            }
+        }
+        table.addColumn(metadata.collectionType, fieldName, metadata.defaultNullable);
+        return this;
+    }
+
+    @Override
     public RealmObjectSchema removeField(String fieldName) {
         realm.checkNotInSync(); // destructive modification of a schema is not permitted
         checkLegalName(fieldName);
