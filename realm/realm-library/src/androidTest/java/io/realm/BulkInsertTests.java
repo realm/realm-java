@@ -89,6 +89,7 @@ public class BulkInsertTests {
     }
 
     // The purpose of this test case is to catch when insert supports objects containing dictionaries
+    // See: https://github.com/realm/realm-java/issues/7435
     @Test(expected = IllegalStateException.class)
     public void catchInsertSupportsDictionaries(){
         DictionaryAllTypes dictionaryAllTypes = new DictionaryAllTypes();
@@ -96,6 +97,7 @@ public class BulkInsertTests {
     }
 
     // The purpose of this test case is to catch when insertOrUpdate supports objects containing dictionaries
+    // See: https://github.com/realm/realm-java/issues/7435
     @Test(expected = IllegalStateException.class)
     public void catchInsertOrUpdateSupportsDictionaries(){
         DictionaryAllTypes dictionaryAllTypes = new DictionaryAllTypes();
