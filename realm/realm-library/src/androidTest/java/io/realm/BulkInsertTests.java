@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,6 +42,7 @@ import io.realm.entities.Cat;
 import io.realm.entities.CatOwner;
 import io.realm.entities.CyclicType;
 import io.realm.entities.CyclicTypePrimaryKey;
+import io.realm.entities.DictionaryAllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.DogPrimaryKey;
 import io.realm.entities.HumanModule;
@@ -86,7 +88,22 @@ public class BulkInsertTests {
         }
     }
 
+    // The purpose of this test case is to catch when insert supports objects containing dictionaries
+    @Test(expected = IllegalStateException.class)
+    public void catchInsertSupportsDictionaries(){
+        DictionaryAllTypes dictionaryAllTypes = new DictionaryAllTypes();
+        realm.insert(dictionaryAllTypes);
+    }
+
+    // The purpose of this test case is to catch when insertOrUpdate supports objects containing dictionaries
+    @Test(expected = IllegalStateException.class)
+    public void catchInsertOrUpdateSupportsDictionaries(){
+        DictionaryAllTypes dictionaryAllTypes = new DictionaryAllTypes();
+        realm.insertOrUpdate(dictionaryAllTypes);
+    }
+
     @Test
+    @Ignore("Calls to 'insert' with RealmModels containing RealmDictionary properties are not supported yet. See: https://github.com/realm/realm-java/issues/7435")
     public void insert() {
         AllJavaTypes obj = new AllJavaTypes();
         obj.setFieldIgnored("cookie");
@@ -387,6 +404,7 @@ public class BulkInsertTests {
     }
 
     @Test
+    @Ignore("Calls to 'insert' with RealmModels containing RealmDictionary properties are not supported yet. See: https://github.com/realm/realm-java/issues/7435")
     public void insert_duplicatedPrimaryKeyFails() {
 
         // Single object with 2 references to two objects with the same ID
@@ -833,6 +851,7 @@ public class BulkInsertTests {
 
     // Inserting a managed object will result in it being copied or updated again.
     @Test
+    @Ignore("Calls to 'insertOrUpdate' with RealmModels containing RealmDictionary properties are not supported yet. See: https://github.com/realm/realm-java/issues/7435")
     public void insertOrUpdate_managedObject() {
         AllJavaTypes obj = new AllJavaTypes();
         obj.setFieldId(42);
@@ -867,6 +886,7 @@ public class BulkInsertTests {
     }
 
     @Test
+    @Ignore("Calls to 'insertOrUpdate' with RealmModels containing RealmDictionary properties are not supported yet. See: https://github.com/realm/realm-java/issues/7435")
     public void insertOrUpdate_linkingManagedToUnmanagedObject() {
         realm.beginTransaction();
         AllJavaTypes managedAllJavaTypes = realm.createObject(AllJavaTypes.class, 42);
@@ -941,6 +961,7 @@ public class BulkInsertTests {
     }
 
     @Test
+    @Ignore("Calls to 'insertOrUpdate' with RealmModels containing RealmDictionary properties are not supported yet. See: https://github.com/realm/realm-java/issues/7435")
     public void insertOrUpdate_ownList() {
         realm.beginTransaction();
         AllJavaTypes managedObj = realm.createObject(AllJavaTypes.class, 1);
