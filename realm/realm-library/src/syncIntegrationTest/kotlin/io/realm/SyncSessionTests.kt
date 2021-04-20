@@ -262,18 +262,17 @@ class SyncSessionTests {
     //  Once this test fails (meaning that the full schema can be uploaded) the test can be removed
     //  and we can include the float field in SyncAllTypes
     @Test
-    @Ignore("Issue fixed. Disabled until upcomming changes come from datatypes branch.")
     fun uploadDownloadAllChangesWithFloatFails() {
         val config = configFactory
                 .createSyncConfigurationBuilder(user, syncConfiguration.partitionValue)
-                .testSchema(SyncAllTypesWithFloat::class.java, SyncDog::class.java, SyncPerson::class.java)
+                .testSchema(SyncAllTypesWithFloat::class.java, SyncAllTypes::class.java, SyncDog::class.java, SyncPerson::class.java)
                 .build()
 
         Realm.getInstance(config).use { realm ->
             realm.executeTransaction {
                 realm.createObject(SyncAllTypesWithFloat::class.java, ObjectId())
             }
-            assertFailsWithErrorCode(ErrorCode.INVALID_SCHEMA_CHANGE) {
+            assertFailsWithErrorCode(ErrorCode.BAD_CHANGESET) {
                 realm.syncSession.uploadAllLocalChanges()
             }
         }
