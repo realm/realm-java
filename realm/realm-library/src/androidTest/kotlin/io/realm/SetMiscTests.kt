@@ -18,22 +18,19 @@ package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.realm.entities.SetContainerAfterMigrationClass
-import io.realm.entities.SetContainerMigrationClass
-import io.realm.entities.StringOnly
+import io.realm.entities.*
 import io.realm.kotlin.createObject
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
 class SetMiscTests {
@@ -241,5 +238,101 @@ class SetMiscTests {
         assertEquals(1, objectSchema.fieldNames.size)
 
         realm.close()
+    }
+
+    @Test
+    fun insert_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            assertFailsWith<UnsupportedOperationException> {
+                realm.insert(SetContainerMigrationClass())
+            }
+        }
+    }
+
+    @Test
+    fun insertOrUpdate_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            assertFailsWith<UnsupportedOperationException> {
+                realm.insertOrUpdate(SetContainerMigrationClass())
+            }
+        }
+    }
+
+    @Test
+    fun createAllFromJson_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val jsonArray = "[{ \"columnLong\" : 1 }]"
+
+            // createAllFromJson
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createAllFromJson(SetContainerClass::class.java, jsonArray)
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createAllFromJson(SetContainerClass::class.java, JSONArray(jsonArray))
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createAllFromJson(SetContainerClass::class.java, TestHelper.stringToStream(jsonArray))
+            }
+        }
+    }
+
+    @Test
+    fun createObjectFromJson_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val jsonObject = "{ \"columnLong\" : 1 }"
+
+            // createObjectFromJson
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createObjectFromJson(SetContainerClass::class.java, jsonObject)
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createObjectFromJson(SetContainerClass::class.java, JSONObject(jsonObject))
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createObjectFromJson(SetContainerClass::class.java, TestHelper.stringToStream(jsonObject))
+            }
+        }
+    }
+
+    @Test
+    fun createOrUpdateAllFromJson_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val jsonArray = "[{ \"columnLong\" : 1 }]"
+
+            // createOrUpdateAllFromJson
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateAllFromJson(SetContainerMigrationClass::class.java, jsonArray)
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateAllFromJson(SetContainerMigrationClass::class.java, JSONArray(jsonArray))
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateAllFromJson(SetContainerMigrationClass::class.java, TestHelper.stringToStream(jsonArray))
+            }
+        }
+    }
+
+    @Test
+    fun createOrUpdateObjectFromJson_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val jsonObject = "{ \"columnLong\" : 1 }"
+
+            // createOrUpdateObjectFromJson
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateObjectFromJson(SetContainerMigrationClass::class.java, jsonObject)
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateObjectFromJson(SetContainerMigrationClass::class.java, JSONObject(jsonObject))
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateObjectFromJson(SetContainerMigrationClass::class.java, TestHelper.stringToStream(jsonObject))
+            }
+        }
     }
 }

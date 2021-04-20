@@ -20,6 +20,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DictionaryContainerClass
 import io.realm.entities.EmbeddedObjectDictionaryContainerClass
+import io.realm.entities.PrimaryKeyDictionaryContainer
 import io.realm.entities.StringOnly
 import io.realm.entities.embedded.EmbeddedSimpleChild
 import io.realm.entities.embedded.EmbeddedSimpleParent
@@ -27,6 +28,8 @@ import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -195,6 +198,82 @@ class DictionaryMiscTests {
         realm.executeTransaction {
             assertFailsWith<UnsupportedOperationException> {
                 realm.insertOrUpdate(DictionaryContainerClass())
+            }
+        }
+    }
+
+    @Test
+    fun createAllFromJson_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val jsonArray = "[{ \"columnLong\" : 1 }]"
+
+            // createAllFromJson
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createAllFromJson(DictionaryContainerClass::class.java, jsonArray)
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createAllFromJson(DictionaryContainerClass::class.java, JSONArray(jsonArray))
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createAllFromJson(DictionaryContainerClass::class.java, TestHelper.stringToStream(jsonArray))
+            }
+        }
+    }
+
+    @Test
+    fun createObjectFromJson_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val jsonObject = "{ \"columnLong\" : 1 }"
+
+            // createObjectFromJson
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createObjectFromJson(DictionaryContainerClass::class.java, jsonObject)
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createObjectFromJson(DictionaryContainerClass::class.java, JSONObject(jsonObject))
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createObjectFromJson(DictionaryContainerClass::class.java, TestHelper.stringToStream(jsonObject))
+            }
+        }
+    }
+
+    @Test
+    fun createOrUpdateAllFromJson_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val jsonArray = "[{ \"columnLong\" : 1 }]"
+
+            // createOrUpdateAllFromJson
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateAllFromJson(PrimaryKeyDictionaryContainer::class.java, jsonArray)
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateAllFromJson(PrimaryKeyDictionaryContainer::class.java, JSONArray(jsonArray))
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateAllFromJson(PrimaryKeyDictionaryContainer::class.java, TestHelper.stringToStream(jsonArray))
+            }
+        }
+    }
+
+    @Test
+    fun createOrUpdateObjectFromJson_unsupportedOperation() {
+        realm = Realm.getInstance(configFactory.createConfiguration())
+        realm.executeTransaction {
+            val jsonObject = "{ \"columnLong\" : 1 }"
+
+            // createOrUpdateObjectFromJson
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateObjectFromJson(PrimaryKeyDictionaryContainer::class.java, jsonObject)
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateObjectFromJson(PrimaryKeyDictionaryContainer::class.java, JSONObject(jsonObject))
+            }
+            assertFailsWith<UnsupportedOperationException> {
+                realm.createOrUpdateObjectFromJson(PrimaryKeyDictionaryContainer::class.java, TestHelper.stringToStream(jsonObject))
             }
         }
     }
