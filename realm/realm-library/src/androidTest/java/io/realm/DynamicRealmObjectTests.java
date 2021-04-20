@@ -1569,15 +1569,7 @@ public class DynamicRealmObjectTests {
                 AllJavaTypes.FIELD_LONG_LIST, AllJavaTypes.FIELD_INTEGER_LIST, AllJavaTypes.FIELD_SHORT_LIST,
                 AllJavaTypes.FIELD_BYTE_LIST, AllJavaTypes.FIELD_DOUBLE_LIST, AllJavaTypes.FIELD_FLOAT_LIST,
                 AllJavaTypes.FIELD_DATE_LIST, AllJavaTypes.FIELD_DECIMAL128_LIST, AllJavaTypes.FIELD_OBJECT_ID_LIST,
-                AllJavaTypes.FIELD_UUID_LIST, AllJavaTypes.FIELD_MIXED_LIST,
-                AllJavaTypes.FIELD_LINK_DICTIONARY, AllJavaTypes.FIELD_BOOLEAN_DICTIONARY,
-                AllJavaTypes.FIELD_STRING_DICTIONARY, AllJavaTypes.FIELD_INTEGER_DICTIONARY,
-                AllJavaTypes.FIELD_FLOAT_DICTIONARY, AllJavaTypes.FIELD_LONG_DICTIONARY,
-                AllJavaTypes.FIELD_SHORT_DICTIONARY, AllJavaTypes.FIELD_DOUBLE_DICTIONARY,
-                AllJavaTypes.FIELD_BYTE_DICTIONARY, AllJavaTypes.FIELD_BINARY_DICTIONARY,
-                AllJavaTypes.FIELD_DATE_DICTIONARY, AllJavaTypes.FIELD_OBJECTID_DICTIONARY,
-                AllJavaTypes.FIELD_UUID_DICTIONARY, AllJavaTypes.FIELD_DECIMAL128_DICTIONARY,
-                AllJavaTypes.FIELD_MIXED_DICTIONARY};
+                AllJavaTypes.FIELD_UUID_LIST, AllJavaTypes.FIELD_MIXED_LIST};
         String[] keys = dObjTyped.getFieldNames();
         // After the stable ID support, primary key field will be inserted first before others. So even FIELD_STRING is
         // the first defined field in the class, it will be inserted after FIELD_ID.

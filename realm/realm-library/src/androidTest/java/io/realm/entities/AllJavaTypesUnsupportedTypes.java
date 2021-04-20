@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.UUID;
 
 import io.realm.Mixed;
+import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
@@ -32,7 +33,7 @@ import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 
 
-public class AllJavaTypes extends RealmObject {
+public class AllJavaTypesUnsupportedTypes extends RealmObject {
 
     public static final String CLASS_NAME = "AllJavaTypes";
 
@@ -69,6 +70,22 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_OBJECT_ID_LIST = "fieldObjectIdList";
     public static final String FIELD_UUID_LIST = "fieldUUIDList";
     public static final String FIELD_MIXED_LIST = "fieldMixedList";
+
+    public static final String FIELD_LINK_DICTIONARY = "columnRealmDictionary";
+    public static final String FIELD_BOOLEAN_DICTIONARY = "columnBooleanDictionary";
+    public static final String FIELD_STRING_DICTIONARY = "columnStringDictionary";
+    public static final String FIELD_INTEGER_DICTIONARY = "columnIntegerDictionary";
+    public static final String FIELD_FLOAT_DICTIONARY = "columnFloatDictionary";
+    public static final String FIELD_LONG_DICTIONARY = "columnLongDictionary";
+    public static final String FIELD_SHORT_DICTIONARY = "columnShortDictionary";
+    public static final String FIELD_DOUBLE_DICTIONARY = "columnDoubleDictionary";
+    public static final String FIELD_BYTE_DICTIONARY = "columnByteDictionary";
+    public static final String FIELD_BINARY_DICTIONARY = "columnBinaryDictionary";
+    public static final String FIELD_DATE_DICTIONARY = "columnDateDictionary";
+    public static final String FIELD_OBJECTID_DICTIONARY = "columnObjectIdDictionary";
+    public static final String FIELD_UUID_DICTIONARY = "columnUUIDDictionary";
+    public static final String FIELD_DECIMAL128_DICTIONARY = "columnDecimal128Dictionary";
+    public static final String FIELD_MIXED_DICTIONARY = "columnMixedDictionary";
 
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
@@ -109,8 +126,8 @@ public class AllJavaTypes extends RealmObject {
     private ObjectId fieldObjectId;
     private UUID fieldUUID;
     private Mixed fieldMixed;
-    private AllJavaTypes fieldObject;
-    private RealmList<AllJavaTypes> fieldList;
+    private AllJavaTypesUnsupportedTypes fieldObject;
+    private RealmList<AllJavaTypesUnsupportedTypes> fieldList;
 
     private RealmList<String> fieldStringList;
     private RealmList<byte[]> fieldBinaryList;
@@ -127,16 +144,32 @@ public class AllJavaTypes extends RealmObject {
     private RealmList<UUID> fieldUUIDList;
     private RealmList<Mixed> fieldMixedList;
 
+    private RealmDictionary<AllJavaTypesUnsupportedTypes> columnRealmDictionary;
+    private RealmDictionary<Boolean> columnBooleanDictionary;
+    private RealmDictionary<String> columnStringDictionary;
+    private RealmDictionary<Integer> columnIntegerDictionary;
+    private RealmDictionary<Float> columnFloatDictionary;
+    private RealmDictionary<Long> columnLongDictionary;
+    private RealmDictionary<Short> columnShortDictionary;
+    private RealmDictionary<Double> columnDoubleDictionary;
+    private RealmDictionary<Byte> columnByteDictionary;
+    private RealmDictionary<byte[]> columnBinaryDictionary;
+    private RealmDictionary<Date> columnDateDictionary;
+    private RealmDictionary<ObjectId> columnObjectIdDictionary;
+    private RealmDictionary<UUID> columnUUIDDictionary;
+    private RealmDictionary<Decimal128> columnDecimal128Dictionary;
+    private RealmDictionary<Mixed> columnMixedDictionary;
+
     @LinkingObjects(FIELD_OBJECT)
-    private final RealmResults<AllJavaTypes> objectParents = null;
+    private final RealmResults<AllJavaTypesUnsupportedTypes> objectParents = null;
 
     @LinkingObjects(FIELD_LIST)
-    private final RealmResults<AllJavaTypes> listParents = null;
+    private final RealmResults<AllJavaTypesUnsupportedTypes> listParents = null;
 
-    public AllJavaTypes() {
+    public AllJavaTypesUnsupportedTypes() {
     }
 
-    public AllJavaTypes(long fieldLong) {
+    public AllJavaTypesUnsupportedTypes(long fieldLong) {
         this.fieldId = fieldLong;
         this.fieldLong = fieldLong;
     }
@@ -237,19 +270,19 @@ public class AllJavaTypes extends RealmObject {
         this.fieldBinary = fieldBinary;
     }
 
-    public AllJavaTypes getFieldObject() {
+    public AllJavaTypesUnsupportedTypes getFieldObject() {
         return fieldObject;
     }
 
-    public void setFieldObject(AllJavaTypes columnRealmObject) {
+    public void setFieldObject(AllJavaTypesUnsupportedTypes columnRealmObject) {
         this.fieldObject = columnRealmObject;
     }
 
-    public RealmList<AllJavaTypes> getFieldList() {
+    public RealmList<AllJavaTypesUnsupportedTypes> getFieldList() {
         return fieldList;
     }
 
-    public void setFieldList(RealmList<AllJavaTypes> columnRealmList) {
+    public void setFieldList(RealmList<AllJavaTypesUnsupportedTypes> columnRealmList) {
         this.fieldList = columnRealmList;
     }
 
@@ -397,11 +430,131 @@ public class AllJavaTypes extends RealmObject {
         this.fieldMixedList = fieldMixedList;
     }
 
-    public RealmResults<AllJavaTypes> getObjectParents() {
+    public RealmResults<AllJavaTypesUnsupportedTypes> getObjectParents() {
         return objectParents;
     }
 
-    public RealmResults<AllJavaTypes> getListParents() {
+    public RealmResults<AllJavaTypesUnsupportedTypes> getListParents() {
         return listParents;
+    }
+
+    public RealmDictionary<AllJavaTypesUnsupportedTypes> getColumnRealmDictionary() {
+        return columnRealmDictionary;
+    }
+
+    public void setColumnRealmDictionary(RealmDictionary<AllJavaTypesUnsupportedTypes> columnRealmDictionary) {
+        this.columnRealmDictionary = columnRealmDictionary;
+    }
+
+    public RealmDictionary<Boolean> getColumnBooleanDictionary() {
+        return columnBooleanDictionary;
+    }
+
+    public void setColumnBooleanDictionary(RealmDictionary<Boolean> columnBooleanDictionary) {
+        this.columnBooleanDictionary = columnBooleanDictionary;
+    }
+
+    public RealmDictionary<String> getColumnStringDictionary() {
+        return columnStringDictionary;
+    }
+
+    public void setColumnStringDictionary(RealmDictionary<String> columnStringDictionary) {
+        this.columnStringDictionary = columnStringDictionary;
+    }
+
+    public RealmDictionary<Integer> getColumnIntegerDictionary() {
+        return columnIntegerDictionary;
+    }
+
+    public void setColumnIntegerDictionary(RealmDictionary<Integer> columnIntegerDictionary) {
+        this.columnIntegerDictionary = columnIntegerDictionary;
+    }
+
+    public RealmDictionary<Float> getColumnFloatDictionary() {
+        return columnFloatDictionary;
+    }
+
+    public void setColumnFloatDictionary(RealmDictionary<Float> columnFloatDictionary) {
+        this.columnFloatDictionary = columnFloatDictionary;
+    }
+
+    public RealmDictionary<Long> getColumnLongDictionary() {
+        return columnLongDictionary;
+    }
+
+    public void setColumnLongDictionary(RealmDictionary<Long> columnLongDictionary) {
+        this.columnLongDictionary = columnLongDictionary;
+    }
+
+    public RealmDictionary<Short> getColumnShortDictionary() {
+        return columnShortDictionary;
+    }
+
+    public void setColumnShortDictionary(RealmDictionary<Short> columnShortDictionary) {
+        this.columnShortDictionary = columnShortDictionary;
+    }
+
+    public RealmDictionary<Double> getColumnDoubleDictionary() {
+        return columnDoubleDictionary;
+    }
+
+    public void setColumnDoubleDictionary(RealmDictionary<Double> columnDoubleDictionary) {
+        this.columnDoubleDictionary = columnDoubleDictionary;
+    }
+
+    public RealmDictionary<Byte> getColumnByteDictionary() {
+        return columnByteDictionary;
+    }
+
+    public void setColumnByteDictionary(RealmDictionary<Byte> columnByteDictionary) {
+        this.columnByteDictionary = columnByteDictionary;
+    }
+
+    public RealmDictionary<byte[]> getColumnBinaryDictionary() {
+        return columnBinaryDictionary;
+    }
+
+    public void setColumnBinaryDictionary(RealmDictionary<byte[]> columnBinaryDictionary) {
+        this.columnBinaryDictionary = columnBinaryDictionary;
+    }
+
+    public RealmDictionary<Date> getColumnDateDictionary() {
+        return columnDateDictionary;
+    }
+
+    public void setColumnDateDictionary(RealmDictionary<Date> columnDateDictionary) {
+        this.columnDateDictionary = columnDateDictionary;
+    }
+
+    public RealmDictionary<ObjectId> getColumnObjectIdDictionary() {
+        return columnObjectIdDictionary;
+    }
+
+    public void setColumnObjectIdDictionary(RealmDictionary<ObjectId> columnObjectIdDictionary) {
+        this.columnObjectIdDictionary = columnObjectIdDictionary;
+    }
+
+    public RealmDictionary<UUID> getColumnUUIDDictionary() {
+        return columnUUIDDictionary;
+    }
+
+    public void setColumnUUIDDictionary(RealmDictionary<UUID> columnUUIDDictionary) {
+        this.columnUUIDDictionary = columnUUIDDictionary;
+    }
+
+    public RealmDictionary<Decimal128> getColumnDecimal128Dictionary() {
+        return columnDecimal128Dictionary;
+    }
+
+    public void setColumnDecimal128Dictionary(RealmDictionary<Decimal128> columnDecimal128Dictionary) {
+        this.columnDecimal128Dictionary = columnDecimal128Dictionary;
+    }
+
+    public RealmDictionary<Mixed> getColumnMixedDictionary() {
+        return columnMixedDictionary;
+    }
+
+    public void setColumnMixedDictionary(RealmDictionary<Mixed> columnMixedDictionary) {
+        this.columnMixedDictionary = columnMixedDictionary;
     }
 }

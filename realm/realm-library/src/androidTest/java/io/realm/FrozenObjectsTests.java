@@ -15,11 +15,12 @@
  */
 package io.realm;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +30,6 @@ import java.util.Arrays;
 
 import javax.annotation.Nullable;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
@@ -643,7 +643,6 @@ public class FrozenObjectsTests {
     }
 
     @Test
-    @Ignore("Calls to 'insert' with RealmModels containing RealmDictionary properties are not supported yet. See: https://github.com/realm/realm-java/issues/7435")
     public void insertOrUpdate() throws InterruptedException {
         realm.executeTransaction(r -> {
             r.createObject(AllJavaTypes.class, 42);
@@ -663,7 +662,6 @@ public class FrozenObjectsTests {
     }
 
     @Test
-    @Ignore("Calls to 'insert' with RealmModels containing RealmDictionary properties are not supported yet. See: https://github.com/realm/realm-java/issues/7435")
     public void insertOrUpdateList() throws InterruptedException {
         realm.executeTransaction(r -> {
             r.createObject(AllJavaTypes.class, 42);

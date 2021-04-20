@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.rule.UiThreadTestRule;
-import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllJavaTypesUnsupportedTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.rule.RunInLooperThread;
@@ -117,7 +117,7 @@ public abstract class QueryTests {
     protected final void createIsEmptyDataSet(Realm realm) {
         realm.beginTransaction();
 
-        AllJavaTypes emptyValues = new AllJavaTypes();
+        AllJavaTypesUnsupportedTypes emptyValues = new AllJavaTypesUnsupportedTypes();
         emptyValues.setFieldId(1);
         emptyValues.setFieldString("");
         emptyValues.setFieldBinary(new byte[0]);
@@ -125,8 +125,8 @@ public abstract class QueryTests {
         emptyValues.setFieldList(new RealmList<>());
         emptyValues.setColumnRealmDictionary(new RealmDictionary<>());
 
-        AllJavaTypes emptyValuesManaged = realm.copyToRealm(emptyValues);
-        AllJavaTypes nonEmpty = new AllJavaTypes();
+        AllJavaTypesUnsupportedTypes emptyValuesManaged = realm.copyToRealm(emptyValues);
+        AllJavaTypesUnsupportedTypes nonEmpty = new AllJavaTypesUnsupportedTypes();
         nonEmpty.setFieldId(2);
         nonEmpty.setFieldString("Foo");
         nonEmpty.setFieldBinary(new byte[] {1, 2, 3});
@@ -135,8 +135,8 @@ public abstract class QueryTests {
         nonEmpty.setColumnRealmDictionary(new RealmDictionary<>());
         nonEmpty.getColumnRealmDictionary().put("key", emptyValuesManaged);
 
-        AllJavaTypes nonEmptyManaged = realm.copyToRealmOrUpdate(nonEmpty);
-        AllJavaTypes emptyValues2 = new AllJavaTypes();
+        AllJavaTypesUnsupportedTypes nonEmptyManaged = realm.copyToRealmOrUpdate(nonEmpty);
+        AllJavaTypesUnsupportedTypes emptyValues2 = new AllJavaTypesUnsupportedTypes();
         emptyValues2.setFieldId(3);
         emptyValues2.setFieldString("");
         emptyValues2.setFieldBinary(new byte[0]);
@@ -185,20 +185,20 @@ public abstract class QueryTests {
     protected final void createIsNotEmptyDataSet(Realm realm) {
         realm.beginTransaction();
 
-        AllJavaTypes emptyValues = new AllJavaTypes();
+        AllJavaTypesUnsupportedTypes emptyValues = new AllJavaTypesUnsupportedTypes();
         emptyValues.setFieldId(1);
         emptyValues.setFieldString("");
         emptyValues.setFieldBinary(new byte[0]);
         emptyValues.setFieldObject(emptyValues);
-        emptyValues.setFieldList(new RealmList<AllJavaTypes>());
+        emptyValues.setFieldList(new RealmList<AllJavaTypesUnsupportedTypes>());
         realm.copyToRealm(emptyValues);
 
-        AllJavaTypes notEmpty = new AllJavaTypes();
+        AllJavaTypesUnsupportedTypes notEmpty = new AllJavaTypesUnsupportedTypes();
         notEmpty.setFieldId(2);
         notEmpty.setFieldString("Foo");
         notEmpty.setFieldBinary(new byte[] {1, 2, 3});
         notEmpty.setFieldObject(notEmpty);
-        notEmpty.setFieldList(new RealmList<AllJavaTypes>(emptyValues));
+        notEmpty.setFieldList(new RealmList<AllJavaTypesUnsupportedTypes>(emptyValues));
         realm.copyToRealmOrUpdate(notEmpty);
 
         realm.commitTransaction();
