@@ -1935,8 +1935,7 @@ public class DynamicRealmObjectTests {
                 case UUID_SET:
                 case LINK_SET:
                 case MIXED_SET:
-                    // TODO: https://github.com/realm/realm-java/issues/7382
-                    // TODO: https://github.com/realm/realm-java/issues/7383
+                    // TODO: fix this when adding dynamic support for dictionaries
                     break;
                 default:
                     fail("Not testing all types");

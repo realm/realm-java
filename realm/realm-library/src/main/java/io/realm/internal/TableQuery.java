@@ -17,18 +17,13 @@
 package io.realm.internal;
 
 import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
 
 import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import io.realm.Mixed;
 import io.realm.MixedNativeFunctionsImpl;
-import io.realm.RealmModel;
-import io.realm.RealmObject;
 import io.realm.Sort;
 import io.realm.internal.core.NativeMixed;
 import io.realm.internal.objectstore.OsKeyPathMapping;

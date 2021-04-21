@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import io.realm.entities.AllJavaTypes;
+import io.realm.entities.AllJavaTypesUnsupportedTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.Cat;
@@ -260,125 +260,143 @@ public class RealmQueryTests extends QueryTests {
 
     private static void callThreadConfinedMethod(RealmQuery<?> query, ThreadConfinedMethods method) {
         switch (method) {
-            case EQUAL_TO_STRING: query.equalTo(           AllJavaTypes.FIELD_STRING,  "dummy value"); break;
-            case EQUAL_TO_STRING_WITH_CASE: query.equalTo( AllJavaTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
-            case EQUAL_TO_BYTE: query.equalTo(             AllJavaTypes.FIELD_BYTE,    (byte) 1); break;
-            case EQUAL_TO_BYTE_ARRAY: query.equalTo(       AllJavaTypes.FIELD_BINARY,  new byte[] {0, 1, 2}); break;
-            case EQUAL_TO_SHORT: query.equalTo(            AllJavaTypes.FIELD_SHORT,   (short) 1); break;
-            case EQUAL_TO_INTEGER: query.equalTo(          AllJavaTypes.FIELD_INT,     1); break;
-            case EQUAL_TO_LONG: query.equalTo(             AllJavaTypes.FIELD_LONG,    1L); break;
-            case EQUAL_TO_DOUBLE: query.equalTo(           AllJavaTypes.FIELD_DOUBLE,  1D); break;
-            case EQUAL_TO_FLOAT: query.equalTo(            AllJavaTypes.FIELD_FLOAT,   1F); break;
-            case EQUAL_TO_BOOLEAN: query.equalTo(          AllJavaTypes.FIELD_BOOLEAN, true); break;
-            case EQUAL_TO_DATE: query.equalTo(             AllJavaTypes.FIELD_DATE,    new Date(0L)); break;
+            case EQUAL_TO_STRING: query.equalTo(           AllJavaTypesUnsupportedTypes.FIELD_STRING,  "dummy value"); break;
+            case EQUAL_TO_STRING_WITH_CASE: query.equalTo( AllJavaTypesUnsupportedTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
+            case EQUAL_TO_BYTE: query.equalTo(             AllJavaTypesUnsupportedTypes.FIELD_BYTE,    (byte) 1); break;
+            case EQUAL_TO_BYTE_ARRAY: query.equalTo(       AllJavaTypesUnsupportedTypes.FIELD_BINARY,  new byte[] {0, 1, 2}); break;
+            case EQUAL_TO_SHORT: query.equalTo(            AllJavaTypesUnsupportedTypes.FIELD_SHORT,   (short) 1); break;
+            case EQUAL_TO_INTEGER: query.equalTo(          AllJavaTypesUnsupportedTypes.FIELD_INT,     1); break;
+            case EQUAL_TO_LONG: query.equalTo(             AllJavaTypesUnsupportedTypes.FIELD_LONG,    1L); break;
+            case EQUAL_TO_DOUBLE: query.equalTo(           AllJavaTypesUnsupportedTypes.FIELD_DOUBLE,  1D); break;
+            case EQUAL_TO_FLOAT: query.equalTo(            AllJavaTypesUnsupportedTypes.FIELD_FLOAT,   1F); break;
+            case EQUAL_TO_BOOLEAN: query.equalTo(          AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN, true); break;
+            case EQUAL_TO_DATE: query.equalTo(             AllJavaTypesUnsupportedTypes.FIELD_DATE,    new Date(0L)); break;
 
-            case IN_STRING: query.in(           AllJavaTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}); break;
-            case IN_STRING_WITH_CASE: query.in( AllJavaTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}, Case.INSENSITIVE); break;
-            case IN_BYTE: query.in(             AllJavaTypes.FIELD_BYTE,    new Byte[] {1, 2, 3}); break;
-            case IN_SHORT: query.in(            AllJavaTypes.FIELD_SHORT,   new Short[] {1, 2, 3}); break;
-            case IN_INTEGER: query.in(          AllJavaTypes.FIELD_INT,     new Integer[] {1, 2, 3}); break;
-            case IN_LONG: query.in(             AllJavaTypes.FIELD_LONG,    new Long[] {1L, 2L, 3L}); break;
-            case IN_DOUBLE: query.in(           AllJavaTypes.FIELD_DOUBLE,  new Double[] {1D, 2D, 3D}); break;
-            case IN_FLOAT: query.in(            AllJavaTypes.FIELD_FLOAT,   new Float[] {1F, 2F, 3F}); break;
-            case IN_BOOLEAN: query.in(          AllJavaTypes.FIELD_BOOLEAN, new Boolean[] {true, false}); break;
-            case IN_DATE: query.in(             AllJavaTypes.FIELD_DATE,    new Date[] {new Date(0L)}); break;
+            case IN_STRING: query.in(           AllJavaTypesUnsupportedTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}); break;
+            case IN_STRING_WITH_CASE: query.in( AllJavaTypesUnsupportedTypes.FIELD_STRING,  new String[] {"dummy value1", "dummy value2"}, Case.INSENSITIVE); break;
+            case IN_BYTE: query.in(             AllJavaTypesUnsupportedTypes.FIELD_BYTE,    new Byte[] {1, 2, 3}); break;
+            case IN_SHORT: query.in(            AllJavaTypesUnsupportedTypes.FIELD_SHORT,   new Short[] {1, 2, 3}); break;
+            case IN_INTEGER: query.in(          AllJavaTypesUnsupportedTypes.FIELD_INT,     new Integer[] {1, 2, 3}); break;
+            case IN_LONG: query.in(             AllJavaTypesUnsupportedTypes.FIELD_LONG,    new Long[] {1L, 2L, 3L}); break;
+            case IN_DOUBLE: query.in(           AllJavaTypesUnsupportedTypes.FIELD_DOUBLE,  new Double[] {1D, 2D, 3D}); break;
+            case IN_FLOAT: query.in(            AllJavaTypesUnsupportedTypes.FIELD_FLOAT,   new Float[] {1F, 2F, 3F}); break;
+            case IN_BOOLEAN: query.in(          AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN, new Boolean[] {true, false}); break;
+            case IN_DATE: query.in(             AllJavaTypesUnsupportedTypes.FIELD_DATE,    new Date[] {new Date(0L)}); break;
 
-            case NOT_EQUAL_TO_STRING: query.notEqualTo(           AllJavaTypes.FIELD_STRING,  "dummy value"); break;
-            case NOT_EQUAL_TO_STRING_WITH_CASE: query.notEqualTo( AllJavaTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
-            case NOT_EQUAL_TO_BYTE: query.notEqualTo(             AllJavaTypes.FIELD_BYTE,    (byte) 1); break;
-            case NOT_EQUAL_TO_BYTE_ARRAY: query.notEqualTo(       AllJavaTypes.FIELD_BINARY,  new byte[] {1,2,3}); break;
-            case NOT_EQUAL_TO_SHORT: query.notEqualTo(            AllJavaTypes.FIELD_SHORT,   (short) 1); break;
-            case NOT_EQUAL_TO_INTEGER: query.notEqualTo(          AllJavaTypes.FIELD_INT,     1); break;
-            case NOT_EQUAL_TO_LONG: query.notEqualTo(             AllJavaTypes.FIELD_LONG,    1L); break;
-            case NOT_EQUAL_TO_DOUBLE: query.notEqualTo(           AllJavaTypes.FIELD_DOUBLE,  1D); break;
-            case NOT_EQUAL_TO_FLOAT: query.notEqualTo(            AllJavaTypes.FIELD_FLOAT,   1F); break;
-            case NOT_EQUAL_TO_BOOLEAN: query.notEqualTo(          AllJavaTypes.FIELD_BOOLEAN, true); break;
-            case NOT_EQUAL_TO_DATE: query.notEqualTo(             AllJavaTypes.FIELD_DATE,    new Date(0L)); break;
+            case NOT_EQUAL_TO_STRING: query.notEqualTo(           AllJavaTypesUnsupportedTypes.FIELD_STRING,  "dummy value"); break;
+            case NOT_EQUAL_TO_STRING_WITH_CASE: query.notEqualTo( AllJavaTypesUnsupportedTypes.FIELD_STRING,  "dummy value", Case.INSENSITIVE); break;
+            case NOT_EQUAL_TO_BYTE: query.notEqualTo(             AllJavaTypesUnsupportedTypes.FIELD_BYTE,    (byte) 1); break;
+            case NOT_EQUAL_TO_BYTE_ARRAY: query.notEqualTo(       AllJavaTypesUnsupportedTypes.FIELD_BINARY,  new byte[] {1,2,3}); break;
+            case NOT_EQUAL_TO_SHORT: query.notEqualTo(            AllJavaTypesUnsupportedTypes.FIELD_SHORT,   (short) 1); break;
+            case NOT_EQUAL_TO_INTEGER: query.notEqualTo(          AllJavaTypesUnsupportedTypes.FIELD_INT,     1); break;
+            case NOT_EQUAL_TO_LONG: query.notEqualTo(             AllJavaTypesUnsupportedTypes.FIELD_LONG,    1L); break;
+            case NOT_EQUAL_TO_DOUBLE: query.notEqualTo(           AllJavaTypesUnsupportedTypes.FIELD_DOUBLE,  1D); break;
+            case NOT_EQUAL_TO_FLOAT: query.notEqualTo(            AllJavaTypesUnsupportedTypes.FIELD_FLOAT,   1F); break;
+            case NOT_EQUAL_TO_BOOLEAN: query.notEqualTo(          AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN, true); break;
+            case NOT_EQUAL_TO_DATE: query.notEqualTo(             AllJavaTypesUnsupportedTypes.FIELD_DATE,    new Date(0L)); break;
 
-            case GREATER_THAN_INTEGER: query.greaterThan( AllJavaTypes.FIELD_INT,    1); break;
-            case GREATER_THAN_LONG: query.greaterThan(    AllJavaTypes.FIELD_LONG,   1L); break;
-            case GREATER_THAN_DOUBLE: query.greaterThan(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
-            case GREATER_THAN_FLOAT: query.greaterThan(   AllJavaTypes.FIELD_FLOAT,  1F); break;
-            case GREATER_THAN_DATE: query.greaterThan(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
+            case GREATER_THAN_INTEGER: query.greaterThan( AllJavaTypesUnsupportedTypes.FIELD_INT,    1); break;
+            case GREATER_THAN_LONG: query.greaterThan(    AllJavaTypesUnsupportedTypes.FIELD_LONG,   1L); break;
+            case GREATER_THAN_DOUBLE: query.greaterThan(  AllJavaTypesUnsupportedTypes.FIELD_DOUBLE, 1D); break;
+            case GREATER_THAN_FLOAT: query.greaterThan(   AllJavaTypesUnsupportedTypes.FIELD_FLOAT,  1F); break;
+            case GREATER_THAN_DATE: query.greaterThan(    AllJavaTypesUnsupportedTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case GREATER_THAN_OR_EQUAL_TO_INTEGER: query.greaterThanOrEqualTo( AllJavaTypes.FIELD_INT,    1); break;
-            case GREATER_THAN_OR_EQUAL_TO_LONG: query.greaterThanOrEqualTo(    AllJavaTypes.FIELD_LONG,   1L); break;
-            case GREATER_THAN_OR_EQUAL_TO_DOUBLE: query.greaterThanOrEqualTo(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
-            case GREATER_THAN_OR_EQUAL_TO_FLOAT: query.greaterThanOrEqualTo(   AllJavaTypes.FIELD_FLOAT,  1F); break;
-            case GREATER_THAN_OR_EQUAL_TO_DATE: query.greaterThanOrEqualTo(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
+            case GREATER_THAN_OR_EQUAL_TO_INTEGER: query.greaterThanOrEqualTo( AllJavaTypesUnsupportedTypes.FIELD_INT,    1); break;
+            case GREATER_THAN_OR_EQUAL_TO_LONG: query.greaterThanOrEqualTo(    AllJavaTypesUnsupportedTypes.FIELD_LONG,   1L); break;
+            case GREATER_THAN_OR_EQUAL_TO_DOUBLE: query.greaterThanOrEqualTo(  AllJavaTypesUnsupportedTypes.FIELD_DOUBLE, 1D); break;
+            case GREATER_THAN_OR_EQUAL_TO_FLOAT: query.greaterThanOrEqualTo(   AllJavaTypesUnsupportedTypes.FIELD_FLOAT,  1F); break;
+            case GREATER_THAN_OR_EQUAL_TO_DATE: query.greaterThanOrEqualTo(    AllJavaTypesUnsupportedTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case LESS_THAN_INTEGER: query.lessThan( AllJavaTypes.FIELD_INT,    1); break;
-            case LESS_THAN_LONG: query.lessThan(    AllJavaTypes.FIELD_LONG,   1L); break;
-            case LESS_THAN_DOUBLE: query.lessThan(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
-            case LESS_THAN_FLOAT: query.lessThan(   AllJavaTypes.FIELD_FLOAT,  1F); break;
-            case LESS_THAN_DATE: query.lessThan(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
+            case LESS_THAN_INTEGER: query.lessThan( AllJavaTypesUnsupportedTypes.FIELD_INT,    1); break;
+            case LESS_THAN_LONG: query.lessThan(    AllJavaTypesUnsupportedTypes.FIELD_LONG,   1L); break;
+            case LESS_THAN_DOUBLE: query.lessThan(  AllJavaTypesUnsupportedTypes.FIELD_DOUBLE, 1D); break;
+            case LESS_THAN_FLOAT: query.lessThan(   AllJavaTypesUnsupportedTypes.FIELD_FLOAT,  1F); break;
+            case LESS_THAN_DATE: query.lessThan(    AllJavaTypesUnsupportedTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case LESS_THAN_OR_EQUAL_TO_INTEGER: query.lessThanOrEqualTo( AllJavaTypes.FIELD_INT,    1); break;
-            case LESS_THAN_OR_EQUAL_TO_LONG: query.lessThanOrEqualTo(    AllJavaTypes.FIELD_LONG,   1L); break;
-            case LESS_THAN_OR_EQUAL_TO_DOUBLE: query.lessThanOrEqualTo(  AllJavaTypes.FIELD_DOUBLE, 1D); break;
-            case LESS_THAN_OR_EQUAL_TO_FLOAT: query.lessThanOrEqualTo(   AllJavaTypes.FIELD_FLOAT,  1F); break;
-            case LESS_THAN_OR_EQUAL_TO_DATE: query.lessThanOrEqualTo(    AllJavaTypes.FIELD_DATE,   new Date(0L)); break;
+            case LESS_THAN_OR_EQUAL_TO_INTEGER: query.lessThanOrEqualTo( AllJavaTypesUnsupportedTypes.FIELD_INT,    1); break;
+            case LESS_THAN_OR_EQUAL_TO_LONG: query.lessThanOrEqualTo(    AllJavaTypesUnsupportedTypes.FIELD_LONG,   1L); break;
+            case LESS_THAN_OR_EQUAL_TO_DOUBLE: query.lessThanOrEqualTo(  AllJavaTypesUnsupportedTypes.FIELD_DOUBLE, 1D); break;
+            case LESS_THAN_OR_EQUAL_TO_FLOAT: query.lessThanOrEqualTo(   AllJavaTypesUnsupportedTypes.FIELD_FLOAT,  1F); break;
+            case LESS_THAN_OR_EQUAL_TO_DATE: query.lessThanOrEqualTo(    AllJavaTypesUnsupportedTypes.FIELD_DATE,   new Date(0L)); break;
 
-            case BETWEEN_INTEGER: query.between( AllJavaTypes.FIELD_INT,    1, 100); break;
-            case BETWEEN_LONG: query.between(    AllJavaTypes.FIELD_LONG,   1L, 100L); break;
-            case BETWEEN_DOUBLE: query.between(  AllJavaTypes.FIELD_DOUBLE, 1D, 100D); break;
-            case BETWEEN_FLOAT: query.between(   AllJavaTypes.FIELD_FLOAT,  1F, 100F); break;
-            case BETWEEN_DATE: query.between(    AllJavaTypes.FIELD_DATE,   new Date(0L), new Date(10000L)); break;
+            case BETWEEN_INTEGER: query.between( AllJavaTypesUnsupportedTypes.FIELD_INT,    1, 100); break;
+            case BETWEEN_LONG: query.between(    AllJavaTypesUnsupportedTypes.FIELD_LONG,   1L, 100L); break;
+            case BETWEEN_DOUBLE: query.between(  AllJavaTypesUnsupportedTypes.FIELD_DOUBLE, 1D, 100D); break;
+            case BETWEEN_FLOAT: query.between(   AllJavaTypesUnsupportedTypes.FIELD_FLOAT,  1F, 100F); break;
+            case BETWEEN_DATE: query.between(    AllJavaTypesUnsupportedTypes.FIELD_DATE,   new Date(0L), new Date(10000L)); break;
 
-            case CONTAINS_STRING: query.contains(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
-            case CONTAINS_STRING_WITH_CASE: query.contains( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+            case CONTAINS_STRING: query.contains(           AllJavaTypesUnsupportedTypes.FIELD_STRING, "dummy value"); break;
+            case CONTAINS_STRING_WITH_CASE: query.contains( AllJavaTypesUnsupportedTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case BEGINS_WITH_STRING: query.beginsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
-            case BEGINS_WITH_STRING_WITH_CASE: query.beginsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+            case BEGINS_WITH_STRING: query.beginsWith(           AllJavaTypesUnsupportedTypes.FIELD_STRING, "dummy value"); break;
+            case BEGINS_WITH_STRING_WITH_CASE: query.beginsWith( AllJavaTypesUnsupportedTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case ENDS_WITH_STRING: query.endsWith(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
-            case ENDS_WITH_STRING_WITH_CASE: query.endsWith( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+            case ENDS_WITH_STRING: query.endsWith(           AllJavaTypesUnsupportedTypes.FIELD_STRING, "dummy value"); break;
+            case ENDS_WITH_STRING_WITH_CASE: query.endsWith( AllJavaTypesUnsupportedTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
-            case LIKE_STRING: query.like(           AllJavaTypes.FIELD_STRING, "dummy value"); break;
-            case LIKE_STRING_WITH_CASE: query.like( AllJavaTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
+            case LIKE_STRING: query.like(           AllJavaTypesUnsupportedTypes.FIELD_STRING, "dummy value"); break;
+            case LIKE_STRING_WITH_CASE: query.like( AllJavaTypesUnsupportedTypes.FIELD_STRING, "dummy value", Case.INSENSITIVE); break;
 
             case BEGIN_GROUP: query.beginGroup(); break;
             case END_GROUP: query.endGroup(); break;
             case OR: query.or(); break;
             case AND: query.and(); break;
             case NOT: query.not(); break;
-            case IS_NULL: query.isNull(          AllJavaTypes.FIELD_DATE); break;
-            case IS_NOT_NULL: query.isNotNull(   AllJavaTypes.FIELD_DATE); break;
-            case IS_EMPTY: query.isEmpty(        AllJavaTypes.FIELD_STRING); break;
-            case IS_NOT_EMPTY: query.isNotEmpty( AllJavaTypes.FIELD_STRING); break;
+            case IS_NULL: query.isNull(          AllJavaTypesUnsupportedTypes.FIELD_DATE); break;
+            case IS_NOT_NULL: query.isNotNull(   AllJavaTypesUnsupportedTypes.FIELD_DATE); break;
+            case IS_EMPTY: query.isEmpty(        AllJavaTypesUnsupportedTypes.FIELD_STRING); break;
+            case IS_NOT_EMPTY: query.isNotEmpty( AllJavaTypesUnsupportedTypes.FIELD_STRING); break;
 
             case IS_VALID: query.isValid(); break;
-            case DISTINCT: query.distinct(                    AllJavaTypes.FIELD_STRING); break;
-            case DISTINCT_BY_MULTIPLE_FIELDS: query.distinct( AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID); break;
+            case DISTINCT: query.distinct(                    AllJavaTypesUnsupportedTypes.FIELD_STRING); break;
+            case DISTINCT_BY_MULTIPLE_FIELDS: query.distinct( AllJavaTypesUnsupportedTypes.FIELD_STRING, AllJavaTypesUnsupportedTypes.FIELD_ID); break;
 
-            case SUM: query.sum(                  AllJavaTypes.FIELD_INT); break;
-            case AVERAGE: query.average(          AllJavaTypes.FIELD_INT); break;
-            case MIN: query.min(                  AllJavaTypes.FIELD_INT); break;
-            case MINIMUM_DATE: query.minimumDate( AllJavaTypes.FIELD_INT); break;
-            case MAX: query.max(                  AllJavaTypes.FIELD_INT); break;
-            case MAXIMUM_DATE: query.maximumDate( AllJavaTypes.FIELD_INT); break;
+            case SUM: query.sum(                  AllJavaTypesUnsupportedTypes.FIELD_INT); break;
+            case AVERAGE: query.average(          AllJavaTypesUnsupportedTypes.FIELD_INT); break;
+            case MIN: query.min(                  AllJavaTypesUnsupportedTypes.FIELD_INT); break;
+            case MINIMUM_DATE: query.minimumDate( AllJavaTypesUnsupportedTypes.FIELD_INT); break;
+            case MAX: query.max(                  AllJavaTypesUnsupportedTypes.FIELD_INT); break;
+            case MAXIMUM_DATE: query.maximumDate( AllJavaTypesUnsupportedTypes.FIELD_INT); break;
             case COUNT: query.count(); break;
 
             case FIND_ALL: query.findAll(); break;
             case FIND_ALL_ASYNC: query.findAllAsync(); break;
-            case SORT: query.sort(AllJavaTypes.FIELD_STRING); break;
-            case SORT_WITH_ORDER: query.sort(AllJavaTypes.FIELD_STRING, Sort.ASCENDING); break;
-            case SORT_WITH_MANY_ORDERS: query.sort(new String[] {AllJavaTypes.FIELD_STRING, AllJavaTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
+            case SORT: query.sort(AllJavaTypesUnsupportedTypes.FIELD_STRING); break;
+            case SORT_WITH_ORDER: query.sort(AllJavaTypesUnsupportedTypes.FIELD_STRING, Sort.ASCENDING); break;
+            case SORT_WITH_MANY_ORDERS: query.sort(new String[] {AllJavaTypesUnsupportedTypes.FIELD_STRING, AllJavaTypesUnsupportedTypes.FIELD_ID}, new Sort[] {Sort.DESCENDING, Sort.DESCENDING}); break;
             case FIND_FIRST: query.findFirst(); break;
             case FIND_FIRST_ASYNC: query.findFirstAsync(); break;
 
-            case CONTAINS_KEY: query.containsKey(AllJavaTypes.FIELD_STRING, null); break;
-            case CONTAINS_VALUE: query.containsValue(AllJavaTypes.FIELD_STRING, (String) null); break;
-            case CONTAINS_ENTRY: query.containsEntry(AllJavaTypes.FIELD_STRING, new AbstractMap.SimpleImmutableEntry<>(null, null)); break;
+            case CONTAINS_KEY: query.containsKey(AllJavaTypesUnsupportedTypes.FIELD_STRING, null); break;
+            case CONTAINS_VALUE: query.containsValue(AllJavaTypesUnsupportedTypes.FIELD_STRING, (String) null); break;
+            case CONTAINS_ENTRY: query.containsEntry(AllJavaTypesUnsupportedTypes.FIELD_STRING, new AbstractMap.SimpleImmutableEntry<>(null, null)); break;
 
             default:
                 throw new AssertionError("missing case for " + method);
         }
     }
 
+    // The purpose of this test case is to catch when insert supports objects containing dictionaries,
+    // to then we can use AllJavaTypes instead of AllJavaTypesUnsupportedTypes.
+    // See: https://github.com/realm/realm-java/issues/7435
+    @Test(expected = IllegalStateException.class)
+    public void catchInsertSupportsDictionaries(){
+        DictionaryAllTypes dictionaryAllTypes = new DictionaryAllTypes();
+        realm.insert(dictionaryAllTypes);
+    }
+
+    // The purpose of this test case is to catch when insert supports objects containing dictionaries,
+    // to then we can use AllJavaTypes instead of AllJavaTypesUnsupportedTypes.
+    // See: https://github.com/realm/realm-java/issues/7435
+    @Test(expected = IllegalStateException.class)
+    public void catchInsertOrUpdateSupportsDictionaries(){
+        DictionaryAllTypes dictionaryAllTypes = new DictionaryAllTypes();
+        realm.insertOrUpdate(dictionaryAllTypes);
+    }
+
     @Test
     public void callThreadConfinedMethodsFromWrongThread() throws Throwable {
-        final RealmQuery<AllJavaTypes> query = realm.where(AllJavaTypes.class);
+        final RealmQuery<AllJavaTypesUnsupportedTypes> query = realm.where(AllJavaTypesUnsupportedTypes.class);
 
         final CountDownLatch testFinished = new CountDownLatch(1);
 
@@ -2025,7 +2043,7 @@ public class RealmQueryTests extends QueryTests {
     private void createBinaryOnlyDataSet() {
         realm.beginTransaction();
         for (int i = 0; i < binaries.length; i++) {
-            AllJavaTypes binaryOnly = new AllJavaTypes((long) i);
+            AllJavaTypesUnsupportedTypes binaryOnly = new AllJavaTypesUnsupportedTypes((long) i);
             binaryOnly.setFieldBinary(binaries[i]);
             realm.copyToRealm(binaryOnly);
         }
@@ -2036,12 +2054,12 @@ public class RealmQueryTests extends QueryTests {
     public void equalTo_binary() {
         createBinaryOnlyDataSet();
 
-        RealmResults<AllJavaTypes> resultList;
-        resultList = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_BINARY, binaries[0]).findAll();
+        RealmResults<AllJavaTypesUnsupportedTypes> resultList;
+        resultList = realm.where(AllJavaTypesUnsupportedTypes.class).equalTo(AllJavaTypesUnsupportedTypes.FIELD_BINARY, binaries[0]).findAll();
         assertEquals(2, resultList.size());
-        resultList = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_BINARY, binaries[1]).findAll();
+        resultList = realm.where(AllJavaTypesUnsupportedTypes.class).equalTo(AllJavaTypesUnsupportedTypes.FIELD_BINARY, binaries[1]).findAll();
         assertEquals(1, resultList.size());
-        resultList = realm.where(AllJavaTypes.class).equalTo(AllJavaTypes.FIELD_BINARY, new byte[] {1}).findAll();
+        resultList = realm.where(AllJavaTypesUnsupportedTypes.class).equalTo(AllJavaTypesUnsupportedTypes.FIELD_BINARY, new byte[] {1}).findAll();
         assertEquals(0, resultList.size());
     }
 
@@ -2051,15 +2069,15 @@ public class RealmQueryTests extends QueryTests {
 
         // Non-binary field.
         try {
-            RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class)
-                    .equalTo(AllJavaTypes.FIELD_INT, binaries[0]).findAll();
+            RealmResults<AllJavaTypesUnsupportedTypes> resultList = realm.where(AllJavaTypesUnsupportedTypes.class)
+                    .equalTo(AllJavaTypesUnsupportedTypes.FIELD_INT, binaries[0]).findAll();
             fail("Should throw exception.");
         } catch (IllegalArgumentException ignored) {
         }
 
         // Non-existent field.
         try {
-            RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class)
+            RealmResults<AllJavaTypesUnsupportedTypes> resultList = realm.where(AllJavaTypesUnsupportedTypes.class)
                     .equalTo("NotAField", binaries[0]).findAll();
             fail("Should throw exception.");
         } catch (IllegalArgumentException ignored) {
@@ -2070,12 +2088,12 @@ public class RealmQueryTests extends QueryTests {
     public void notEqualTo_binary() {
         createBinaryOnlyDataSet();
 
-        RealmResults<AllJavaTypes> resultList;
-        resultList = realm.where(AllJavaTypes.class).notEqualTo(AllJavaTypes.FIELD_BINARY, binaries[0]).findAll();
+        RealmResults<AllJavaTypesUnsupportedTypes> resultList;
+        resultList = realm.where(AllJavaTypesUnsupportedTypes.class).notEqualTo(AllJavaTypesUnsupportedTypes.FIELD_BINARY, binaries[0]).findAll();
         assertEquals(4, resultList.size());
-        resultList = realm.where(AllJavaTypes.class).notEqualTo(AllJavaTypes.FIELD_BINARY, binaries[1]).findAll();
+        resultList = realm.where(AllJavaTypesUnsupportedTypes.class).notEqualTo(AllJavaTypesUnsupportedTypes.FIELD_BINARY, binaries[1]).findAll();
         assertEquals(5, resultList.size());
-        resultList = realm.where(AllJavaTypes.class).notEqualTo(AllJavaTypes.FIELD_BINARY, new byte[] {1}).findAll();
+        resultList = realm.where(AllJavaTypesUnsupportedTypes.class).notEqualTo(AllJavaTypesUnsupportedTypes.FIELD_BINARY, new byte[] {1}).findAll();
         assertEquals(6, resultList.size());
     }
 
@@ -2085,15 +2103,15 @@ public class RealmQueryTests extends QueryTests {
 
         // Non-binary field.
         try {
-            RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class)
-                    .notEqualTo(AllJavaTypes.FIELD_INT, binaries[0]).findAll();
+            RealmResults<AllJavaTypesUnsupportedTypes> resultList = realm.where(AllJavaTypesUnsupportedTypes.class)
+                    .notEqualTo(AllJavaTypesUnsupportedTypes.FIELD_INT, binaries[0]).findAll();
             fail("Should throw exception.");
         } catch (IllegalArgumentException ignored) {
         }
 
         // Non-existent field.
         try {
-            RealmResults<AllJavaTypes> resultList = realm.where(AllJavaTypes.class)
+            RealmResults<AllJavaTypesUnsupportedTypes> resultList = realm.where(AllJavaTypesUnsupportedTypes.class)
                     .notEqualTo("NotAField", binaries[0]).findAll();
             fail("Should throw exception.");
         } catch (IllegalArgumentException ignored) {
@@ -2503,69 +2521,90 @@ public class RealmQueryTests extends QueryTests {
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_STRING).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_STRING).count());
                     break;
                 case BINARY:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BINARY).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LIST).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LIST).count());
                     break;
                 case OBJECT:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT).count());
                     break;
                 case INTEGER_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_INTEGER_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_INTEGER_LIST).count());
                     break;
                 case BOOLEAN_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BOOLEAN_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_LIST).count());
                     break;
                 case STRING_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_STRING_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_STRING_LIST).count());
                     break;
                 case BINARY_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BINARY_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BINARY_LIST).count());
                     break;
                 case DATE_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DATE_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DATE_LIST).count());
                     break;
                 case FLOAT_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_FLOAT_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_FLOAT_LIST).count());
                     break;
                 case DOUBLE_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DOUBLE_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_LIST).count());
                     break;
                 case DECIMAL128_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DECIMAL128_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_LIST).count());
                     break;
                 case OBJECT_ID_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_LIST).count());
                     break;
                 case UUID_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_UUID_LIST).count());
                     break;
                 case MIXED_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_MIXED_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_MIXED_LIST).count());
                     break;
                 case LINKING_OBJECTS:
                     // Row 2 does not have a backlink
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
                     break;
                 case STRING_TO_MIXED_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_MIXED_DICTIONARY).count());
+                    break;
                 case STRING_TO_BOOLEAN_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_DICTIONARY).count());
+                    break;
                 case STRING_TO_STRING_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_STRING_DICTIONARY).count());
+                    break;
                 case STRING_TO_INTEGER_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_INTEGER_DICTIONARY).count());
+                    break;
                 case STRING_TO_FLOAT_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_FLOAT_DICTIONARY).count());
+                    break;
                 case STRING_TO_DOUBLE_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_DICTIONARY).count());
+                    break;
                 case STRING_TO_BINARY_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BINARY_DICTIONARY).count());
+                    break;
                 case STRING_TO_DATE_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DATE_DICTIONARY).count());
+                    break;
                 case STRING_TO_OBJECT_ID_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    break;
                 case STRING_TO_UUID_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_UUID_DICTIONARY).count());
+                    break;
                 case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
+                    break;
                 case STRING_TO_LINK_MAP:
-                    // TODO: https://github.com/realm/realm-java/issues/7382
-                    // TODO: https://github.com/realm/realm-java/issues/7383
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2579,75 +2618,96 @@ public class RealmQueryTests extends QueryTests {
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_STRING).count());
                     break;
                 case BINARY:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
                     // Row 0: Backlink list to row 1, list to row 0; included
                     // Row 1: Backlink list to row 2, list to row 1; included
                     // Row 2: No backlink list; not included
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
 
                     // Row 0: Link to row 0, backlink to row 0; not included
                     // Row 1: Link to row 1m backlink to row 1; not included
                     // Row 2: Empty link; included
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
                     break;
                 case OBJECT:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT).count());
                     break;
                 case INTEGER_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_INTEGER_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_INTEGER_LIST).count());
                     break;
                 case BOOLEAN_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_LIST).count());
                     break;
                 case STRING_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_STRING_LIST).count());
                     break;
                 case BINARY_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY_LIST).count());
                     break;
                 case DATE_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_DATE_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_LIST).count());
                     break;
                 case FLOAT_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_FLOAT_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_FLOAT_LIST).count());
                     break;
                 case DOUBLE_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_DOUBLE_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_LIST).count());
                     break;
                 case DECIMAL128_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_DECIMAL128_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_LIST).count());
                     break;
                 case OBJECT_ID_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_OBJECT_ID_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_LIST).count());
                     break;
                 case UUID_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_UUID_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_LIST).count());
                     break;
                 case MIXED_LIST:
-                    assertEquals(3, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_LIST).count());
                     break;
                 case STRING_TO_MIXED_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_DICTIONARY).count());
+                    break;
                 case STRING_TO_BOOLEAN_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_DICTIONARY).count());
+                    break;
                 case STRING_TO_STRING_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_STRING_DICTIONARY).count());
+                    break;
                 case STRING_TO_INTEGER_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_INTEGER_DICTIONARY).count());
+                    break;
                 case STRING_TO_FLOAT_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_FLOAT_DICTIONARY).count());
+                    break;
                 case STRING_TO_DOUBLE_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_DICTIONARY).count());
+                    break;
                 case STRING_TO_BINARY_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY_DICTIONARY).count());
+                    break;
                 case STRING_TO_DATE_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_DICTIONARY).count());
+                    break;
                 case STRING_TO_OBJECT_ID_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    break;
                 case STRING_TO_UUID_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_DICTIONARY).count());
+                    break;
                 case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
+                    break;
                 case STRING_TO_LINK_MAP:
-                    // TODO: https://github.com/realm/realm-java/issues/7382
-                    // TODO: https://github.com/realm/realm-java/issues/7383
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2661,59 +2721,29 @@ public class RealmQueryTests extends QueryTests {
             try {
                 switch (type) {
                     case INTEGER:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LONG).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LONG).findAll();
                         break;
                     case FLOAT:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_FLOAT).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_FLOAT).findAll();
                         break;
                     case DOUBLE:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DOUBLE).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DOUBLE).findAll();
                         break;
                     case BOOLEAN:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BOOLEAN).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN).findAll();
                         break;
                     case DATE:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DATE).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DATE).findAll();
                         break;
                     case DECIMAL128:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DECIMAL128).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128).findAll();
                         break;
                     case OBJECT_ID:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID).findAll();
                         break;
                     case UUID:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_UUID).findAll();
                         break;
-                    case MIXED:
-                        realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_MIXED).findAll();
-                        break;
-                    case STRING_TO_MIXED_MAP:
-                    case STRING_TO_BOOLEAN_MAP:
-                    case STRING_TO_STRING_MAP:
-                    case STRING_TO_INTEGER_MAP:
-                    case STRING_TO_FLOAT_MAP:
-                    case STRING_TO_DOUBLE_MAP:
-                    case STRING_TO_BINARY_MAP:
-                    case STRING_TO_DATE_MAP:
-                    case STRING_TO_OBJECT_ID_MAP:
-                    case STRING_TO_UUID_MAP:
-                    case STRING_TO_DECIMAL128_MAP:
-                    case STRING_TO_LINK_MAP:
-                    case BOOLEAN_SET:
-                    case STRING_SET:
-                    case INTEGER_SET:
-                    case FLOAT_SET:
-                    case DOUBLE_SET:
-                    case BINARY_SET:
-                    case DATE_SET:
-                    case DECIMAL128_SET:
-                    case OBJECT_ID_SET:
-                    case UUID_SET:
-                    case LINK_SET:
-                    case MIXED_SET:
-                        // TODO: https://github.com/realm/realm-java/issues/7382
-                        // TODO: https://github.com/realm/realm-java/issues/7383
-                        continue;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -2725,11 +2755,11 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void isEmpty_invalidFieldNameThrows() {
-        String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
+        String[] fieldNames = new String[] {null, "", "foo", AllJavaTypesUnsupportedTypes.FIELD_OBJECT + ".foo"};
 
         for (String fieldName : fieldNames) {
             try {
-                realm.where(AllJavaTypes.class).isEmpty(fieldName);
+                realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(fieldName);
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -2759,68 +2789,89 @@ public class RealmQueryTests extends QueryTests {
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_STRING).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_STRING).count());
                     break;
                 case BINARY:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_BINARY).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LIST).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT).count());
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
                     break;
                 case OBJECT:
-                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT).count());
                     break;
                 case INTEGER_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_INTEGER_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_INTEGER_LIST).count());
                     break;
                 case BOOLEAN_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BOOLEAN_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_LIST).count());
                     break;
                 case STRING_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_STRING_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_STRING_LIST).count());
                     break;
                 case BINARY_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BINARY_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BINARY_LIST).count());
                     break;
                 case DATE_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DATE_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DATE_LIST).count());
                     break;
                 case FLOAT_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_FLOAT_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_FLOAT_LIST).count());
                     break;
                 case DOUBLE_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DOUBLE_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_LIST).count());
                     break;
                 case DECIMAL128_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DECIMAL128_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_LIST).count());
                     break;
                 case OBJECT_ID_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_LIST).count());
                     break;
                 case UUID_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_UUID_LIST).count());
                     break;
                 case MIXED_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_MIXED_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_MIXED_LIST).count());
+                    break;
+                case STRING_TO_MIXED_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_MIXED_DICTIONARY).count());
+                    break;
+                case STRING_TO_BOOLEAN_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_DICTIONARY).count());
+                    break;
+                case STRING_TO_STRING_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_STRING_DICTIONARY).count());
                     break;
                 case STRING_TO_INTEGER_MAP:
-                case STRING_TO_BOOLEAN_MAP:
-                case STRING_TO_STRING_MAP:
-                case STRING_TO_BINARY_MAP:
-                case STRING_TO_DATE_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_INTEGER_DICTIONARY).count());
+                    break;
                 case STRING_TO_FLOAT_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_FLOAT_DICTIONARY).count());
+                    break;
                 case STRING_TO_DOUBLE_MAP:
-                case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_DICTIONARY).count());
+                    break;
+                case STRING_TO_BINARY_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BINARY_DICTIONARY).count());
+                    break;
+                case STRING_TO_DATE_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DATE_DICTIONARY).count());
+                    break;
                 case STRING_TO_OBJECT_ID_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    break;
                 case STRING_TO_UUID_MAP:
-                case STRING_TO_MIXED_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_UUID_DICTIONARY).count());
+                    break;
+                case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
+                    break;
                 case STRING_TO_LINK_MAP:
-                    // TODO: https://github.com/realm/realm-java/issues/7382
-                    // TODO: https://github.com/realm/realm-java/issues/7383
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2834,68 +2885,89 @@ public class RealmQueryTests extends QueryTests {
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
             switch (type) {
                 case STRING:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_STRING).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_STRING).count());
                     break;
                 case BINARY:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BINARY).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LIST).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
-                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
-                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
                     break;
                 case OBJECT:
-                    assertEquals(0, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT).count());
                     break;
                 case INTEGER_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_INTEGER_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_INTEGER_LIST).count());
                     break;
                 case BOOLEAN_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BOOLEAN_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_LIST).count());
                     break;
                 case STRING_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_STRING_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_STRING_LIST).count());
                     break;
                 case BINARY_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_BINARY_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BINARY_LIST).count());
                     break;
                 case DATE_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DATE_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DATE_LIST).count());
                     break;
                 case FLOAT_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_FLOAT_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_FLOAT_LIST).count());
                     break;
                 case DOUBLE_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DOUBLE_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_LIST).count());
                     break;
                 case DECIMAL128_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_DECIMAL128_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_LIST).count());
                     break;
                 case OBJECT_ID_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_OBJECT_ID_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_LIST).count());
                     break;
                 case UUID_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_UUID_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_UUID_LIST).count());
                     break;
                 case MIXED_LIST:
-                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_MIXED_LIST).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_MIXED_LIST).count());
+                    break;
+                case STRING_TO_MIXED_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_MIXED_DICTIONARY).count());
+                    break;
+                case STRING_TO_BOOLEAN_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_DICTIONARY).count());
+                    break;
+                case STRING_TO_STRING_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_STRING_DICTIONARY).count());
                     break;
                 case STRING_TO_INTEGER_MAP:
-                case STRING_TO_BOOLEAN_MAP:
-                case STRING_TO_STRING_MAP:
-                case STRING_TO_BINARY_MAP:
-                case STRING_TO_DATE_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_INTEGER_DICTIONARY).count());
+                    break;
                 case STRING_TO_FLOAT_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_FLOAT_DICTIONARY).count());
+                    break;
                 case STRING_TO_DOUBLE_MAP:
-                case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_DICTIONARY).count());
+                    break;
+                case STRING_TO_BINARY_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_BINARY_DICTIONARY).count());
+                    break;
+                case STRING_TO_DATE_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DATE_DICTIONARY).count());
+                    break;
                 case STRING_TO_OBJECT_ID_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    break;
                 case STRING_TO_UUID_MAP:
-                case STRING_TO_MIXED_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_UUID_DICTIONARY).count());
+                    break;
+                case STRING_TO_DECIMAL128_MAP:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
+                    break;
                 case STRING_TO_LINK_MAP:
-                    // TODO: https://github.com/realm/realm-java/issues/7382
-                    // TODO: https://github.com/realm/realm-java/issues/7383
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -2909,59 +2981,32 @@ public class RealmQueryTests extends QueryTests {
             try {
                 switch (type) {
                     case INTEGER:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LONG).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LONG).findAll();
                         break;
                     case FLOAT:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_FLOAT).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_FLOAT).findAll();
                         break;
                     case DOUBLE:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DOUBLE).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_DOUBLE).findAll();
                         break;
                     case BOOLEAN:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_BOOLEAN).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN).findAll();
                         break;
                     case DATE:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DATE).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_DATE).findAll();
                         break;
                     case DECIMAL128:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_DECIMAL128).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128).findAll();
                         break;
                     case OBJECT_ID:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_OBJECT_ID).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID).findAll();
                         break;
                     case UUID:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_UUID).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_UUID).findAll();
                         break;
                     case MIXED:
-                        realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_MIXED).findAll();
+                        realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_MIXED).findAll();
                         break;
-                    case STRING_TO_MIXED_MAP:
-                    case STRING_TO_BOOLEAN_MAP:
-                    case STRING_TO_STRING_MAP:
-                    case STRING_TO_INTEGER_MAP:
-                    case STRING_TO_FLOAT_MAP:
-                    case STRING_TO_DOUBLE_MAP:
-                    case STRING_TO_BINARY_MAP:
-                    case STRING_TO_DATE_MAP:
-                    case STRING_TO_OBJECT_ID_MAP:
-                    case STRING_TO_UUID_MAP:
-                    case STRING_TO_DECIMAL128_MAP:
-                    case STRING_TO_LINK_MAP:
-                    case BOOLEAN_SET:
-                    case STRING_SET:
-                    case INTEGER_SET:
-                    case FLOAT_SET:
-                    case DOUBLE_SET:
-                    case BINARY_SET:
-                    case DATE_SET:
-                    case DECIMAL128_SET:
-                    case OBJECT_ID_SET:
-                    case UUID_SET:
-                    case LINK_SET:
-                    case MIXED_SET:
-                        // TODO: https://github.com/realm/realm-java/issues/7382
-                        // TODO: https://github.com/realm/realm-java/issues/7383
-                        continue;
                     default:
                         fail("Unknown type: " + type);
                 }
@@ -2973,11 +3018,11 @@ public class RealmQueryTests extends QueryTests {
 
     @Test
     public void isNotEmpty_invalidFieldNameThrows() {
-        String[] fieldNames = new String[] {null, "", "foo", AllJavaTypes.FIELD_OBJECT + ".foo"};
+        String[] fieldNames = new String[] {null, "", "foo", AllJavaTypesUnsupportedTypes.FIELD_OBJECT + ".foo"};
 
         for (String fieldName : fieldNames) {
             try {
-                realm.where(AllJavaTypes.class).isNotEmpty(fieldName).findAll();
+                realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(fieldName).findAll();
                 fail();
             } catch (IllegalArgumentException ignored) {
             }
@@ -2994,12 +3039,12 @@ public class RealmQueryTests extends QueryTests {
                 // Crashes with i == 1000, 500, 100, 89, 85, 84.
                 // Doesn't crash for i == 10, 50, 75, 82, 83.
                 for (int i = 0; i < 84; i++) {
-                    AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i + 1);
+                    AllJavaTypesUnsupportedTypes obj = realm.createObject(AllJavaTypesUnsupportedTypes.class, i + 1);
                     obj.setFieldBoolean(i % 2 == 0);
                     obj.setFieldObject(obj);
 
-                    RealmResults<AllJavaTypes> items = realm.where(AllJavaTypes.class).findAll();
-                    RealmList<AllJavaTypes> fieldList = obj.getFieldList();
+                    RealmResults<AllJavaTypesUnsupportedTypes> items = realm.where(AllJavaTypesUnsupportedTypes.class).findAll();
+                    RealmList<AllJavaTypesUnsupportedTypes> fieldList = obj.getFieldList();
                     for (int j = 0; j < items.size(); j++) {
                         fieldList.add(items.get(j));
                     }
@@ -3008,8 +3053,8 @@ public class RealmQueryTests extends QueryTests {
         });
 
         for (int i = 0; i < 4; i++) {
-            realm.where(AllJavaTypes.class).equalTo(
-                    AllJavaTypes.FIELD_LIST + "." + AllJavaTypes.FIELD_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN, true)
+            realm.where(AllJavaTypesUnsupportedTypes.class).equalTo(
+                    AllJavaTypesUnsupportedTypes.FIELD_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN, true)
                     .findAll();
         }
     }
@@ -3121,10 +3166,10 @@ public class RealmQueryTests extends QueryTests {
 
     private void populateForDistinctInvalidTypesLinked(Realm realm) {
         realm.beginTransaction();
-        AllJavaTypes notEmpty = new AllJavaTypes();
+        AllJavaTypesUnsupportedTypes notEmpty = new AllJavaTypesUnsupportedTypes();
         notEmpty.setFieldBinary(new byte[] {1, 2, 3});
         notEmpty.setFieldObject(notEmpty);
-        notEmpty.setFieldList(new RealmList<AllJavaTypes>(notEmpty));
+        notEmpty.setFieldList(new RealmList<AllJavaTypesUnsupportedTypes>(notEmpty));
         realm.copyToRealm(notEmpty);
         realm.commitTransaction();
     }
@@ -3909,17 +3954,17 @@ public class RealmQueryTests extends QueryTests {
         // If applying sort/distinct without limit, any order will result in the same query result.
 
         realm.beginTransaction();
-        RealmList<AllJavaTypes> list = realm.createObject(AllJavaTypes.class, -1).getFieldList(); // Root object;
+        RealmList<AllJavaTypesUnsupportedTypes> list = realm.createObject(AllJavaTypesUnsupportedTypes.class, -1).getFieldList(); // Root object;
         for (int i = 0; i < 5; i++) {
-            AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);
+            AllJavaTypesUnsupportedTypes obj = realm.createObject(AllJavaTypesUnsupportedTypes.class, i);
             obj.setFieldLong(i);
             list.add(obj);
         }
         realm.commitTransaction();
 
-        RealmResults<AllJavaTypes> results = list.where()
-                .sort(AllJavaTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
-                .distinct(AllJavaTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+        RealmResults<AllJavaTypesUnsupportedTypes> results = list.where()
+                .sort(AllJavaTypesUnsupportedTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllJavaTypesUnsupportedTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
                 .limit(2) // [4, 3]
                 .findAll();
         assertEquals(2, results.size());
@@ -3928,17 +3973,17 @@ public class RealmQueryTests extends QueryTests {
 
         results = list.where()
                 .limit(2) // [0, 1]
-                .distinct(AllJavaTypes.FIELD_LONG) // [ 0, 1]
-                .sort(AllJavaTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
+                .distinct(AllJavaTypesUnsupportedTypes.FIELD_LONG) // [ 0, 1]
+                .sort(AllJavaTypesUnsupportedTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
                 .findAll();
         assertEquals(2, results.size());
         assertEquals(1, results.first().getFieldLong());
         assertEquals(0, results.last().getFieldLong());
 
         results = list.where()
-                .distinct(AllJavaTypes.FIELD_LONG) // [ 0, 1, 2, 3, 4]
+                .distinct(AllJavaTypesUnsupportedTypes.FIELD_LONG) // [ 0, 1, 2, 3, 4]
                 .limit(2) // [0, 1]
-                .sort(AllJavaTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
+                .sort(AllJavaTypesUnsupportedTypes.FIELD_LONG, Sort.DESCENDING) // [1, 0]
                 .findAll();
         assertEquals(2, results.size());
         assertEquals(1, results.first().getFieldLong());

@@ -33,7 +33,6 @@ public class DictionaryAllTypes extends RealmObject {
     public static final String FIELD_STRING_DICTIONARY = "columnStringDictionary";
 
     private RealmDictionary<DogPrimaryKey> columnRealmDictionary;
-
     private RealmDictionary<Boolean> columnBooleanDictionary;
     private RealmDictionary<String> columnStringDictionary;
     private RealmDictionary<Integer> columnIntegerDictionary;

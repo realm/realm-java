@@ -91,6 +91,8 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
     if (column_type != type_LinkList && table->is_list(column_key)/* && column_type < type_LinkList because type_ObjectId is = 15*/) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
         return int(column_type) + int(PropertyType::Array);
+    } else if (column_key.is_dictionary()) {
+        return int(column_type) + int(PropertyType::Dictionary);
     }
 
     return int(column_type);
