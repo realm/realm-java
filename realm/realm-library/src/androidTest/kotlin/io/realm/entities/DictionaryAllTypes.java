@@ -35,7 +35,6 @@ public class DictionaryAllTypes extends RealmObject {
     private String id = "";
 
     private RealmDictionary<DogPrimaryKey> columnRealmDictionary;
-
     private RealmDictionary<Boolean> columnBooleanDictionary;
     private RealmDictionary<String> columnStringDictionary;
     private RealmDictionary<Integer> columnIntegerDictionary;
