@@ -22,6 +22,7 @@ import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
+import java.lang.UnsupportedOperationException
 import java.util.*
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
@@ -258,12 +259,14 @@ class ManagedSetTester<T : Any>(
             assertTrue(set.containsAll(sameValuesManagedList))
 
             // Does not contain a managed list with the other elements
-            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val differentValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             differentValuesManagedList.add(notPresentValue)
             assertFalse(set.containsAll(differentValuesManagedList))
 
             // Contains an empty managed list
-            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val emptyValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             assertTrue(set.containsAll(emptyValuesManagedList))
 
             // TODO: it's not possible to test passing a null value from Kotlin, even if using
@@ -330,7 +333,8 @@ class ManagedSetTester<T : Any>(
             assertTrue(set.containsAll(sameValuesManagedList))
 
             // Changes after adding a managed list with other elements
-            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val differentValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             differentValuesManagedList.addAll(listOf(notPresentValue))
             assertTrue(set.addAll(differentValuesManagedList))
             assertTrue(set.containsAll(differentValuesManagedList))
@@ -338,7 +342,8 @@ class ManagedSetTester<T : Any>(
             // Does not change after adding an empty managed list
             set.clear()
             assertTrue(set.addAll(initializedSet))
-            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val emptyValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             assertFalse(set.addAll(emptyValuesManagedList))
             assertEquals(initializedSet.size, set.size)
 
@@ -375,10 +380,10 @@ class ManagedSetTester<T : Any>(
         assertSetContainsSet(expectedSet, set)
     }
 
-    private fun assertSetContainsSet(expectedSet: List<T?>, set: RealmSet<T>){
+    private fun assertSetContainsSet(expectedSet: List<T?>, set: RealmSet<T>) {
         set.forEach loop@{ value ->
             expectedSet.forEach { expected ->
-                if (equalsTo(expected, value)){
+                if (equalsTo(expected, value)) {
                     return@loop
                 }
             }
@@ -559,7 +564,8 @@ class ManagedSetTester<T : Any>(
             assertTrue(set.containsAll(sameValuesManagedList))
 
             // Changes after intersection with a managed list with other elements
-            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val differentValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             differentValuesManagedList.addAll(listOf(notPresentValue))
             assertTrue(set.retainAll(differentValuesManagedList))
             assertTrue(set.isEmpty())
@@ -567,7 +573,8 @@ class ManagedSetTester<T : Any>(
             // Changes after intersection with an empty managed list
             set.clear()
             set.addAll(initializedSet)
-            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val emptyValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             assertTrue(set.retainAll(emptyValuesManagedList))
             assertTrue(set.isEmpty())
 
@@ -645,7 +652,8 @@ class ManagedSetTester<T : Any>(
             // Does not change after removing a managed list with other elements
             set.clear()
             set.addAll(initializedSet)
-            val differentValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val differentValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             differentValuesManagedList.addAll(listOf(notPresentValue))
             assertFalse(set.removeAll(differentValuesManagedList))
             assertEquals(initializedSet.size, set.size)
@@ -653,7 +661,8 @@ class ManagedSetTester<T : Any>(
             // Does not change after removing an empty managed list
             set.clear()
             set.addAll(initializedSet)
-            val emptyValuesManagedList = managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
+            val emptyValuesManagedList =
+                managedCollectionGetter.call(transactionRealm.createObject<SetContainerClass>())
             assertFalse(set.removeAll(emptyValuesManagedList))
             assertEquals(initializedSet.size, set.size)
 
@@ -840,6 +849,43 @@ class ManagedSetTester<T : Any>(
             anotherSet.removeAllChangeListeners()
             looperThreadRealm.close()
             looperThread.testComplete()
+        }
+    }
+
+    override fun aggregations() {
+        val set = initAndAssertEmptySet(id = "id")
+
+        // Aggregation operations are not supported on primitive types.
+        assertFailsWith<UnsupportedOperationException> {
+            set.min("aFieldName")
+        }
+
+        assertFailsWith<UnsupportedOperationException> {
+            set.max("aFieldName")
+        }
+
+        assertFailsWith<UnsupportedOperationException> {
+            set.average("aFieldName")
+        }
+
+        assertFailsWith<UnsupportedOperationException> {
+            set.sum("aFieldName")
+        }
+
+        assertFailsWith<UnsupportedOperationException> {
+            set.minDate("aFieldName")
+        }
+
+        assertFailsWith<UnsupportedOperationException> {
+            set.maxDate("aFieldName")
+        }
+
+        // Delete all is supported and behaves as a clear
+        realm.executeTransaction {
+            set.addAll(initializedSet)
+            assertEquals(initializedSet.size, set.size)
+            set.deleteAllFromRealm()
+            assertTrue(set.isEmpty())
         }
     }
 
@@ -1083,6 +1129,7 @@ fun managedSetFactory(): List<SetTester> {
                 when (mixedType) {
                     MixedType.OBJECT -> RealmModelManagedSetTester<Mixed>(
                             testerName = "MIXED-${mixedType.name}",
+                            mixedType = mixedType,
                             setGetter = SetAllTypes::getColumnMixedSet,
                             setSetter = SetAllTypes::setColumnMixedSet,
                             managedSetGetter = SetContainerClass::myMixedSet,
@@ -1168,11 +1215,11 @@ abstract class ToArrayManaged<T> {
     }
 
     protected fun test(
-            realm: Realm,
-            set: RealmSet<T>,
-            values: List<T?>,
-            emptyArray: Array<T>,
-            fullArray: Array<T>
+        realm: Realm,
+        set: RealmSet<T>,
+        values: List<T?>,
+        emptyArray: Array<T>,
+        fullArray: Array<T>
     ) {
         val emptyFromSet = set.toArray(emptyArray)
         assertEquals(0, emptyFromSet.size)
@@ -1186,82 +1233,86 @@ abstract class ToArrayManaged<T> {
 
     class LongManaged : ToArrayManaged<Long>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Long>, values: List<Long?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class IntManaged : ToArrayManaged<Int>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Int>, values: List<Int?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class ShortManaged : ToArrayManaged<Short>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Short>, values: List<Short?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class ByteManaged : ToArrayManaged<Byte>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Byte>, values: List<Byte?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class FloatManaged : ToArrayManaged<Float>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Float>, values: List<Float?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class DoubleManaged : ToArrayManaged<Double>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Double>, values: List<Double?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class StringManaged : ToArrayManaged<String>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<String>, values: List<String?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class BooleanManaged : ToArrayManaged<Boolean>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Boolean>, values: List<Boolean?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class DateManaged : ToArrayManaged<Date>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Date>, values: List<Date?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class Decimal128Managed : ToArrayManaged<Decimal128>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Decimal128>, values: List<Decimal128?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class BinaryManaged : ToArrayManaged<ByteArray>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<ByteArray>, values: List<ByteArray?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class ObjectIdManaged : ToArrayManaged<ObjectId>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<ObjectId>, values: List<ObjectId?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class UUIDManaged : ToArrayManaged<UUID>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<UUID>, values: List<UUID?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class RealmModelManaged : ToArrayManaged<DogPrimaryKey>() {
-        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<DogPrimaryKey>, values: List<DogPrimaryKey?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+        override fun assertToArrayWithParameter(
+            realm: Realm,
+            set: RealmSet<DogPrimaryKey>,
+            values: List<DogPrimaryKey?>
+        ) =
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class RealmModelNoPKManaged : ToArrayManaged<Owner>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Owner>, values: List<Owner?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 
     class MixedManaged : ToArrayManaged<Mixed>() {
         override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Mixed>, values: List<Mixed?>) =
-                test(realm, set, values, emptyArray(), arrayOf())
+            test(realm, set, values, emptyArray(), arrayOf())
     }
 }
 

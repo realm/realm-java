@@ -32,7 +32,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
 import io.realm.internal.OsSet;
 
@@ -72,7 +71,7 @@ import io.realm.internal.OsSet;
  *
  * @param <E> the type of the values stored in this set
  */
-public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet<E>> {
+public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E> {
 
     protected final SetStrategy<E> setStrategy;
 
@@ -380,13 +379,105 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         return setStrategy.hasListeners();
     }
 
-    OsSet getOsSet() {
-        return setStrategy.getOsSet();
+    // ------------------------------------------
+    // RealmCollection API
+    // ------------------------------------------
+
+    /**
+     * Returns a RealmQuery, which can be used to query for specific objects of this class.
+     *
+     * @return a RealmQuery object.
+     * @throws IllegalStateException if Realm instance has been closed or parent object has been removed.
+     * @see io.realm.RealmQuery
+     */
+    @Override
+    public RealmQuery<E> where() {
+        return setStrategy.where();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    public Number min(String fieldName) {
+        return setStrategy.min(fieldName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    public Number max(String fieldName) {
+        return setStrategy.max(fieldName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Number sum(String fieldName) {
+        return setStrategy.sum(fieldName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public double average(String fieldName) {
+        return setStrategy.average(fieldName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    public Date maxDate(String fieldName) {
+        return setStrategy.maxDate(fieldName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Nullable
+    @Override
+    public Date minDate(String fieldName) {
+        return setStrategy.minDate(fieldName);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean deleteAllFromRealm() {
+        return setStrategy.deleteAllFromRealm();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isLoaded() {
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean load() {
+        return true;
     }
 
     // ------------------------------------------
     // Private stuff
     // ------------------------------------------
+
+    OsSet getOsSet() {
+        return setStrategy.getOsSet();
+    }
 
     @SuppressWarnings("unchecked")
     private static <T> ManagedSetStrategy<T> getStrategy(BaseRealm baseRealm,
@@ -438,7 +529,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      *
      * @param <E> the type of the values stored in this set
      */
-    private abstract static class SetStrategy<E> implements Set<E>, ManageableObject, Freezable<RealmSet<E>> {
+    private abstract static class SetStrategy<E> implements Set<E>, ManageableObject, RealmCollection<E> {
         abstract OsSet getOsSet();
 
         abstract void addChangeListener(RealmSet<E> set, RealmChangeListener<RealmSet<E>> listener);
@@ -452,6 +543,9 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         abstract void removeAllChangeListeners();
 
         abstract boolean hasListeners();
+
+        @Override
+        abstract public RealmSet<E> freeze();
     }
 
     /**
@@ -475,6 +569,70 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
 
         @Override
         public boolean isManaged() {
+            return true;
+        }
+
+        // ------------------------------------------
+        // RealmCollection API
+        // ------------------------------------------
+
+        @Override
+        public RealmQuery<E> where() {
+            return setValueOperator.where();
+        }
+
+        @Nullable
+        @Override
+        public Number min(String fieldName) {
+            return where().min(fieldName);
+        }
+
+        @Nullable
+        @Override
+        public Number max(String fieldName) {
+            return where().max(fieldName);
+        }
+
+        @Override
+        public Number sum(String fieldName) {
+            return where().sum(fieldName);
+        }
+
+        @Override
+        public double average(String fieldName) {
+            return where().average(fieldName);
+        }
+
+        @Nullable
+        @Override
+        public Date maxDate(String fieldName) {
+            return where().maximumDate(fieldName);
+        }
+
+        @Nullable
+        @Override
+        public Date minDate(String fieldName) {
+            return where().minimumDate(fieldName);
+        }
+
+        @Override
+        public boolean deleteAllFromRealm() {
+            setValueOperator.baseRealm.checkIfValid();
+            if (!setValueOperator.isEmpty()) {
+                setValueOperator.deleteAll();
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public boolean isLoaded() {
+            return true;
+        }
+
+        @Override
+        public boolean load() {
             return true;
         }
 
@@ -683,6 +841,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      */
     private static class UnmanagedSetStrategy<E> extends SetStrategy<E> {
 
+        private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode.";
+
         private final Set<E> unmanagedSet;
 
         UnmanagedSetStrategy() {
@@ -711,6 +871,64 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         @Override
         public boolean isFrozen() {
             return false;
+        }
+
+        // ------------------------------------------
+        // ManageableObject API
+        // ------------------------------------------
+
+        @Override
+        public RealmQuery<E> where() {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+
+        @Nullable
+        @Override
+        public Number min(String fieldName) {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+
+        @Nullable
+        @Override
+        public Number max(String fieldName) {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+
+        @Override
+        public Number sum(String fieldName) {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+
+        @Override
+        public double average(String fieldName) {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+
+        @Nullable
+        @Override
+        public Date maxDate(String fieldName) {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+
+        @Nullable
+        @Override
+        public Date minDate(String fieldName) {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+
+        @Override
+        public boolean deleteAllFromRealm() {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+
+        @Override
+        public boolean isLoaded() {
+            return true;
+        }
+
+        @Override
+        public boolean load() {
+            return true;
         }
 
         // ------------------------------------------

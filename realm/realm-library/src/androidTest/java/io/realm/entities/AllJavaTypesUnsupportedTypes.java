@@ -27,6 +27,7 @@ import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
+import io.realm.RealmSet;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
 import io.realm.annotations.LinkingObjects;
@@ -82,10 +83,26 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     public static final String FIELD_BYTE_DICTIONARY = "columnByteDictionary";
     public static final String FIELD_BINARY_DICTIONARY = "columnBinaryDictionary";
     public static final String FIELD_DATE_DICTIONARY = "columnDateDictionary";
-    public static final String FIELD_OBJECTID_DICTIONARY = "columnObjectIdDictionary";
+    public static final String FIELD_OBJECT_ID_DICTIONARY = "columnObjectIdDictionary";
     public static final String FIELD_UUID_DICTIONARY = "columnUUIDDictionary";
     public static final String FIELD_DECIMAL128_DICTIONARY = "columnDecimal128Dictionary";
     public static final String FIELD_MIXED_DICTIONARY = "columnMixedDictionary";
+
+    public static final String FIELD_LINK_SET = "columnRealmSet";
+    public static final String FIELD_BOOLEAN_SET = "columnBooleanSet";
+    public static final String FIELD_STRING_SET = "columnStringSet";
+    public static final String FIELD_INTEGER_SET = "columnIntegerSet";
+    public static final String FIELD_FLOAT_SET = "columnFloatSet";
+    public static final String FIELD_LONG_SET = "columnLongSet";
+    public static final String FIELD_SHORT_SET = "columnShortSet";
+    public static final String FIELD_DOUBLE_SET = "columnDoubleSet";
+    public static final String FIELD_BYTE_SET = "columnByteSet";
+    public static final String FIELD_BINARY_SET = "columnBinarySet";
+    public static final String FIELD_DATE_SET = "columnDateSet";
+    public static final String FIELD_OBJECT_ID_SET = "columnObjectIdSet";
+    public static final String FIELD_UUID_SET = "columnUUIDSet";
+    public static final String FIELD_DECIMAL128_SET = "columnDecimal128Set";
+    public static final String FIELD_MIXED_SET = "columnMixedSet";
 
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
@@ -159,6 +176,22 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     private RealmDictionary<UUID> columnUUIDDictionary;
     private RealmDictionary<Decimal128> columnDecimal128Dictionary;
     private RealmDictionary<Mixed> columnMixedDictionary;
+
+    private RealmSet<AllJavaTypesUnsupportedTypes> columnRealmSet;
+    private RealmSet<Boolean> columnBooleanSet;
+    private RealmSet<String> columnStringSet;
+    private RealmSet<Integer> columnIntegerSet;
+    private RealmSet<Float> columnFloatSet;
+    private RealmSet<Long> columnLongSet;
+    private RealmSet<Short> columnShortSet;
+    private RealmSet<Double> columnDoubleSet;
+    private RealmSet<Byte> columnByteSet;
+    private RealmSet<byte[]> columnBinarySet;
+    private RealmSet<Date> columnDateSet;
+    private RealmSet<ObjectId> columnObjectIdSet;
+    private RealmSet<UUID> columnUUIDSet;
+    private RealmSet<Decimal128> columnDecimal128Set;
+    private RealmSet<Mixed> columnMixedSet;
 
     @LinkingObjects(FIELD_OBJECT)
     private final RealmResults<AllJavaTypesUnsupportedTypes> objectParents = null;
@@ -556,5 +589,125 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
 
     public void setColumnMixedDictionary(RealmDictionary<Mixed> columnMixedDictionary) {
         this.columnMixedDictionary = columnMixedDictionary;
+    }
+
+    public RealmSet<AllJavaTypesUnsupportedTypes> getColumnRealmSet() {
+        return columnRealmSet;
+    }
+
+    public void setColumnRealmSet(RealmSet<AllJavaTypesUnsupportedTypes> columnRealmSet) {
+        this.columnRealmSet = columnRealmSet;
+    }
+
+    public RealmSet<Boolean> getColumnBooleanSet() {
+        return columnBooleanSet;
+    }
+
+    public void setColumnBooleanSet(RealmSet<Boolean> columnBooleanSet) {
+        this.columnBooleanSet = columnBooleanSet;
+    }
+
+    public RealmSet<String> getColumnStringSet() {
+        return columnStringSet;
+    }
+
+    public void setColumnStringSet(RealmSet<String> columnStringSet) {
+        this.columnStringSet = columnStringSet;
+    }
+
+    public RealmSet<Integer> getColumnIntegerSet() {
+        return columnIntegerSet;
+    }
+
+    public void setColumnIntegerSet(RealmSet<Integer> columnIntegerSet) {
+        this.columnIntegerSet = columnIntegerSet;
+    }
+
+    public RealmSet<Float> getColumnFloatSet() {
+        return columnFloatSet;
+    }
+
+    public void setColumnFloatSet(RealmSet<Float> columnFloatSet) {
+        this.columnFloatSet = columnFloatSet;
+    }
+
+    public RealmSet<Long> getColumnLongSet() {
+        return columnLongSet;
+    }
+
+    public void setColumnLongSet(RealmSet<Long> columnLongSet) {
+        this.columnLongSet = columnLongSet;
+    }
+
+    public RealmSet<Short> getColumnShortSet() {
+        return columnShortSet;
+    }
+
+    public void setColumnShortSet(RealmSet<Short> columnShortSet) {
+        this.columnShortSet = columnShortSet;
+    }
+
+    public RealmSet<Double> getColumnDoubleSet() {
+        return columnDoubleSet;
+    }
+
+    public void setColumnDoubleSet(RealmSet<Double> columnDoubleSet) {
+        this.columnDoubleSet = columnDoubleSet;
+    }
+
+    public RealmSet<Byte> getColumnByteSet() {
+        return columnByteSet;
+    }
+
+    public void setColumnByteSet(RealmSet<Byte> columnByteSet) {
+        this.columnByteSet = columnByteSet;
+    }
+
+    public RealmSet<byte[]> getColumnBinarySet() {
+        return columnBinarySet;
+    }
+
+    public void setColumnBinarySet(RealmSet<byte[]> columnBinarySet) {
+        this.columnBinarySet = columnBinarySet;
+    }
+
+    public RealmSet<Date> getColumnDateSet() {
+        return columnDateSet;
+    }
+
+    public void setColumnDateSet(RealmSet<Date> columnDateSet) {
+        this.columnDateSet = columnDateSet;
+    }
+
+    public RealmSet<ObjectId> getColumnObjectIdSet() {
+        return columnObjectIdSet;
+    }
+
+    public void setColumnObjectIdSet(RealmSet<ObjectId> columnObjectIdSet) {
+        this.columnObjectIdSet = columnObjectIdSet;
+    }
+
+    public RealmSet<UUID> getColumnUUIDSet() {
+        return columnUUIDSet;
+    }
+
+    public void setColumnUUIDSet(RealmSet<UUID> columnUUISet) {
+        this.columnUUIDSet = columnUUISet;
+    }
+
+    public RealmSet<Decimal128> getColumnDecimal128Set() {
+        return columnDecimal128Set;
+    }
+
+    public void setColumnDecimal128Set(RealmSet<Decimal128> columnDecimal12Set) {
+        this.columnDecimal128Set = columnDecimal12Set;
+    }
+
+    public RealmSet<Mixed> getColumnMixedSet() {
+        return columnMixedSet;
+    }
+
+    public void setColumnMixedSet(RealmSet<Mixed> columnMixedSet) {
+        this.columnMixedSet = columnMixedSet;
     }
 }

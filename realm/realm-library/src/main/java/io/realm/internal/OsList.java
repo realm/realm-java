@@ -14,7 +14,7 @@ import io.realm.RealmChangeListener;
 /**
  * Java wrapper of Object Store List class. This backs managed versions of RealmList.
  */
-public class OsList implements NativeObject, ObservableCollection {
+public class OsList implements NativeObject, ObservableCollection, OsCollection {
 
     private final long nativePtr;
     private final NativeContext context;
@@ -296,6 +296,7 @@ public class OsList implements NativeObject, ObservableCollection {
         return new TableQuery(context, targetTable, nativeGetQuery(nativePtr));
     }
 
+    @Override
     public boolean isValid() {
         return nativeIsValid(nativePtr);
     }

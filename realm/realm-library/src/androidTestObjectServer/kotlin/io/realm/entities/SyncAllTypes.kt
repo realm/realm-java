@@ -146,6 +146,38 @@ open class SyncAllTypes : RealmObject() {
     var columnDecimal128Dictionary: RealmDictionary<Decimal128> = RealmDictionary()
     var columnMixedDictionary: RealmDictionary<Mixed> = RealmDictionary()
 
+    var columnRealmSet: RealmSet<SyncDog> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnBooleanSet: RealmSet<Boolean> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnStringSet: RealmSet<String> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnIntegerSet: RealmSet<Int> = RealmSet()
+
+    // FIXME Float ruins initial upload of scheme, works if added to schema later
+//    @Required // Cloud only supports non-null values for this type
+//    var columnFloatSet: RealmSet<Float> = RealmSet()
+
+    @Required // Cloud only supports non-null values for this type
+    var columnLongSet: RealmSet<Long> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnShortSet: RealmSet<Short> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnDoubleSet: RealmSet<Double> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnByteSet: RealmSet<Byte> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnBinarySet: RealmSet<ByteArray> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnDateSet: RealmSet<Date> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnObjectIdSet: RealmSet<ObjectId> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnUUIDSet: RealmSet<UUID> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnDecimal128Set: RealmSet<Decimal128> = RealmSet()
+    var columnMixedSet: RealmSet<Mixed> = RealmSet()
+
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())
     }

@@ -231,6 +231,8 @@ class NullMixedSetTester(
 
     override fun hasListeners() = Unit
 
+    override fun aggregations() = Unit // Not tested
+
     //----------------------------------
     // Private stuff
     //----------------------------------
