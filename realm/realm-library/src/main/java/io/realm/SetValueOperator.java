@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 Realm Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.realm;
 
 import org.bson.types.Decimal128;
@@ -25,11 +41,10 @@ import io.realm.internal.core.NativeMixedCollection;
 
 import static io.realm.CollectionUtils.SET_TYPE;
 
-
 /**
- * TODO
+ * Abstraction for different set value types.
  *
- * @param <E>
+ * @param <E> the value type
  */
 abstract class SetValueOperator<E> implements ObservableSet {
 
@@ -155,17 +170,17 @@ abstract class SetValueOperator<E> implements ObservableSet {
         return iteratorFactory(valueClass, osSet, baseRealm);
     }
 
-    public void clear() {
+    void clear() {
         osSet.clear();
     }
 
-    public RealmSet<E> freeze() {
+    RealmSet<E> freeze() {
         BaseRealm frozenRealm = baseRealm.freeze();
         OsSet frozenOsSet = osSet.freeze(frozenRealm.sharedRealm);
         return new RealmSet<>(frozenRealm, frozenOsSet, valueClass);
     }
 
-    public void addChangeListener(RealmSet<E> realmSet, SetChangeListener<E> listener) {
+    void addChangeListener(RealmSet<E> realmSet, SetChangeListener<E> listener) {
         CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         if (setObserverPairs.isEmpty()) {
             osSet.startListening(this);
@@ -174,7 +189,7 @@ abstract class SetValueOperator<E> implements ObservableSet {
         setObserverPairs.add(setObserverPair);
     }
 
-    public void addChangeListener(RealmSet<E> realmSet, RealmChangeListener<RealmSet<E>> listener) {
+    void addChangeListener(RealmSet<E> realmSet, RealmChangeListener<RealmSet<E>> listener) {
         SetChangeListener<E> changeListener = new SetChangeListener<E>() {
             @Override
             public void onChange(RealmSet<E> set, SetChangeSet changes) {
@@ -184,7 +199,7 @@ abstract class SetValueOperator<E> implements ObservableSet {
         addChangeListener(realmSet, changeListener);
     }
 
-    public void removeChangeListener(RealmSet<E> realmSet, RealmChangeListener<RealmSet<E>> listener) {
+    void removeChangeListener(RealmSet<E> realmSet, RealmChangeListener<RealmSet<E>> listener) {
         removeChangeListener(realmSet, new SetChangeListener<E>() {
             @Override
             public void onChange(RealmSet<E> set, SetChangeSet changes) {
@@ -193,20 +208,20 @@ abstract class SetValueOperator<E> implements ObservableSet {
         });
     }
 
-    public void removeChangeListener(RealmSet<E> realmSet, SetChangeListener<E> listener) {
+    void removeChangeListener(RealmSet<E> realmSet, SetChangeListener<E> listener) {
         setObserverPairs.remove(realmSet, listener);
         if (setObserverPairs.isEmpty()) {
             osSet.stopListening();
         }
     }
 
-    public void removeAllChangeListeners() {
+    void removeAllChangeListeners() {
         CollectionUtils.checkForAddRemoveListener(baseRealm, null, false);
         setObserverPairs.clear();
         osSet.stopListening();
     }
 
-    public boolean hasListeners() {
+    boolean hasListeners() {
         return !setObserverPairs.isEmpty();
     }
 
@@ -330,7 +345,7 @@ abstract class SetValueOperator<E> implements ObservableSet {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@code boolean} values in {@link RealmSet}s.
  */
 class BooleanOperator extends SetValueOperator<Boolean> {
 
@@ -388,7 +403,7 @@ class BooleanOperator extends SetValueOperator<Boolean> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@link String} values in {@link RealmSet}s.
  */
 class StringOperator extends SetValueOperator<String> {
 
@@ -447,7 +462,7 @@ class StringOperator extends SetValueOperator<String> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@code int} values in {@link RealmSet}s.
  */
 class IntegerOperator extends SetValueOperator<Integer> {
 
@@ -511,7 +526,7 @@ class IntegerOperator extends SetValueOperator<Integer> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@code long} values in {@link RealmSet}s.
  */
 class LongOperator extends SetValueOperator<Long> {
 
@@ -568,7 +583,7 @@ class LongOperator extends SetValueOperator<Long> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@code short} values in {@link RealmSet}s.
  */
 class ShortOperator extends SetValueOperator<Short> {
 
@@ -632,7 +647,7 @@ class ShortOperator extends SetValueOperator<Short> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@code byte} values in {@link RealmSet}s.
  */
 class ByteOperator extends SetValueOperator<Byte> {
 
@@ -696,7 +711,7 @@ class ByteOperator extends SetValueOperator<Byte> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@code float} values in {@link RealmSet}s.
  */
 class FloatOperator extends SetValueOperator<Float> {
 
@@ -759,7 +774,7 @@ class FloatOperator extends SetValueOperator<Float> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@code double} values in {@link RealmSet}s.
  */
 class DoubleOperator extends SetValueOperator<Double> {
 
@@ -822,7 +837,7 @@ class DoubleOperator extends SetValueOperator<Double> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@code byte[]} values in {@link RealmSet}s.
  */
 class BinaryOperator extends SetValueOperator<byte[]> {
 
@@ -885,7 +900,7 @@ class BinaryOperator extends SetValueOperator<byte[]> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@link Date} values in {@link RealmSet}s.
  */
 class DateOperator extends SetValueOperator<Date> {
 
@@ -948,7 +963,7 @@ class DateOperator extends SetValueOperator<Date> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@link Decimal128} values in {@link RealmSet}s.
  */
 class Decimal128Operator extends SetValueOperator<Decimal128> {
 
@@ -1011,7 +1026,7 @@ class Decimal128Operator extends SetValueOperator<Decimal128> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@link ObjectId} values in {@link RealmSet}s.
  */
 class ObjectIdOperator extends SetValueOperator<ObjectId> {
 
@@ -1074,7 +1089,7 @@ class ObjectIdOperator extends SetValueOperator<ObjectId> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@link UUID} values in {@link RealmSet}s.
  */
 class UUIDOperator extends SetValueOperator<UUID> {
 
@@ -1138,7 +1153,7 @@ class UUIDOperator extends SetValueOperator<UUID> {
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@link RealmModel} values in {@link RealmSet}s.
  */
 class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
 
@@ -1147,20 +1162,22 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     }
 
     @Override
-    boolean add(T value) {
+    boolean add(@Nullable T value) {
         // Realm model sets cannot contain null values
         RealmObjectProxy proxy = (RealmObjectProxy) getManagedObject(value);
         Row row$realm = proxy.realmGet$proxyState().getRow$realm();
         return osSet.addRow(row$realm.getObjectKey());
     }
 
-    private T getManagedObject(T value) {
+    private T getManagedObject(@Nullable T value) {
         if (value == null) {
             throw new NullPointerException("This set does not permit null values.");
         }
         // Check we can add this object into the Realm
         boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, valueClass.getName(), SET_TYPE);
+
         // Add value into set
+        //noinspection unchecked
         return (T) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
     }
 
@@ -1169,7 +1186,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
      *
      * @param value model object
      */
-    private void checkValidObject(RealmModel value) {
+    private void checkValidObject(@Nullable RealmModel value) {
         // Realm model sets cannot contain null values
         if (value == null) {
             throw new NullPointerException("This set does not permit null values.");
@@ -1183,23 +1200,17 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     }
 
     @Override
-    boolean containsInternal(Object value) {
+    boolean containsInternal(@Nullable Object value) {
         checkValidObject((RealmModel) value);
         Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
         return osSet.containsRow(row$realm.getObjectKey());
     }
 
     @Override
-    boolean removeInternal(Object value) {
+    boolean removeInternal(@Nullable Object value) {
         checkValidObject((RealmModel) value);
         Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
         return osSet.removeRow(row$realm.getObjectKey());
-    }
-
-    private void checkValidCollection(Collection<? extends T> collection) {
-        for (T object : collection) {
-            checkValidObject(object);
-        }
     }
 
     @Override
@@ -1244,10 +1255,16 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         NativeMixedCollection collection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
+
+    private void checkValidCollection(Collection<? extends T> collection) {
+        for (T object : collection) {
+            checkValidObject(object);
+        }
+    }
 }
 
 /**
- * TODO
+ * {@link SetValueOperator} targeting {@link Mixed} values in {@link RealmSet}s.
  */
 class MixedSetOperator extends SetValueOperator<Mixed> {
 
@@ -1297,14 +1314,6 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
         }
         checkValidObject(value);
         return osSet.removeMixed(value.getNativePtr());
-    }
-
-    private void checkValidObject(Mixed mixed) {
-        try {
-            mixed.checkValidObject(baseRealm);
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException("Mixed collection contains unmanaged objects.", exception);
-        }
     }
 
     @NotNull
@@ -1359,17 +1368,25 @@ class MixedSetOperator extends SetValueOperator<Mixed> {
         NativeMixedCollection collection = getNativeMixedCollection((Collection<Mixed>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
+
+    private void checkValidObject(Mixed mixed) {
+        try {
+            mixed.checkValidObject(baseRealm);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Mixed collection contains unmanaged objects.", exception);
+        }
+    }
 }
 
 /**
- * TODO
+ * Base iterator for {@link RealmSet}s.
  *
- * @param <E>
+ * @param <E> the value type.
  */
 abstract class SetIterator<E> implements Iterator<E> {
 
     protected final OsSet osSet;
-    protected final BaseRealm baseRealm;    // TODO: needed for models, will be abstracted later
+    protected final BaseRealm baseRealm;
 
     private int pos = -1;
 
@@ -1403,7 +1420,7 @@ abstract class SetIterator<E> implements Iterator<E> {
 }
 
 /**
- * TODO
+ * Set iterator for {@code boolean} values.
  */
 class BooleanSetIterator extends SetIterator<Boolean> {
     BooleanSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1412,7 +1429,7 @@ class BooleanSetIterator extends SetIterator<Boolean> {
 }
 
 /**
- * TODO
+ * Set iterator for {@link String} values.
  */
 class StringSetIterator extends SetIterator<String> {
     StringSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1421,7 +1438,7 @@ class StringSetIterator extends SetIterator<String> {
 }
 
 /**
- * TODO
+ * Set iterator for {@code int} values.
  */
 class IntegerSetIterator extends SetIterator<Integer> {
     IntegerSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1441,7 +1458,7 @@ class IntegerSetIterator extends SetIterator<Integer> {
 }
 
 /**
- * TODO
+ * Set iterator for {@code long} values.
  */
 class LongSetIterator extends SetIterator<Long> {
     LongSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1450,7 +1467,7 @@ class LongSetIterator extends SetIterator<Long> {
 }
 
 /**
- * TODO
+ * Set iterator for {@code short} values.
  */
 class ShortSetIterator extends SetIterator<Short> {
     ShortSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1470,7 +1487,7 @@ class ShortSetIterator extends SetIterator<Short> {
 }
 
 /**
- * TODO
+ * Set iterator for {@code byte} values.
  */
 class ByteSetIterator extends SetIterator<Byte> {
     ByteSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1490,7 +1507,7 @@ class ByteSetIterator extends SetIterator<Byte> {
 }
 
 /**
- * TODO
+ * Set iterator for {@code float} values.
  */
 class FloatSetIterator extends SetIterator<Float> {
     FloatSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1499,7 +1516,7 @@ class FloatSetIterator extends SetIterator<Float> {
 }
 
 /**
- * TODO
+ * Set iterator for {@code double} values.
  */
 class DoubleSetIterator extends SetIterator<Double> {
     DoubleSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1508,7 +1525,7 @@ class DoubleSetIterator extends SetIterator<Double> {
 }
 
 /**
- * TODO
+ * Set iterator for {@code byte[]} values.
  */
 class BinarySetIterator extends SetIterator<byte[]> {
     BinarySetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1527,7 +1544,7 @@ class BinarySetIterator extends SetIterator<byte[]> {
 }
 
 /**
- * TODO
+ * Set iterator for {@link Date} values.
  */
 class DateSetIterator extends SetIterator<Date> {
     DateSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1536,7 +1553,7 @@ class DateSetIterator extends SetIterator<Date> {
 }
 
 /**
- * TODO
+ * Set iterator for {@link Decimal128} values.
  */
 class Decimal128SetIterator extends SetIterator<Decimal128> {
     Decimal128SetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1545,9 +1562,8 @@ class Decimal128SetIterator extends SetIterator<Decimal128> {
 }
 
 /**
- * TODO
+ * Set iterator for {@link ObjectId} values.
  */
-
 class ObjectIdSetIterator extends SetIterator<ObjectId> {
     ObjectIdSetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
@@ -1555,7 +1571,7 @@ class ObjectIdSetIterator extends SetIterator<ObjectId> {
 }
 
 /**
- * TODO
+ * Set iterator for {@link UUID} values.
  */
 class UUIDSetIterator extends SetIterator<UUID> {
     UUIDSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1564,7 +1580,7 @@ class UUIDSetIterator extends SetIterator<UUID> {
 }
 
 /**
- * TODO
+ * Set iterator for {@link Mixed} values.
  */
 class MixedSetIterator extends SetIterator<Mixed> {
     public MixedSetIterator(OsSet osSet, BaseRealm baseRealm) {
@@ -1579,7 +1595,7 @@ class MixedSetIterator extends SetIterator<Mixed> {
 }
 
 /**
- * TODO
+ * Set iterator for {@link RealmModel} values.
  */
 class RealmModelSetIterator<T extends RealmModel> extends SetIterator<T> {
 

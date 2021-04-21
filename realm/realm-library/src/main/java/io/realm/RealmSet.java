@@ -18,7 +18,10 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Date;
@@ -31,17 +34,51 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.Freezable;
 import io.realm.internal.ManageableObject;
-import io.realm.internal.ObservableMap;
 import io.realm.internal.OsSet;
 
 /**
- * TODO
+ * RealmSet is a collection that contains no duplicate elements. A RealmSet cannot contain duplicate.
+ * <p>
+ * Similarly to {@link RealmList}s, a RealmSet can operate in managed and unmanaged modes. In
+ * managed mode a RealmSet persists all its contents inside a Realm whereas in unmanaged mode
+ * it functions like a {@link HashSet}.
+ * <p>
+ * Managed RealmSets can only be created by Realm and will automatically update its content
+ * whenever the underlying Realm is updated. Managed RealmSet can only be accessed using the getter
+ * that points to a RealmSet field of a {@link RealmObject}.
+ * <p>
+ * Unmanaged elements in this set can be added to a Realm using the
+ * {@link Realm#copyToRealm(Iterable, ImportFlag...)} method.
+ * <p>
+ * <b>Warning: </b> the following methods are not supported for classes containing set fields yet:
+ * <ul>
+ * <li>{@link Realm#insert(RealmModel)}</li>
+ * <li>{@link Realm#insert(Collection)}</li>
+ * <li>{@link Realm#insertOrUpdate(RealmModel)}</li>
+ * <li>{@link Realm#insertOrUpdate(Collection)}</li>
+ * <li>{@link Realm#createAllFromJson(Class, String)}</li>
+ * <li>{@link Realm#createAllFromJson(Class, JSONArray)}</li>
+ * <li>{@link Realm#createAllFromJson(Class, InputStream)}</li>
+ * <li>{@link Realm#createObjectFromJson(Class, String)}</li>
+ * <li>{@link Realm#createObjectFromJson(Class, JSONObject)}}</li>
+ * <li>{@link Realm#createObjectFromJson(Class, InputStream)}}</li>
+ * <li>{@link Realm#createOrUpdateAllFromJson(Class, String)}</li>
+ * <li>{@link Realm#createOrUpdateAllFromJson(Class, JSONArray)}</li>
+ * <li>{@link Realm#createOrUpdateAllFromJson(Class, InputStream)}</li>
+ * <li>{@link Realm#createOrUpdateObjectFromJson(Class, String)}</li>
+ * <li>{@link Realm#createOrUpdateObjectFromJson(Class, JSONObject)}</li>
+ * <li>{@link Realm#createOrUpdateObjectFromJson(Class, InputStream)}</li>
+ * </ul>
  *
- * @param <E>
+ * @param <E> the type of the values stored in this set
  */
 public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet<E>> {
 
     protected final SetStrategy<E> setStrategy;
+
+    // ------------------------------------------
+    // Unmanaged constructors
+    // ------------------------------------------
 
     /**
      * Instantiates a RealmSet in unmanaged mode.
@@ -51,7 +88,20 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     }
 
     /**
-     * Instantiates a RealmSet in managed mode.
+     * Instantiates a RealmSet in unmanaged mode with another collection.
+     *
+     * @param collection the collection with which the set will be initially populated.
+     */
+    public RealmSet(Collection<E> collection) {
+        this.setStrategy = new UnmanagedSetStrategy<>(collection);
+    }
+
+    // ------------------------------------------
+    // Managed constructors
+    // ------------------------------------------
+
+    /**
+     * Instantiates a RealmSet in managed mode. This constructor is used internally by Realm.
      *
      * @param baseRealm
      * @param osSet
@@ -209,16 +259,38 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         return setStrategy.freeze();
     }
 
-    OsSet getOsSet() {
-        return setStrategy.getOsSet();
-    }
-
     // ------------------------------------------
     // RealmSet API
     // ------------------------------------------
 
     /**
-     * TODO
+     * Adds a change listener to this {@link RealmSet}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmSet from being garbage
+     * collected. If the RealmSet is garbage collected, the change listener will stop being
+     * triggered. To avoid this, keep a strong reference for as long as appropriate e.g. in a class
+     * variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmSet<Dog> dogs; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       dogs = realm.where(Person.class).findFirst().getDogs();
+     *       dogs.addChangeListener(new RealmChangeListener<RealmSet<Dog>>() {
+     *           \@Override
+     *           public void onChange(RealmSet<Dog> map) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -230,7 +302,33 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     }
 
     /**
-     * TODO
+     * Adds a change listener to this {@link RealmSet}.
+     * <p>
+     * Registering a change listener will not prevent the underlying RealmSet from being garbage
+     * collected. If the RealmSet is garbage collected, the change listener will stop being
+     * triggered. To avoid this, keep a strong reference for as long as appropriate e.g. in a class
+     * variable.
+     * <p>
+     * <pre>
+     * {@code
+     * public class MyActivity extends Activity {
+     *
+     *     private RealmSet<Dog> dogs; // Strong reference to keep listeners alive
+     *
+     *     \@Override
+     *     protected void onCreate(Bundle savedInstanceState) {
+     *       super.onCreate(savedInstanceState);
+     *       dogs = realm.where(Person.class).findFirst().getDogs();
+     *       dogs.addChangeListener(new SetChangeListener<Dog>() {
+     *           \@Override
+     *           public void onChange(RealmSet<Dog> set, SetChangeSet changeSet) {
+     *               // React to change
+     *           }
+     *       });
+     *     }
+     * }
+     * }
+     * </pre>
      *
      * @param listener the listener to be notified.
      * @throws IllegalArgumentException if the change listener is {@code null}.
@@ -280,6 +378,10 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
      */
     public boolean hasListeners() {
         return setStrategy.hasListeners();
+    }
+
+    OsSet getOsSet() {
+        return setStrategy.getOsSet();
     }
 
     // ------------------------------------------
@@ -332,9 +434,9 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     }
 
     /**
-     * TODO
+     * Strategy responsible for abstracting the managed/unmanaged logic for sets.
      *
-     * @param <E>
+     * @param <E> the type of the values stored in this set
      */
     private abstract static class SetStrategy<E> implements Set<E>, ManageableObject, Freezable<RealmSet<E>> {
         abstract OsSet getOsSet();
@@ -353,9 +455,9 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     }
 
     /**
-     * TODO
+     * Concrete {@link RealmSet.SetStrategy} that works for managed {@link io.realm.RealmSet}s.
      *
-     * @param <E>
+     * @param <E> the value type
      */
     private static class ManagedSetStrategy<E> extends SetStrategy<E> {
 
@@ -551,7 +653,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
         // Private stuff
         // ------------------------------------------
 
-        private <T> void checkValidArray(T[] array) {
+        private <T> void checkValidArray(@Nullable T[] array) {
             if (array == null) {
                 // According to Java Set documentation
                 throw new NullPointerException("Cannot pass a null array when calling 'toArray'.");
@@ -567,7 +669,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
             }
         }
 
-        private void checkValidCollection(Collection<?> collection) {
+        private void checkValidCollection(@Nullable Collection<?> collection) {
             if (collection == null) {
                 throw new NullPointerException("Collection must not be null.");
             }
@@ -575,13 +677,22 @@ public class RealmSet<E> implements Set<E>, ManageableObject, Freezable<RealmSet
     }
 
     /**
-     * TODO
+     * Concrete {@link RealmSet.SetStrategy} that works for unmanaged {@link io.realm.RealmSet}s.
      *
-     * @param <E>
+     * @param <E> the value type
      */
     private static class UnmanagedSetStrategy<E> extends SetStrategy<E> {
 
-        private final Set<E> unmanagedSet = new HashSet<>();
+        private final Set<E> unmanagedSet;
+
+        UnmanagedSetStrategy() {
+            unmanagedSet = new HashSet<>();
+        }
+
+        UnmanagedSetStrategy(Collection<E> collection) {
+            this();
+            unmanagedSet.addAll(collection);
+        }
 
         // ------------------------------------------
         // ManageableObject API
