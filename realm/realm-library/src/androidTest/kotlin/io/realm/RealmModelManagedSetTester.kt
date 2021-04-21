@@ -426,6 +426,7 @@ class RealmModelManagedSetTester<T : Any>(
 
     override fun aggregations() {
         if (mixedType == null) {
+            // Aggregations on Mixed type are not supported d
             val set = initAndAssertEmptySet()
 
             realm.executeTransaction {

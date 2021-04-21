@@ -77,6 +77,7 @@ public class RealmQuery<E> {
     private final boolean forValues;
     private final OsCollection osCollection;
 
+    private static final String PRIMITIVE_LISTS_NOT_SUPPORTED_ERROR_MESSAGE = "Queries on primitive lists are not yet supported";
     private static final String TYPE_MISMATCH = "Field '%s': type mismatch - %s expected.";
     private static final String EMPTY_VALUES = "Non-empty 'values' must be provided.";
     private static final String ASYNC_QUERY_WRONG_THREAD_MESSAGE = "Async query cannot be created on current thread.";
@@ -144,11 +145,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO Queries on primitive lists are not yet supported
-            this.schema = null;
-            this.table = null;
-            this.osCollection = null;
-            this.query = null;
+            throw new UnsupportedOperationException(PRIMITIVE_LISTS_NOT_SUPPORTED_ERROR_MESSAGE);
         } else {
             //noinspection unchecked
             this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
@@ -163,11 +160,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO Queries on primitive lists are not yet supported
-            this.schema = null;
-            this.table = null;
-            this.osCollection = null;
-            this.query = null;
+            throw new UnsupportedOperationException(PRIMITIVE_LISTS_NOT_SUPPORTED_ERROR_MESSAGE);
         } else {
             //noinspection unchecked
             this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
@@ -182,11 +175,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO Queries on primitive lists are not yet supported
-            this.schema = null;
-            this.table = null;
-            this.osCollection = null;
-            this.query = null;
+            throw new UnsupportedOperationException(PRIMITIVE_LISTS_NOT_SUPPORTED_ERROR_MESSAGE);
         } else {
             //noinspection unchecked
             this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
@@ -201,11 +190,7 @@ public class RealmQuery<E> {
         this.clazz = clazz;
         this.forValues = !isClassForRealmModel(clazz);
         if (forValues) {
-            // TODO Queries on primitive lists are not yet supported
-            this.schema = null;
-            this.table = null;
-            this.osCollection = null;
-            this.query = null;
+            throw new UnsupportedOperationException(PRIMITIVE_LISTS_NOT_SUPPORTED_ERROR_MESSAGE);
         } else {
             //noinspection unchecked
             this.schema = realm.getSchema().getSchemaForClass((Class<? extends RealmModel>) clazz);
