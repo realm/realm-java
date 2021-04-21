@@ -14,7 +14,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.ObservableCollection;
 import io.realm.internal.ObservableSet;
 import io.realm.internal.ObserverPairList;
 import io.realm.internal.OsSet;
@@ -58,6 +57,14 @@ abstract class SetValueOperator<E> implements ObservableSet {
     abstract boolean removeAllInternal(Collection<?> c);
 
     abstract boolean retainAllInternal(Collection<?> c);
+
+    RealmQuery<E> where(){
+        throw new UnsupportedOperationException("This feature is available only when the element type is implementing RealmModel.");
+    }
+
+    void deleteAll(){
+        osSet.deleteAll();
+    }
 
     @Override
     public void notifyChangeListeners(long nativeChangeSetPtr) {
@@ -1243,6 +1250,11 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
         checkValidCollection(realmModelCollection);
         NativeMixedCollection collection = NativeMixedCollection.newRealmModelCollection(realmModelCollection);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+
+    @Override
+    RealmQuery<T> where() {
+        return new RealmQuery<>(baseRealm, osSet, valueClass);
     }
 }
 

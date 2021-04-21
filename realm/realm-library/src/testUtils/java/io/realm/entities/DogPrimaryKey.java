@@ -25,6 +25,8 @@ import io.realm.annotations.PrimaryKey;
 public class DogPrimaryKey extends RealmObject {
 
     public static final String CLASS_NAME = "DogPrimaryKey";
+    public static final String AGE = "age";
+    public static final String BIRTHDAY = "birthday";
 
     @PrimaryKey
     private long id;

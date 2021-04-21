@@ -100,6 +100,27 @@ Java_io_realm_internal_OsSet_nativeIsValid(JNIEnv* env, jclass, jlong wrapper_pt
     return false;
 }
 
+JNIEXPORT void JNICALL
+Java_io_realm_internal_OsSet_nativeDeleteAll(JNIEnv* env, jclass, jlong wrapper_ptr) {
+    try {
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        wrapper.collection().delete_all();
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSet_nativeGetQuery(JNIEnv* env, jclass, jlong wrapper_ptr)
+{
+    try {
+        auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
+        auto query = wrapper.collection().get_query();
+        query.set_ordering(std::make_unique<DescriptorOrdering>());
+        return reinterpret_cast<jlong>(new Query(std::move(query)));
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT jobject JNICALL
 Java_io_realm_internal_OsSet_nativeGetValueAtIndex(JNIEnv* env, jclass, jlong wrapper_ptr, jint position) {
     try {
