@@ -177,6 +177,11 @@ class ParameterizedSetTests(
     fun hasListeners() {
         tester.hasListeners()
     }
+
+    @Test
+    fun aggregations(){
+        tester.aggregations()
+    }
 }
 
 /**
@@ -228,6 +233,7 @@ interface SetTester : GenericTester {
     fun removeSetChangeListener()
     fun removeRealmChangeListener()
     fun hasListeners()
+    fun aggregations()
 }
 
 fun <T : Any> RealmSet<T>.init(values: List<T?>): RealmSet<T> {
