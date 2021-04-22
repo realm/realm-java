@@ -21,6 +21,7 @@ import android.util.Log;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.internal.util.collections.Sets;
@@ -2516,6 +2517,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isEmpty() throws IOException {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
@@ -2604,7 +2606,7 @@ public class RealmQueryTests extends QueryTests {
                     assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
                     break;
                 case STRING_TO_LINK_MAP:
-                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 case MIXED_SET:
                     assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_MIXED_SET).count());
@@ -2639,9 +2641,9 @@ public class RealmQueryTests extends QueryTests {
                 case DECIMAL128_SET:
                     assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_SET).count());
                     break;
-//                case LINK_SET:
-//                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
-//                    break;
+                case LINK_SET:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -2649,6 +2651,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isEmpty_acrossLink() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
@@ -2743,7 +2746,7 @@ public class RealmQueryTests extends QueryTests {
                     assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
                     break;
                 case STRING_TO_LINK_MAP:
-                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
                     break;
                 case MIXED_SET:
                     assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_SET).count());
@@ -2778,9 +2781,9 @@ public class RealmQueryTests extends QueryTests {
                 case DECIMAL128_SET:
                     assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_SET).count());
                     break;
-//                case LINK_SET:
-//                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
-//                    break;
+                case LINK_SET:
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -2859,6 +2862,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isNotEmpty() {
         createIsNotEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
@@ -2991,6 +2995,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isNotEmpty_acrossLink() {
         createIsNotEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
