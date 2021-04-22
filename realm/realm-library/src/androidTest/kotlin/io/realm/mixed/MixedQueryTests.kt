@@ -133,19 +133,6 @@ class MixedQueryTests {
         assertEquals(Decimal128.parse("279.0"), value)
     }
 
-    // This test case is meant to catch when  https://github.com/realm/realm-core/issues/4571 gets fixed
-    @Test
-    fun catch_minAggregationFixed() {
-        initializeTestData(stripNulls = true)
-        realm.executeTransaction {
-            val mixedObject = MixedNotIndexed(Mixed.nullValue())
-            realm.insert(mixedObject)
-        }
-
-        val value = realm.where<MixedNotIndexed>().minMixed(MixedNotIndexed.FIELD_MIXED)
-        assertTrue(value.isNull)
-    }
-
     @Test
     @Ignore("FIXME: see https://github.com/realm/realm-core/issues/4571")
     fun min() {
