@@ -103,8 +103,8 @@ public abstract class QueryTests {
                 RealmFieldType.DECIMAL128_SET,
                 RealmFieldType.OBJECT_ID_SET,
                 RealmFieldType.UUID_SET,
-                RealmFieldType.MIXED_SET
-//                RealmFieldType.LINK_SET
+                RealmFieldType.MIXED_SET,
+                RealmFieldType.LINK_SET
         ));
 
         SUPPORTED_IS_EMPTY_TYPES = Collections.unmodifiableList(list);
@@ -136,6 +136,7 @@ public abstract class QueryTests {
         }
     }
 
+    @SuppressWarnings("unchecked")
     protected final void createIsEmptyDataSet(Realm realm) {
         realm.beginTransaction();
 
@@ -154,8 +155,6 @@ public abstract class QueryTests {
         nonEmpty.setFieldBinary(new byte[] {1, 2, 3});
         nonEmpty.setFieldObject(nonEmpty);
         nonEmpty.setFieldList(new RealmList<>(emptyValuesManaged));
-        nonEmpty.setColumnRealmDictionary(new RealmDictionary<>());
-        nonEmpty.getColumnRealmDictionary().put("key", emptyValuesManaged);
 
         AllJavaTypesUnsupportedTypes nonEmptyManaged = realm.copyToRealmOrUpdate(nonEmpty);
         AllJavaTypesUnsupportedTypes emptyValues2 = new AllJavaTypesUnsupportedTypes();
