@@ -36,7 +36,7 @@ import io.realm.internal.ManageableObject;
 import io.realm.internal.OsSet;
 
 /**
- * RealmSet is a collection that contains no duplicate elements. A RealmSet cannot contain duplicate.
+ * RealmSet is a collection that contains no duplicate elements.
  * <p>
  * Similarly to {@link RealmList}s, a RealmSet can operate in managed and unmanaged modes. In
  * managed mode a RealmSet persists all its contents inside a Realm whereas in unmanaged mode
