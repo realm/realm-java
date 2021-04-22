@@ -514,8 +514,7 @@ class SyncedRealmTests {
         val expectedMixedValues = arrayListOf(
                 Mixed.valueOf(1.toLong()),
                 Mixed.valueOf(false),
-//              Float not supported in sync yet, uncomment once it does
-//                Mixed.valueOf(10.5.toFloat()),
+                Mixed.valueOf(10.5.toFloat()),
                 Mixed.valueOf(10.5.toDouble()),
                 Mixed.valueOf("hello world 2"),
                 Mixed.valueOf(Date(105)),
@@ -529,6 +528,7 @@ class SyncedRealmTests {
         val expectedString = "hello world"
         val expectedLong = 10.toLong()
         val expectedDouble = 10.0
+        val expectedFloat = 10.0.toFloat()
         val expectedBoolean = true
         val expectedDate = Date()
         val expectedBinary = byteArrayOf(0, 1, 0)
@@ -544,6 +544,7 @@ class SyncedRealmTests {
         val expectedBooleanList = RealmList<Boolean>(true, false, false, true)
         val expectedLongList = RealmList<Long>(0, 1, 2, 5, 7)
         val expectedDoubleList = RealmList<Double>(0.0, 2.toDouble(), 10.5)
+        val expectedFloatList = RealmList<Float>(0.0.toFloat(), 2.toFloat(), 10.5.toFloat())
         val expectedDateList = RealmList<Date>(Date(100), Date(10), Date(200))
         val expectedDecimal128List = RealmList<Decimal128>(Decimal128(10), Decimal128(100), Decimal128(20))
         val expectedObjectIdList = RealmList<ObjectId>(ObjectId(Date(1000)), ObjectId(Date(100)), ObjectId(Date(2000)))
@@ -557,6 +558,7 @@ class SyncedRealmTests {
         val expectedBooleanDict = RealmDictionary<Boolean>().init(listOf("key" to expectedBoolean))
         val expectedLongDict = RealmDictionary<Long>().init(listOf("key" to expectedLong))
         val expectedDoubleDict = RealmDictionary<Double>().init(listOf("key" to expectedDouble))
+        val expectedFloatDict = RealmDictionary<Float>().init(listOf("key" to expectedFloat))
         val expectedDateDict = RealmDictionary<Date>().init(listOf("key" to expectedDate))
         val expectedDecimal128Dict = RealmDictionary<Decimal128>().init(listOf("key" to expectedDecimal128))
         val expectedObjectIdDict = RealmDictionary<ObjectId>().init(listOf("key" to expectedObjectId))
@@ -569,6 +571,7 @@ class SyncedRealmTests {
         val expectedBooleanSet = RealmSet<Boolean>().init(listOf(expectedBoolean))
         val expectedLongSet = RealmSet<Long>().init(listOf(expectedLong))
         val expectedDoubleSet = RealmSet<Double>().init(listOf(expectedDouble))
+        val expectedFloatSet = RealmSet<Float>().init(listOf(expectedFloat))
         val expectedDateSet = RealmSet<Date>().init(listOf(expectedDate))
         val expectedDecimal128Set = RealmSet<Decimal128>().init(listOf(expectedDecimal128))
         val expectedObjectIdSet = RealmSet<ObjectId>().init(listOf(expectedObjectId))
@@ -605,6 +608,7 @@ class SyncedRealmTests {
                                     RealmFieldType.BINARY -> columnBinary = expectedBinary
                                     RealmFieldType.DATE -> columnDate = expectedDate
                                     RealmFieldType.DOUBLE -> columnDouble = expectedDouble
+                                    RealmFieldType.FLOAT -> columnFloat = expectedFloat
                                     RealmFieldType.OBJECT -> columnRealmObject = expectedRealmObject
                                     RealmFieldType.DECIMAL128 -> columnDecimal128 = expectedDecimal128
                                     RealmFieldType.OBJECT_ID -> columnObjectId = expectedObjectId
@@ -617,6 +621,7 @@ class SyncedRealmTests {
                                     RealmFieldType.BINARY_LIST -> columnBinaryList = expectedBinaryList
                                     RealmFieldType.DATE_LIST -> columnDateList = expectedDateList
                                     RealmFieldType.DOUBLE_LIST -> columnDoubleList = expectedDoubleList
+                                    RealmFieldType.FLOAT_LIST -> columnFloatList = expectedFloatList
                                     RealmFieldType.DECIMAL128_LIST -> columnDecimal128List = expectedDecimal128List
                                     RealmFieldType.OBJECT_ID_LIST -> columnObjectIdList = expectedObjectIdList
                                     RealmFieldType.UUID_LIST -> columnUUIDList = expectedUUIDList
@@ -627,6 +632,7 @@ class SyncedRealmTests {
                                     RealmFieldType.STRING_TO_BINARY_MAP -> columnBinaryDictionary = expectedBinaryDict
                                     RealmFieldType.STRING_TO_DATE_MAP -> columnDateDictionary = expectedDateDict
                                     RealmFieldType.STRING_TO_DOUBLE_MAP -> columnDoubleDictionary = expectedDoubleDict
+                                    RealmFieldType.STRING_TO_FLOAT_MAP -> columnFloatDictionary = expectedFloatDict
                                     RealmFieldType.STRING_TO_DECIMAL128_MAP -> columnDecimal128Dictionary = expectedDecimal128Dict
                                     RealmFieldType.STRING_TO_OBJECT_ID_MAP -> columnObjectIdDictionary = expectedObjectIdDict
                                     RealmFieldType.STRING_TO_UUID_MAP -> columnUUIDDictionary = expectedUUIDDict
@@ -642,15 +648,13 @@ class SyncedRealmTests {
                                     RealmFieldType.BINARY_SET -> columnBinarySet = expectedBinarySet
                                     RealmFieldType.DATE_SET -> columnDateSet = expectedDateSet
                                     RealmFieldType.DOUBLE_SET -> columnDoubleSet = expectedDoubleSet
+                                    RealmFieldType.FLOAT_SET -> columnFloatSet = expectedFloatSet
                                     RealmFieldType.DECIMAL128_SET -> columnDecimal128Set = expectedDecimal128Set
                                     RealmFieldType.OBJECT_ID_SET -> columnObjectIdSet = expectedObjectIdSet
                                     RealmFieldType.UUID_SET -> columnUUIDSet = expectedUUIDSet
                                     RealmFieldType.MIXED_SET -> columnMixedSet = expectedMixedSet
                                     RealmFieldType.LINKING_OBJECTS,     // Nothing to set
-                                    RealmFieldType.TYPED_LINK,          // Not an actual exposed type, it is used internally by Mixed
-                                    RealmFieldType.FLOAT,               // Float is not cloud compatible yet
-                                    RealmFieldType.FLOAT_LIST,          // Float is not cloud compatible yet
-                                    RealmFieldType.STRING_TO_FLOAT_MAP  // Float is not cloud compatible yet
+                                    RealmFieldType.TYPED_LINK          // Not an actual exposed type, it is used internally by Mixed
                                     -> {}
                                 }
                             }
