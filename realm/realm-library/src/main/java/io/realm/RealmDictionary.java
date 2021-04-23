@@ -81,17 +81,6 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         super(getStrategy(valueClass, baseRealm, osMap));
     }
 
-    /**
-     * Constructor used by {@code DynamicRealm}s.
-     *
-     * @param baseRealm
-     * @param osMap
-     * @param valueClass
-     */
-    RealmDictionary(BaseRealm baseRealm, OsMap osMap, String valueClass) {
-        super(getStrategy(valueClass, baseRealm, osMap));
-    }
-
     // ------------------------------------------
     // Private stuff
     // ------------------------------------------
