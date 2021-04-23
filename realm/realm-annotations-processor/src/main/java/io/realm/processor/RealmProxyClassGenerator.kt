@@ -247,7 +247,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             when {
                 Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName) -> emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isMutableRealmInteger(field) -> emitMutableRealmInteger(writer, field, fieldName, fieldTypeCanonicalName)
-                Utils.isMixed(field) -> emitMixed(writer, field, fieldName, fieldTypeCanonicalName)
+                Utils.isRealmAny(field) -> emitRealmAny(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isRealmModel(field) -> emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isRealmList(field) -> {
                     val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
@@ -357,17 +357,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
     }
 
     /**
-     * Emit Get method for Mixed fields.
+     * Emit Get method for RealmAny fields.
      */
     @Throws(IOException::class)
-    private fun emitMixed(writer: JavaWriter, field: VariableElement, fieldName: String, fieldTypeCanonicalName: String) {
+    private fun emitRealmAny(writer: JavaWriter, field: VariableElement, fieldName: String, fieldTypeCanonicalName: String) {
         writer.apply {
             // Getter - Start
             emitAnnotation("Override")
             beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
                 emitStatement("proxyState.getRealm\$realm().checkIfValid()")
-                emitStatement("NativeMixed nativeMixed = proxyState.getRow\$realm().getNativeMixed(%s)", fieldColKeyVariableReference(field))
-                emitStatement("return new Mixed(MixedOperator.fromNativeMixed(proxyState.getRealm\$realm(), nativeMixed))")
+                emitStatement("NativeRealmAny nativeRealmAny = proxyState.getRow\$realm().getNativeRealmAny(%s)", fieldColKeyVariableReference(field))
+                emitStatement("return new RealmAny(RealmAnyOperator.fromNativeRealmAny(proxyState.getRealm\$realm(), nativeRealmAny))")
             endMethod()
             // Getter - End
 
@@ -389,7 +389,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("row.getTable().setNull(%s, row.getObjectKey(), true)", fieldColKeyVariableReference(field))
                     emitStatement("return")
                 endControlFlow()
-                emitStatement("row.getTable().setMixed(%s, row.getObjectKey(), value.getNativePtr(), true)", fieldColKeyVariableReference(field))
+                emitStatement("row.getTable().setRealmAny(%s, row.getObjectKey(), value.getNativePtr(), true)", fieldColKeyVariableReference(field))
                 emitStatement("return")
 
             }
@@ -401,7 +401,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 emitStatement("return")
             endControlFlow()
             emitStatement("value = ProxyUtils.copyToRealmIfNeeded(proxyState, value)")
-            emitStatement("proxyState.getRow\$realm().setMixed(%s, value.getNativePtr())", fieldColKeyVariableReference(field))
+            emitStatement("proxyState.getRow\$realm().setRealmAny(%s, value.getNativePtr())", fieldColKeyVariableReference(field))
             endMethod()
             // Setter - End
         }
@@ -500,7 +500,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
         val genericType: QualifiedClassName? = Utils.getGenericTypeQualifiedName(field)
         val forRealmModel: Boolean = Utils.isRealmModel(elementTypeMirror)
-        val forMixed: Boolean = Utils.isMixed(elementTypeMirror)
+        val forRealmAny: Boolean = Utils.isRealmAny(elementTypeMirror)
 
         writer.apply {
             // Getter - Start
@@ -587,11 +587,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         endControlFlow()
                     endControlFlow()
             } else {
-                if(forMixed){
+                if(forRealmAny){
                     beginControlFlow("if (value != null && !value.isManaged())")
                         emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
-                        emitStatement("final RealmList<Mixed> original = value")
-                        emitStatement("value = new RealmList<Mixed>()")
+                        emitStatement("final RealmList<RealmAny> original = value")
+                        emitStatement("value = new RealmList<RealmAny>()")
                         beginControlFlow("for (int i = 0; i < original.size(); i++)")
                             emitStatement("value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, original.get(i)))")
                         endControlFlow()
@@ -656,7 +656,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             return "$osListVariableName.addUUID($valueVariableName)"
         }
         if (typeUtils.isSameType(elementTypeMirror, typeMirrors.MIXED_MIRROR)) {
-            return "$osListVariableName.addMixed($valueVariableName.getNativePtr())"
+            return "$osListVariableName.addRealmAny($valueVariableName.getNativePtr())"
         }
         throw RuntimeException("unexpected element type: $elementTypeMirror")
     }
@@ -1232,23 +1232,23 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         endControlFlow()
                     }
-                    Utils.isMixed(field) -> {
+                    Utils.isRealmAny(field) -> {
                         emitEmptyLine()
 
-                        emitStatement("Mixed ${fieldName}Mixed = ((${interfaceName}) object).${getter}()")
-                        emitStatement("${fieldName}Mixed = ProxyUtils.insert(${fieldName}Mixed, realm, cache)")
-                        emitStatement("Table.nativeSetMixed(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}Mixed.getNativePtr(), false)")
+                        emitStatement("RealmAny ${fieldName}RealmAny = ((${interfaceName}) object).${getter}()")
+                        emitStatement("${fieldName}RealmAny = ProxyUtils.insert(${fieldName}RealmAny, realm, cache)")
+                        emitStatement("Table.nativeSetRealmAny(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}RealmAny.getNativePtr(), false)")
                     }
-                    Utils.isMixedList(field) -> {
+                    Utils.isRealmAnyList(field) -> {
                         emitEmptyLine()
 
-                        emitStatement("RealmList<Mixed> ${fieldName}UnmanagedList = ((${interfaceName}) object).${getter}()")
+                        emitStatement("RealmList<RealmAny> ${fieldName}UnmanagedList = ((${interfaceName}) object).${getter}()")
                         beginControlFlow("if (${fieldName}UnmanagedList != null)")
                             emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
                             beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
-                                emitStatement("Mixed mixedItem = ${fieldName}UnmanagedList.get(i)")
-                                emitStatement("mixedItem = ProxyUtils.insert(mixedItem, realm, cache)")
-                                emitStatement("${fieldName}OsList.addMixed(mixedItem.getNativePtr())")
+                                emitStatement("RealmAny realmAnyItem = ${fieldName}UnmanagedList.get(i)")
+                                emitStatement("realmAnyItem = ProxyUtils.insert(realmAnyItem, realm, cache)")
+                                emitStatement("${fieldName}OsList.addRealmAny(realmAnyItem.getNativePtr())")
                             endControlFlow()
                         endControlFlow()
                     }
@@ -1365,22 +1365,22 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     endControlFlow()
                                 endControlFlow()
                             endControlFlow()
-                        } else if (Utils.isMixed(field)) {
+                        } else if (Utils.isRealmAny(field)) {
                             emitEmptyLine()
 
-                            emitStatement("Mixed ${fieldName}Mixed = ((${interfaceName}) object).${getter}()")
-                            emitStatement("${fieldName}Mixed = ProxyUtils.insert(${fieldName}Mixed, realm, cache)")
-                            emitStatement("Table.nativeSetMixed(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}Mixed.getNativePtr(), false)")
-                        } else if (Utils.isMixedList(field)) {
+                            emitStatement("RealmAny ${fieldName}RealmAny = ((${interfaceName}) object).${getter}()")
+                            emitStatement("${fieldName}RealmAny = ProxyUtils.insert(${fieldName}RealmAny, realm, cache)")
+                            emitStatement("Table.nativeSetRealmAny(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}RealmAny.getNativePtr(), false)")
+                        } else if (Utils.isRealmAnyList(field)) {
                             emitEmptyLine()
 
-                            emitStatement("RealmList<Mixed> ${fieldName}UnmanagedList = ((${interfaceName}) object).${getter}()")
+                            emitStatement("RealmList<RealmAny> ${fieldName}UnmanagedList = ((${interfaceName}) object).${getter}()")
                             beginControlFlow("if (${fieldName}UnmanagedList != null)")
                                 emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
                                 beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
-                                    emitStatement("Mixed mixedItem = ${fieldName}UnmanagedList.get(i)")
-                                    emitStatement("mixedItem = ProxyUtils.insert(mixedItem, realm, cache)")
-                                    emitStatement("${fieldName}OsList.addMixed(mixedItem.getNativePtr())")
+                                    emitStatement("RealmAny realmAnyItem = ${fieldName}UnmanagedList.get(i)")
+                                    emitStatement("realmAnyItem = ProxyUtils.insert(realmAnyItem, realm, cache)")
+                                    emitStatement("${fieldName}OsList.addRealmAny(realmAnyItem.getNativePtr())")
                                 endControlFlow()
                             endControlFlow()
                         } else {
@@ -1512,35 +1512,35 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         endControlFlow()
                     endControlFlow()
                     emitEmptyLine()
-                } else if (Utils.isMixed(field)) {
-                    emitStatement("Mixed ${fieldName}Mixed = ((${interfaceName}) object).${getter}()")
-                    emitStatement("${fieldName}Mixed = ProxyUtils.insertOrUpdate(${fieldName}Mixed, realm, cache)")
-                    emitStatement("Table.nativeSetMixed(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}Mixed.getNativePtr(), false)")
-                } else if (Utils.isMixedList(field)) {
+                } else if (Utils.isRealmAny(field)) {
+                    emitStatement("RealmAny ${fieldName}RealmAny = ((${interfaceName}) object).${getter}()")
+                    emitStatement("${fieldName}RealmAny = ProxyUtils.insertOrUpdate(${fieldName}RealmAny, realm, cache)")
+                    emitStatement("Table.nativeSetRealmAny(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}RealmAny.getNativePtr(), false)")
+                } else if (Utils.isRealmAnyList(field)) {
                     emitEmptyLine()
                     emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
-                    emitStatement("RealmList<Mixed> ${fieldName}List = ((${interfaceName}) object).${getter}()")
+                    emitStatement("RealmList<RealmAny> ${fieldName}List = ((${interfaceName}) object).${getter}()")
 
                     beginControlFlow("if (${fieldName}List != null && ${fieldName}List.size() == ${fieldName}OsList.size())")
                         emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
                         emitStatement("int objects = ${fieldName}List.size()")
                         beginControlFlow("for (int i = 0; i < objects; i++)")
-                            emitStatement("Mixed ${fieldName}Item = ${fieldName}List.get(i)")
+                            emitStatement("RealmAny ${fieldName}Item = ${fieldName}List.get(i)")
                             emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
                             beginControlFlow("if (cacheItemIndex${fieldName} == null)")
                                 emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
                             endControlFlow()
-                            emitStatement("${fieldName}OsList.setMixed(i, ${fieldName}Item.getNativePtr())")
+                            emitStatement("${fieldName}OsList.setRealmAny(i, ${fieldName}Item.getNativePtr())")
                         endControlFlow()
                     nextControlFlow("else")
                         emitStatement("${fieldName}OsList.removeAll()")
                         beginControlFlow("if (${fieldName}List != null)")
-                            beginControlFlow("for (Mixed ${fieldName}Item : ${fieldName}List)")
+                            beginControlFlow("for (RealmAny ${fieldName}Item : ${fieldName}List)")
                                 emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
                                 beginControlFlow("if (cacheItemIndex${fieldName} == null)")
                                     emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
                                 endControlFlow()
-                                emitStatement("${fieldName}OsList.addMixed(${fieldName}Item.getNativePtr())")
+                                emitStatement("${fieldName}OsList.addRealmAny(${fieldName}Item.getNativePtr())")
                             endControlFlow()
                         endControlFlow()
                     endControlFlow()
@@ -1685,36 +1685,36 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 endControlFlow()
                                 emitEmptyLine()
                             }
-                            Utils.isMixed(field) -> {
-                                emitStatement("Mixed ${fieldName}Mixed = ((${interfaceName}) object).${getter}()")
-                                emitStatement("${fieldName}Mixed = ProxyUtils.insertOrUpdate(${fieldName}Mixed, realm, cache)")
-                                emitStatement("Table.nativeSetMixed(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}Mixed.getNativePtr(), false)")
+                            Utils.isRealmAny(field) -> {
+                                emitStatement("RealmAny ${fieldName}RealmAny = ((${interfaceName}) object).${getter}()")
+                                emitStatement("${fieldName}RealmAny = ProxyUtils.insertOrUpdate(${fieldName}RealmAny, realm, cache)")
+                                emitStatement("Table.nativeSetRealmAny(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}RealmAny.getNativePtr(), false)")
                             }
-                            Utils.isMixedList(field) -> {
+                            Utils.isRealmAnyList(field) -> {
                                 emitEmptyLine()
                                 emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
-                                emitStatement("RealmList<Mixed> ${fieldName}List = ((${interfaceName}) object).${getter}()")
+                                emitStatement("RealmList<RealmAny> ${fieldName}List = ((${interfaceName}) object).${getter}()")
 
                                 beginControlFlow("if (${fieldName}List != null && ${fieldName}List.size() == ${fieldName}OsList.size())")
                                     emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
                                     emitStatement("int objectCount = ${fieldName}List.size()")
                                     beginControlFlow("for (int i = 0; i < objectCount; i++)")
-                                        emitStatement("Mixed ${fieldName}Item = ${fieldName}List.get(i)")
+                                        emitStatement("RealmAny ${fieldName}Item = ${fieldName}List.get(i)")
                                         emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
                                         beginControlFlow("if (cacheItemIndex${fieldName} == null)")
                                             emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
                                         endControlFlow()
-                                        emitStatement("${fieldName}OsList.setMixed(i, ${fieldName}Item.getNativePtr())")
+                                        emitStatement("${fieldName}OsList.setRealmAny(i, ${fieldName}Item.getNativePtr())")
                                     endControlFlow()
                                 nextControlFlow("else")
                                     emitStatement("${fieldName}OsList.removeAll()")
                                     beginControlFlow("if (${fieldName}List != null)")
-                                        beginControlFlow("for (Mixed ${fieldName}Item : ${fieldName}List)")
+                                        beginControlFlow("for (RealmAny ${fieldName}Item : ${fieldName}List)")
                                             emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
                                             beginControlFlow("if (cacheItemIndex${fieldName} == null)")
                                                 emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
                                             endControlFlow()
-                                            emitStatement("${fieldName}OsList.addMixed(${fieldName}Item.getNativePtr())")
+                                            emitStatement("${fieldName}OsList.addRealmAny(${fieldName}Item.getNativePtr())")
                                         endControlFlow()
                                     endControlFlow()
                                 endControlFlow()
@@ -1937,22 +1937,22 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                             emitEmptyLine()
                         }
-                        Utils.isMixed(field) -> {
-                            emitStatement("Mixed ${fieldName}Mixed = unmanagedSource.${getter}()")
-                            emitStatement("${fieldName}Mixed = ProxyUtils.copyOrUpdate(${fieldName}Mixed, realm, update, cache, flags)")
-                            emitStatement("managedCopy.${setter}(${fieldName}Mixed)")
+                        Utils.isRealmAny(field) -> {
+                            emitStatement("RealmAny ${fieldName}RealmAny = unmanagedSource.${getter}()")
+                            emitStatement("${fieldName}RealmAny = ProxyUtils.copyOrUpdate(${fieldName}RealmAny, realm, update, cache, flags)")
+                            emitStatement("managedCopy.${setter}(${fieldName}RealmAny)")
                             emitEmptyLine()
                         }
-                        Utils.isMixedList(field) -> {
-                            emitStatement("RealmList<Mixed> ${fieldName}UnmanagedList = unmanagedSource.${getter}()")
+                        Utils.isRealmAnyList(field) -> {
+                            emitStatement("RealmList<RealmAny> ${fieldName}UnmanagedList = unmanagedSource.${getter}()")
                             beginControlFlow("if (${fieldName}UnmanagedList != null)")
-                                emitStatement("RealmList<Mixed> ${fieldName}ManagedList = managedCopy.${getter}()")
+                                emitStatement("RealmList<RealmAny> ${fieldName}ManagedList = managedCopy.${getter}()")
                                 emitStatement("${fieldName}ManagedList.clear()")
 
                                 beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
-                                    emitStatement("Mixed mixedItem = ${fieldName}UnmanagedList.get(i)")
-                                    emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, update, cache, flags)")
-                                    emitStatement("${fieldName}ManagedList.add(mixedItem)")
+                                    emitStatement("RealmAny realmAnyItem = ${fieldName}UnmanagedList.get(i)")
+                                    emitStatement("realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, update, cache, flags)")
+                                    emitStatement("${fieldName}ManagedList.add(realmAnyItem)")
                                 endControlFlow()
                             endControlFlow()
                             emitEmptyLine()
@@ -2028,24 +2028,24 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isMutableRealmInteger(field) -> // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                             emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter)
-                        Utils.isMixed(field) -> {
+                        Utils.isRealmAny(field) -> {
                             emitEmptyLine()
                             emitSingleLineComment("Deep copy of %s", fieldName)
                             emitStatement("unmanagedCopy.${setter}(ProxyUtils.createDetachedCopy(realmSource.${getter}(), objectRealm, currentDepth + 1, maxDepth, cache))")
                         }
-                        Utils.isMixedList(field) -> {
+                        Utils.isRealmAnyList(field) -> {
                             emitEmptyLine()
                             emitSingleLineComment("Deep copy of %s", fieldName)
                             beginControlFlow("if (currentDepth == maxDepth)")
                                 emitStatement("unmanagedCopy.%s(null)", setter)
                             nextControlFlow("else")
-                                emitStatement("RealmList<Mixed> managed${fieldName}List = realmSource.${getter}()", fieldName, getter)
-                                emitStatement("RealmList<Mixed> unmanaged${fieldName}List = new RealmList<Mixed>()")
+                                emitStatement("RealmList<RealmAny> managed${fieldName}List = realmSource.${getter}()", fieldName, getter)
+                                emitStatement("RealmList<RealmAny> unmanaged${fieldName}List = new RealmList<RealmAny>()")
                                 emitStatement("unmanagedCopy.${setter}(unmanaged${fieldName}List)")
                                 emitStatement("int nextDepth = currentDepth + 1")
                                 emitStatement("int size = managed${fieldName}List.size()")
                                 beginControlFlow("for (int i = 0; i < size; i++)")
-                                    emitStatement("Mixed item = ProxyUtils.createDetachedCopy(managed${fieldName}List.get(i), objectRealm, nextDepth, maxDepth, cache)")
+                                    emitStatement("RealmAny item = ProxyUtils.createDetachedCopy(managed${fieldName}List.get(i), objectRealm, nextDepth, maxDepth, cache)")
                                     emitStatement("unmanaged${fieldName}List.add(item)")
                                 endControlFlow()
                             endControlFlow()
@@ -2171,28 +2171,28 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("builder.addObjectList(%s, new RealmList<%s>())", fieldColKey, genericType)
                             endControlFlow()
                         }
-                        Utils.isMixed(field) -> {
+                        Utils.isRealmAny(field) -> {
                             emitEmptyLine()
 
-                            emitStatement("Mixed ${fieldName}Mixed = realmObjectSource.${getter}()")
-                            emitStatement("${fieldName}Mixed = ProxyUtils.copyOrUpdate(${fieldName}Mixed, realm, true, cache, flags)")
-                            emitStatement("builder.addMixed(${fieldColKey}, ${fieldName}Mixed.getNativePtr())")
+                            emitStatement("RealmAny ${fieldName}RealmAny = realmObjectSource.${getter}()")
+                            emitStatement("${fieldName}RealmAny = ProxyUtils.copyOrUpdate(${fieldName}RealmAny, realm, true, cache, flags)")
+                            emitStatement("builder.addRealmAny(${fieldColKey}, ${fieldName}RealmAny.getNativePtr())")
                         }
-                        Utils.isMixedList(field) -> {
+                        Utils.isRealmAnyList(field) -> {
                             emitEmptyLine()
 
-                            emitStatement("RealmList<Mixed> ${fieldName}UnmanagedList = realmObjectSource.${getter}()")
+                            emitStatement("RealmList<RealmAny> ${fieldName}UnmanagedList = realmObjectSource.${getter}()")
                             beginControlFlow("if (${fieldName}UnmanagedList != null)")
-                                emitStatement("RealmList<Mixed> ${fieldName}ManagedCopy = new RealmList<Mixed>()")
+                                emitStatement("RealmList<RealmAny> ${fieldName}ManagedCopy = new RealmList<RealmAny>()")
                                 beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
-                                    emitStatement("Mixed mixedItem = ${fieldName}UnmanagedList.get(i)")
-                                    emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, true, cache, flags)")
-                                    emitStatement("${fieldName}ManagedCopy.add(mixedItem)")
+                                    emitStatement("RealmAny realmAnyItem = ${fieldName}UnmanagedList.get(i)")
+                                    emitStatement("realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, true, cache, flags)")
+                                    emitStatement("${fieldName}ManagedCopy.add(realmAnyItem)")
                                 endControlFlow()
 
-                                emitStatement("builder.addMixedList(${fieldColKey}, ${fieldName}ManagedCopy)")
+                                emitStatement("builder.addRealmAnyList(${fieldColKey}, ${fieldName}ManagedCopy)")
                             nextControlFlow("else")
-                                emitStatement("builder.addMixedList(${fieldColKey}, new RealmList<Mixed>())")
+                                emitStatement("builder.addRealmAnyList(${fieldColKey}, new RealmList<RealmAny>())")
                             endControlFlow()
                         }
                         else -> {
@@ -2270,7 +2270,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("stringBuilder.append(\"binary(\" + %1\$s().length + \")\")", metadata.getInternalGetter(fieldName))
                             }
                         }
-                        Utils.isMixed(field) -> {
+                        Utils.isRealmAny(field) -> {
                             emitStatement("stringBuilder.append((%1\$s().isNull()) ? \"null\" : \"%s()\")", metadata.getInternalGetter(fieldName), metadata.getInternalGetter(fieldName))
                         }
                         else -> {
@@ -2471,7 +2471,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     isFieldTypeEmbedded(fieldType),
                                     writer)
                         }
-                        Utils.isRealmValueList(field) || Utils.isMixedList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(realm, objProxy.%1\$s(), json, \"%2\$s\", update)", metadata.getInternalGetter(fieldName), fieldName)
+                        Utils.isRealmValueList(field) || Utils.isRealmAnyList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(realm, objProxy.%1\$s(), json, \"%2\$s\", update)", metadata.getInternalGetter(fieldName), fieldName)
                         Utils.isMutableRealmInteger(field) -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                                 "objProxy",
                                 metadata.getInternalGetter(fieldName),
@@ -2548,7 +2548,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     Utils.getProxyClassSimpleName(field),
                                     writer)
                         }
-                        Utils.isRealmValueList(field) || Utils.isMixedList(field) -> {
+                        Utils.isRealmValueList(field) || Utils.isRealmAnyList(field) -> {
                             emitStatement("objProxy.%1\$s(ProxyUtils.createRealmListWithJsonStream(%2\$s.class, reader))", metadata.getInternalSetter(fieldName), Utils.getRealmListType(field))
                         }
                         Utils.isMutableRealmInteger(field) -> {
@@ -2619,8 +2619,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         return "${variableElement.simpleName}MutableRealmInteger"
     }
 
-    private fun mixedFieldName(variableElement: VariableElement): String {
-        return "${variableElement.simpleName}Mixed"
+    private fun realmAnyFieldName(variableElement: VariableElement): String {
+        return "${variableElement.simpleName}RealmAny"
     }
 
     private fun fieldColKeyVariableReference(variableElement: VariableElement?): String {
@@ -2636,7 +2636,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (Utils.isMutableRealmInteger(field)) {
             return Constants.RealmFieldType.REALM_INTEGER
         }
-        if (Utils.isMixed(field)){
+        if (Utils.isRealmAny(field)){
             return Constants.RealmFieldType.MIXED
         }
         if (Utils.isRealmModel(field)) {
@@ -2645,7 +2645,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (Utils.isRealmModelList(field)) {
             return Constants.RealmFieldType.LIST
         }
-        if (Utils.isRealmValueList(field) || Utils.isMixedList(field)) {
+        if (Utils.isRealmValueList(field) || Utils.isRealmAnyList(field)) {
             return Utils.getValueListFieldType(field)
         }
         return Constants.RealmFieldType.NOTYPE
@@ -2680,7 +2680,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "io.realm.internal.OsSchemaInfo",
                     "io.realm.internal.OsObjectSchemaInfo",
                     "io.realm.internal.Property",
-                    "io.realm.internal.core.NativeMixed",
+                    "io.realm.internal.core.NativeRealmAny",
                     "io.realm.internal.objectstore.OsObjectBuilder",
                     "io.realm.ProxyUtils",
                     "io.realm.internal.RealmObjectProxy",

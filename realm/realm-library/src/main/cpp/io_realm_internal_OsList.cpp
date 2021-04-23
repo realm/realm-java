@@ -570,7 +570,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetUUID(JNIEnv* env, 
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddMixed(JNIEnv* env, jclass, jlong list_ptr,
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddRealmAny(JNIEnv* env, jclass, jlong list_ptr,
                                                                    jlong mixed_ptr)
 {
     try {
@@ -580,7 +580,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddMixed(JNIEnv* env,
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertMixed(JNIEnv* env, jclass, jlong list_ptr,
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertRealmAny(JNIEnv* env, jclass, jlong list_ptr,
                                                                       jlong pos, jlong mixed_ptr)
 {
     try {
@@ -590,7 +590,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertMixed(JNIEnv* e
     CATCH_STD();
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetMixed(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetRealmAny(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
                                                                    jlong mixed_ptr)
 {
     try {

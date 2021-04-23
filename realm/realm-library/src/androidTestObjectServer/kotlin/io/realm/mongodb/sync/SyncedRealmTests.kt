@@ -516,7 +516,7 @@ class SyncedRealmTests {
         Realm.getInstance(config1).use { realm1 ->
             realm1.executeTransaction {
                 val syncObject = SyncAllTypes().apply {
-                    columnMixed = Mixed.valueOf(10.5.toFloat())
+                    columnRealmAny = RealmAny.valueOf(10.5.toFloat())
                     columnRealmInteger.set(10)
                 }
 
@@ -535,17 +535,17 @@ class SyncedRealmTests {
 
     @Test
     fun allTypes_roundTrip() {
-        val expectedMixedValues = arrayListOf(
-                Mixed.valueOf(1.toLong()),
-                Mixed.valueOf(false),
+        val expectedRealmAnyValues = arrayListOf(
+                RealmAny.valueOf(1.toLong()),
+                RealmAny.valueOf(false),
 //              Float not supported in sync yet, uncomment once it does
-//                Mixed.valueOf(10.5.toFloat()),
-                Mixed.valueOf(10.5.toDouble()),
-                Mixed.valueOf("hello world 2"),
-                Mixed.valueOf(Date(105)),
-                Mixed.valueOf(Decimal128(102)),
-                Mixed.valueOf(ObjectId()),
-                Mixed.valueOf(UUID.randomUUID())
+//                RealmAny.valueOf(10.5.toFloat()),
+                RealmAny.valueOf(10.5.toDouble()),
+                RealmAny.valueOf("hello world 2"),
+                RealmAny.valueOf(Date(105)),
+                RealmAny.valueOf(Decimal128(102)),
+                RealmAny.valueOf(ObjectId()),
+                RealmAny.valueOf(UUID.randomUUID())
         )
 
         val primaryKeyValue = ObjectId()
@@ -572,8 +572,8 @@ class SyncedRealmTests {
         val expectedDecimal128List = RealmList<Decimal128>(Decimal128(10), Decimal128(100), Decimal128(20))
         val expectedObjectIdList = RealmList<ObjectId>(ObjectId(Date(1000)), ObjectId(Date(100)), ObjectId(Date(2000)))
         val expectedUUIDList = RealmList<UUID>(UUID.randomUUID())
-        val expectedMixedList = RealmList<Mixed>()
-        expectedMixedList.addAll(expectedMixedValues)
+        val expectedRealmAnyList = RealmList<RealmAny>()
+        expectedRealmAnyList.addAll(expectedRealmAnyValues)
 
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
@@ -583,7 +583,7 @@ class SyncedRealmTests {
 
         Realm.getInstance(config1).use { realm1 ->
             Realm.getInstance(config2).use { realm2 ->
-                for (expectedMixed in expectedMixedValues) {
+                for (expectedRealmAny in expectedRealmAnyValues) {
                     realm1.executeTransaction {
                         expectedRealmObject = realm1.copyToRealmOrUpdate(expectedRealmObject)
                         expectedRealmList.add(expectedRealmObject)
@@ -599,7 +599,7 @@ class SyncedRealmTests {
                             columnDecimal128 = expectedDecimal128
                             columnObjectId = expectedObjectId
                             columnUUID = expectedUUID
-                            columnMixed = expectedMixed
+                            columnRealmAny = expectedRealmAny
                             columnRealmInteger.set(expectedRealmInteger)
                             columnRealmObject = expectedRealmObject
                             columnRealmList = expectedRealmList
@@ -612,7 +612,7 @@ class SyncedRealmTests {
                             columnDecimal128List = expectedDecimal128List
                             columnObjectIdList = expectedObjectIdList
                             columnUUIDList = expectedUUIDList
-                            columnMixedList = expectedMixedList
+                            columnRealmAnyList = expectedRealmAnyList
                         }
 
                         realm1.copyToRealmOrUpdate(syncObject)
@@ -639,7 +639,7 @@ class SyncedRealmTests {
                         assertEquals(expectedDecimal128, it.columnDecimal128)
                         assertEquals(expectedObjectId, it.columnObjectId)
                         assertEquals(expectedUUID, it.columnUUID)
-                        assertEquals(expectedMixed, it.columnMixed)
+                        assertEquals(expectedRealmAny, it.columnRealmAny)
                         assertEquals(expectedRealmInteger, it.columnRealmInteger.get())
                         assertEquals(expectedObjectId, it.columnRealmObject!!.id)
                         assertEquals(expectedObjectId, it.columnRealmList.first()!!.id)
@@ -654,7 +654,7 @@ class SyncedRealmTests {
                         assertEquals(expectedDecimal128List, it.columnDecimal128List)
                         assertEquals(expectedObjectIdList, it.columnObjectIdList)
                         assertEquals(expectedUUIDList, it.columnUUIDList)
-                        assertEquals(expectedMixedList, it.columnMixedList)
+                        assertEquals(expectedRealmAnyList, it.columnRealmAnyList)
                     }
                 }
             }

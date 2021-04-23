@@ -16,14 +16,14 @@
 
 package io.realm.entities
 
-import io.realm.Mixed
+import io.realm.RealmAny
 import io.realm.RealmObject
 
-open class MixedNotIndexed(
-        var mixed: Mixed? = Mixed.nullValue()
+open class RealmAnyNotIndexed(
+        var realmAny: RealmAny? = RealmAny.nullValue()
 ) : RealmObject() {
     companion object {
-        const val CLASS_NAME = "MixedNotIndexed"
-        const val FIELD_MIXED = "mixed"
+        const val CLASS_NAME = "RealmAnyNotIndexed"
+        const val FIELD_MIXED = "realmAny"
     }
 }

@@ -439,7 +439,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void equals_mixedCustomMethod() {
+    public void equals_realmAnyCustomMethod() {
         CustomMethods cm1 = new CustomMethods();
         cm1.setName("Bar");
         CustomMethods cm2 = new CustomMethods();

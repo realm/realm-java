@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.Mixed;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 
@@ -253,16 +252,16 @@ public class OsList implements NativeObject, ObservableCollection {
         }
     }
 
-    public void addMixed(long mixedPtr) {
-        nativeAddMixed(nativePtr, mixedPtr);
+    public void addRealmAny(long realmAnyPtr) {
+        nativeAddRealmAny(nativePtr, realmAnyPtr);
     }
 
-    public void insertMixed(long pos, long mixedPtr) {
-        nativeInsertMixed(nativePtr, pos, mixedPtr);
+    public void insertRealmAny(long pos, long realmAnyPtr) {
+        nativeInsertRealmAny(nativePtr, pos, realmAnyPtr);
     }
 
-    public void setMixed(long pos, long mixedPtr) {
-        nativeSetMixed(nativePtr, pos, mixedPtr);
+    public void setRealmAny(long pos, long realmAnyPtr) {
+        nativeSetRealmAny(nativePtr, pos, realmAnyPtr);
     }
 
     @Nullable
@@ -468,11 +467,11 @@ public class OsList implements NativeObject, ObservableCollection {
 
     private static native void nativeSetUUID(long nativePtr, long pos, String data);
 
-    private static native void nativeAddMixed(long nativePtr, long mixedPtr);
+    private static native void nativeAddRealmAny(long nativePtr, long realmAnyPtr);
 
-    private static native void nativeInsertMixed(long nativePtr, long pos, long mixedPtr);
+    private static native void nativeInsertRealmAny(long nativePtr, long pos, long realmAnyPtr);
 
-    private static native void nativeSetMixed(long nativePtr, long pos, long mixedPtr);
+    private static native void nativeSetRealmAny(long nativePtr, long pos, long realmAnyPtr);
 
     private static native Object nativeGetValue(long nativePtr, long pos);
 

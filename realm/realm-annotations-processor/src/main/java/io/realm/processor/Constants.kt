@@ -67,7 +67,7 @@ object Constants {
             "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_LIST,
             "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST,
             "java.util.UUID" to RealmFieldType.UUID_LIST,
-            "io.realm.Mixed" to RealmFieldType.MIXED_LIST
+            "io.realm.RealmAny" to RealmFieldType.MIXED_LIST
     )
 
     /**
@@ -86,7 +86,7 @@ object Constants {
         DATE("DATE", "Date"),
         BINARY("BINARY", "BinaryByteArray"),
         REALM_INTEGER("INTEGER", "Long"),
-        MIXED("MIXED", "Mixed"),
+        MIXED("MIXED", "RealmAny"),
         OBJECT("OBJECT", "Object"),
         LIST("LIST", "List"),
         DECIMAL128("DECIMAL128", "Decimal128"),

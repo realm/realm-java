@@ -52,7 +52,7 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectId"
             this[QualifiedClassName("java.util.UUID")] = "UUID"
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmInteger"
-            this[QualifiedClassName("io.realm.Mixed")] = "Mixed"
+            this[QualifiedClassName("io.realm.RealmAny")] = "RealmAny"
         }
         QUALIFIED_TYPE_TO_BUILDER = Collections.unmodifiableMap(fieldTypes)
 
@@ -72,7 +72,7 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmIntegerList"
             this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128List"
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectIdList"
-            this[QualifiedClassName("io.realm.Mixed")] = "MixedList"
+            this[QualifiedClassName("io.realm.RealmAny")] = "RealmAnyList"
             this[QualifiedClassName("java.util.UUID")] = "UUIDList"
         }
         QUALIFIED_LIST_TYPE_TO_BUILDER = Collections.unmodifiableMap(listTypes)
