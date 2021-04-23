@@ -17,6 +17,7 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -413,6 +414,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
     }
 
     @Test
+    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isEmpty_acrossLinkingObjectObjectLink() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
@@ -496,7 +498,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_DICTIONARY).count());
                     break;
                 case STRING_TO_OBJECT_ID_MAP:
-                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_DICTIONARY).count());
                     break;
                 case STRING_TO_UUID_MAP:
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_DICTIONARY).count());
@@ -505,7 +507,43 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
                     break;
                 case STRING_TO_LINK_MAP:
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    break;
+                case MIXED_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_SET).count());
+                    break;
+                case BOOLEAN_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_SET).count());
+                    break;
+                case STRING_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_STRING_SET).count());
+                    break;
+                case INTEGER_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_INTEGER_SET).count());
+                    break;
+                case FLOAT_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_FLOAT_SET).count());
+                    break;
+                case DOUBLE_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_SET).count());
+                    break;
+                case BINARY_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY_SET).count());
+                    break;
+                case DATE_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_SET).count());
+                    break;
+                case OBJECT_ID_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_SET).count());
+                    break;
+                case UUID_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_SET).count());
+                    break;
+                case DECIMAL128_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_SET).count());
+                    break;
+                case LINK_SET:
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -605,7 +643,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_DICTIONARY).count());
                     break;
                 case STRING_TO_OBJECT_ID_MAP:
-                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_DICTIONARY).count());
                     break;
                 case STRING_TO_UUID_MAP:
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_DICTIONARY).count());
@@ -614,7 +652,43 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
                     break;
                 case STRING_TO_LINK_MAP:
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    break;
+                case INTEGER_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_INTEGER_SET).count());
+                    break;
+                case BOOLEAN_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_SET).count());
+                    break;
+                case STRING_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_STRING_SET).count());
+                    break;
+                case BINARY_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY_SET).count());
+                    break;
+                case DATE_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_SET).count());
+                    break;
+                case FLOAT_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_FLOAT_SET).count());
+                    break;
+                case DOUBLE_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_SET).count());
+                    break;
+                case DECIMAL128_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_SET).count());
+                    break;
+                case OBJECT_ID_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_SET).count());
+                    break;
+                case UUID_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_SET).count());
+                    break;
+                case MIXED_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_SET).count());
+                    break;
+                case LINK_SET:
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_SET).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -741,7 +815,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_DICTIONARY).count());
                     break;
                 case STRING_TO_OBJECT_ID_MAP:
-                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_DICTIONARY).count());
                     break;
                 case STRING_TO_UUID_MAP:
                     assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_DICTIONARY).count());
@@ -750,7 +824,43 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
                     break;
                 case STRING_TO_LINK_MAP:
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    break;
+                case INTEGER_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_INTEGER_SET).count());
+                    break;
+                case BOOLEAN_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_SET).count());
+                    break;
+                case STRING_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_STRING_SET).count());
+                    break;
+                case BINARY_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY_SET).count());
+                    break;
+                case DATE_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_SET).count());
+                    break;
+                case FLOAT_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_FLOAT_SET).count());
+                    break;
+                case DOUBLE_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_SET).count());
+                    break;
+                case DECIMAL128_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_SET).count());
+                    break;
+                case OBJECT_ID_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_SET).count());
+                    break;
+                case UUID_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_SET).count());
+                    break;
+                case MIXED_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_SET).count());
+                    break;
+                case LINK_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_SET).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -848,7 +958,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_DICTIONARY).count());
                     break;
                 case STRING_TO_OBJECT_ID_MAP:
-                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECTID_DICTIONARY).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_DICTIONARY).count());
                     break;
                 case STRING_TO_UUID_MAP:
                     assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_DICTIONARY).count());
@@ -857,7 +967,43 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_DICTIONARY).count());
                     break;
                 case STRING_TO_LINK_MAP:
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_DICTIONARY).count());
+                    break;
+                case INTEGER_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_INTEGER_SET).count());
+                    break;
+                case BOOLEAN_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_BOOLEAN_SET).count());
+                    break;
+                case STRING_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_STRING_SET).count());
+                    break;
+                case BINARY_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY_LIST).count());
+                    break;
+                case DATE_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DATE_LIST).count());
+                    break;
+                case FLOAT_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_FLOAT_LIST).count());
+                    break;
+                case DOUBLE_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DOUBLE_LIST).count());
+                    break;
+                case DECIMAL128_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_LIST).count());
+                    break;
+                case OBJECT_ID_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT_ID_LIST).count());
+                    break;
+                case UUID_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_UUID_LIST).count());
+                    break;
+                case MIXED_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_LIST).count());
+                    break;
+                case LINK_SET:
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_MIXED_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);

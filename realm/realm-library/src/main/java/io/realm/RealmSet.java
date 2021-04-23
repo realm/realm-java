@@ -50,6 +50,15 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
     }
 
     /**
+     * Instantiates a RealmSet in unmanaged mode with another collection.
+     *
+     * @param collection the collection with which the set will be initially populated.
+     */
+    public RealmSet(Collection<E> collection) {
+        this.setStrategy = new UnmanagedSetStrategy<>(collection);
+    }
+
+    /**
      * Instantiates a RealmSet in managed mode.
      *
      * @param baseRealm
@@ -731,7 +740,16 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
     private static class UnmanagedSetStrategy<E> extends SetStrategy<E> {
         private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode.";
 
-        private final Set<E> unmanagedSet = new HashSet<>();
+        private final Set<E> unmanagedSet;
+
+        public UnmanagedSetStrategy() {
+            unmanagedSet = new HashSet<>();
+        }
+
+        public UnmanagedSetStrategy(Collection<E> collection) {
+            this();
+            unmanagedSet.addAll(collection);
+        }
 
         // ------------------------------------------
         // ManageableObject API
