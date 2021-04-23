@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.annotations.Index;
@@ -39,8 +39,8 @@ public class AllTypesRealmModel implements RealmModel {
     public static final String FIELD_STRING = "columnString";
     public static final String FIELD_BINARY = "columnBinary";
     public static final String FIELD_BOOLEAN = "columnBoolean";
-    public static final String FIELD_MIXED = "columnMixed";
-    public static final String FIELD_MIXED_LIST = "columnMixedRealmList";
+    public static final String FIELD_REALM_ANY = "columnRealmAny";
+    public static final String FIELD_REALM_ANY_LIST = "columnRealmAnyRealmList";
 
     @Index
     public String columnString;
@@ -57,8 +57,8 @@ public class AllTypesRealmModel implements RealmModel {
     public Decimal128 columnDecimal128;
     public ObjectId columnObjectId;
     public UUID columnUUID;
-    public Mixed columnMixed;
-    public RealmList<Mixed> columnMixedRealmList;
+    public RealmAny columnRealmAny;
+    public RealmList<RealmAny> columnRealmAnyRealmList;
 
 
     @Override

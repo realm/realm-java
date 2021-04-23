@@ -12,7 +12,7 @@ import org.junit.runners.Parameterized
 /**
  * [RealmSet] tests. It uses [Parameterized] tests for all possible combinations of
  * [RealmSet] types (i.e. all primitive Realm types (see [SetSupportedType]) plus
- * [RealmModel] and [Mixed] (and in turn all possible types supported by Mixed) in both `managed`
+ * [RealmModel] and [RealmAny] (and in turn all possible types supported by RealmAny) in both `managed`
  * and `unmanaged` modes.
  *
  * In order to streamline the testing for managed dictionaries we use Kotlin's reflection API
@@ -192,8 +192,8 @@ enum class SetMode {
 }
 
 /**
- * Supported types by sets. Notice that Mixed sets can in turn support all these types internally
- * (except Mixed itself).
+ * Supported types by sets. Notice that RealmAny sets can in turn support all these types internally
+ * (except RealmAny itself).
  *
  * Add new types ad-hoc here.
  */

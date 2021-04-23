@@ -213,7 +213,7 @@ public class LinkingObjectsDynamicTests {
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID);
                         break;
                     case MIXED:
-                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED);
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_REALM_ANY);
                         break;
                     case INTEGER_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INTEGER_LIST);
@@ -246,7 +246,7 @@ public class LinkingObjectsDynamicTests {
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;
                     case MIXED_LIST:
-                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED_LIST);
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_REALM_ANY_LIST);
                         break;
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:

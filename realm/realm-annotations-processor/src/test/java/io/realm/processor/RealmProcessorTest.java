@@ -62,7 +62,7 @@ public class RealmProcessorTest {
     private final JavaFileObject realmDictionaryMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmDictionaryMissingGenerics.java");
     private final JavaFileObject realmDictionaryModel = JavaFileObjects.forResource("some/test/RealmDictionaryModel.java");
     private final JavaFileObject realmDictionaryModelWrongType = JavaFileObjects.forResource("some/test/RealmDictionaryModelWrongType.java");
-    private final JavaFileObject realmDictionaryModelMixedRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelMixedRequired.java");
+    private final JavaFileObject realmDictionaryModelRealmAnyRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelRealmAnyRequired.java");
     private final JavaFileObject realmDictionaryModelRealmModelRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelRealmModelRequired.java");
     private final JavaFileObject realmSetModel = JavaFileObjects.forResource("some/test/RealmSetModel.java");
     private final JavaFileObject realmSetModelWrongType = JavaFileObjects.forResource("some/test/RealmSetModelWrongType.java");
@@ -193,10 +193,10 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileAppModuleMixedParametersFail() {
+    public void compileAppModuleRealmAnyParametersFail() {
         assertAbout(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
-                        "some/test/InvalidAllTypesModuleMixedParameters.java")))
+                        "some/test/InvalidAllTypesModuleRealmAnyParameters.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
@@ -211,9 +211,9 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileLibraryModuleMixedParametersFail() {
+    public void compileLibraryModuleRealmAnyParametersFail() {
         assertAbout(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleMixedParameters.java")))
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleRealmAnyParameters.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
@@ -364,8 +364,8 @@ public class RealmProcessorTest {
     @Test
     public void compileInvalidRequiredTypes() throws IOException {
         final String[] invalidRequiredAnnotationFieldTypes = {"byte", "short", "int", "long", "float", "double",
-                "boolean", "RealmList<Simple>", "Simple", "Mixed", "RealmList<Mixed>", "RealmDictionary<Simple>",
-                "RealmDictionary<Mixed>", "RealmSet<Simple>", "RealmSet<Mixed>"};
+                "boolean", "RealmList<Simple>", "Simple", "RealmAny", "RealmList<RealmAny>", "RealmDictionary<Simple>",
+                "RealmDictionary<RealmAny>", "RealmSet<Simple>", "RealmSet<RealmAny>"};
 
         for (String fieldType : invalidRequiredAnnotationFieldTypes) {
             RealmSyntheticTestClass javaFileObject = new RealmSyntheticTestClass.Builder()
@@ -535,9 +535,9 @@ public class RealmProcessorTest {
 
 
     @Test
-    public void compileRealmDictionaryModelMixedRequiredFails() {
+    public void compileRealmDictionaryModelRealmAnyRequiredFails() {
         assertAbout(javaSource())
-                .that(realmDictionaryModelMixedRequired)
+                .that(realmDictionaryModelRealmAnyRequired)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

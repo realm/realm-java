@@ -360,7 +360,7 @@ public class OrderedCollectionChangeSetTests {
 
     @Test
     @RunTestInLooperThread
-    public void mixed_changes() {
+    public void realmAny_changes() {
         Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {

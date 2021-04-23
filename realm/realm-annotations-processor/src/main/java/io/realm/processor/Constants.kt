@@ -67,7 +67,7 @@ object Constants {
             "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_LIST,
             "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_LIST,
             "java.util.UUID" to RealmFieldType.UUID_LIST,
-            "io.realm.Mixed" to RealmFieldType.MIXED_LIST
+            "io.realm.RealmAny" to RealmFieldType.MIXED_LIST
     )
 
     val DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
@@ -84,7 +84,7 @@ object Constants {
             "org.bson.types.Decimal128" to RealmFieldType.STRING_TO_DECIMAL128_MAP,
             "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
             "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
-            "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
+            "io.realm.RealmAny" to RealmFieldType.STRING_TO_MIXED_MAP
     )
 
     val SET_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
@@ -101,7 +101,7 @@ object Constants {
             "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_SET,
             "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_SET,
             "java.util.UUID" to RealmFieldType.UUID_SET,
-            "io.realm.Mixed" to RealmFieldType.MIXED_SET
+            "io.realm.RealmAny" to RealmFieldType.MIXED_SET
     )
 
     /**
@@ -120,7 +120,7 @@ object Constants {
         DATE("DATE", "Date"),
         BINARY("BINARY", "BinaryByteArray"),
         REALM_INTEGER("INTEGER", "Long"),
-        MIXED("MIXED", "Mixed"),
+        MIXED("MIXED", "RealmAny"),
         OBJECT("OBJECT", "Object"),
         LIST("LIST", "List"),
         DECIMAL128("DECIMAL128", "Decimal128"),

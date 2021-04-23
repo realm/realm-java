@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
@@ -91,7 +91,7 @@ public class JNIQueryTest {
 
         long colKey1 = table.getColumnKey("number");
 
-        long cnt = query.equalTo(null,"name", Mixed.valueOf("D")).count();
+        long cnt = query.equalTo(null,"name", RealmAny.valueOf("D")).count();
         assertEquals(2, cnt);
 
         cnt = query.minimumInt(colKey1);
@@ -115,8 +115,8 @@ public class JNIQueryTest {
         init();
 
         // All the following queries are not valid, e.g contain a group but not a closing group, an or() but not a second filter etc
-        try { table.where().equalTo(null, "", Mixed.valueOf(1)).or().validateQuery();       fail("missing a second filter"); }      catch (IllegalArgumentException ignore) {}
-        try { table.where().beginGroup().equalTo(null,"", Mixed.valueOf(1)).validateQuery();    fail("missing a closing group"); }      catch (IllegalArgumentException ignore) {}
+        try { table.where().equalTo(null, "", RealmAny.valueOf(1)).or().validateQuery();       fail("missing a second filter"); }      catch (IllegalArgumentException ignore) {}
+        try { table.where().beginGroup().equalTo(null,"", RealmAny.valueOf(1)).validateQuery();    fail("missing a closing group"); }      catch (IllegalArgumentException ignore) {}
 
         try { table.where().beginGroup().count();                                fail(); }                               catch (UnsupportedOperationException ignore) {}
         try { table.where().beginGroup().validateQuery();                              fail(); }                               catch (UnsupportedOperationException ignore) {}
@@ -126,10 +126,10 @@ public class JNIQueryTest {
         try { table.where().beginGroup().sumInt(0);                              fail(); }                               catch (UnsupportedOperationException ignore) {}
         try { table.where().beginGroup().averageInt(0);                          fail(); }                               catch (UnsupportedOperationException ignore) {}
 
-        try { table.where().endGroup().equalTo(null,"", Mixed.valueOf(1)).validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
-        try { table.where().equalTo(null,"", Mixed.valueOf(1)).endGroup().validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
+        try { table.where().endGroup().equalTo(null,"", RealmAny.valueOf(1)).validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
+        try { table.where().equalTo(null,"", RealmAny.valueOf(1)).endGroup().validateQuery(); fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
 
-        try { table.where().equalTo(null,"", Mixed.valueOf(1)).endGroup().find();    fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
+        try { table.where().equalTo(null,"", RealmAny.valueOf(1)).endGroup().find();    fail("ends group, no start"); }         catch (IllegalArgumentException ignore) {}
     }
 
     @Test
@@ -152,7 +152,7 @@ public class JNIQueryTest {
             }
         });
 
-        TableQuery query = table.where().greaterThan(null,"score", Mixed.valueOf(600));
+        TableQuery query = table.where().greaterThan(null,"score", RealmAny.valueOf(600));
 
         // Finds first match.
         assertEquals(1, query.find());
@@ -178,7 +178,7 @@ public class JNIQueryTest {
                 new Object[]{new byte[]{1,2,3}, true, new Date(1384423149761L), 4.5d, 5.7f, 100, "string", new Decimal128(0), new ObjectId()});
         sharedRealm.commitTransaction();
 
-        TableQuery q = t.where().greaterThan(null,"long", Mixed.valueOf(1000)); // No matches
+        TableQuery q = t.where().greaterThan(null,"long", RealmAny.valueOf(1000)); // No matches
 
         assertEquals(-1, q.find());
     }
@@ -193,13 +193,13 @@ public class JNIQueryTest {
         // Queries the table.
         TableQuery query = table.where();
 
-        Mixed L123 = Mixed.valueOf(123);
-        Mixed L321 = Mixed.valueOf(321);
-        Mixed F123 = Mixed.valueOf(123.5F);
-        Mixed F321 = Mixed.valueOf(321.5F);
-        Mixed D123 = Mixed.valueOf(123.5D);
-        Mixed D321 = Mixed.valueOf(321.5D);
-        Mixed date = Mixed.valueOf(new Date());
+        RealmAny L123 = RealmAny.valueOf(123);
+        RealmAny L321 = RealmAny.valueOf(321);
+        RealmAny F123 = RealmAny.valueOf(123.5F);
+        RealmAny F321 = RealmAny.valueOf(321.5F);
+        RealmAny D123 = RealmAny.valueOf(123.5D);
+        RealmAny D321 = RealmAny.valueOf(321.5D);
+        RealmAny date = RealmAny.valueOf(new Date());
 
         // Compares integer in non integer columns.
         for (int i = 0; i <= 6; i++) {
@@ -243,7 +243,7 @@ public class JNIQueryTest {
         // Compares boolean in non boolean columns.
         for (int i = 0; i <= 6; i++) {
             if ((i != 5) && (i != 1) && (i != 3) && (i != 4)) {
-              try { query.equalTo(null, columnKeys[i], Mixed.valueOf(true)).find();                       fail(); } catch(IllegalArgumentException ignore) {}
+              try { query.equalTo(null, columnKeys[i], RealmAny.valueOf(true)).find();                       fail(); } catch(IllegalArgumentException ignore) {}
             }
         }
 
@@ -297,12 +297,12 @@ public class JNIQueryTest {
     @Test
     public void dateQuery() throws Exception {
 
-        final Mixed past = Mixed.valueOf(new Date(TimeUnit.SECONDS.toMillis(Integer.MIN_VALUE - 100L)));
-        final Mixed future = Mixed.valueOf(new Date(TimeUnit.SECONDS.toMillis(Integer.MAX_VALUE + 1L)));
-        final Mixed distantPast = Mixed.valueOf(new Date(Long.MIN_VALUE));
-        final Mixed distantFuture = Mixed.valueOf(new Date(Long.MAX_VALUE));
-        final Mixed date0 = Mixed.valueOf(new Date(0));
-        final Mixed date10000 = Mixed.valueOf(new Date(10000));
+        final RealmAny past = RealmAny.valueOf(new Date(TimeUnit.SECONDS.toMillis(Integer.MIN_VALUE - 100L)));
+        final RealmAny future = RealmAny.valueOf(new Date(TimeUnit.SECONDS.toMillis(Integer.MAX_VALUE + 1L)));
+        final RealmAny distantPast = RealmAny.valueOf(new Date(Long.MIN_VALUE));
+        final RealmAny distantFuture = RealmAny.valueOf(new Date(Long.MAX_VALUE));
+        final RealmAny date0 = RealmAny.valueOf(new Date(0));
+        final RealmAny date10000 = RealmAny.valueOf(new Date(10000));
 
         final AtomicLong columnKey = new AtomicLong(-1);
 
@@ -404,10 +404,10 @@ public class JNIQueryTest {
     @Test
     public void byteArrayQuery() throws Exception {
 
-        final Mixed binary1 = Mixed.valueOf(new byte[] {0x01, 0x02, 0x03, 0x04});
-        final Mixed binary2 = Mixed.valueOf(new byte[] {0x05, 0x02, 0x03, 0x08});
-        final Mixed binary3 = Mixed.valueOf(new byte[] {0x09, 0x0a, 0x0b, 0x04});
-        final Mixed binary4 = Mixed.valueOf(new byte[] {0x05, 0x0a, 0x0b, 0x10});
+        final RealmAny binary1 = RealmAny.valueOf(new byte[] {0x01, 0x02, 0x03, 0x04});
+        final RealmAny binary2 = RealmAny.valueOf(new byte[] {0x05, 0x02, 0x03, 0x08});
+        final RealmAny binary3 = RealmAny.valueOf(new byte[] {0x09, 0x0a, 0x0b, 0x04});
+        final RealmAny binary4 = RealmAny.valueOf(new byte[] {0x05, 0x0a, 0x0b, 0x10});
 
         final AtomicLong columnKey = new AtomicLong(-1);
 
@@ -436,9 +436,9 @@ public class JNIQueryTest {
 
     @Test
     public void decimal128Query() throws Exception {
-        final Mixed one = Mixed.valueOf(new Decimal128(1));
-        final Mixed two = Mixed.valueOf(new Decimal128(2));
-        final Mixed three = Mixed.valueOf(new Decimal128(3));
+        final RealmAny one = RealmAny.valueOf(new Decimal128(1));
+        final RealmAny two = RealmAny.valueOf(new Decimal128(2));
+        final RealmAny three = RealmAny.valueOf(new Decimal128(3));
 
         final AtomicLong columnKey = new AtomicLong(-1);
 
@@ -477,9 +477,9 @@ public class JNIQueryTest {
 
     @Test
     public void objectIdQuery() throws Exception {
-        final Mixed one = Mixed.valueOf(new ObjectId(new Date(10)));
-        final Mixed two = Mixed.valueOf(new ObjectId(new Date(20)));
-        final Mixed three = Mixed.valueOf(new ObjectId(new Date(30)));
+        final RealmAny one = RealmAny.valueOf(new ObjectId(new Date(10)));
+        final RealmAny two = RealmAny.valueOf(new ObjectId(new Date(20)));
+        final RealmAny three = RealmAny.valueOf(new ObjectId(new Date(30)));
 
         final AtomicLong columnKey = new AtomicLong(-1);
 

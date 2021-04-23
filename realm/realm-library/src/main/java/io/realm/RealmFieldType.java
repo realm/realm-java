@@ -90,8 +90,8 @@ public enum RealmFieldType {
     DECIMAL128(CORE_TYPE_VALUE_DECIMAL128),
     OBJECT_ID(CORE_TYPE_VALUE_OBJECTID),
     UUID(CORE_TYPE_VALUE_UUID),
-    MIXED(CORE_TYPE_VALUE_MIXED),
-    TYPED_LINK(CORE_TYPE_VALUE_TYPED_LINK), // It is only used by Mixed internally.
+    MIXED(CORE_TYPE_VALUE_MIXED),           // Core equivalent to RealmAny
+    TYPED_LINK(CORE_TYPE_VALUE_TYPED_LINK), // It is only used by RealmAny internally.
 
     LIST(CORE_TYPE_VALUE_LIST),
     LINKING_OBJECTS(CORE_TYPE_VALUE_LINKING_OBJECTS),
@@ -200,7 +200,7 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_UUID:
                 return (obj instanceof java.util.UUID);
             case CORE_TYPE_VALUE_MIXED:
-                return (obj instanceof Mixed);
+                return (obj instanceof RealmAny);
             case CORE_TYPE_VALUE_OBJECT:
             case CORE_TYPE_VALUE_LIST:
             case CORE_TYPE_VALUE_LINKING_OBJECTS:

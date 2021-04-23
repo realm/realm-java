@@ -16,13 +16,16 @@
 
 package io.realm.entities
 
-import io.realm.Mixed
+import io.realm.RealmAny
 import io.realm.RealmObject
+import io.realm.annotations.Index
 
-open class MixedDefaultNonPK : RealmObject() {
+open class RealmAnyIndexed : RealmObject() {
     companion object {
-        const val FIELD_MIXED = "mixed"
+        const val FIELD_REALM_ANY = "realmAny"
+        const val CLASS_NAME = "RealmAnyIndexed"
     }
 
-    var mixed: Mixed? = Mixed.valueOf(MixedNotIndexed())
+    @Index
+    var realmAny: RealmAny? = null
 }

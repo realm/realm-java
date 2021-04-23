@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Realm Inc.
+ * Copyright 2020 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.internal;
 
-import java.util.Map;
-import javax.annotation.Nullable;
+package io.realm.entities
 
-import io.realm.Mixed;
-import io.realm.internal.objectstore.OsKeyPathMapping;
+import io.realm.RealmAny
+import io.realm.RealmObject
 
-
-public interface MixedNativeFunctions {
-    void handleItem(long listPtr, Mixed mixed);
-
-    void handleItem(long listPtr, Map.Entry<String, Mixed> mixed);
-
-    void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, Mixed... arguments);
+open class RealmAnyNotIndexed(
+        var realmAny: RealmAny? = RealmAny.nullValue()
+) : RealmObject() {
+    companion object {
+        const val CLASS_NAME = "RealmAnyNotIndexed"
+        const val FIELD_REALM_ANY = "realmAny"
+    }
 }

@@ -25,7 +25,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.SetChangeSet;
-import io.realm.internal.core.NativeMixedCollection;
+import io.realm.internal.core.NativeRealmAnyCollection;
 
 
 public class OsSet implements NativeObject, OsCollection {
@@ -104,15 +104,15 @@ public class OsSet implements NativeObject, OsCollection {
         return nativeSize(nativePtr);
     }
 
-    public boolean collectionFunnel(NativeMixedCollection collection,
+    public boolean collectionFunnel(NativeRealmAnyCollection collection,
             ExternalCollectionOperation operation) {
         switch (operation) {
             case CONTAINS_ALL:
-                return nativeContainsAllMixedCollection(nativePtr, collection.getNativePtr());
+                return nativeContainsAllRealmAnyCollection(nativePtr, collection.getNativePtr());
             case ADD_ALL:
-                return nativeAddAllMixedCollection(nativePtr, collection.getNativePtr());
+                return nativeAddAllRealmAnyCollection(nativePtr, collection.getNativePtr());
             case REMOVE_ALL:
-                return nativeRemoveAllMixedCollection(nativePtr, collection.getNativePtr());
+                return nativeRemoveAllRealmAnyCollection(nativePtr, collection.getNativePtr());
             case RETAIN_ALL:
                 return retainAllInternal(collection);
             default:
@@ -535,25 +535,25 @@ public class OsSet implements NativeObject, OsCollection {
     }
 
     // ----------------------------------------------------
-    // Mixed operations
+    // RealmAny operations
     // ----------------------------------------------------
 
-    public boolean containsMixed(long mixedPtr) {
-        return nativeContainsMixed(nativePtr, mixedPtr);
+    public boolean containsRealmAny(long realmAnyPtr) {
+        return nativeContainsRealmAny(nativePtr, realmAnyPtr);
     }
 
-    public boolean addMixed(long mixedPtr) {
-        long[] indexAndFound = nativeAddMixed(nativePtr, mixedPtr);
+    public boolean addRealmAny(long realmAnyPtr) {
+        long[] indexAndFound = nativeAddRealmAny(nativePtr, realmAnyPtr);
         return indexAndFound[1] != VALUE_NOT_FOUND;
     }
 
-    public boolean removeMixed(long mixedPtr) {
-        long[] indexAndFound = nativeRemoveMixed(nativePtr, mixedPtr);
+    public boolean removeRealmAny(long realmAnyPtr) {
+        long[] indexAndFound = nativeRemoveRealmAny(nativePtr, realmAnyPtr);
         return indexAndFound[1] != VALUE_NOT_FOUND;
     }
 
-    public long getMixed(int index) {
-        return nativeGetMixed(nativePtr, index);
+    public long getRealmAny(int index) {
+        return nativeGetRealmAny(nativePtr, index);
     }
 
     // ----------------------------------------------------
@@ -612,7 +612,7 @@ public class OsSet implements NativeObject, OsCollection {
     // Private stuff
     // ----------------------------------------------------
 
-    private boolean retainAllInternal(NativeMixedCollection collection) {
+    private boolean retainAllInternal(NativeRealmAnyCollection collection) {
         // If this set is empty the intersection is also the empty set and nothing changes
         if (this.size() == 0) {
             return false;
@@ -624,7 +624,7 @@ public class OsSet implements NativeObject, OsCollection {
             return true;
         }
 
-        return nativeRetainAllMixedCollection(nativePtr, collection.getNativePtr());
+        return nativeRetainAllRealmAnyCollection(nativePtr, collection.getNativePtr());
     }
 
     private static native long nativeGetFinalizerPtr();
@@ -665,7 +665,7 @@ public class OsSet implements NativeObject, OsCollection {
 
     private static native boolean nativeContainsRow(long nativePtr, long rowPtr);
 
-    private static native boolean nativeContainsMixed(long nativePtr, long mixedPtr);
+    private static native boolean nativeContainsRealmAny(long nativePtr, long realmAnyPtr);
 
     private static native long[] nativeAddNull(long nativePtr);
 
@@ -691,7 +691,7 @@ public class OsSet implements NativeObject, OsCollection {
 
     private static native long[] nativeAddRow(long nativePtr, long rowPtr);
 
-    private static native long[] nativeAddMixed(long nativePtr, long mixed_ptr);
+    private static native long[] nativeAddRealmAny(long nativePtr, long realmAny_ptr);
 
     private static native long[] nativeRemoveNull(long nativePtr);
 
@@ -717,27 +717,27 @@ public class OsSet implements NativeObject, OsCollection {
 
     private static native long[] nativeRemoveRow(long nativePtr, long rowPtr);
 
-    private static native long[] nativeRemoveMixed(long nativePtr, long mixedPtr);
+    private static native long[] nativeRemoveRealmAny(long nativePtr, long realmAnyPtr);
 
     private static native long nativeGetRow(long nativePtr, int index);
 
-    private static native long nativeGetMixed(long nativePtr, int index);
+    private static native long nativeGetRealmAny(long nativePtr, int index);
 
-    private static native boolean nativeContainsAllMixedCollection(long nativePtr, long mixedCollectionPtr);
+    private static native boolean nativeContainsAllRealmAnyCollection(long nativePtr, long realmAnyCollectionPtr);
 
     private static native boolean nativeContainsAll(long nativePtr, long otherRealmSetNativePtr);
 
     private static native boolean nativeUnion(long nativePtr, long otherRealmSetNativePtr);
 
-    private static native boolean nativeAddAllMixedCollection(long nativePtr, long mixedCollectionPtr);
+    private static native boolean nativeAddAllRealmAnyCollection(long nativePtr, long realmAnyCollectionPtr);
 
     private static native boolean nativeAsymmetricDifference(long nativePtr, long otherRealmSetNativePtr);
 
-    private static native boolean nativeRemoveAllMixedCollection(long nativePtr, long mixedCollectionPtr);
+    private static native boolean nativeRemoveAllRealmAnyCollection(long nativePtr, long realmAnyCollectionPtr);
 
     private static native boolean nativeIntersect(long nativePtr, long otherRealmSetNativePtr);
 
-    private static native boolean nativeRetainAllMixedCollection(long nativePtr, long mixedCollectionPtr);
+    private static native boolean nativeRetainAllRealmAnyCollection(long nativePtr, long realmAnyCollectionPtr);
 
     private static native void nativeClear(long nativePtr);
 

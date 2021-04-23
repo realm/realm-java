@@ -175,7 +175,7 @@ class ProxyUtils {
                     osList.addUUID(java.util.UUID.fromString((String)uuid));
                 }
             }
-        } else if (realmList.clazz == Mixed.class) {
+        } else if (realmList.clazz == RealmAny.class) {
             for (int i = 0; i < arraySize; i++) {
                 if (jsonArray.isNull(i)) {
                     osList.addNull();
@@ -183,24 +183,24 @@ class ProxyUtils {
                 }
 
                 Object value = jsonArray.get(i);
-                Mixed mixed;
+                RealmAny realmAny;
                 if (value instanceof String) {
-                    mixed = Mixed.valueOf((String) value);
+                    realmAny = RealmAny.valueOf((String) value);
                 } else if (value instanceof Integer) {
-                    mixed = Mixed.valueOf((Integer) value);
+                    realmAny = RealmAny.valueOf((Integer) value);
                 } else if (value instanceof Long) {
-                    mixed = Mixed.valueOf((Long) value);
+                    realmAny = RealmAny.valueOf((Long) value);
                 } else if (value instanceof Double) {
-                    mixed = Mixed.valueOf((Double) value);
+                    realmAny = RealmAny.valueOf((Double) value);
                 } else if (value instanceof Boolean) {
-                    mixed = Mixed.valueOf((Boolean) value);
-                } else if (value instanceof Mixed) {
-                    mixed = (io.realm.Mixed) value;
-                    mixed = ProxyUtils.copyOrUpdate(mixed, realm, update, new HashMap<>(), new HashSet<>());
+                    realmAny = RealmAny.valueOf((Boolean) value);
+                } else if (value instanceof RealmAny) {
+                    realmAny = (io.realm.RealmAny) value;
+                    realmAny = ProxyUtils.copyOrUpdate(realmAny, realm, update, new HashMap<>(), new HashSet<>());
                 } else {
                     throw new IllegalArgumentException(String.format("Unsupported JSON type: %s", value.getClass().getSimpleName()));
                 }
-                osList.addMixed(mixed.getNativePtr());
+                osList.addRealmAny(realmAny.getNativePtr());
             }
         } else if (realmList.clazz == Long.class || realmList.clazz == Integer.class ||
                 realmList.clazz == Short.class || realmList.clazz == Byte.class) {
@@ -355,22 +355,22 @@ class ProxyUtils {
                     realmList.add(java.util.UUID.fromString(jsonReader.nextString()));
                 }
             }
-        } else if (elementClass == Mixed.class) {
+        } else if (elementClass == RealmAny.class) {
             while (jsonReader.hasNext()) {
                 if (jsonReader.peek() == JsonToken.NULL) {
                     jsonReader.skipValue();
-                    realmList.add(Mixed.nullValue());
+                    realmList.add(RealmAny.nullValue());
                 } else if (jsonReader.peek() == JsonToken.STRING) {
-                    realmList.add(Mixed.valueOf(jsonReader.nextString()));
+                    realmList.add(RealmAny.valueOf(jsonReader.nextString()));
                 } else if (jsonReader.peek() == JsonToken.NUMBER) {
                     String value = jsonReader.nextString();
                     if (value.contains(".")) {
-                        realmList.add(Mixed.valueOf(Double.parseDouble(value)));
+                        realmList.add(RealmAny.valueOf(Double.parseDouble(value)));
                     } else {
-                        realmList.add(Mixed.valueOf(Long.parseLong(value)));
+                        realmList.add(RealmAny.valueOf(Long.parseLong(value)));
                     }
                 } else if (jsonReader.peek() == JsonToken.BOOLEAN) {
-                    realmList.add(Mixed.valueOf(jsonReader.nextBoolean()));
+                    realmList.add(RealmAny.valueOf(jsonReader.nextBoolean()));
                 }
             }
         } else if (elementClass == ObjectId.class) {
@@ -406,28 +406,28 @@ class ProxyUtils {
     }
 
     @Nullable
-    static <T extends RealmModel> Mixed copyToRealmIfNeeded(ProxyState<T> proxyState, @Nullable Mixed value) {
+    static <T extends RealmModel> RealmAny copyToRealmIfNeeded(ProxyState<T> proxyState, @Nullable RealmAny value) {
         final Realm realm = (Realm) proxyState.getRealm$realm();
 
         if(value == null){
-            return Mixed.nullValue();
+            return RealmAny.nullValue();
         }
 
-        if (value.getType() == MixedType.OBJECT) {
-            RealmModel mixedRealmModel = value.asRealmModel(RealmModel.class);
+        if (value.getType() == RealmAnyType.OBJECT) {
+            RealmModel realmAnyRealmModel = value.asRealmModel(RealmModel.class);
 
-            if (realm.getSchema().getSchemaForClass(mixedRealmModel.getClass()).isEmbedded()) {
-                throw new IllegalArgumentException("Embedded objects are not supported by Mixed.");
+            if (realm.getSchema().getSchemaForClass(realmAnyRealmModel.getClass()).isEmbedded()) {
+                throw new IllegalArgumentException("Embedded objects are not supported by RealmAny.");
             }
 
-            if (!RealmObject.isManaged(mixedRealmModel)) {
-                if (realm.hasPrimaryKey(mixedRealmModel.getClass())) {
-                    value = Mixed.valueOf(realm.copyToRealmOrUpdate(mixedRealmModel));
+            if (!RealmObject.isManaged(realmAnyRealmModel)) {
+                if (realm.hasPrimaryKey(realmAnyRealmModel.getClass())) {
+                    value = RealmAny.valueOf(realm.copyToRealmOrUpdate(realmAnyRealmModel));
                 } else {
-                    value = Mixed.valueOf(realm.copyToRealm(mixedRealmModel));
+                    value = RealmAny.valueOf(realm.copyToRealm(realmAnyRealmModel));
                 }
             } else {
-                proxyState.checkValidObject(mixedRealmModel);
+                proxyState.checkValidObject(realmAnyRealmModel);
             }
         }
 
@@ -435,120 +435,120 @@ class ProxyUtils {
     }
 
     @SuppressWarnings("unchecked")
-    static Mixed copyOrUpdate(Mixed mixed, @Nonnull Realm realm, boolean update, @Nonnull Map<RealmModel, RealmObjectProxy> cache, @Nonnull Set<ImportFlag> flags) {
-        if (mixed == null) {
-            return Mixed.nullValue();
+    static RealmAny copyOrUpdate(RealmAny realmAny, @Nonnull Realm realm, boolean update, @Nonnull Map<RealmModel, RealmObjectProxy> cache, @Nonnull Set<ImportFlag> flags) {
+        if (realmAny == null) {
+            return RealmAny.nullValue();
         }
 
-        if (mixed.getType() == MixedType.OBJECT) {
-            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
-            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+        if (realmAny.getType() == RealmAnyType.OBJECT) {
+            Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
+            RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
-            RealmObjectProxy cacheRealmObject = cache.get(mixedRealmObject);
+            RealmObjectProxy cacheRealmObject = cache.get(realmAnyRealmObject);
             if (cacheRealmObject != null) {
-                mixed = Mixed.valueOf(cacheRealmObject);
+                realmAny = RealmAny.valueOf(cacheRealmObject);
             } else {
-                RealmModel managedMixedRealmObject = realm
+                RealmModel managedRealmAnyRealmObject = realm
                         .getConfiguration()
                         .getSchemaMediator()
-                        .copyOrUpdate(realm, mixedRealmObject, update, cache, flags);
+                        .copyOrUpdate(realm, realmAnyRealmObject, update, cache, flags);
 
-                mixed = Mixed.valueOf(managedMixedRealmObject);
+                realmAny = RealmAny.valueOf(managedRealmAnyRealmObject);
             }
         }
 
-        return mixed;
+        return realmAny;
     }
 
     @SuppressWarnings("unchecked")
-    static Mixed insert(Mixed mixed, @Nonnull Realm realm, @Nonnull Map<RealmModel, Long> cache) {
-        if (mixed == null) {
-            return Mixed.nullValue();
+    static RealmAny insert(RealmAny realmAny, @Nonnull Realm realm, @Nonnull Map<RealmModel, Long> cache) {
+        if (realmAny == null) {
+            return RealmAny.nullValue();
         }
 
-        if (mixed.getType() == MixedType.OBJECT) {
-            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
-            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+        if (realmAny.getType() == RealmAnyType.OBJECT) {
+            Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
+            RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
-            Long cacheRealmObject = cache.get(mixedRealmObject);
+            Long cacheRealmObject = cache.get(realmAnyRealmObject);
             if (cacheRealmObject != null) {
-                mixed = Mixed.valueOf(cacheRealmObject);
+                realmAny = RealmAny.valueOf(cacheRealmObject);
             } else {
                 long index = realm.getConfiguration()
                         .getSchemaMediator()
-                        .insert(realm, mixedRealmObject, cache);
+                        .insert(realm, realmAnyRealmObject, cache);
 
-                RealmModel realmModel = realm.get(mixedValueClass, null, index);
+                RealmModel realmModel = realm.get(realmAnyValueClass, null, index);
 
-                mixed = Mixed.valueOf(realmModel);
+                realmAny = RealmAny.valueOf(realmModel);
             }
         }
 
-        return mixed;
+        return realmAny;
     }
 
     @SuppressWarnings("unchecked")
-    static Mixed insertOrUpdate(Mixed mixed, @Nonnull Realm realm, @Nonnull Map<RealmModel, Long> cache) {
-        if (mixed == null) {
-            return Mixed.nullValue();
+    static RealmAny insertOrUpdate(RealmAny realmAny, @Nonnull Realm realm, @Nonnull Map<RealmModel, Long> cache) {
+        if (realmAny == null) {
+            return RealmAny.nullValue();
         }
 
-        if (mixed.getType() == MixedType.OBJECT) {
-            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
-            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+        if (realmAny.getType() == RealmAnyType.OBJECT) {
+            Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
+            RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
-            Long cacheRealmObject = cache.get(mixedRealmObject);
+            Long cacheRealmObject = cache.get(realmAnyRealmObject);
             if (cacheRealmObject != null) {
-                mixed = Mixed.valueOf(cacheRealmObject);
+                realmAny = RealmAny.valueOf(cacheRealmObject);
             } else {
                 long index = realm.getConfiguration()
                         .getSchemaMediator()
-                        .insertOrUpdate(realm, mixedRealmObject, cache);
+                        .insertOrUpdate(realm, realmAnyRealmObject, cache);
 
-                mixed = Mixed.valueOf(realm.get(mixedValueClass, null, index));
+                realmAny = RealmAny.valueOf(realm.get(realmAnyValueClass, null, index));
             }
         }
 
-        return mixed;
+        return realmAny;
     }
 
     @SuppressWarnings("unchecked")
-    static Mixed createDetachedCopy(Mixed mixed, @Nonnull Realm realm, int currentDepth, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
-        if (currentDepth > maxDepth || mixed == null) {
-            return Mixed.nullValue();
+    static RealmAny createDetachedCopy(RealmAny realmAny, @Nonnull Realm realm, int currentDepth, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
+        if (currentDepth > maxDepth || realmAny == null) {
+            return RealmAny.nullValue();
         }
 
-        if (mixed.getType() == MixedType.OBJECT) {
-            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
-            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+        if (realmAny.getType() == RealmAnyType.OBJECT) {
+            Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
+            RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
             RealmModel detachedCopy = realm.getConfiguration()
                     .getSchemaMediator()
-                    .createDetachedCopy(mixedRealmObject, maxDepth - 1, cache);
+                    .createDetachedCopy(realmAnyRealmObject, maxDepth - 1, cache);
 
-            mixed = Mixed.valueOf(detachedCopy);
+            realmAny = RealmAny.valueOf(detachedCopy);
         }
 
-        return mixed;
+        return realmAny;
     }
 
     @SuppressWarnings("unchecked")
-    static Mixed createOrUpdateUsingJsonObject(Mixed mixed, @Nonnull Realm realm, int currentDepth, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
-        if (currentDepth > maxDepth || mixed == null) {
-            return Mixed.nullValue();
+    static RealmAny createOrUpdateUsingJsonObject(RealmAny realmAny, @Nonnull Realm realm, int currentDepth, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache) {
+        if (currentDepth > maxDepth || realmAny == null) {
+            return RealmAny.nullValue();
         }
 
-        if (mixed.getType() == MixedType.OBJECT) {
-            Class<? extends RealmModel> mixedValueClass = (Class<? extends RealmModel>) mixed.getValueClass();
-            RealmModel mixedRealmObject = mixed.asRealmModel(mixedValueClass);
+        if (realmAny.getType() == RealmAnyType.OBJECT) {
+            Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
+            RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
             RealmModel detachedCopy = realm.getConfiguration()
                     .getSchemaMediator()
-                    .createDetachedCopy(mixedRealmObject, maxDepth - 1, cache);
+                    .createDetachedCopy(realmAnyRealmObject, maxDepth - 1, cache);
 
-            mixed = Mixed.valueOf(detachedCopy);
+            realmAny = RealmAny.valueOf(detachedCopy);
         }
 
-        return mixed;
+        return realmAny;
     }
 }

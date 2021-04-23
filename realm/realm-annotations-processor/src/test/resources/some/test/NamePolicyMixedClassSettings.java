@@ -21,10 +21,10 @@ import io.realm.annotations.RealmField;
 import io.realm.annotations.RealmNamingPolicy;
 
 /**
- * Class with mixed settings class/field name settings
+ * Class with realmAny settings class/field name settings
  */
 @RealmClass(name = "customName", fieldNamingPolicy = RealmNamingPolicy.PASCAL_CASE)
-public class NamePolicyMixedClassSettings extends RealmObject {
+public class NamePolicyRealmAnyClassSettings extends RealmObject {
 
     @RealmField(name = "first_name")
     public String firstName;

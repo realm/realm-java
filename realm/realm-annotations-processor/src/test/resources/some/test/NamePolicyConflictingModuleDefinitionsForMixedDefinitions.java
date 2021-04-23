@@ -18,7 +18,7 @@ import io.realm.annotations.RealmModule;
 import io.realm.annotations.RealmNamingPolicy;
 import some.test.Simple;
 
-public class NamePolicyConflictingModuleDefinitionsForMixedDefinitions {
+public class NamePolicyConflictingModuleDefinitionsForRealmAnyDefinitions {
 
     @RealmModule(classes = { Simple.class },
             classNamingPolicy = RealmNamingPolicy.IDENTITY,

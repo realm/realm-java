@@ -23,18 +23,18 @@ import kotlin.reflect.KFunction1
 import kotlin.test.*
 
 /**
- * Tester for Mixed containing null values. It evaluates that null is accepted as a value and that only a null instance
+ * Tester for RealmAny containing null values. It evaluates that null is accepted as a value and that only a null instance
  * can exist in a RealmSet.
  */
-class NullMixedSetTester(
+class NullRealmAnySetTester(
     private val testerName: String,
-    private val setGetter: KFunction1<SetAllTypes, RealmSet<Mixed>>
+    private val setGetter: KFunction1<SetAllTypes, RealmSet<RealmAny>>
 ) : SetTester {
     private lateinit var config: RealmConfiguration
     private lateinit var looperThread: BlockingLooperThread
     private lateinit var realm: Realm
 
-    override fun toString(): String = "NullMixedSetTester-${testerName}"
+    override fun toString(): String = "NullRealmAnySetTester-${testerName}"
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
         this.config = config
@@ -58,8 +58,8 @@ class NullMixedSetTester(
         val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
-            set.add(Mixed.nullValue())
-            set.add(Mixed.nullValue())
+            set.add(RealmAny.nullValue())
+            set.add(RealmAny.nullValue())
         }
 
         // Null values are all the same
@@ -72,7 +72,7 @@ class NullMixedSetTester(
         assertTrue(set.isEmpty())
 
         realm.executeTransaction {
-            set.add(Mixed.nullValue())
+            set.add(RealmAny.nullValue())
         }
 
         // Null value counts as an item
@@ -82,8 +82,8 @@ class NullMixedSetTester(
     override fun contains() {
         val set = initAndAssertEmptySet(id = "id")
 
-        assertFalse(set.contains(Mixed.nullValue()))
-        assertFalse(set.contains(Mixed.nullValue()))
+        assertFalse(set.contains(RealmAny.nullValue()))
+        assertFalse(set.contains(RealmAny.nullValue()))
     }
 
     override fun requiredConstraints() = Unit // Not tested
@@ -98,11 +98,11 @@ class NullMixedSetTester(
         val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
-            assertTrue(set.add(Mixed.nullValue()))
-            assertTrue(set.contains(Mixed.nullValue()))
+            assertTrue(set.add(RealmAny.nullValue()))
+            assertTrue(set.contains(RealmAny.nullValue()))
 
             // Should no be possible to add the same value
-            assertFalse(set.add(Mixed.nullValue()))
+            assertFalse(set.add(RealmAny.nullValue()))
         }
     }
 
@@ -110,15 +110,15 @@ class NullMixedSetTester(
         val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
-            set.add(Mixed.nullValue())
+            set.add(RealmAny.nullValue())
             assertEquals(1, set.size)
 
             // Does not change if we remove something that is not there
-            assertFalse(set.remove(Mixed.valueOf("Hello world")))
+            assertFalse(set.remove(RealmAny.valueOf("Hello world")))
             assertEquals(1, set.size)
 
             // Changes if we remove something that is there
-            set.remove(Mixed.nullValue())
+            set.remove(RealmAny.nullValue())
             assertEquals(0, set.size)
         }
     }
@@ -127,12 +127,12 @@ class NullMixedSetTester(
         val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
-            assertFalse(set.containsAll(listOf(Mixed.nullValue(), Mixed.nullValue())))
+            assertFalse(set.containsAll(listOf(RealmAny.nullValue(), RealmAny.nullValue())))
 
-            set.add(Mixed.nullValue())
+            set.add(RealmAny.nullValue())
 
             // Contains any null value
-            assertTrue(set.containsAll(listOf(Mixed.nullValue(), Mixed.nullValue())))
+            assertTrue(set.containsAll(listOf(RealmAny.nullValue(), RealmAny.nullValue())))
 
             // Contains a managed set (itself)
             assertTrue(set.containsAll(set))
@@ -147,11 +147,11 @@ class NullMixedSetTester(
 
         realm.executeTransaction {
             // Changes after adding collection
-            assertTrue(set.addAll(listOf(Mixed.nullValue(), Mixed.nullValue())))
+            assertTrue(set.addAll(listOf(RealmAny.nullValue(), RealmAny.nullValue())))
             assertEquals(1, set.size)
 
             // Does not changes if we add the data again
-            assertFalse(set.addAll(listOf(Mixed.nullValue(), Mixed.nullValue())))
+            assertFalse(set.addAll(listOf(RealmAny.nullValue(), RealmAny.nullValue())))
             assertEquals(1, set.size)
 
             // Does not change if we add itself to it
@@ -169,7 +169,7 @@ class NullMixedSetTester(
 
         realm.executeTransaction {
             // Does not change after empty set intersects with another collection
-            assertFalse(set.retainAll(listOf(Mixed.nullValue(), Mixed.nullValue())))
+            assertFalse(set.retainAll(listOf(RealmAny.nullValue(), RealmAny.nullValue())))
             assertTrue(set.isEmpty())
 
             // Does not change after empty set intersects with empty collection
@@ -177,9 +177,9 @@ class NullMixedSetTester(
             assertTrue(set.isEmpty())
 
             // Does change after adding data and intersecting it with some values
-            set.addAll(listOf(Mixed.nullValue(), Mixed.nullValue()))
+            set.addAll(listOf(RealmAny.nullValue(), RealmAny.nullValue()))
             assertEquals(1, set.size)
-            assertTrue(set.retainAll(listOf(Mixed.valueOf("Hello world"))))
+            assertTrue(set.retainAll(listOf(RealmAny.valueOf("Hello world"))))
             assertEquals(0, set.size)
         }
     }
@@ -190,17 +190,17 @@ class NullMixedSetTester(
         realm.executeTransaction {
             // Does not change after removing a some values from an empty set
             assertTrue(set.isEmpty())
-            assertFalse(set.removeAll(listOf(Mixed.nullValue(), Mixed.nullValue())))
+            assertFalse(set.removeAll(listOf(RealmAny.nullValue(), RealmAny.nullValue())))
             assertTrue(set.isEmpty())
 
             // Does change after adding values and then remove all
-            set.addAll(listOf(Mixed.nullValue(), Mixed.nullValue()))
+            set.addAll(listOf(RealmAny.nullValue(), RealmAny.nullValue()))
             assertEquals(1, set.size)
-            assertTrue(set.removeAll(listOf(Mixed.nullValue(), Mixed.nullValue())))
+            assertTrue(set.removeAll(listOf(RealmAny.nullValue(), RealmAny.nullValue())))
             assertTrue(set.isEmpty())
 
             // Does not change after removing empty collection
-            set.addAll(listOf(Mixed.nullValue(), Mixed.nullValue()))
+            set.addAll(listOf(RealmAny.nullValue(), RealmAny.nullValue()))
             assertFalse(set.removeAll(listOf()))
             assertEquals(1, set.size)
         }
@@ -210,7 +210,7 @@ class NullMixedSetTester(
         val set = initAndAssertEmptySet(id = "id")
 
         realm.executeTransaction {
-            set.add(Mixed.nullValue())
+            set.add(RealmAny.nullValue())
             assertEquals(1, set.size)
             set.clear()
             assertEquals(0, set.size)
@@ -240,7 +240,7 @@ class NullMixedSetTester(
     private fun initAndAssertEmptySet(
         realm: Realm = this.realm,
         id: String? = null
-    ): RealmSet<Mixed> {
+    ): RealmSet<RealmAny> {
         val allTypesObject = createAllTypesManagedContainerAndAssert(realm, id)
         assertNotNull(allTypesObject)
         val set = setGetter.call(allTypesObject)

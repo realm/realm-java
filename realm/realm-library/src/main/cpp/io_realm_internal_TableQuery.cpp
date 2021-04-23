@@ -199,7 +199,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(J
 }
 
 // double Aggregates
-JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumMixed(JNIEnv *env, jobject,
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumRealmAny(JNIEnv *env, jobject,
                                                                               jlong nativeQueryPtr, jlong columnKey) {
     Query *pQuery = Q(nativeQueryPtr);
     ConstTableRef pTable = pQuery->get_table();
@@ -247,7 +247,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
     return nullptr;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumMixed(JNIEnv *env, jobject,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumRealmAny(JNIEnv *env, jobject,
                                                                                jlong nativeQueryPtr,
                                                                                jlong columnKey) {
     Query *pQuery = Q(nativeQueryPtr);
@@ -315,7 +315,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
     return nullptr;
 }
 
-JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumMixed(JNIEnv *env, jobject,
+JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumRealmAny(JNIEnv *env, jobject,
                                                                                jlong nativeQueryPtr,
                                                                                jlong columnKey) {
     Query *pQuery = Q(nativeQueryPtr);
@@ -363,7 +363,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
     return 0;
 }
 
-JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageMixed(JNIEnv *env, jobject,
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageRealmAny(JNIEnv *env, jobject,
                                                                                   jlong nativeQueryPtr,
                                                                                   jlong columnKey) {
     Query *pQuery = Q(nativeQueryPtr);

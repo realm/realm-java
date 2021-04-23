@@ -35,7 +35,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
-import io.realm.internal.core.NativeMixed;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -123,7 +123,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case OBJECT_ID:
                 return (E) proxyState.getRow$realm().getObjectId(columnKey);
             case MIXED:
-                return (E) getMixed(columnKey);
+                return (E) getRealmAny(columnKey);
             case UUID:
                 return (E) proxyState.getRow$realm().getUUID(columnKey);
             case OBJECT:
@@ -368,19 +368,19 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
-     * Returns the {@code Mixed} value for a given field.
+     * Returns the {@code RealmAny} value for a given field.
      *
      * @param fieldName the name of the field.
-     * @return the Mixed value.
-     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain Mixed.
+     * @return the RealmAny value.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain RealmAny.
      */
-    public Mixed getMixed(String fieldName) {
+    public RealmAny getRealmAny(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
         checkFieldType(fieldName, columnKey, RealmFieldType.MIXED);
 
-        return getMixed(columnKey);
+        return getRealmAny(columnKey);
     }
 
     /**
@@ -501,7 +501,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return RealmFieldType.OBJECT_ID_LIST;
         } else if (primitiveType.equals(UUID.class)) {
             return RealmFieldType.UUID_LIST;
-        } else if (primitiveType.equals(Mixed.class)) {
+        } else if (primitiveType.equals(RealmAny.class)) {
             return RealmFieldType.MIXED_LIST;
         } else {
             throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + primitiveType);
@@ -629,7 +629,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     value = UUID.fromString(strValue);
                     break;
                 case MIXED:
-                    value = Mixed.valueOf(strValue);
+                    value = RealmAny.valueOf(strValue);
                     break;
                 default:
                     throw new IllegalArgumentException(String.format(Locale.US,
@@ -680,8 +680,8 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             setObjectId(fieldName, (ObjectId) value);
         } else if (valueClass == UUID.class) {
             setUUID(fieldName, (UUID) value);
-        } else if (valueClass == Mixed.class) {
-            setMixed(fieldName, (Mixed) value);
+        } else if (valueClass == RealmAny.class) {
+            setRealmAny(fieldName, (RealmAny) value);
         } else {
             throw new IllegalArgumentException("Value is of an type not supported: " + value.getClass());
         }
@@ -878,20 +878,20 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     }
 
     /**
-     * Sets the {@code Mixed} value of the given field.
+     * Sets the {@code RealmAny} value of the given field.
      *
      * @param fieldName field name.
      * @param value     value to insert.
-     * @throws IllegalArgumentException if field name doesn't exist or field isn't a Mixed field.
+     * @throws IllegalArgumentException if field name doesn't exist or field isn't a RealmAny field.
      */
-    public void setMixed(String fieldName, @Nullable Mixed value) {
+    public void setRealmAny(String fieldName, @Nullable RealmAny value) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
         if (value == null) {
             proxyState.getRow$realm().setNull(columnKey);
         } else {
-            proxyState.getRow$realm().setMixed(columnKey, value.getNativePtr());
+            proxyState.getRow$realm().setRealmAny(columnKey, value.getNativePtr());
         }
     }
 
@@ -1067,7 +1067,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case DECIMAL128_LIST: elementClass = (Class<E>) Decimal128.class; break;
             case OBJECT_ID_LIST: elementClass = (Class<E>) ObjectId.class; break;
             case UUID_LIST: elementClass = (Class<E>) UUID.class; break;
-            case MIXED_LIST: elementClass = (Class<E>) Mixed.class; break;
+            case MIXED_LIST: elementClass = (Class<E>) RealmAny.class; break;
             default:
                 throw new IllegalArgumentException("Unsupported type: " + primitiveType);
         }
@@ -1132,7 +1132,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
         if (valueListType == RealmFieldType.MIXED_LIST) {
             //noinspection unchecked
-            return (ManagedListOperator<E>) new MixedListOperator(realm, osList, (Class<Mixed>) valueClass);
+            return (ManagedListOperator<E>) new RealmAnyListOperator(realm, osList, (Class<RealmAny>) valueClass);
         }
         throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
     }
@@ -1304,7 +1304,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     break;
                 case MIXED:
                     //TODO: MIXED VALIDATE STRING CONVERSION
-                    sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : getMixed(columnKey));
+                    sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : getRealmAny(columnKey));
                     break;
                 case OBJECT:
                     sb.append(proxyState.getRow$realm().isNullLink(columnKey)
@@ -1346,7 +1346,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     sb.append(String.format(Locale.US, "RealmList<UUID>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
                     break;
                 case MIXED_LIST:
-                    sb.append(String.format(Locale.US, "RealmList<Mixed>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
+                    sb.append(String.format(Locale.US, "RealmList<RealmAny>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
                     break;
                 default:
                     sb.append("?");
@@ -1359,9 +1359,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         return sb.toString();
     }
 
-    private Mixed getMixed(long columnKey) {
-        NativeMixed nativeMixed = proxyState.getRow$realm().getNativeMixed(columnKey);
-        return new Mixed(MixedOperator.fromNativeMixed(proxyState.getRealm$realm(), nativeMixed));
+    private RealmAny getRealmAny(long columnKey) {
+        NativeRealmAny nativeRealmAny = proxyState.getRow$realm().getNativeRealmAny(columnKey);
+        return new RealmAny(RealmAnyOperator.fromNativeRealmAny(proxyState.getRealm$realm(), nativeRealmAny));
     }
 
     /**

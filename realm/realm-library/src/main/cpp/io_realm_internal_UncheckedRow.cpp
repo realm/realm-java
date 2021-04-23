@@ -231,7 +231,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLong(JNIEnv*
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetMixed(JNIEnv* env, jobject, jlong nativeRowPtr,
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetRealmAny(JNIEnv* env, jobject, jlong nativeRowPtr,
                                                                               jlong columnKey, jlong nativePtr)
 {
     if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
@@ -511,7 +511,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetUUID(JNIE
     return nullptr;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetMixed(JNIEnv* env, jobject,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetRealmAny(JNIEnv* env, jobject,
                                                                             jlong nativeRowPtr,
                                                                             jlong columnKey)
 {

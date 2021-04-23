@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -42,7 +42,7 @@ public class AllTypesPrimaryKey extends RealmObject {
     private ObjectId columnObjectId;
     private Decimal128 columnDecimal128;
     private UUID columnUUID;
-    private Mixed columnMixed;
+    private RealmAny columnRealmAny;
 
     private RealmList<String> columnStringList;
     private RealmList<byte[]> columnBinaryList;
@@ -54,7 +54,7 @@ public class AllTypesPrimaryKey extends RealmObject {
     private RealmList<ObjectId> columnObjectIdList;
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<UUID> columnUUIDList;
-    private RealmList<Mixed> columnMixedList;
+    private RealmList<RealmAny> columnRealmAnyList;
 
     public String getColumnString() {
         return columnString;
@@ -160,12 +160,12 @@ public class AllTypesPrimaryKey extends RealmObject {
         this.columnUUID = columnUUID;
     }
 
-    public Mixed getColumnMixed() {
-        return columnMixed;
+    public RealmAny getColumnRealmAny() {
+        return columnRealmAny;
     }
 
-    public void setColumnMixed(Mixed columnMixed) {
-        this.columnMixed = columnMixed;
+    public void setColumnRealmAny(RealmAny columnRealmAny) {
+        this.columnRealmAny = columnRealmAny;
     }
 
     public RealmList<String> getColumnStringList() {
@@ -248,11 +248,11 @@ public class AllTypesPrimaryKey extends RealmObject {
         this.columnUUIDList = columnUUIDList;
     }
 
-    public RealmList<Mixed> getColumnMixedList() {
-        return columnMixedList;
+    public RealmList<RealmAny> getColumnRealmAnyList() {
+        return columnRealmAnyList;
     }
 
-    public void setColumnMixedList(RealmList<Mixed> columnMixedList) {
-        this.columnMixedList = columnMixedList;
+    public void setColumnRealmAnyList(RealmList<RealmAny> columnRealmAnyList) {
+        this.columnRealmAnyList = columnRealmAnyList;
     }
 }

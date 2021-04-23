@@ -22,13 +22,13 @@ import io.realm.annotations.Required;
 
 public class RealmDictionaryModelRealmModelRequired extends RealmObject {
 
-    @Required private RealmDictionary<RealmDictionaryModel> myRequiredMixedRealmDictionary;
+    @Required private RealmDictionary<RealmDictionaryModel> myRequiredRealmAnyRealmDictionary;
 
-    public RealmDictionary<RealmDictionaryModel> getMyRequiredMixedRealmDictionary() {
-        return myRequiredMixedRealmDictionary;
+    public RealmDictionary<RealmDictionaryModel> getMyRequiredRealmAnyRealmDictionary() {
+        return myRequiredRealmAnyRealmDictionary;
     }
 
-    public void setMyRequiredMixedRealmDictionary(RealmDictionary<RealmDictionaryModel> myRequiredMixedRealmDictionary) {
-        this.myRequiredMixedRealmDictionary = myRequiredMixedRealmDictionary;
+    public void setMyRequiredRealmAnyRealmDictionary(RealmDictionary<RealmDictionaryModel> myRequiredRealmAnyRealmDictionary) {
+        this.myRequiredRealmAnyRealmDictionary = myRequiredRealmAnyRealmDictionary;
     }
 }

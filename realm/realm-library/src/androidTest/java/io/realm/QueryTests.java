@@ -232,7 +232,7 @@ public abstract class QueryTests {
         notEmpty.setFieldDecimal128List(new RealmList<>(new Decimal128(1L)));
         notEmpty.setFieldObjectIdList(new RealmList<>(new ObjectId()));
         notEmpty.setFieldUUIDList(new RealmList<>(UUID.randomUUID()));
-        notEmpty.setFieldMixedList(new RealmList<>(Mixed.valueOf(1)));
+        notEmpty.setFieldRealmAnyList(new RealmList<>(RealmAny.valueOf(1)));
 
         notEmpty.setColumnRealmDictionary((RealmDictionary<AllJavaTypesUnsupportedTypes>) getDictionary(RealmFieldType.STRING_TO_LINK_MAP, notEmpty));
         notEmpty.setColumnIntegerDictionary((RealmDictionary<Integer>) getDictionary(RealmFieldType.STRING_TO_INTEGER_MAP));
@@ -245,7 +245,7 @@ public abstract class QueryTests {
         notEmpty.setColumnDecimal128Dictionary((RealmDictionary<Decimal128>) getDictionary(RealmFieldType.STRING_TO_DECIMAL128_MAP));
         notEmpty.setColumnObjectIdDictionary((RealmDictionary<ObjectId>) getDictionary(RealmFieldType.STRING_TO_OBJECT_ID_MAP));
         notEmpty.setColumnUUIDDictionary((RealmDictionary<UUID>) getDictionary(RealmFieldType.STRING_TO_UUID_MAP));
-        notEmpty.setColumnMixedDictionary((RealmDictionary<Mixed>) getDictionary(RealmFieldType.STRING_TO_MIXED_MAP));
+        notEmpty.setColumnRealmAnyDictionary((RealmDictionary<RealmAny>) getDictionary(RealmFieldType.STRING_TO_MIXED_MAP));
 
         notEmpty.setColumnRealmSet((RealmSet<AllJavaTypesUnsupportedTypes>) getSet(RealmFieldType.LINK_SET, notEmpty));
         notEmpty.setColumnIntegerSet((RealmSet<Integer>) getSet(RealmFieldType.INTEGER_SET));
@@ -258,7 +258,7 @@ public abstract class QueryTests {
         notEmpty.setColumnDecimal128Set((RealmSet<Decimal128>) getSet(RealmFieldType.DECIMAL128_SET));
         notEmpty.setColumnObjectIdSet((RealmSet<ObjectId>) getSet(RealmFieldType.OBJECT_ID_SET));
         notEmpty.setColumnUUIDSet((RealmSet<UUID>) getSet(RealmFieldType.UUID_SET));
-        notEmpty.setColumnMixedSet((RealmSet<Mixed>) getSet(RealmFieldType.MIXED_SET));
+        notEmpty.setColumnRealmAnySet((RealmSet<RealmAny>) getSet(RealmFieldType.MIXED_SET));
 
         realm.copyToRealmOrUpdate(notEmpty);
 
@@ -327,8 +327,8 @@ public abstract class QueryTests {
                 return set;
             }
             case MIXED_SET: {
-                RealmSet<Mixed> set = new RealmSet<>();
-                set.add(Mixed.valueOf(1));
+                RealmSet<RealmAny> set = new RealmSet<>();
+                set.add(RealmAny.valueOf(1));
                 return set;
             }
             default:
@@ -393,8 +393,8 @@ public abstract class QueryTests {
                 return dict;
             }
             case STRING_TO_MIXED_MAP: {
-                RealmDictionary<Mixed> dict = new RealmDictionary<>();
-                dict.put("KEY", Mixed.valueOf(1));
+                RealmDictionary<RealmAny> dict = new RealmDictionary<>();
+                dict.put("KEY", RealmAny.valueOf(1));
                 return dict;
             }
             case STRING_TO_LINK_MAP: {

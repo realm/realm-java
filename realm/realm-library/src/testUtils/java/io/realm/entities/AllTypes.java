@@ -23,7 +23,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -46,7 +46,7 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DECIMAL128 = "columnDecimal128";
     public static final String FIELD_OBJECT_ID = "columnObjectId";
     public static final String FIELD_UUID = "columnUUID";
-    public static final String FIELD_MIXED = "columnMixed";
+    public static final String FIELD_REALM_ANY = "columnRealmAny";
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLINK = "columnRealmLink";
     public static final String FIELD_REALMBACKLINK = "columnRealmBackLink";
@@ -83,7 +83,7 @@ public class AllTypes extends RealmObject {
     @Required
     private UUID columnUUID = UUID.randomUUID();
 
-    private Mixed columnMixed = Mixed.nullValue();
+    private RealmAny columnRealmAny = RealmAny.nullValue();
 
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
 
@@ -105,7 +105,7 @@ public class AllTypes extends RealmObject {
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<ObjectId> columnObjectIdList;
     private RealmList<UUID> columnUUIDList;
-    private RealmList<Mixed> columnMixedList;
+    private RealmList<RealmAny> columnRealmAnyList;
 
     public String getColumnString() {
         return columnString;
@@ -280,12 +280,12 @@ public class AllTypes extends RealmObject {
         this.columnUUID = columnUUID;
     }
 
-    public Mixed getColumnMixed() {
-        return columnMixed;
+    public RealmAny getColumnRealmAny() {
+        return columnRealmAny;
     }
 
-    public void setColumnMixed(Mixed columnMixed) {
-        this.columnMixed = columnMixed;
+    public void setColumnRealmAny(RealmAny columnRealmAny) {
+        this.columnRealmAny = columnRealmAny;
     }
 
     public RealmList<Decimal128> getColumnDecimal128List() {
@@ -312,11 +312,11 @@ public class AllTypes extends RealmObject {
         this.columnUUIDList = columnUUIDList;
     }
 
-    public RealmList<Mixed> getColumnMixedList() {
-        return columnMixedList;
+    public RealmList<RealmAny> getColumnRealmAnyList() {
+        return columnRealmAnyList;
     }
 
-    public void setColumnMixedList(RealmList<Mixed> columnMixedList) {
-        this.columnMixedList = columnMixedList;
+    public void setColumnRealmAnyList(RealmList<RealmAny> columnRealmAnyList) {
+        this.columnRealmAnyList = columnRealmAnyList;
     }
 }

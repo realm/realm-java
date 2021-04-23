@@ -16,7 +16,7 @@
 
 package io.realm.entities
 
-import io.realm.Mixed
+import io.realm.RealmAny
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.RealmSet
@@ -42,7 +42,7 @@ open class SetContainerClass : RealmObject() {
     val myObjectIdSet = RealmSet<ObjectId>()
     val myUUIDSet = RealmSet<UUID>()
     val myDecimal128Set = RealmSet<Decimal128>()
-    val myMixedSet = RealmSet<Mixed>()
+    val myRealmAnySet = RealmSet<RealmAny>()
 
     val myRealmModelNoPkList = RealmList<Owner>()
     val myRealmModelList = RealmList<DogPrimaryKey>()
@@ -59,7 +59,7 @@ open class SetContainerClass : RealmObject() {
     val myObjectIdList = RealmList<ObjectId>()
     val myUUIDList = RealmList<UUID>()
     val myDecimal128List = RealmList<Decimal128>()
-    val myMixedList = RealmList<Mixed>()
+    val myRealmAnyList = RealmList<RealmAny>()
 
     companion object {
         const val CLASS_NAME = "SetContainerClass"
@@ -85,7 +85,7 @@ open class SetContainerMigrationClass : RealmObject() {
     val myObjectIdSet = RealmSet<ObjectId>()
     val myUUIDSet = RealmSet<UUID>()
     val myDecimal128Set = RealmSet<Decimal128>()
-    val myMixedSet = RealmSet<Mixed>()
+    val myRealmAnySet = RealmSet<RealmAny>()
 
     companion object {
         const val CLASS_NAME = "SetContainerMigrationClass"

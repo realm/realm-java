@@ -74,7 +74,7 @@ public abstract class RealmObjectSchema {
         listMap.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT_ID_LIST, true));
         listMap.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.DECIMAL128_LIST, true));
         listMap.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.UUID_LIST, true));
-        listMap.put(Mixed.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.MIXED_LIST, true));
+        listMap.put(RealmAny.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.MIXED_LIST, true));
         SUPPORTED_LIST_SIMPLE_FIELDS = Collections.unmodifiableMap(listMap);
 
         Map<Class<?>, FieldMetaData> dictionaryMap = new HashMap<>();
@@ -98,7 +98,7 @@ public abstract class RealmObjectSchema {
         dictionaryMap.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.STRING_TO_OBJECT_ID_MAP, true));
         dictionaryMap.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.STRING_TO_DECIMAL128_MAP, true));
         dictionaryMap.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.STRING_TO_UUID_MAP, true));
-        dictionaryMap.put(Mixed.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.STRING_TO_MIXED_MAP, true));
+        dictionaryMap.put(RealmAny.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.STRING_TO_MIXED_MAP, true));
         SUPPORTED_DICTIONARY_SIMPLE_FIELDS = Collections.unmodifiableMap(dictionaryMap);
 
         Map<Class<?>, FieldMetaData> setMap = new HashMap<>();
@@ -122,7 +122,7 @@ public abstract class RealmObjectSchema {
         setMap.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT_ID_SET, true));
         setMap.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.DECIMAL128_SET, true));
         setMap.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.UUID_SET, true));
-        setMap.put(Mixed.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.MIXED_SET, true));
+        setMap.put(RealmAny.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.MIXED_SET, true));
         SUPPORTED_SET_SIMPLE_FIELDS = Collections.unmodifiableMap(setMap);
     }
 

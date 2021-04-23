@@ -515,8 +515,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
             operator = (SetValueOperator<T>) new ObjectIdOperator(baseRealm, osSet, ObjectId.class);
         } else if (valueClass == UUID.class) {
             operator = (SetValueOperator<T>) new UUIDOperator(baseRealm, osSet, UUID.class);
-        } else if (valueClass == Mixed.class) {
-            operator = (SetValueOperator<T>) new MixedSetOperator(baseRealm, osSet, Mixed.class);
+        } else if (valueClass == RealmAny.class) {
+            operator = (SetValueOperator<T>) new RealmAnySetOperator(baseRealm, osSet, RealmAny.class);
         } else {
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }

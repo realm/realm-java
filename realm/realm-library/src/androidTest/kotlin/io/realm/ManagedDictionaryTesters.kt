@@ -40,7 +40,7 @@ import kotlin.test.*
  */
 class ManagedDictionaryTester<T : Any>(
         private val testerClass: String,
-        private val mixedType: MixedType? = null,
+        private val realmAnyType: RealmAnyType? = null,
         private val dictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>,
         private val dictionarySetter: KFunction2<DictionaryAllTypes, RealmDictionary<T>, Unit>,
         private val requiredDictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>? = null,
@@ -56,9 +56,9 @@ class ManagedDictionaryTester<T : Any>(
     private lateinit var looperThread: BlockingLooperThread
     private lateinit var realm: Realm
 
-    override fun toString(): String = when (mixedType) {
+    override fun toString(): String = when (realmAnyType) {
         null -> "ManagedDictionary-$testerClass"
-        else -> "ManagedDictionary-$testerClass" + mixedType.name.let { "-$it" }
+        else -> "ManagedDictionary-$testerClass" + realmAnyType.name.let { "-$it" }
     }
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
@@ -187,7 +187,7 @@ class ManagedDictionaryTester<T : Any>(
     override fun put() = putInternal(initializedDictionary, alternativeDictionary)
 
     override fun putRequired() {
-        // RealmModel and Mixed dictionaries are ignored since they cannot be marked with "@Required"
+        // RealmModel and RealmAny dictionaries are ignored since they cannot be marked with "@Required"
         if (requiredDictionaryGetter != null) {
             val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
             assertNotNull(allTypesObject)
@@ -445,7 +445,7 @@ class ManagedDictionaryTester<T : Any>(
             typeAsserter.assertEqualsHelper(realm, value, dictionary[key])
         }
 
-        if (testerClass == "String-NonLatin" || testerClass == "Mixed-NonLatin") {
+        if (testerClass == "String-NonLatin" || testerClass == "RealmAny-NonLatin") {
             primaryKeyDictionaryProperty.get(manualInstance)[NEW_KEY_NON_LATIN] = alternativeDictionary[KEY_BYE_NON_LATIN]
         } else {
             primaryKeyDictionaryProperty.get(manualInstance)[NEW_KEY] = alternativeDictionary[KEY_BYE]
@@ -461,7 +461,7 @@ class ManagedDictionaryTester<T : Any>(
         assertNotNull(updatedContainer)
         val updatedDictinary = primaryKeyDictionaryProperty.get(primaryKeyDictionaryContainer)
         assertEquals(initializedDictionary.size + 1, updatedDictinary.size)
-        if (testerClass == "String-NonLatin" || testerClass == "Mixed-NonLatin") {
+        if (testerClass == "String-NonLatin" || testerClass == "RealmAny-NonLatin") {
             typeAsserter.assertEqualsHelper(realm, alternativeDictionary[KEY_BYE_NON_LATIN], updatedDictinary[NEW_KEY_NON_LATIN])
         } else {
             typeAsserter.assertEqualsHelper(realm, alternativeDictionary[KEY_BYE], updatedDictinary[NEW_KEY])
@@ -544,7 +544,7 @@ class ManagedDictionaryTester<T : Any>(
                 // change set - calling 'put' with an unmanaged object with PK that already is
                 // in the database will trigger two changes: one for the actual modification and
                 // two for insertion itself since we use 'copyToRealmOrUpdate'.
-                if (testerClass == "String-NonLatin" || testerClass == "Mixed-NonLatin") {
+                if (testerClass == "String-NonLatin" || testerClass == "RealmAny-NonLatin") {
                     dictionary[KEY_HELLO_NON_LATIN] = dictionary[KEY_BYE_NON_LATIN]
                 } else {
                     dictionary[KEY_HELLO] = dictionary[KEY_BYE]
@@ -596,7 +596,7 @@ class ManagedDictionaryTester<T : Any>(
                 // change set - calling 'put' with an unmanaged object with PK that already is
                 // in the database will trigger two changes: one for the actual modification and
                 // two for insertion itself since we use 'copyToRealmOrUpdate'.
-                if (testerClass == "String-NonLatin" || testerClass == "Mixed-NonLatin") {
+                if (testerClass == "String-NonLatin" || testerClass == "RealmAny-NonLatin") {
                     dictionary[KEY_HELLO_NON_LATIN] = dictionary[KEY_BYE_NON_LATIN]
                 } else {
                     dictionary[KEY_HELLO] = dictionary[KEY_BYE]
@@ -695,7 +695,7 @@ enum class ChangeListenerOperation {
 
 /**
  * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
- * many Mixed testers as [MixedType]s.
+ * many RealmAny testers as [RealmAnyType]s.
  *
  * The `KFunction1` and `KFunction2` parameters for `dictionaryGetter` and `dictionarySetter`
  * respectively enables agnostic field processing, making it possible to cover all supported types
@@ -871,36 +871,36 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             )
     )
 
-    // Create Mixed testers now
-    val mixedTesters = MixedType.values().map { mixedType ->
+    // Create RealmAny testers now
+    val realmAnyTesters = RealmAnyType.values().map { realmAnyType ->
         ManagedDictionaryTester(
-                testerClass = "Mixed",
-                mixedType = mixedType,
-                dictionaryGetter = DictionaryAllTypes::getColumnMixedDictionary,
-                dictionarySetter = DictionaryAllTypes::setColumnMixedDictionary,
-                initializedDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(mixedType)),
-                alternativeDictionary = RealmDictionary<Mixed>().init(getMixedKeyValuePairs(mixedType, true)),
+                testerClass = "RealmAny",
+                realmAnyType = realmAnyType,
+                dictionaryGetter = DictionaryAllTypes::getColumnRealmAnyDictionary,
+                dictionarySetter = DictionaryAllTypes::setColumnRealmAnyDictionary,
+                initializedDictionary = RealmDictionary<RealmAny>().init(getRealmAnyKeyValuePairs(realmAnyType)),
+                alternativeDictionary = RealmDictionary<RealmAny>().init(getRealmAnyKeyValuePairs(realmAnyType, true)),
                 notPresentValue = VALUE_MIXED_NOT_PRESENT,
-                populatedGetter = PopulatedDictionaryClass::populatedMixedDictionary,
-                primaryKeyDictionaryProperty = PrimaryKeyDictionaryContainer::myMixedDictionary,
-                typeAsserter = MixedAsserter()
+                populatedGetter = PopulatedDictionaryClass::populatedRealmAnyDictionary,
+                primaryKeyDictionaryProperty = PrimaryKeyDictionaryContainer::myRealmAnyDictionary,
+                typeAsserter = RealmAnyAsserter()
         )
     }.plus(
             ManagedDictionaryTester(
-                    testerClass = "Mixed-NonLatin",
-                    mixedType = MixedType.STRING,
-                    dictionaryGetter = DictionaryAllTypes::getColumnMixedDictionary,
-                    dictionarySetter = DictionaryAllTypes::setColumnMixedDictionary,
-                    initializedDictionary = RealmDictionary<Mixed>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_NULL_NON_LATIN to null)),
-                    alternativeDictionary = RealmDictionary<Mixed>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_NULL_NON_LATIN to null)),
+                    testerClass = "RealmAny-NonLatin",
+                    realmAnyType = RealmAnyType.STRING,
+                    dictionaryGetter = DictionaryAllTypes::getColumnRealmAnyDictionary,
+                    dictionarySetter = DictionaryAllTypes::setColumnRealmAnyDictionary,
+                    initializedDictionary = RealmDictionary<RealmAny>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_NULL_NON_LATIN to null)),
+                    alternativeDictionary = RealmDictionary<RealmAny>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_NULL_NON_LATIN to null)),
                     notPresentValue = VALUE_MIXED_NOT_PRESENT,
-                    populatedGetter = PopulatedDictionaryClass::populatedMixedDictionary,
-                    primaryKeyDictionaryProperty = PrimaryKeyDictionaryContainer::myMixedDictionary,
-                    typeAsserter = MixedAsserter()
+                    populatedGetter = PopulatedDictionaryClass::populatedRealmAnyDictionary,
+                    primaryKeyDictionaryProperty = PrimaryKeyDictionaryContainer::myRealmAnyDictionary,
+                    typeAsserter = RealmAnyAsserter()
             )
     )
 
-    return primitiveTesters.plus(mixedTesters)
+    return primitiveTesters.plus(realmAnyTesters)
 }
 
 /**
@@ -908,7 +908,7 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
  */
 open class TypeAsserter<T> {
 
-    // RealmModel and Mixed require different testing here
+    // RealmModel and RealmAny require different testing here
     open fun assertContainsValueNotThere(
             realm: Realm,
             dictionary: RealmDictionary<T>,
@@ -918,19 +918,19 @@ open class TypeAsserter<T> {
         assertFalse(dictionary.containsValue(value))
     }
 
-    // RealmModel and Mixed require different testing here
+    // RealmModel and RealmAny require different testing here
     open fun assertRemoveRealmModelFromRealm(
             dictionary: RealmDictionary<T>,
             index: Int,
             key: String,
             value: T?
-    ) = Unit    // Do nothing if we aren't testing a RealmModel or a Mixed wrapping a RealmModel
+    ) = Unit    // Do nothing if we aren't testing a RealmModel or a RealmAny wrapping a RealmModel
 
     // RealmModel requires different testing here
     open fun assertValues(dictionary: RealmDictionary<T>, value: T?) =
             assertTrue(dictionary.containsValue(value))
 
-    // RealmModel and Mixed require different testing here
+    // RealmModel and RealmAny require different testing here
     open fun assertContainsValueHelper(
             realm: Realm,
             key: String,
@@ -941,7 +941,7 @@ open class TypeAsserter<T> {
         assertTrue(managedDictionary.containsValue(unmanagedDictionary[key]))
     }
 
-    // ByteArray, RealmModel and Mixed require different testing here
+    // ByteArray, RealmModel and RealmAny require different testing here
     open fun assertEqualsHelper(realm: Realm, value: T?, valueFromRealm: T?) =
             assertEquals(value, valueFromRealm)
 
@@ -993,7 +993,7 @@ open class TypeAsserter<T> {
                 }
             }
             ChangeListenerOperation.UPDATE -> {
-                if (testerClass == "String-NonLatin" || testerClass == "Mixed-NonLatin") {
+                if (testerClass == "String-NonLatin" || testerClass == "RealmAny-NonLatin") {
                     assertEqualsHelper(
                             looperThreadRealm,
                             initializedDictionary[KEY_BYE_NON_LATIN],
@@ -1185,20 +1185,20 @@ class RealmModelAsserter : TypeAsserter<DogPrimaryKey>() {
     }
 }
 
-class MixedAsserter : TypeAsserter<Mixed>() {
+class RealmAnyAsserter : TypeAsserter<RealmAny>() {
 
     override fun assertContainsValueNotThere(
             realm: Realm,
-            dictionary: RealmDictionary<Mixed>,
+            dictionary: RealmDictionary<RealmAny>,
             index: Int,
-            value: Mixed?
+            value: RealmAny?
     ) {
         if (value?.valueClass == DogPrimaryKey::class.java) {
             // Similar to RealmModelAsserter
             realm.executeTransaction { transactionRealm ->
                 val dummyRealmModel = transactionRealm.copyToRealm(DogPrimaryKey(666 + index.toLong(), "DUMMY"))
-                val mixedWithManagedModel = Mixed.valueOf(dummyRealmModel)
-                assertFalse(dictionary.containsValue(mixedWithManagedModel as Mixed))
+                val realmAnyWithManagedModel = RealmAny.valueOf(dummyRealmModel)
+                assertFalse(dictionary.containsValue(realmAnyWithManagedModel as RealmAny))
             }
         } else {
             assertFalse(dictionary.containsValue(value))
@@ -1206,26 +1206,26 @@ class MixedAsserter : TypeAsserter<Mixed>() {
     }
 
     override fun assertRemoveRealmModelFromRealm(
-            dictionary: RealmDictionary<Mixed>,
+            dictionary: RealmDictionary<RealmAny>,
             index: Int,
             key: String,
-            value: Mixed?
+            value: RealmAny?
     ) {
         // No need to check anything for other types than RealmModel
-        if (value is Mixed && value.valueClass == DogPrimaryKey::class.java) {
+        if (value is RealmAny && value.valueClass == DogPrimaryKey::class.java) {
             // Removal of actual RealmModel to check whether it vanished from the dictionary
             // Insert again - "value" is unmanaged
             dictionary[key] = value
 
             // Delete from realm and check we get null if we get it from the dictionary
-            val mixedValue = dictionary[key] as Mixed
-            val modelFromRealm = mixedValue.asRealmModel(DogPrimaryKey::class.java)
+            val realmAnyValue = dictionary[key] as RealmAny
+            val modelFromRealm = realmAnyValue.asRealmModel(DogPrimaryKey::class.java)
             assertTrue(modelFromRealm.isValid)
 
             modelFromRealm.deleteFromRealm()
             assertFalse(modelFromRealm.isValid)
 
-            assertTrue((dictionary[key] as Mixed).isNull)
+            assertTrue((dictionary[key] as RealmAny).isNull)
 
             // Check size again (despite object removal, size should remain unchanged)
             assertEquals(index + 1, dictionary.size)
@@ -1239,40 +1239,40 @@ class MixedAsserter : TypeAsserter<Mixed>() {
     override fun assertContainsValueHelper(
             realm: Realm,
             key: String,
-            value: Mixed?,
-            unmanagedDictionary: RealmDictionary<Mixed>,
-            managedDictionary: RealmDictionary<Mixed>
+            value: RealmAny?,
+            unmanagedDictionary: RealmDictionary<RealmAny>,
+            managedDictionary: RealmDictionary<RealmAny>
     ) {
-        // We can never get null Mixed values from a managed dictionary
+        // We can never get null RealmAny values from a managed dictionary
         assertNotNull(value)
 
         if (value.isNull) {
-            // If null, check we have "Mixed.nullValue()"
-            assertTrue(managedDictionary.containsValue(Mixed.nullValue()))
+            // If null, check we have "RealmAny.nullValue()"
+            assertTrue(managedDictionary.containsValue(RealmAny.nullValue()))
         } else if (value.valueClass == DogPrimaryKey::class.java) {
-            // If RealmModel, check dictionary contains a Mixed containing the managed model
+            // If RealmModel, check dictionary contains a RealmAny containing the managed model
             val managedRealmDog = realm.where<DogPrimaryKey>()
                     .equalTo("name", value.asRealmModel(DogPrimaryKey::class.java).name)
                     .findFirst()
-            val mixedWithManagedDog = Mixed.valueOf(managedRealmDog)
-            assertTrue(managedDictionary.containsValue(mixedWithManagedDog))
+            val realmAnyWithManagedDog = RealmAny.valueOf(managedRealmDog)
+            assertTrue(managedDictionary.containsValue(realmAnyWithManagedDog))
         } else {
             assertTrue(managedDictionary.containsValue(managedDictionary[key]))
         }
     }
 
-    override fun assertEqualsHelper(realm: Realm, value: Mixed?, valueFromRealm: Mixed?) {
-        // If null, check we have "Mixed.nullValue()"
+    override fun assertEqualsHelper(realm: Realm, value: RealmAny?, valueFromRealm: RealmAny?) {
+        // If null, check we have "RealmAny.nullValue()"
         if (null == value) {
             assertNotNull(valueFromRealm)
             assertTrue(valueFromRealm.isNull)
         } else if (value.valueClass == DogPrimaryKey::class.java) {
-            // If RealmModel, check provided the Mixed equals a Mixed containing the managed model
+            // If RealmModel, check provided the RealmAny equals a RealmAny containing the managed model
             val managedRealmModel = realm.where<DogPrimaryKey>()
-                    .equalTo("name", (value as Mixed).asRealmModel(DogPrimaryKey::class.java).name)
+                    .equalTo("name", (value as RealmAny).asRealmModel(DogPrimaryKey::class.java).name)
                     .findFirst()
-            val mixedWithManagedModel = Mixed.valueOf(managedRealmModel)
-            assertEquals(valueFromRealm, mixedWithManagedModel)
+            val realmAnyWithManagedModel = RealmAny.valueOf(managedRealmModel)
+            assertEquals(valueFromRealm, realmAnyWithManagedModel)
         } else {
             assertEquals(value, valueFromRealm)
         }

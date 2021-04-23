@@ -120,14 +120,14 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
-    public OsMap getMixedMap(long columnIndex) {
+    public OsMap getRealmAnyMap(long columnIndex) {
         RealmFieldType fieldType = getTable().getColumnType(columnIndex);
         if (fieldType != RealmFieldType.STRING_TO_MIXED_MAP) {
             throw new IllegalArgumentException(
                     String.format(Locale.US, "Field '%s' is not a 'RealmDictionary'.",
                             getTable().getColumnName(columnIndex)));
         }
-        return super.getMixedMap(columnIndex);
+        return super.getRealmAnyMap(columnIndex);
     }
 
     @Override
@@ -138,7 +138,7 @@ public class CheckedRow extends UncheckedRow {
                     String.format(Locale.US, "Field '%s' is not a 'RealmDictionary'.",
                             getTable().getColumnName(columnIndex)));
         }
-        return super.getMixedMap(columnIndex);
+        return super.getRealmAnyMap(columnIndex);
     }
 
     @Override
@@ -153,7 +153,7 @@ public class CheckedRow extends UncheckedRow {
     }
 
     @Override
-    public OsSet getMixedSet(long columnIndex) {
+    public OsSet getRealmAnySet(long columnIndex) {
         return super.getModelSet(columnIndex);
     }
 

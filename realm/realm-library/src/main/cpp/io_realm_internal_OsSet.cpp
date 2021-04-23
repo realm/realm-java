@@ -341,7 +341,7 @@ Java_io_realm_internal_OsSet_nativeContainsRow(JNIEnv* env, jclass, jlong wrappe
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsSet_nativeContainsRealmAny(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                  jlong mixed_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
@@ -625,7 +625,7 @@ Java_io_realm_internal_OsSet_nativeAddRow(JNIEnv* env, jclass, jlong wrapper_ptr
 
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeAddMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsSet_nativeAddRealmAny(JNIEnv* env, jclass, jlong wrapper_ptr,
                                             jlong mixed_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
@@ -908,7 +908,7 @@ Java_io_realm_internal_OsSet_nativeRemoveRow(JNIEnv* env, jclass, jlong wrapper_
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveRealmAny(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                jlong mixed_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
@@ -943,7 +943,7 @@ Java_io_realm_internal_OsSet_nativeGetRow(JNIEnv* env, jclass, jlong wrapper_ptr
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsSet_nativeGetMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsSet_nativeGetRealmAny(JNIEnv* env, jclass, jlong wrapper_ptr,
                                             jint j_index) {
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
@@ -1037,7 +1037,7 @@ Java_io_realm_internal_OsSet_nativeFreeze(JNIEnv* env, jclass, jlong wrapper_ptr
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeContainsAllMixedCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsSet_nativeContainsAllRealmAnyCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                               jlong mixed_collection_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
@@ -1062,7 +1062,7 @@ Java_io_realm_internal_OsSet_nativeContainsAllMixedCollection(JNIEnv* env, jclas
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeAddAllMixedCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsSet_nativeAddAllRealmAnyCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                          jlong mixed_collection_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
@@ -1088,7 +1088,7 @@ Java_io_realm_internal_OsSet_nativeAddAllMixedCollection(JNIEnv* env, jclass, jl
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeRemoveAllMixedCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsSet_nativeRemoveAllRealmAnyCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                             jlong mixed_collection_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);
@@ -1114,7 +1114,7 @@ Java_io_realm_internal_OsSet_nativeRemoveAllMixedCollection(JNIEnv* env, jclass,
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsSet_nativeRetainAllMixedCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsSet_nativeRetainAllRealmAnyCollection(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                             jlong mixed_collection_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<SetWrapper*>(wrapper_ptr);

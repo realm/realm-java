@@ -107,8 +107,8 @@ class SetMiscTests {
             RealmFieldType.DECIMAL128_SET
         ),
         Triple(
-            SetContainerMigrationClass::myMixedSet,
-            Mixed::class.java,
+            SetContainerMigrationClass::myRealmAnySet,
+            RealmAny::class.java,
             RealmFieldType.MIXED_SET
         ),
         Triple(

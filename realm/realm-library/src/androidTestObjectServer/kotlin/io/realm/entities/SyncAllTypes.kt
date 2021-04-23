@@ -78,7 +78,7 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUID: UUID = UUID.randomUUID()
 
-    var columnMixed: Mixed? = Mixed.nullValue()
+    var columnRealmAny: RealmAny? = RealmAny.nullValue()
 
     val columnRealmInteger: MutableRealmInteger = MutableRealmInteger.ofNull()
 
@@ -108,7 +108,7 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUIDList: RealmList<UUID> = RealmList()
 
-    var columnMixedList: RealmList<Mixed> = RealmList()
+    var columnRealmAnyList: RealmList<RealmAny> = RealmList()
 
     var columnRealmDictionary: RealmDictionary<SyncDog> = RealmDictionary()
     @Required // Cloud only supports non-null values for this type
@@ -137,7 +137,7 @@ open class SyncAllTypes : RealmObject() {
     var columnUUIDDictionary: RealmDictionary<UUID> = RealmDictionary()
     @Required // Cloud only supports non-null values for this type
     var columnDecimal128Dictionary: RealmDictionary<Decimal128> = RealmDictionary()
-    var columnMixedDictionary: RealmDictionary<Mixed> = RealmDictionary()
+    var columnRealmAnyDictionary: RealmDictionary<RealmAny> = RealmDictionary()
 
     var columnRealmSet: RealmSet<SyncDog> = RealmSet()
     @Required // Cloud only supports non-null values for this type
@@ -166,7 +166,7 @@ open class SyncAllTypes : RealmObject() {
     var columnUUIDSet: RealmSet<UUID> = RealmSet()
     @Required // Cloud only supports non-null values for this type
     var columnDecimal128Set: RealmSet<Decimal128> = RealmSet()
-    var columnMixedSet: RealmSet<Mixed> = RealmSet()
+    var columnRealmAnySet: RealmSet<RealmAny> = RealmSet()
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())
