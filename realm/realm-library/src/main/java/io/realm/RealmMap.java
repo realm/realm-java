@@ -190,7 +190,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
     /**
      * Adds a change listener to this {@link RealmMap}.
      * <p>
-     * Registering a change listener will not prevent the underlying RealmList from being garbage
+     * Registering a change listener will not prevent the underlying RealmMap from being garbage
      * collected. If the RealmMap is garbage collected, the change listener will stop being
      * triggered. To avoid this, keep a strong reference for as long as appropriate e.g. in a class
      * variable.
@@ -228,7 +228,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
     /**
      * Adds a change listener to this {@link RealmMap}.
      * <p>
-     * Registering a change listener will not prevent the underlying RealmList from being garbage
+     * Registering a change listener will not prevent the underlying RealmMap from being garbage
      * collected. If the RealmMap is garbage collected, the change listener will stop being
      * triggered. To avoid this, keep a strong reference for as long as appropriate e.g. in a class
      * variable.
@@ -310,15 +310,13 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         return mapStrategy.getOsMap();
     }
 
-    // TODO: should we override any default methods from parent map class?
-
     /**
      * Strategy responsible for abstracting the managed/unmanaged logic for maps.
      *
      * @param <K> the type of the keys stored in this map
      * @param <V> the type of the values stored in this map
      */
-    protected abstract static class MapStrategy<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
+    abstract static class MapStrategy<K, V> implements Map<K, V>, ManageableObject, Freezable<RealmMap<K, V>> {
 
         // ------------------------------------------
         // ManageableObject API
@@ -331,19 +329,19 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
          * @param value the value to insert.
          * @return the inserted value.
          */
-        protected abstract V putInternal(K key, @Nullable V value);
+        abstract V putInternal(K key, @Nullable V value);
 
-        protected abstract void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener);
+        abstract void addChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener);
 
-        protected abstract void addChangeListener(RealmMap<K, V> realmMap, RealmChangeListener<RealmMap<K, V>> listener);
+        abstract void addChangeListener(RealmMap<K, V> realmMap, RealmChangeListener<RealmMap<K, V>> listener);
 
-        protected abstract void removeChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener);
+        abstract void removeChangeListener(RealmMap<K, V> realmMap, MapChangeListener<K, V> listener);
 
-        protected abstract void removeChangeListener(RealmMap<K, V> realmMap, RealmChangeListener<RealmMap<K, V>> listener);
+        abstract void removeChangeListener(RealmMap<K, V> realmMap, RealmChangeListener<RealmMap<K, V>> listener);
 
-        protected abstract void removeAllChangeListeners();
+        abstract void removeAllChangeListeners();
 
-        protected abstract boolean hasListeners();
+        abstract boolean hasListeners();
 
         abstract OsMap getOsMap();
 
@@ -357,7 +355,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
             return putInternal(key, value);
         }
 
-        protected void checkValidKey(K key) {
+        protected void checkValidKey(@Nullable K key) {
             if (key == null) {
                 // As per Map interface
                 throw new NullPointerException("Null keys are not allowed.");
@@ -378,7 +376,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
      * @param <K> the key type
      * @param <V> the value type
      */
-    protected static class ManagedMapStrategy<K, V> extends MapStrategy<K, V> {
+    static class ManagedMapStrategy<K, V> extends MapStrategy<K, V> {
 
         private final ManagedMapManager<K, V> managedMapManager;
 
@@ -627,7 +625,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         // ------------------------------------------
 
         @Override
-        protected V putInternal(K key, V value) {
+        protected V putInternal(K key, @Nullable V value) {
             return unmanagedMap.put(key, value);
         }
 
