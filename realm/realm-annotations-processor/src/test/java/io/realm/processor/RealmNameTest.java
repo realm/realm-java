@@ -46,14 +46,14 @@ public class RealmNameTest {
         assertAbout(javaSources())
                 .that(Arrays.asList(
                     JavaFileObjects.forResource("some/test/NamePolicyModule.java"),
-                    JavaFileObjects.forResource("some/test/NamePolicyRealmAnyClassSettings.java"),
+                    JavaFileObjects.forResource("some/test/NamePolicyMixedClassSettings.java"),
                     JavaFileObjects.forResource("some/test/NamePolicyFieldNameOnly.java"),
                     JavaFileObjects.forResource("some/test/NamePolicyClassOnly.java")
                 ))
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError()
                 .and()
-                .generatesSources(JavaFileObjects.forResource("io/realm/some_test_NamePolicyRealmAnyClassSettingsRealmProxy.java"));
+                .generatesSources(JavaFileObjects.forResource("io/realm/some_test_NamePolicyMixedClassSettingsRealmProxy.java"));
     }
 
     // Check the effect of module default on a class with no settings itself
@@ -102,7 +102,7 @@ public class RealmNameTest {
     public void compileModulesWithConflictingPoliciesAndRealmAnyClassDefinitionsFails() {
         assertAbout(javaSources())
                 .that(Arrays.asList(
-                        JavaFileObjects.forResource("some/test/NamePolicyConflictingModuleDefinitionsForRealmAnyDefinitions.java"),
+                        JavaFileObjects.forResource("some/test/NamePolicyConflictingModuleDefinitionsForMixedDefinitions.java"),
                         JavaFileObjects.forResource("some/test/Simple.java")
                 ))
                 .processedWith(new RealmProcessor())

@@ -196,7 +196,7 @@ public class RealmProcessorTest {
     public void compileAppModuleRealmAnyParametersFail() {
         assertAbout(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
-                        "some/test/InvalidAllTypesModuleRealmAnyParameters.java")))
+                        "some/test/InvalidAllTypesModuleMixedParameters.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }
@@ -213,7 +213,7 @@ public class RealmProcessorTest {
     @Test
     public void compileLibraryModuleRealmAnyParametersFail() {
         assertAbout(javaSources())
-                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleRealmAnyParameters.java")))
+                .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleMixedParameters.java")))
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

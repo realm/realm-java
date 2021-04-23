@@ -25,6 +25,6 @@ import io.realm.annotations.RealmModule;
 
 // Setting both allClasses and classes is not allowed at the same time
 @RealmModule(library = true, allClasses = true, classes = { AllTypes.class })
-public class InvalidLibraryModuleRealmAnyParameters {
+public class InvalidLibraryModuleMixedParameters {
 
 }

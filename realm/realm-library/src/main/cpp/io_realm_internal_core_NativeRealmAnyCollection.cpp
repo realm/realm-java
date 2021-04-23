@@ -275,7 +275,7 @@ Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateRealmAnyCollect
         JLongArrayAccessor values(env, j_mixed_ptrs);
         JBooleanArrayAccessor not_null(env, j_not_null);
         auto collection = new std::vector<JavaValue>();
-        for (int i = 0; i < values.size(); i++) {d
+        for (int i = 0; i < values.size(); i++) {
             collection->push_back(not_null[i] ?
                                   JavaValue(reinterpret_cast<JavaValue *>(values[i])) : from_mixed(Mixed()));
         }
