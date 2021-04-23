@@ -811,7 +811,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         // Private stuff
         // ------------------------------------------
 
-        private <T> void checkValidArray(@Nullable T[] array) {
+        private <T> void checkValidArray(T[] array) {
             if (array == null) {
                 // According to Java Set documentation
                 throw new NullPointerException("Cannot pass a null array when calling 'toArray'.");
@@ -827,7 +827,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
             }
         }
 
-        private void checkValidCollection(@Nullable Collection<?> collection) {
+        private void checkValidCollection(Collection<?> collection) {
             if (collection == null) {
                 throw new NullPointerException("Collection must not be null.");
             }

@@ -1170,14 +1170,14 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     }
 
     @Override
-    boolean add(@Nullable T value) {
+    boolean add(T value) {
         // Realm model sets cannot contain null values
         RealmObjectProxy proxy = (RealmObjectProxy) getManagedObject(value);
         Row row$realm = proxy.realmGet$proxyState().getRow$realm();
         return osSet.addRow(row$realm.getObjectKey());
     }
 
-    private T getManagedObject(@Nullable T value) {
+    private T getManagedObject(T value) {
         if (value == null) {
             throw new NullPointerException("This set does not permit null values.");
         }
@@ -1194,7 +1194,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
      *
      * @param value model object
      */
-    private void checkValidObject(@Nullable RealmModel value) {
+    private void checkValidObject(RealmModel value) {
         // Realm model sets cannot contain null values
         if (value == null) {
             throw new NullPointerException("This set does not permit null values.");
@@ -1208,14 +1208,14 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
     }
 
     @Override
-    boolean containsInternal(@Nullable Object value) {
+    boolean containsInternal(Object value) {
         checkValidObject((RealmModel) value);
         Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
         return osSet.containsRow(row$realm.getObjectKey());
     }
 
     @Override
-    boolean removeInternal(@Nullable Object value) {
+    boolean removeInternal(Object value) {
         checkValidObject((RealmModel) value);
         Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
         return osSet.removeRow(row$realm.getObjectKey());

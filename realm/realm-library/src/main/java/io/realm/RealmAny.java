@@ -25,6 +25,8 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 
 /**
  * {@link io.realm.RealmAny} is used to represent a polymorphic Realm value.
@@ -522,6 +524,7 @@ public class RealmAny {
      * @return true if the target has the same value
      */
     @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     public final boolean equals(@Nullable Object other) {
         if (other == this) { return true; }
         if (!(other instanceof RealmAny)) { return false; }
@@ -529,7 +532,7 @@ public class RealmAny {
         return this.operator.equals(otherRealmAny.operator);
     }
 
-    public final boolean coercedEquals(RealmAny other) {
+    public final boolean coercedEquals(@Nullable RealmAny other) {
         if (other == null) { return false; }
         return this.operator.coercedEquals(other.operator);
     }
