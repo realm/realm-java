@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmDictionary;
 import io.realm.RealmList;
@@ -54,7 +54,7 @@ public class AllTypes extends RealmObject {
     @Required
     private Date columnDate;
 
-    private Mixed columnMixed;
+    private RealmAny columnRealmAny;
 
     @Required
     private byte[] columnBinary;
@@ -83,7 +83,7 @@ public class AllTypes extends RealmObject {
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<ObjectId> columnObjectIdList;
     private RealmList<UUID> columnUUIDList;
-    private RealmList<Mixed> columnMixedList;
+    private RealmList<RealmAny> columnRealmAnyList;
 
     private RealmDictionary<AllTypes> columnRealmDictionary;
 
@@ -257,12 +257,12 @@ public class AllTypes extends RealmObject {
         return columnMutableRealmInteger;
     }
 
-    public Mixed getColumnMixed() {
-        return realmGet$columnMixed();
+    public RealmAny getColumnRealmAny() {
+        return realmGet$columnRealmAny();
     }
 
-    public Mixed realmGet$columnMixed() {
-        return columnMixed;
+    public RealmAny realmGet$columnRealmAny() {
+        return columnRealmAny;
     }
 
     public RealmDictionary<AllTypes> getColumnRealmDictionary() {

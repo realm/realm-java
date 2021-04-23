@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_core_NativeMixed.h"
+#include "io_realm_internal_core_NativeRealmAny.h"
 
 #include "java_accessor.hpp"
 #include "java_object_accessor.hpp"
@@ -253,7 +253,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedLink(JNIEnv *env, jclas
 }
 
 JNIEXPORT jint JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeGetMixedType(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeMixed_nativeGetRealmAnyType(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         auto mixed = java_value.to_mixed();

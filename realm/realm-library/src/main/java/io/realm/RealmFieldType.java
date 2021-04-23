@@ -182,7 +182,7 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_UUID:
                 return (obj instanceof java.util.UUID);
             case CORE_TYPE_VALUE_MIXED:
-                return (obj instanceof Mixed);
+                return (obj instanceof RealmAny);
             case CORE_TYPE_VALUE_OBJECT:
             case CORE_TYPE_VALUE_LIST:
             case CORE_TYPE_VALUE_LINKING_OBJECTS:

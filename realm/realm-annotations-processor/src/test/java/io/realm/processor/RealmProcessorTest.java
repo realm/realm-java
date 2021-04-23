@@ -360,7 +360,7 @@ public class RealmProcessorTest {
     @Test
     public void compileInvalidRequiredTypes() throws IOException {
         final String[] invalidRequiredAnnotationFieldTypes = {"byte", "short", "int", "long", "float", "double",
-                "boolean", "RealmList<Simple>", "Simple", "Mixed", "RealmList<Mixed>"};
+                "boolean", "RealmList<Simple>", "Simple", "RealmAny", "RealmList<RealmAny>"};
 
         for (String fieldType : invalidRequiredAnnotationFieldTypes) {
             RealmSyntheticTestClass javaFileObject = new RealmSyntheticTestClass.Builder()

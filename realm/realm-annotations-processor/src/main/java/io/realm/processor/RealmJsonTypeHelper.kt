@@ -49,7 +49,7 @@ object RealmJsonTypeHelper {
         m[QualifiedClassName("org.bson.types.Decimal128")] = Decimal128TypeConverter()
         m[QualifiedClassName("org.bson.types.ObjectId")] = ObjectIdTypeConverter()
         m[QualifiedClassName("java.util.UUID")] = UUIDTypeConverter()
-        m[QualifiedClassName("io.realm.Mixed")] = MixedTypeConverter()
+        m[QualifiedClassName("io.realm.RealmAny")] = RealmAnyTypeConverter()
         m[QualifiedClassName("io.realm.MutableRealmInteger")] = MutableRealmIntegerTypeConverter()
         JAVA_TO_JSON_TYPES = Collections.unmodifiableMap(m)
     }
@@ -472,7 +472,7 @@ object RealmJsonTypeHelper {
         }
     }
 
-    private class MixedTypeConverter() : JsonToRealmFieldTypeConverter {
+    private class RealmAnyTypeConverter() : JsonToRealmFieldTypeConverter {
         @Throws(IOException::class)
         override fun emitTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter) {
             writer.apply {
@@ -482,25 +482,25 @@ object RealmJsonTypeHelper {
                     nextControlFlow("else")
                         emitStatement("Object value = json.get(\"${fieldName}\")")
 
-                        emitStatement("Mixed mixed")
+                        emitStatement("RealmAny realmAny")
 
                         beginControlFlow("if (value instanceof String)")
-                            emitStatement("mixed = Mixed.valueOf((String) value)")
+                            emitStatement("realmAny = RealmAny.valueOf((String) value)")
                         nextControlFlow("else if (value instanceof Integer)")
-                            emitStatement("mixed = Mixed.valueOf((Integer) value)")
+                            emitStatement("realmAny = RealmAny.valueOf((Integer) value)")
                         nextControlFlow("else if (value instanceof Long)")
-                            emitStatement("mixed = Mixed.valueOf((Long) value)")
+                            emitStatement("realmAny = RealmAny.valueOf((Long) value)")
                         nextControlFlow("else if (value instanceof Double)")
-                            emitStatement("mixed = Mixed.valueOf((Double) value)")
+                            emitStatement("realmAny = RealmAny.valueOf((Double) value)")
                         nextControlFlow("else if (value instanceof Boolean)")
-                            emitStatement("mixed = Mixed.valueOf((Boolean) value)")
-                        nextControlFlow("else if (value instanceof Mixed)")
-                            emitStatement("mixed = (io.realm.Mixed) value")
-                            emitStatement("mixed = ProxyUtils.copyOrUpdate(mixed, realm, update, new HashMap<>(), new HashSet<>())")
+                            emitStatement("realmAny = RealmAny.valueOf((Boolean) value)")
+                        nextControlFlow("else if (value instanceof RealmAny)")
+                            emitStatement("realmAny = (io.realm.RealmAny) value")
+                            emitStatement("realmAny = ProxyUtils.copyOrUpdate(realmAny, realm, update, new HashMap<>(), new HashSet<>())")
                         nextControlFlow("else")
                             emitStatement("throw new IllegalArgumentException(String.format(\"Unsupported JSON type: %%s\", value.getClass().getSimpleName()))")
                         endControlFlow()
-                        emitStatement("${varName}.${accessor}(mixed)")
+                        emitStatement("${varName}.${accessor}(realmAny)")
                     endControlFlow()
                 endControlFlow()
             }
@@ -511,25 +511,25 @@ object RealmJsonTypeHelper {
             writer.apply {
                 beginControlFlow("if (reader.peek() == JsonToken.NULL)")
                     emitStatement("reader.skipValue()")
-                    emitStatement("${varName}.${accessor}(Mixed.nullValue())")
+                    emitStatement("${varName}.${accessor}(RealmAny.nullValue())")
                 nextControlFlow("else if (reader.peek() == JsonToken.STRING)")
-                    emitStatement("${varName}.${accessor}(Mixed.valueOf(reader.nextString()))")
+                    emitStatement("${varName}.${accessor}(RealmAny.valueOf(reader.nextString()))")
                 nextControlFlow("else if (reader.peek() == JsonToken.NUMBER)")
                     emitStatement("String value = reader.nextString()")
                     beginControlFlow("if (value.contains(\".\"))")
-                        emitStatement("${varName}.${accessor}(Mixed.valueOf(Double.parseDouble(value)))")
+                        emitStatement("${varName}.${accessor}(RealmAny.valueOf(Double.parseDouble(value)))")
                     nextControlFlow("else")
-                        emitStatement("${varName}.${accessor}(Mixed.valueOf(Long.parseLong(value)))")
+                        emitStatement("${varName}.${accessor}(RealmAny.valueOf(Long.parseLong(value)))")
                     endControlFlow()
                 nextControlFlow("else if (reader.peek() == JsonToken.BOOLEAN)")
-                    emitStatement("${varName}.${accessor}(Mixed.valueOf(reader.nextBoolean()))")
+                    emitStatement("${varName}.${accessor}(RealmAny.valueOf(reader.nextBoolean()))")
                 endControlFlow()
             }
         }
 
         @Throws(IOException::class)
         override fun emitGetObjectWithPrimaryKeyValue(realmObjectClass: QualifiedClassName, realmObjectProxyClass: QualifiedClassName, fieldName: String, writer: JavaWriter) {
-            throw IllegalArgumentException("'Mixed' is not allowed as a primary key value.")
+            throw IllegalArgumentException("'RealmAny' is not allowed as a primary key value.")
         }
     }
 

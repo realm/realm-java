@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 
 
 /**
- * {@link io.realm.Mixed} is used to represent a polymorphic Realm value.
+ * {@link io.realm.RealmAny} is used to represent a polymorphic Realm value.
  * <p>
  * At any particular moment an instance of this class stores a
  * definite value of a definite type. If, for instance, that is an
@@ -37,15 +37,15 @@ import javax.annotation.Nullable;
  * stored. Calling asDouble() on an instance that does not store an
  * double would raise a {@link java.lang.ClassCastException}.
  * <p>
- * Mixed behaves like a value type on all the supported types except on
+ * RealmAny behaves like a value type on all the supported types except on
  * Realm objects. It means that Realm will not persist any change to the
- * Mixed value except when the type is Realm object. Because Mixed
- * instances are immutable, a new instance is needed to update a Mixed
+ * RealmAny value except when the type is Realm object. Because RealmAny
+ * instances are immutable, a new instance is needed to update a RealmAny
  * attribute.
  * <pre>
  * <code>
- *      anObject.mixedAttribute = Mixed.valueOf(5);
- *      anObject.mixedAttribute = Mixed.valueOf(10.f);
+ *      anObject.realmAnyAttribute = RealmAny.valueOf(5);
+ *      anObject.realmAnyAttribute = RealmAny.valueOf(10.f);
  * </code>
  * </pre>
  * It is crucial to understand that the act of extracting a value of
@@ -53,46 +53,46 @@ import javax.annotation.Nullable;
  * type. Calling a getter method for any particular type, that is not
  * the same type as the stored value, would raise an exception.
  * <p>
- * Our recommendation to handle the Mixed polymorphism is to write a
- * switch case around the Mixed type and its inner value class.
+ * Our recommendation to handle the RealmAny polymorphism is to write a
+ * switch case around the RealmAny type and its inner value class.
  * <pre>
  * <code>
- *      Mixed mixed = aRealmObject.mixedAttribute;
+ *      RealmAny realmAny = aRealmObject.realmAnyAttribute;
  *
- *      switch (mixed.getType()) {
+ *      switch (realmAny.getType()) {
  *          case OBJECT:
- *              if (mixed.getValueClass().equals(DogRealmModel.class)) {
- *                  DogRealmModel value = mixed.asRealmModel(DogRealmModel.class);
+ *              if (realmAny.getValueClass().equals(DogRealmModel.class)) {
+ *                  DogRealmModel value = realmAny.asRealmModel(DogRealmModel.class);
  *              }
  *          case INTEGER:
- *              performAction(mixed.asInteger());
+ *              performAction(realmAny.asInteger());
  *              break;
  *          case BOOLEAN:
- *              performAction(mixed.asBoolean());
+ *              performAction(realmAny.asBoolean());
  *              break;
  *          case STRING:
- *              performAction(mixed.asString());
+ *              performAction(realmAny.asString());
  *              break;
  *          case BINARY:
- *              performAction(mixed.asBinary());
+ *              performAction(realmAny.asBinary());
  *              break;
  *          case DATE:
- *              performAction(mixed.asDate());
+ *              performAction(realmAny.asDate());
  *              break;
  *          case FLOAT:
- *              performAction(mixed.asFloat());
+ *              performAction(realmAny.asFloat());
  *              break;
  *          case DOUBLE:
- *              performAction(mixed.asDouble());
+ *              performAction(realmAny.asDouble());
  *              break;
  *          case DECIMAL128:
- *              performAction(mixed.asDecimal128());
+ *              performAction(realmAny.asDecimal128());
  *              break;
  *          case OBJECT_ID:
- *              performAction(mixed.asObjectId());
+ *              performAction(realmAny.asObjectId());
  *              break;
  *          case UUID:
- *              performAction(mixed.asUUID());
+ *              performAction(realmAny.asUUID());
  *              break;
  *          case NULL:
  *              performNullAction();
@@ -102,16 +102,16 @@ import javax.annotation.Nullable;
  * </pre>
  * <p>
  * getValueClass() returns the Java class that represents the inner
- * value wrapped by the Mixed instance. If the resulting class is
+ * value wrapped by the RealmAny instance. If the resulting class is
  * a realization of {@link io.realm.RealmModel} asRealmModel() can be
- * called to cast the Mixed value to a Realm object reference.
+ * called to cast the RealmAny value to a Realm object reference.
  */
 
-public class Mixed {
+public class RealmAny {
     @Nonnull
-    private final MixedOperator operator;
+    private final RealmAnyOperator operator;
 
-    Mixed(@Nonnull MixedOperator operator) {
+    RealmAny(@Nonnull RealmAnyOperator operator) {
         this.operator = operator;
     }
 
@@ -120,18 +120,18 @@ public class Mixed {
     }
 
     /**
-     * Gets the inner type of this Mixed object.
+     * Gets the inner type of this RealmAny object.
      *
-     * @return the inner MixedType
+     * @return the inner RealmAnyType
      */
-    public MixedType getType() {
+    public RealmAnyType getType() {
         return this.operator.getType();
     }
 
     /**
-     * Returns the Java class that represents the inner value wrapped by this Mixed value.
+     * Returns the Java class that represents the inner value wrapped by this RealmAny value.
      *
-     * @return the class that represents the inner value wrapped by this Mixed value.
+     * @return the class that represents the inner value wrapped by this RealmAny value.
      */
     @Nullable
     public Class<?> getValueClass() {
@@ -139,166 +139,166 @@ public class Mixed {
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#INTEGER}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed containing a Byte value.
+     * @return a new RealmAny containing a Byte value.
      */
-    public static Mixed valueOf(@Nullable Byte value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
+    public static RealmAny valueOf(@Nullable Byte value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new IntegerRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#INTEGER}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a Short.
+     * @return a new RealmAny of a Short.
      */
-    public static Mixed valueOf(@Nullable Short value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
+    public static RealmAny valueOf(@Nullable Short value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new IntegerRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#INTEGER}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a Integer.
+     * @return a new RealmAny of a Integer.
      */
-    public static Mixed valueOf(@Nullable Integer value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
+    public static RealmAny valueOf(@Nullable Integer value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new IntegerRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#INTEGER}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#INTEGER}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a Long.
+     * @return a new RealmAny of a Long.
      */
-    public static Mixed valueOf(@Nullable Long value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new IntegerMixedOperator(value));
+    public static RealmAny valueOf(@Nullable Long value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new IntegerRealmAnyOperator(value));
     }
 
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#BOOLEAN}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#BOOLEAN}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a Boolean.
+     * @return a new RealmAny of a Boolean.
      */
-    public static Mixed valueOf(@Nullable Boolean value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new BooleanMixedOperator(value));
+    public static RealmAny valueOf(@Nullable Boolean value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new BooleanRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#FLOAT}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#FLOAT}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a Float.
+     * @return a new RealmAny of a Float.
      */
-    public static Mixed valueOf(@Nullable Float value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new FloatMixedOperator(value));
+    public static RealmAny valueOf(@Nullable Float value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new FloatRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DOUBLE}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#DOUBLE}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a Double.
+     * @return a new RealmAny of a Double.
      */
-    public static Mixed valueOf(@Nullable Double value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new DoubleMixedOperator(value));
+    public static RealmAny valueOf(@Nullable Double value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new DoubleRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#STRING}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#STRING}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a String.
+     * @return a new RealmAny of a String.
      */
-    public static Mixed valueOf(@Nullable String value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new StringMixedOperator(value));
+    public static RealmAny valueOf(@Nullable String value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new StringRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#BINARY}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#BINARY}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a byte[].
+     * @return a new RealmAny of a byte[].
      */
-    public static Mixed valueOf(@Nullable byte[] value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new BinaryMixedOperator(value));
+    public static RealmAny valueOf(@Nullable byte[] value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new BinaryRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DATE}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#DATE}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a Date.
+     * @return a new RealmAny of a Date.
      */
-    public static Mixed valueOf(@Nullable Date value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new DateMixedOperator(value));
+    public static RealmAny valueOf(@Nullable Date value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new DateRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#OBJECT_ID}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#OBJECT_ID}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of an ObjectId.
+     * @return a new RealmAny of an ObjectId.
      */
-    public static Mixed valueOf(@Nullable ObjectId value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new ObjectIdMixedOperator(value));
+    public static RealmAny valueOf(@Nullable ObjectId value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new ObjectIdRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#DECIMAL128}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#DECIMAL128}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of a Decimal128.
+     * @return a new RealmAny of a Decimal128.
      */
-    public static Mixed valueOf(@Nullable Decimal128 value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new Decimal128MixedOperator(value));
+    public static RealmAny valueOf(@Nullable Decimal128 value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new Decimal128RealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
-     * If the value is not null the type will be {@link MixedType#UUID}, {@link MixedType#NULL} otherwise.
+     * Creates a new RealmAny with the specified initial value.
+     * If the value is not null the type will be {@link RealmAnyType#UUID}, {@link RealmAnyType#NULL} otherwise.
      *
      * @param value initial value.
-     * @return a new Mixed of an UUID.
+     * @return a new RealmAny of an UUID.
      */
-    public static Mixed valueOf(@Nullable UUID value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new UUIDMixedOperator(value));
+    public static RealmAny valueOf(@Nullable UUID value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new UUIDRealmAnyOperator(value));
     }
 
     /**
-     * Creates a new Mixed of a null value.
+     * Creates a new RealmAny of a null value.
      *
-     * @return a new Mixed instance of a null value.
+     * @return a new RealmAny instance of a null value.
      */
-    public static Mixed nullValue() {
-        return new Mixed(new NullMixedOperator());
+    public static RealmAny nullValue() {
+        return new RealmAny(new NullRealmAnyOperator());
     }
 
     /**
-     * Creates a new Mixed with the specified initial value.
+     * Creates a new RealmAny with the specified initial value.
      *
      * @param value initial value.
-     * @return a new Mixed of a RealmModel.
+     * @return a new RealmAny of a RealmModel.
      */
-    public static Mixed valueOf(@Nullable RealmModel value) {
-        return new Mixed((value == null) ? new NullMixedOperator() : new RealmModelOperator(value));
+    public static RealmAny valueOf(@Nullable RealmModel value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new RealmModelOperator(value));
     }
 
     /**
@@ -307,7 +307,7 @@ public class Mixed {
      * @return true if the inner value is null, false otherwise.
      */
     public boolean isNull() {
-        return this.getType() == MixedType.NULL;
+        return this.getType() == RealmAnyType.NULL;
     }
 
     /**
@@ -506,7 +506,7 @@ public class Mixed {
     }
 
     /**
-     * A {@code Mixed}'s hash code is, exactly, the hash code of its value.
+     * A {@code RealmAny}'s hash code is, exactly, the hash code of its value.
      *
      * @return true if the target has the same value
      * @throws NullPointerException if the inner value is null
@@ -517,7 +517,7 @@ public class Mixed {
     }
 
     /**
-     * Two {@code Mixed}s are {@code .equals} if and only if their contents are equal.
+     * Two {@code RealmAny}s are {@code .equals} if and only if their contents are equal.
      *
      * @param other compare target
      * @return true if the target has the same value
@@ -525,12 +525,12 @@ public class Mixed {
     @Override
     public final boolean equals(Object other) {
         if (other == this) { return true; }
-        if (!(other instanceof Mixed)) { return false; }
-        Mixed otherMixed = ((Mixed) other);
-        return this.operator.equals(otherMixed.operator);
+        if (!(other instanceof RealmAny)) { return false; }
+        RealmAny otherRealmAny = ((RealmAny) other);
+        return this.operator.equals(otherRealmAny.operator);
     }
 
-    public final boolean coercedEquals(Mixed other) {
+    public final boolean coercedEquals(RealmAny other) {
         if (other == null) { return false; }
         return this.operator.coercedEquals(other.operator);
     }

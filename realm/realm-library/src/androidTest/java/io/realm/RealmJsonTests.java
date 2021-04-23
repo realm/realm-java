@@ -115,7 +115,7 @@ public class RealmJsonTests {
         assertEquals(new ObjectId("789ABCDEF0123456789ABCDA"), obj.getColumnObjectId());
         assertEquals(new Decimal128(-43), obj.getColumnDecimal128());
         assertEquals(UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018590"), obj.getColumnUUID());
-        assertEquals(Mixed.valueOf("hello world"), obj.getColumnMixed());
+        assertEquals(RealmAny.valueOf("hello world"), obj.getColumnRealmAny());
         assertEquals("Dog4", obj.getColumnRealmObject().getName());
         assertEquals(2, obj.getColumnRealmList().size());
         assertEquals("Dog5", obj.getColumnRealmList().get(0).getName());
@@ -231,7 +231,7 @@ public class RealmJsonTests {
         ObjectId objectId = new ObjectId(new Date(20));
         Decimal128 decimal128 = new Decimal128(300);
         UUID uuid = UUID.randomUUID();
-        Mixed mixed = Mixed.valueOf("Hello world");
+        RealmAny realmAny = RealmAny.valueOf("Hello world");
 
         json.put("columnString", "String");
         json.put("columnLong", 1L);
@@ -242,7 +242,7 @@ public class RealmJsonTests {
         json.put("columnObjectId", objectId);
         json.put("columnDecimal128", decimal128);
         json.put("columnUUID", uuid);
-        json.put("columnMixed", mixed);
+        json.put("columnRealmAny", realmAny);
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
@@ -259,7 +259,7 @@ public class RealmJsonTests {
         assertEquals(objectId, obj.getColumnObjectId());
         assertEquals(decimal128, obj.getColumnDecimal128());
         assertEquals(uuid, obj.getColumnUUID());
-        assertEquals(mixed, obj.getColumnMixed());
+        assertEquals(realmAny, obj.getColumnRealmAny());
     }
 
     @Test
@@ -424,73 +424,73 @@ public class RealmJsonTests {
     }
 
     @Test
-    public void createObjectFromJson_mixedAsString() throws JSONException {
+    public void createObjectFromJson_realmAnyAsString() throws JSONException {
         JSONObject json = new JSONObject();
         String aString = "027ba5ca-aa12-4afa-9219-e20cc3018599";
-        json.put("columnMixed", aString);
+        json.put("columnRealmAny", aString);
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.valueOf(aString), obj.getColumnMixed());
+        assertEquals(RealmAny.valueOf(aString), obj.getColumnRealmAny());
     }
 
     @Test
-    public void createObjectFromJson_mixedAsInteger() throws JSONException {
+    public void createObjectFromJson_realmAnyAsInteger() throws JSONException {
         JSONObject json = new JSONObject();
         int anInteger = 20;
-        json.put("columnMixed", anInteger);
+        json.put("columnRealmAny", anInteger);
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.valueOf(anInteger), obj.getColumnMixed());
+        assertEquals(RealmAny.valueOf(anInteger), obj.getColumnRealmAny());
     }
 
     @Test
-    public void createObjectFromJson_mixedAsFloat() throws JSONException {
+    public void createObjectFromJson_realmAnyAsFloat() throws JSONException {
         JSONObject json = new JSONObject();
         float aFloat = 10.f;
-        json.put("columnMixed", aFloat);
+        json.put("columnRealmAny", aFloat);
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.valueOf(Double.valueOf(aFloat)), obj.getColumnMixed());
+        assertEquals(RealmAny.valueOf(Double.valueOf(aFloat)), obj.getColumnRealmAny());
     }
 
     @Test
-    public void createObjectFromJson_mixedAsDouble() throws JSONException {
+    public void createObjectFromJson_realmAnyAsDouble() throws JSONException {
         JSONObject json = new JSONObject();
         double aDouble = 20.;
-        json.put("columnMixed", aDouble);
+        json.put("columnRealmAny", aDouble);
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.valueOf(aDouble), obj.getColumnMixed());
+        assertEquals(RealmAny.valueOf(aDouble), obj.getColumnRealmAny());
     }
 
     @Test
-    public void createObjectFromJson_mixedAsNull() throws JSONException {
+    public void createObjectFromJson_realmAnyAsNull() throws JSONException {
         JSONObject json = new JSONObject();
-        json.put("columnMixed", null);
+        json.put("columnRealmAny", null);
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, json);
         realm.commitTransaction();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.nullValue(), obj.getColumnMixed());
-        assertEquals(Mixed.valueOf((Byte) null), obj.getColumnMixed());
+        assertEquals(RealmAny.nullValue(), obj.getColumnRealmAny());
+        assertEquals(RealmAny.valueOf((Byte) null), obj.getColumnRealmAny());
     }
 
     @Test
@@ -654,7 +654,7 @@ public class RealmJsonTests {
         assertEquals(DefaultValueOfField.FIELD_OBJECT_ID_DEFAULT_VALUE, managedObj.getFieldObjectId());
         assertEquals(DefaultValueOfField.FIELD_DECIMAL128_DEFAULT_VALUE, managedObj.getFieldDecimal128());
         assertEquals(DefaultValueOfField.FIELD_UUID_DEFAULT_VALUE, managedObj.getFieldUUID());
-        assertEquals(DefaultValueOfField.FIELD_MIXED_DEFAULT_VALUE, managedObj.getFieldMixed());
+        assertEquals(DefaultValueOfField.FIELD_MIXED_DEFAULT_VALUE, managedObj.getFieldRealmAny());
         assertArrayEquals(DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE, managedObj.getFieldBinary());
         assertArrayEquals(DefaultValueOfField.FIELD_BYTE_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldByteList().toArray());
         assertArrayEquals(DefaultValueOfField.FIELD_SHORT_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldShortList().toArray());
@@ -667,7 +667,7 @@ public class RealmJsonTests {
         assertArrayEquals(DefaultValueOfField.FIELD_OBJECT_ID_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldObjectIdList().toArray());
         assertArrayEquals(DefaultValueOfField.FIELD_DECIMAL128_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldDecimal128List().toArray());
         assertArrayEquals(DefaultValueOfField.FIELD_UUID_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldUUIDList().toArray());
-        assertArrayEquals(DefaultValueOfField.FIELD_MIXED_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldMixedList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_MIXED_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldRealmAnyList().toArray());
         assertEquals(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldObject().getFieldInt());
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldList().first().getFieldInt());
@@ -695,7 +695,7 @@ public class RealmJsonTests {
         final ObjectId fieldObjectIdValue = new ObjectId(new Date(20));
         final Decimal128 fieldDecimal128Value = new Decimal128(20);
         final UUID fieldUUIDValue = UUID.randomUUID();
-        final Mixed fieldMixedValue = Mixed.valueOf((float) 20);
+        final RealmAny fieldRealmAnyValue = RealmAny.valueOf((float) 20);
         final byte[] fieldBinaryValue = {(byte) (DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE[0] - 1)};
         final int fieldObjectIntValue = RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 1;
         final int fieldListIntValue = RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE + 2;
@@ -716,7 +716,7 @@ public class RealmJsonTests {
         json.put(DefaultValueOfField.FIELD_OBJECT_ID, fieldObjectIdValue);
         json.put(DefaultValueOfField.FIELD_DECIMAL128, fieldDecimal128Value);
         json.put(DefaultValueOfField.FIELD_UUID, fieldUUIDValue);
-        json.put(DefaultValueOfField.FIELD_MIXED, fieldMixedValue);
+        json.put(DefaultValueOfField.FIELD_MIXED, fieldRealmAnyValue);
         json.put(DefaultValueOfField.FIELD_BINARY, Base64.encodeToString(fieldBinaryValue, Base64.DEFAULT));
         // Value for 'fieldObject'
         final JSONObject fieldObjectJson = new JSONObject();
@@ -756,7 +756,7 @@ public class RealmJsonTests {
         assertEquals(fieldObjectIdValue, managedObj.getFieldObjectId());
         assertEquals(fieldDecimal128Value, managedObj.getFieldDecimal128());
         assertEquals(fieldUUIDValue, managedObj.getFieldUUID());
-        assertEquals(fieldMixedValue, managedObj.getFieldMixed());
+        assertEquals(fieldRealmAnyValue, managedObj.getFieldRealmAny());
         assertEquals(fieldDateValue, managedObj.getFieldDate());
         assertTrue(Arrays.equals(fieldBinaryValue, managedObj.getFieldBinary()));
         assertEquals(fieldObjectJson.getString(RandomPrimaryKey.FIELD_RANDOM_PRIMARY_KEY),
@@ -1110,10 +1110,10 @@ public class RealmJsonTests {
     }
 
     @Test
-    public void createObjectFromJson_streamMixedAsString() throws IOException {
+    public void createObjectFromJson_streamRealmAnyAsString() throws IOException {
         assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
 
-        InputStream in = new ByteArrayInputStream("{\"columnMixed\" : \"hello world\"}".getBytes(StandardCharsets.US_ASCII));
+        InputStream in = new ByteArrayInputStream("{\"columnRealmAny\" : \"hello world\"}".getBytes(StandardCharsets.US_ASCII));
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -1121,14 +1121,14 @@ public class RealmJsonTests {
         in.close();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.valueOf("hello world"), obj.getColumnMixed());
+        assertEquals(RealmAny.valueOf("hello world"), obj.getColumnRealmAny());
     }
 
     @Test
-    public void createObjectFromJson_streamMixedAsInteger() throws IOException {
+    public void createObjectFromJson_streamRealmAnyAsInteger() throws IOException {
         assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
 
-        InputStream in = new ByteArrayInputStream("{\"columnMixed\" : 10}".getBytes(StandardCharsets.US_ASCII));
+        InputStream in = new ByteArrayInputStream("{\"columnRealmAny\" : 10}".getBytes(StandardCharsets.US_ASCII));
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -1136,14 +1136,14 @@ public class RealmJsonTests {
         in.close();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.valueOf(10), obj.getColumnMixed());
+        assertEquals(RealmAny.valueOf(10), obj.getColumnRealmAny());
     }
 
     @Test
-    public void createObjectFromJson_streamMixedAsDouble() throws IOException {
+    public void createObjectFromJson_streamRealmAnyAsDouble() throws IOException {
         assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
 
-        InputStream in = new ByteArrayInputStream("{\"columnMixed\" : 10.0}".getBytes(StandardCharsets.US_ASCII));
+        InputStream in = new ByteArrayInputStream("{\"columnRealmAny\" : 10.0}".getBytes(StandardCharsets.US_ASCII));
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -1151,14 +1151,14 @@ public class RealmJsonTests {
         in.close();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.valueOf(10.d), obj.getColumnMixed());
+        assertEquals(RealmAny.valueOf(10.d), obj.getColumnRealmAny());
     }
 
     @Test
-    public void createObjectFromJson_streamMixedAsNull() throws IOException {
+    public void createObjectFromJson_streamRealmAnyAsNull() throws IOException {
         assumeThat(Build.VERSION.SDK_INT, greaterThanOrEqualTo(Build.VERSION_CODES.HONEYCOMB));
 
-        InputStream in = new ByteArrayInputStream("{\"columnMixed\" : null}".getBytes(StandardCharsets.US_ASCII));
+        InputStream in = new ByteArrayInputStream("{\"columnRealmAny\" : null}".getBytes(StandardCharsets.US_ASCII));
 
         realm.beginTransaction();
         realm.createObjectFromJson(AllTypes.class, in);
@@ -1166,7 +1166,7 @@ public class RealmJsonTests {
         in.close();
 
         AllTypes obj = realm.where(AllTypes.class).findFirst();
-        assertEquals(Mixed.nullValue(), obj.getColumnMixed());
+        assertEquals(RealmAny.nullValue(), obj.getColumnRealmAny());
     }
 
     @Test
@@ -1334,7 +1334,7 @@ public class RealmJsonTests {
         ObjectId objectId = new ObjectId(new Date(20));
         Decimal128 decimal128 = new Decimal128(300);
         UUID uuid = UUID.randomUUID();
-        Mixed mixed = Mixed.valueOf("Hello world");
+        RealmAny realmAny = RealmAny.valueOf("Hello world");
 
         obj.setColumnLong(1); // ID
         obj.setColumnBinary(new byte[]{1});
@@ -1346,7 +1346,7 @@ public class RealmJsonTests {
         obj.setColumnObjectId(objectId);
         obj.setColumnDecimal128(decimal128);
         obj.setColumnUUID(uuid);
-        obj.setColumnMixed(mixed);
+        obj.setColumnRealmAny(realmAny);
 
         realm.beginTransaction();
         realm.copyToRealm(obj);
@@ -1369,7 +1369,7 @@ public class RealmJsonTests {
         assertEquals(objectId, obj.getColumnObjectId());
         assertEquals(decimal128, obj.getColumnDecimal128());
         assertEquals(uuid, obj.getColumnUUID());
-        assertEquals(mixed, obj.getColumnMixed());
+        assertEquals(realmAny, obj.getColumnRealmAny());
         assertArrayEquals(new byte[]{1}, obj.getColumnBinary());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
@@ -1495,7 +1495,7 @@ public class RealmJsonTests {
         ObjectId objectId = new ObjectId(new Date(20));
         Decimal128 decimal128 = new Decimal128(300);
         UUID uuid = UUID.randomUUID();
-        Mixed mixed = Mixed.valueOf("Hello world");
+        RealmAny realmAny = RealmAny.valueOf("Hello world");
 
         obj.setColumnLong(1); // ID
         obj.setColumnBinary(new byte[]{1});
@@ -1507,7 +1507,7 @@ public class RealmJsonTests {
         obj.setColumnObjectId(objectId);
         obj.setColumnDecimal128(decimal128);
         obj.setColumnUUID(uuid);
-        obj.setColumnMixed(mixed);
+        obj.setColumnRealmAny(realmAny);
 
         realm.beginTransaction();
         realm.copyToRealm(obj);
@@ -1529,7 +1529,7 @@ public class RealmJsonTests {
         assertEquals(objectId, obj.getColumnObjectId());
         assertEquals(decimal128, obj.getColumnDecimal128());
         assertEquals(uuid, obj.getColumnUUID());
-        assertEquals(mixed, obj.getColumnMixed());
+        assertEquals(realmAny, obj.getColumnRealmAny());
         assertArrayEquals(new byte[]{1}, obj.getColumnBinary());
         assertNull(obj.getColumnRealmObject());
         assertEquals(0, obj.getColumnRealmList().size());
@@ -2260,7 +2260,7 @@ public class RealmJsonTests {
     }
 
     @Test
-    public void createObjectFromJson_primitiveList_mixedValues() throws JSONException, IOException {
+    public void createObjectFromJson_primitiveList_realmAnyValues() throws JSONException, IOException {
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_STRING_LIST, new String[] {"a", null, "bc"});
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BOOLEAN_LIST, new Boolean[] {true, null, false});
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DOUBLE_LIST, new Double[] {1.0d, null, 2.0d});
@@ -2308,7 +2308,7 @@ public class RealmJsonTests {
 
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_MIXED_LIST,
                 new Object[] {0, null, "hello world"},
-                new Mixed[] {Mixed.valueOf(0), Mixed.nullValue(), Mixed.valueOf("hello world")});
+                new RealmAny[] {RealmAny.valueOf(0), RealmAny.nullValue(), RealmAny.valueOf("hello world")});
     }
 
     // Null list will be saved as empty list since We don't support nullable RealmList

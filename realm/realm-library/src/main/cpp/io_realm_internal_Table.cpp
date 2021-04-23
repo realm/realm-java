@@ -483,7 +483,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNull(JNIEnv*, jo
     return to_jbool(table->get_object(ObjKey(rowKey)).is_null(ColKey(columnKey))); // noexcept
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetMixed(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetRealmAny(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                   jlong columnKey, jlong rowKey, jlong nativePtr,
                                                                   jboolean isDefault)
 {
