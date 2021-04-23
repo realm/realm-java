@@ -545,7 +545,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         abstract boolean hasListeners();
 
         @Override
-        abstract public RealmSet<E> freeze();
+        public abstract RealmSet<E> freeze();
     }
 
     /**

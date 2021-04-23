@@ -1281,7 +1281,7 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
  */
 class RealmAnySetOperator extends SetValueOperator<RealmAny> {
 
-    public RealmAnySetOperator(BaseRealm baseRealm, OsSet osSet, Class<RealmAny> valueClass) {
+    RealmAnySetOperator(BaseRealm baseRealm, OsSet osSet, Class<RealmAny> valueClass) {
         super(baseRealm, osSet, valueClass);
     }
 
@@ -1596,7 +1596,7 @@ class UUIDSetIterator extends SetIterator<UUID> {
  * Set iterator for {@link RealmAny} values.
  */
 class RealmAnySetIterator extends SetIterator<RealmAny> {
-    public RealmAnySetIterator(OsSet osSet, BaseRealm baseRealm) {
+    RealmAnySetIterator(OsSet osSet, BaseRealm baseRealm) {
         super(osSet, baseRealm);
     }
 

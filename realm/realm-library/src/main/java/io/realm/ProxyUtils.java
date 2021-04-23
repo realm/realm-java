@@ -409,7 +409,7 @@ class ProxyUtils {
     static <T extends RealmModel> RealmAny copyToRealmIfNeeded(ProxyState<T> proxyState, @Nullable RealmAny value) {
         final Realm realm = (Realm) proxyState.getRealm$realm();
 
-        if(value == null){
+        if (value == null) {
             return RealmAny.nullValue();
         }
 
