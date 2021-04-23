@@ -16,14 +16,19 @@
 
 package io.realm.entities
 
-import io.realm.Mixed
+import io.realm.RealmAny
+import io.realm.RealmList
 import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
 
-open class MixedDefaultPK : RealmObject() {
+open class RealmAnyRealmListWithPK(@PrimaryKey var pk: Long) : RealmObject() {
     companion object {
-        const val FIELD_MIXED = "mixed"
-        const val NAME = "hello world"
+        const val CLASS_NAME = "RealmAnyRealmListWithPK"
+        const val FIELD_REALM_ANY = "realmAnyList"
+        const val PK = "pk"
     }
 
-    var mixed: Mixed? = Mixed.valueOf(PrimaryKeyAsString(NAME))
+    constructor(): this(0)
+
+    var realmAnyList: RealmList<RealmAny> = RealmList()
 }

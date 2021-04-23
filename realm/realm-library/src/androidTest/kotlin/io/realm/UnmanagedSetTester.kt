@@ -30,12 +30,12 @@ class UnmanagedSetTester<T : Any>(
         private val values: List<T?>,
         private val notPresentValue: T,
         private val toArrayUnmanaged: ToArrayUnmanaged<T>,
-        private val mixedType: MixedType? = null
+        private val realmAnyType: RealmAnyType? = null
 ) : SetTester {
 
-    override fun toString(): String = when (mixedType) {
+    override fun toString(): String = when (realmAnyType) {
         null -> "UnmanagedDictionary-$testerClass"
-        else -> "UnmanagedDictionary-$testerClass" + mixedType.name.let { "-$it" }
+        else -> "UnmanagedDictionary-$testerClass" + realmAnyType.name.let { "-$it" }
     }
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) = Unit
@@ -326,52 +326,52 @@ fun unmanagedSetFactory(): List<SetTester> {
                         notPresentValue = VALUE_LINK_NOT_PRESENT,
                         toArrayUnmanaged = ToArrayUnmanaged.RealmModelUnmanaged()
                 )
-            SetSupportedType.MIXED -> null      // Ignore Mixed in this switch
+            SetSupportedType.MIXED -> null      // Ignore RealmAny in this switch
             else -> throw IllegalArgumentException("Unknown data type for Sets")
         }
     }
 
-    // Create Mixed testers now
-    val mixedTesters = MixedType.values().map { mixedType ->
+    // Create RealmAny testers now
+    val realmAnyTesters = RealmAnyType.values().map { realmAnyType ->
         UnmanagedSetTester(
-                Mixed::class.java,
-                getMixedValues(mixedType),
+                RealmAny::class.java,
+                getRealmAnyValues(realmAnyType),
                 VALUE_MIXED_NOT_PRESENT,
-                ToArrayUnmanaged.MixedUnmanaged(),
-                mixedType
+                ToArrayUnmanaged.RealmAnyUnmanaged(),
+                realmAnyType
         )
     }
 
     // Put them together
-    return primitiveTesters.plus(mixedTesters)
+    return primitiveTesters.plus(realmAnyTesters)
 }
 
-fun getMixedValues(mixedType: MixedType): List<Mixed?> {
-    return when (mixedType) {
-        MixedType.INTEGER ->
+fun getRealmAnyValues(realmAnyType: RealmAnyType): List<RealmAny?> {
+    return when (realmAnyType) {
+        RealmAnyType.INTEGER ->
             listOf(VALUE_MIXED_INTEGER_HELLO, VALUE_MIXED_INTEGER_BYE, null)
-        MixedType.BOOLEAN ->
+        RealmAnyType.BOOLEAN ->
             listOf(VALUE_MIXED_BOOLEAN_HELLO, null)
-        MixedType.STRING ->
+        RealmAnyType.STRING ->
             listOf(VALUE_MIXED_STRING_HELLO, VALUE_MIXED_STRING_BYE, null)
-        MixedType.BINARY ->
+        RealmAnyType.BINARY ->
             listOf(VALUE_MIXED_BINARY_HELLO, VALUE_MIXED_BINARY_BYE, null)
-        MixedType.DATE ->
+        RealmAnyType.DATE ->
             listOf(VALUE_MIXED_DATE_HELLO, VALUE_MIXED_DATE_BYE, null)
-        MixedType.FLOAT ->
+        RealmAnyType.FLOAT ->
             listOf(VALUE_MIXED_FLOAT_HELLO, VALUE_MIXED_FLOAT_BYE, null)
-        MixedType.DOUBLE ->
+        RealmAnyType.DOUBLE ->
             listOf(VALUE_MIXED_DOUBLE_HELLO, VALUE_MIXED_DOUBLE_BYE, null)
-        MixedType.DECIMAL128 ->
+        RealmAnyType.DECIMAL128 ->
             listOf(VALUE_MIXED_DECIMAL128_HELLO, VALUE_MIXED_DECIMAL128_BYE, null)
-        MixedType.OBJECT_ID ->
+        RealmAnyType.OBJECT_ID ->
             listOf(VALUE_MIXED_OBJECT_ID_HELLO, VALUE_MIXED_OBJECT_ID_BYE, null)
-        MixedType.OBJECT ->
+        RealmAnyType.OBJECT ->
             listOf(VALUE_MIXED_LINK_HELLO, VALUE_MIXED_LINK_BYE, null)
-        MixedType.UUID ->
+        RealmAnyType.UUID ->
             listOf(VALUE_MIXED_UUID_HELLO, VALUE_MIXED_UUID_BYE, null)
-        MixedType.NULL ->
-            listOf(Mixed.nullValue(), Mixed.valueOf("Not null"), null)
+        RealmAnyType.NULL ->
+            listOf(RealmAny.nullValue(), RealmAny.valueOf("Not null"), null)
     }
 }
 
@@ -448,7 +448,7 @@ abstract class ToArrayUnmanaged<T> {
         override fun toArrayWithParameter(values: List<RealmModel?>) = test(values, emptyArray(), arrayOf())
     }
 
-    class MixedUnmanaged : ToArrayUnmanaged<Mixed>() {
-        override fun toArrayWithParameter(values: List<Mixed?>) = test(values, emptyArray(), arrayOf())
+    class RealmAnyUnmanaged : ToArrayUnmanaged<RealmAny>() {
+        override fun toArrayWithParameter(values: List<RealmAny?>) = test(values, emptyArray(), arrayOf())
     }
 }

@@ -30,10 +30,10 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.UncheckedRow;
 
 
-public final class NativeMixedCollection implements NativeObject {
+public final class NativeRealmAnyCollection implements NativeObject {
     private final long nativePtr;
 
-    public static NativeMixedCollection newBooleanCollection(Collection<Boolean> collection) {
+    public static NativeRealmAnyCollection newBooleanCollection(Collection<Boolean> collection) {
         boolean[] booleanValues = new boolean[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -45,10 +45,10 @@ public final class NativeMixedCollection implements NativeObject {
             }
             i++;
         }
-        return new NativeMixedCollection(nativeCreateBooleanCollection(booleanValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateBooleanCollection(booleanValues, notNull));
     }
 
-    public static NativeMixedCollection newIntegerCollection(Collection<? extends Number> collection) {
+    public static NativeRealmAnyCollection newIntegerCollection(Collection<? extends Number> collection) {
         long[] integerValues = new long[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -60,10 +60,10 @@ public final class NativeMixedCollection implements NativeObject {
             }
             i++;
         }
-        return new NativeMixedCollection(nativeCreateIntegerCollection(integerValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateIntegerCollection(integerValues, notNull));
     }
 
-    public static NativeMixedCollection newFloatCollection(Collection<? extends Float> collection) {
+    public static NativeRealmAnyCollection newFloatCollection(Collection<? extends Float> collection) {
         float[] floatValues = new float[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -75,10 +75,10 @@ public final class NativeMixedCollection implements NativeObject {
             }
             i++;
         }
-        return new NativeMixedCollection(nativeCreateFloatCollection(floatValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateFloatCollection(floatValues, notNull));
     }
 
-    public static NativeMixedCollection newDoubleCollection(Collection<? extends Double> collection) {
+    public static NativeRealmAnyCollection newDoubleCollection(Collection<? extends Double> collection) {
         double[] doubleValues = new double[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -90,10 +90,10 @@ public final class NativeMixedCollection implements NativeObject {
             }
             i++;
         }
-        return new NativeMixedCollection(nativeCreateDoubleCollection(doubleValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateDoubleCollection(doubleValues, notNull));
     }
 
-    public static NativeMixedCollection newStringCollection(Collection<String> collection) {
+    public static NativeRealmAnyCollection newStringCollection(Collection<String> collection) {
         String[] stringValues = new String[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -106,10 +106,10 @@ public final class NativeMixedCollection implements NativeObject {
             i++;
         }
 
-        return new NativeMixedCollection(nativeCreateStringCollection(stringValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateStringCollection(stringValues, notNull));
     }
 
-    public static NativeMixedCollection newBinaryCollection(Collection<? extends byte[]> collection) {
+    public static NativeRealmAnyCollection newBinaryCollection(Collection<? extends byte[]> collection) {
         byte[][] binaryValues = new byte[collection.size()][];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -122,10 +122,10 @@ public final class NativeMixedCollection implements NativeObject {
             i++;
         }
 
-        return new NativeMixedCollection(nativeCreateBinaryCollection(binaryValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateBinaryCollection(binaryValues, notNull));
     }
 
-    public static NativeMixedCollection newDateCollection(Collection<? extends Date> collection) {
+    public static NativeRealmAnyCollection newDateCollection(Collection<? extends Date> collection) {
         long[] dateValues = new long[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -137,10 +137,10 @@ public final class NativeMixedCollection implements NativeObject {
             }
             i++;
         }
-        return new NativeMixedCollection(nativeCreateDateCollection(dateValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateDateCollection(dateValues, notNull));
     }
 
-    public static NativeMixedCollection newObjectIdCollection(Collection<? extends ObjectId> collection) {
+    public static NativeRealmAnyCollection newObjectIdCollection(Collection<? extends ObjectId> collection) {
         String[] objectIdValues = new String[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -153,10 +153,10 @@ public final class NativeMixedCollection implements NativeObject {
             i++;
         }
 
-        return new NativeMixedCollection(nativeCreateObjectIdCollection(objectIdValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateObjectIdCollection(objectIdValues, notNull));
     }
 
-    public static NativeMixedCollection newDecimal128Collection(Collection<? extends Decimal128> collection) {
+    public static NativeRealmAnyCollection newDecimal128Collection(Collection<? extends Decimal128> collection) {
         long[] lowValues = new long[collection.size()];
         long[] highValues = new long[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
@@ -171,10 +171,10 @@ public final class NativeMixedCollection implements NativeObject {
             i++;
         }
 
-        return new NativeMixedCollection(nativeCreateDecimal128Collection(lowValues, highValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateDecimal128Collection(lowValues, highValues, notNull));
     }
 
-    public static NativeMixedCollection newUUIDCollection(Collection<? extends UUID> collection) {
+    public static NativeRealmAnyCollection newUUIDCollection(Collection<? extends UUID> collection) {
         String[] uuidValues = new String[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -187,10 +187,10 @@ public final class NativeMixedCollection implements NativeObject {
             i++;
         }
 
-        return new NativeMixedCollection(nativeCreateUUIDCollection(uuidValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateUUIDCollection(uuidValues, notNull));
     }
 
-    public static NativeMixedCollection newRealmModelCollection(Collection<? extends RealmModel> collection) {
+    public static NativeRealmAnyCollection newRealmModelCollection(Collection<? extends RealmModel> collection) {
         long[] objectValues = new long[collection.size()];
         boolean[] notNull = new boolean[collection.size()];
 
@@ -204,14 +204,14 @@ public final class NativeMixedCollection implements NativeObject {
             i++;
         }
 
-        return new NativeMixedCollection(nativeCreateObjectCollection(objectValues, notNull));
+        return new NativeRealmAnyCollection(nativeCreateObjectCollection(objectValues, notNull));
     }
 
-    public static NativeMixedCollection newMixedCollection(long[] mixedPtrs, boolean[] notNull) {
-        return new NativeMixedCollection(nativeCreateMixedCollection(mixedPtrs, notNull));
+    public static NativeRealmAnyCollection newRealmAnyCollection(long[] realmAnyPtrs, boolean[] notNull) {
+        return new NativeRealmAnyCollection(nativeCreateRealmAnyCollection(realmAnyPtrs, notNull));
     }
 
-    private NativeMixedCollection(long nativePtr) {
+    private NativeRealmAnyCollection(long nativePtr) {
         this.nativePtr = nativePtr;
         NativeContext.dummyContext.addReference(this);
     }
@@ -230,8 +230,8 @@ public final class NativeMixedCollection implements NativeObject {
         return nativeGetCollectionSize(nativePtr);
     }
 
-    public NativeMixed getItem(int index){
-        return new NativeMixed(nativeGetCollectionItem(nativePtr, index));
+    public NativeRealmAny getItem(int index){
+        return new NativeRealmAny(nativeGetCollectionItem(nativePtr, index));
     }
 
     private static native long nativeCreateBooleanCollection(boolean[] booleanValues, boolean[] notNull);
@@ -256,7 +256,7 @@ public final class NativeMixedCollection implements NativeObject {
 
     private static native long nativeCreateObjectCollection(long[] objectValues, boolean[] notNull);
 
-    private static native long nativeCreateMixedCollection(long[] mixedPtrs, boolean[] notNull);
+    private static native long nativeCreateRealmAnyCollection(long[] realmAnyPtrs, boolean[] notNull);
 
     private static native int nativeGetCollectionSize(long nativePtr);
 

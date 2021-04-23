@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmObject;
 import io.realm.RealmSet;
 import io.realm.annotations.Required;
@@ -44,7 +44,7 @@ public class SetAllTypes extends RealmObject {
     private RealmSet<Decimal128> columnDecimal128Set;
     private RealmSet<DogPrimaryKey> columnRealmModelSet;
     private RealmSet<Owner> columnRealmModelNoPkSet;
-    private RealmSet<Mixed> columnMixedSet;
+    private RealmSet<RealmAny> columnRealmAnySet;
 
 
     public String columnString;
@@ -196,12 +196,12 @@ public class SetAllTypes extends RealmObject {
         this.columnRealmModelNoPkSet = columnRealmModelNoPkSet;
     }
 
-    public RealmSet<Mixed> getColumnMixedSet() {
-        return columnMixedSet;
+    public RealmSet<RealmAny> getColumnRealmAnySet() {
+        return columnRealmAnySet;
     }
 
-    public void setColumnMixedSet(RealmSet<Mixed> columnMixedSet) {
-        this.columnMixedSet = columnMixedSet;
+    public void setColumnRealmAnySet(RealmSet<RealmAny> columnRealmAnySet) {
+        this.columnRealmAnySet = columnRealmAnySet;
     }
 
     public RealmSet<Boolean> getColumnRequiredBooleanSet() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Realm Inc.
+ * Copyright 2021 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.internal;
 
-package io.realm.entities
+import java.util.Map;
+import javax.annotation.Nullable;
 
-import io.realm.Mixed
-import io.realm.RealmList
-import io.realm.RealmObject
-import io.realm.annotations.PrimaryKey
+import io.realm.RealmAny;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
-open class MixedRealmListWithPK(@PrimaryKey var pk: Long) : RealmObject() {
-    companion object {
-        const val CLASS_NAME = "MixedRealmListWithPK"
-        const val FIELD_MIXED = "mixedList"
-        const val PK = "pk"
-    }
 
-    constructor(): this(0)
+public interface RealmAnyNativeFunctions {
+    void handleItem(long listPtr, RealmAny realmAny);
 
-    var mixedList: RealmList<Mixed> = RealmList()
+    void handleItem(long listPtr, Map.Entry<String, RealmAny> realmAny);
+
+    void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, RealmAny... arguments);
 }

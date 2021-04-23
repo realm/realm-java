@@ -515,8 +515,8 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
             operator = (SetValueOperator<T>) new ObjectIdOperator(baseRealm, osSet, ObjectId.class);
         } else if (valueClass == UUID.class) {
             operator = (SetValueOperator<T>) new UUIDOperator(baseRealm, osSet, UUID.class);
-        } else if (valueClass == Mixed.class) {
-            operator = (SetValueOperator<T>) new MixedSetOperator(baseRealm, osSet, Mixed.class);
+        } else if (valueClass == RealmAny.class) {
+            operator = (SetValueOperator<T>) new RealmAnySetOperator(baseRealm, osSet, RealmAny.class);
         } else {
             throw new UnsupportedOperationException("getStrategy: missing class '" + valueClass.getSimpleName() + "'");
         }
@@ -545,7 +545,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         abstract boolean hasListeners();
 
         @Override
-        abstract public RealmSet<E> freeze();
+        public abstract RealmSet<E> freeze();
     }
 
     /**
@@ -811,7 +811,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         // Private stuff
         // ------------------------------------------
 
-        private <T> void checkValidArray(@Nullable T[] array) {
+        private <T> void checkValidArray(T[] array) {
             if (array == null) {
                 // According to Java Set documentation
                 throw new NullPointerException("Cannot pass a null array when calling 'toArray'.");
@@ -827,7 +827,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
             }
         }
 
-        private void checkValidCollection(@Nullable Collection<?> collection) {
+        private void checkValidCollection(Collection<?> collection) {
             if (collection == null) {
                 throw new NullPointerException("Collection must not be null.");
             }

@@ -104,8 +104,8 @@ set(classes_LIST
     io.realm.internal.OsMap
     io.realm.internal.OsObjectStore
     io.realm.internal.OsSet
-    io.realm.internal.core.NativeMixed
-    io.realm.internal.core.NativeMixedCollection
+    io.realm.internal.core.NativeRealmAny
+    io.realm.internal.core.NativeRealmAnyCollection
     io.realm.internal.objectstore.OsObjectBuilder
     io.realm.internal.objectstore.OsKeyPathMapping
 )

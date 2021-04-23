@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "io_realm_internal_core_NativeMixedCollection.h"
+#include "io_realm_internal_core_NativeRealmAnyCollection.h"
 
 #include "java_accessor.hpp"
 #include "java_object_accessor.hpp"
@@ -29,12 +29,12 @@ static void finalize_collection(jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeGetFinalizerPtr(JNIEnv *, jclass) {
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeGetFinalizerPtr(JNIEnv *, jclass) {
     return reinterpret_cast<jlong>(&finalize_collection);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateBooleanCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateBooleanCollection(JNIEnv *env, jclass,
                                                                                 jbooleanArray j_boolean_array,
                                                                                 jbooleanArray j_not_null) {
     try {
@@ -57,7 +57,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateBooleanCollection(
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateIntegerCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateIntegerCollection(JNIEnv *env, jclass,
                                                                                 jlongArray j_long_array,
                                                                                 jbooleanArray j_not_null) {
     try {
@@ -78,7 +78,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateIntegerCollection(
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateFloatCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateFloatCollection(JNIEnv *env, jclass,
                                                                               jfloatArray j_float_array,
                                                                               jbooleanArray j_not_null) {
     try {
@@ -99,7 +99,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateFloatCollection(JN
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDoubleCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateDoubleCollection(JNIEnv *env, jclass,
                                                                                jdoubleArray j_double_arrray,
                                                                                jbooleanArray j_not_null) {
     try {
@@ -120,7 +120,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDoubleCollection(J
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateStringCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateStringCollection(JNIEnv *env, jclass,
                                                                                jobjectArray j_string_array,
                                                                                jbooleanArray j_not_null) {
     try {
@@ -141,7 +141,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateStringCollection(J
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateBinaryCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateBinaryCollection(JNIEnv *env, jclass,
                                                                                jobjectArray j_binary_array,
                                                                                jbooleanArray j_not_null) {
     try {
@@ -162,7 +162,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateBinaryCollection(J
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDateCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateDateCollection(JNIEnv *env, jclass,
                                                                              jlongArray j_date_array,
                                                                              jbooleanArray j_not_null) {
     try {
@@ -183,7 +183,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDateCollection(JNI
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateObjectIdCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateObjectIdCollection(JNIEnv *env, jclass,
                                                                                  jobjectArray j_object_id_array,
                                                                                  jbooleanArray j_not_null) {
     try {
@@ -204,7 +204,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateObjectIdCollection
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDecimal128Collection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateDecimal128Collection(JNIEnv *env, jclass,
                                                                                    jlongArray j_low_array,
                                                                                    jlongArray j_high_array,
                                                                                    jbooleanArray j_not_null) {
@@ -229,7 +229,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateDecimal128Collecti
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateUUIDCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateUUIDCollection(JNIEnv *env, jclass,
                                                                              jobjectArray j_uuid_array,
                                                                              jbooleanArray j_not_null) {
     try {
@@ -250,7 +250,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateUUIDCollection(JNI
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateObjectCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateObjectCollection(JNIEnv *env, jclass,
                                                                                jlongArray j_object_array,
                                                                                jbooleanArray j_not_null) {
     try {
@@ -268,7 +268,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateObjectCollection(J
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeCreateMixedCollection(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeCreateRealmAnyCollection(JNIEnv *env, jclass,
                                                                                jlongArray j_mixed_ptrs,
                                                                                jbooleanArray j_not_null) {
     try {
@@ -286,7 +286,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeCreateMixedCollection(JN
 }
 
 JNIEXPORT jint JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeGetCollectionSize(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeGetCollectionSize(JNIEnv *env, jclass,
                                                                           jlong j_native_ptr) {
     try {
         auto &collection = *reinterpret_cast<std::vector<JavaValue> *>(j_native_ptr);
@@ -297,7 +297,7 @@ Java_io_realm_internal_core_NativeMixedCollection_nativeGetCollectionSize(JNIEnv
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixedCollection_nativeGetCollectionItem(JNIEnv *env, jclass,
+Java_io_realm_internal_core_NativeRealmAnyCollection_nativeGetCollectionItem(JNIEnv *env, jclass,
                                                                           jlong j_native_ptr,
                                                                           jint j_index) {
     try {

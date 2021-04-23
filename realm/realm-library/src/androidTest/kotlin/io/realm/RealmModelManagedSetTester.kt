@@ -37,7 +37,7 @@ import kotlin.test.*
  */
 class RealmModelManagedSetTester<T : Any>(
     private val testerName: String,
-    private val mixedType: MixedType? = null,
+    private val realmAnyType: RealmAnyType? = null,
     private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
     private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
     private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,
@@ -81,7 +81,7 @@ class RealmModelManagedSetTester<T : Any>(
 
         this.managedTester = ManagedSetTester(
             testerName = testerName,
-            mixedType = mixedType,
+            realmAnyType = realmAnyType,
             setGetter = setGetter,
             setSetter = setSetter,
             managedSetGetter = managedSetGetter,
@@ -425,8 +425,8 @@ class RealmModelManagedSetTester<T : Any>(
     override fun hasListeners() = Unit
 
     override fun aggregations() {
-        if (mixedType == null) {
-            // Aggregations on Mixed type are not supported
+        if (realmAnyType == null) {
+            // Aggregations on RealmAny type are not supported
             val set = initAndAssertEmptySet()
 
             realm.executeTransaction {
@@ -452,7 +452,7 @@ class RealmModelManagedSetTester<T : Any>(
                 }
             }
         } else {
-            // Aggregations on Mixed type are not supported
+            // Aggregations on RealmAny type are not supported
             managedTester.aggregations()
         }
     }

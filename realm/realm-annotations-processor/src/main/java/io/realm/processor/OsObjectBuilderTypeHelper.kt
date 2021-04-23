@@ -26,7 +26,7 @@ object OsObjectBuilderTypeHelper {
     private val QUALIFIED_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
     private val QUALIFIED_LIST_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
     private val QUALIFIED_MAP_VALUES: Map<QualifiedClassName, String> = mapOf(
-            QualifiedClassName("io.realm.Mixed") to "MixedValueDictionary",
+            QualifiedClassName("io.realm.RealmAny") to "RealmAnyValueDictionary",
             QualifiedClassName("java.lang.Boolean") to "BooleanValueDictionary",
             QualifiedClassName("java.lang.String") to "StringValueDictionary",
             QualifiedClassName("java.lang.Integer") to "IntegerValueDictionary",
@@ -43,7 +43,7 @@ object OsObjectBuilderTypeHelper {
     )
 
     private val QUALIFIED_SET_VALUES: Map<QualifiedClassName, String> = mapOf(
-            QualifiedClassName("io.realm.Mixed") to "MixedSet",
+            QualifiedClassName("io.realm.RealmAny") to "RealmAnySet",
             QualifiedClassName("java.lang.Boolean") to "BooleanSet",
             QualifiedClassName("java.lang.String") to "StringSet",
             QualifiedClassName("java.lang.Integer") to "IntegerSet",
@@ -85,7 +85,7 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectId"
             this[QualifiedClassName("java.util.UUID")] = "UUID"
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmInteger"
-            this[QualifiedClassName("io.realm.Mixed")] = "Mixed"
+            this[QualifiedClassName("io.realm.RealmAny")] = "RealmAny"
         }
         QUALIFIED_TYPE_TO_BUILDER = Collections.unmodifiableMap(fieldTypes)
 
@@ -105,7 +105,7 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmIntegerList"
             this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128List"
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectIdList"
-            this[QualifiedClassName("io.realm.Mixed")] = "MixedList"
+            this[QualifiedClassName("io.realm.RealmAny")] = "RealmAnyList"
             this[QualifiedClassName("java.util.UUID")] = "UUIDList"
         }
         QUALIFIED_LIST_TYPE_TO_BUILDER = Collections.unmodifiableMap(listTypes)

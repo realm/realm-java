@@ -33,7 +33,7 @@ import java.util.*
 /**
  * [RealmDictionary] tests. It uses [Parameterized] tests for all possible combinations of
  * [RealmDictionary] types (i.e. all primitive Realm types (see [DictionarySupportedType]) plus
- * [RealmModel] and [Mixed] (and in turn all possible types supported by Mixed) in both `managed`
+ * [RealmModel] and [RealmAny] (and in turn all possible types supported by RealmAny) in both `managed`
  * and `unmanaged` modes.
  *
  * In order to streamline the testing for managed dictionaries we use Kotlin's reflection API
@@ -213,8 +213,8 @@ enum class DictionaryMode {
 }
 
 /**
- * Supported types by dictionaries. Notice that Mixed dictionaries can in turn support all these
- * types internally (except Mixed itself).
+ * Supported types by dictionaries. Notice that RealmAny dictionaries can in turn support all these
+ * types internally (except RealmAny itself).
  *
  * Add new types ad-hoc here.
  */
@@ -328,177 +328,177 @@ internal val VALUE_LINK_NO_PK_HELLO = Owner().apply { name = VALUE_STRING_HELLO 
 internal val VALUE_LINK_NO_PK_BYE = Owner().apply { name = VALUE_STRING_BYE }
 internal val VALUE_LINK_NO_PK_NOT_PRESENT = Owner().apply { name = VALUE_STRING_NOT_PRESENT }
 
-internal val VALUE_MIXED_INTEGER_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO)
-internal val VALUE_MIXED_INTEGER_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE)
-internal val VALUE_MIXED_FLOAT_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO.toFloat())
-internal val VALUE_MIXED_FLOAT_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toFloat())
-internal val VALUE_MIXED_DOUBLE_HELLO = Mixed.valueOf(VALUE_NUMERIC_HELLO.toDouble())
-internal val VALUE_MIXED_DOUBLE_BYE = Mixed.valueOf(VALUE_NUMERIC_BYE.toDouble())
-internal val VALUE_MIXED_STRING_HELLO = Mixed.valueOf(VALUE_STRING_HELLO)
-internal val VALUE_MIXED_STRING_BYE = Mixed.valueOf(VALUE_STRING_BYE)
-internal val VALUE_MIXED_STRING_NON_LATIN_HELLO = Mixed.valueOf(VALUE_STRING_NON_LATIN_HELLO)
-internal val VALUE_MIXED_STRING_NON_LATIN_BYE = Mixed.valueOf(VALUE_STRING_NON_LATIN_BYE)
-internal val VALUE_MIXED_BOOLEAN_HELLO = Mixed.valueOf(VALUE_BOOLEAN_HELLO)
-internal val VALUE_MIXED_BOOLEAN_BYE = Mixed.valueOf(VALUE_BOOLEAN_BYE)
-internal val VALUE_MIXED_DATE_HELLO = Mixed.valueOf(VALUE_DATE_HELLO)
-internal val VALUE_MIXED_DATE_BYE = Mixed.valueOf(VALUE_DATE_BYE)
-internal val VALUE_MIXED_DECIMAL128_HELLO = Mixed.valueOf(VALUE_DECIMAL128_HELLO)
-internal val VALUE_MIXED_DECIMAL128_BYE = Mixed.valueOf(VALUE_DECIMAL128_BYE)
-internal val VALUE_MIXED_BINARY_HELLO = Mixed.valueOf(VALUE_BINARY_HELLO)
-internal val VALUE_MIXED_BINARY_BYE = Mixed.valueOf(VALUE_BINARY_BYE)
-internal val VALUE_MIXED_OBJECT_ID_HELLO = Mixed.valueOf(VALUE_OBJECT_ID_HELLO)
-internal val VALUE_MIXED_OBJECT_ID_BYE = Mixed.valueOf(VALUE_OBJECT_ID_BYE)
-internal val VALUE_MIXED_UUID_HELLO = Mixed.valueOf(VALUE_UUID_HELLO)
-internal val VALUE_MIXED_UUID_BYE = Mixed.valueOf(VALUE_UUID_BYE)
-internal val VALUE_MIXED_LINK_HELLO = Mixed.valueOf(VALUE_LINK_HELLO)
-internal val VALUE_MIXED_LINK_BYE = Mixed.valueOf(VALUE_LINK_BYE)
-internal val VALUE_MIXED_NOT_PRESENT = Mixed.valueOf(VALUE_STRING_NOT_PRESENT)
+internal val VALUE_MIXED_INTEGER_HELLO = RealmAny.valueOf(VALUE_NUMERIC_HELLO)
+internal val VALUE_MIXED_INTEGER_BYE = RealmAny.valueOf(VALUE_NUMERIC_BYE)
+internal val VALUE_MIXED_FLOAT_HELLO = RealmAny.valueOf(VALUE_NUMERIC_HELLO.toFloat())
+internal val VALUE_MIXED_FLOAT_BYE = RealmAny.valueOf(VALUE_NUMERIC_BYE.toFloat())
+internal val VALUE_MIXED_DOUBLE_HELLO = RealmAny.valueOf(VALUE_NUMERIC_HELLO.toDouble())
+internal val VALUE_MIXED_DOUBLE_BYE = RealmAny.valueOf(VALUE_NUMERIC_BYE.toDouble())
+internal val VALUE_MIXED_STRING_HELLO = RealmAny.valueOf(VALUE_STRING_HELLO)
+internal val VALUE_MIXED_STRING_BYE = RealmAny.valueOf(VALUE_STRING_BYE)
+internal val VALUE_MIXED_STRING_NON_LATIN_HELLO = RealmAny.valueOf(VALUE_STRING_NON_LATIN_HELLO)
+internal val VALUE_MIXED_STRING_NON_LATIN_BYE = RealmAny.valueOf(VALUE_STRING_NON_LATIN_BYE)
+internal val VALUE_MIXED_BOOLEAN_HELLO = RealmAny.valueOf(VALUE_BOOLEAN_HELLO)
+internal val VALUE_MIXED_BOOLEAN_BYE = RealmAny.valueOf(VALUE_BOOLEAN_BYE)
+internal val VALUE_MIXED_DATE_HELLO = RealmAny.valueOf(VALUE_DATE_HELLO)
+internal val VALUE_MIXED_DATE_BYE = RealmAny.valueOf(VALUE_DATE_BYE)
+internal val VALUE_MIXED_DECIMAL128_HELLO = RealmAny.valueOf(VALUE_DECIMAL128_HELLO)
+internal val VALUE_MIXED_DECIMAL128_BYE = RealmAny.valueOf(VALUE_DECIMAL128_BYE)
+internal val VALUE_MIXED_BINARY_HELLO = RealmAny.valueOf(VALUE_BINARY_HELLO)
+internal val VALUE_MIXED_BINARY_BYE = RealmAny.valueOf(VALUE_BINARY_BYE)
+internal val VALUE_MIXED_OBJECT_ID_HELLO = RealmAny.valueOf(VALUE_OBJECT_ID_HELLO)
+internal val VALUE_MIXED_OBJECT_ID_BYE = RealmAny.valueOf(VALUE_OBJECT_ID_BYE)
+internal val VALUE_MIXED_UUID_HELLO = RealmAny.valueOf(VALUE_UUID_HELLO)
+internal val VALUE_MIXED_UUID_BYE = RealmAny.valueOf(VALUE_UUID_BYE)
+internal val VALUE_MIXED_LINK_HELLO = RealmAny.valueOf(VALUE_LINK_HELLO)
+internal val VALUE_MIXED_LINK_BYE = RealmAny.valueOf(VALUE_LINK_BYE)
+internal val VALUE_MIXED_NOT_PRESENT = RealmAny.valueOf(VALUE_STRING_NOT_PRESENT)
 
 enum class DictionaryKey {
     KEY_HELLO, KEY_BYE, KEY_NULL
 }
 
-fun getMixedForType(mixedType: MixedType, dictionaryKey: DictionaryKey): Mixed? {
-    return when (mixedType) {
-        MixedType.INTEGER -> when (dictionaryKey) {
+fun getRealmAnyForType(realmAnyType: RealmAnyType, dictionaryKey: DictionaryKey): RealmAny? {
+    return when (realmAnyType) {
+        RealmAnyType.INTEGER -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_INTEGER_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_INTEGER_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.BOOLEAN -> when (dictionaryKey) {
+        RealmAnyType.BOOLEAN -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_BOOLEAN_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_BOOLEAN_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.STRING -> when (dictionaryKey) {
+        RealmAnyType.STRING -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_STRING_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_STRING_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.BINARY -> when (dictionaryKey) {
+        RealmAnyType.BINARY -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_BINARY_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_BINARY_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.DATE -> when (dictionaryKey) {
+        RealmAnyType.DATE -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_DATE_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_DATE_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.FLOAT -> when (dictionaryKey) {
+        RealmAnyType.FLOAT -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_FLOAT_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_FLOAT_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.DOUBLE -> when (dictionaryKey) {
+        RealmAnyType.DOUBLE -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_DOUBLE_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_DOUBLE_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.DECIMAL128 -> when (dictionaryKey) {
+        RealmAnyType.DECIMAL128 -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_DECIMAL128_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_DECIMAL128_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.OBJECT_ID -> when (dictionaryKey) {
+        RealmAnyType.OBJECT_ID -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_OBJECT_ID_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_OBJECT_ID_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.OBJECT -> when (dictionaryKey) {
+        RealmAnyType.OBJECT -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_LINK_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_LINK_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.UUID -> when (dictionaryKey) {
+        RealmAnyType.UUID -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_UUID_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_UUID_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        MixedType.NULL -> when (dictionaryKey) {
-            DictionaryKey.KEY_HELLO -> Mixed.valueOf("Not null")
-            DictionaryKey.KEY_BYE -> Mixed.nullValue()
+        RealmAnyType.NULL -> when (dictionaryKey) {
+            DictionaryKey.KEY_HELLO -> RealmAny.valueOf("Not null")
+            DictionaryKey.KEY_BYE -> RealmAny.nullValue()
             DictionaryKey.KEY_NULL -> null
         }
     }
 }
 
-fun getMixedKeyValuePairs(
-        mixedType: MixedType,
+fun getRealmAnyKeyValuePairs(
+        realmAnyType: RealmAnyType,
         shouldSwapValues: Boolean = false
-): List<Pair<String, Mixed?>> {
-    return when (mixedType) {
-        MixedType.INTEGER ->
+): List<Pair<String, RealmAny?>> {
+    return when (realmAnyType) {
+        RealmAnyType.INTEGER ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_INTEGER_BYE, KEY_BYE to VALUE_MIXED_INTEGER_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_INTEGER_HELLO, KEY_BYE to VALUE_MIXED_INTEGER_BYE, KEY_NULL to null)
             }
-        MixedType.BOOLEAN ->
+        RealmAnyType.BOOLEAN ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to null, KEY_NULL to VALUE_MIXED_BOOLEAN_HELLO)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_HELLO, KEY_NULL to null)
             }
-        MixedType.STRING ->
+        RealmAnyType.STRING ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_STRING_BYE, KEY_BYE to VALUE_MIXED_STRING_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_STRING_HELLO, KEY_BYE to VALUE_MIXED_STRING_BYE, KEY_NULL to null)
             }
-        MixedType.BINARY ->
+        RealmAnyType.BINARY ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_BINARY_BYE, KEY_BYE to VALUE_MIXED_BINARY_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_BINARY_HELLO, KEY_BYE to VALUE_MIXED_BINARY_BYE, KEY_NULL to null)
             }
-        MixedType.DATE ->
+        RealmAnyType.DATE ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DATE_BYE, KEY_BYE to VALUE_MIXED_DATE_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DATE_HELLO, KEY_BYE to VALUE_MIXED_DATE_BYE, KEY_NULL to null)
             }
-        MixedType.FLOAT ->
+        RealmAnyType.FLOAT ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_FLOAT_BYE, KEY_BYE to VALUE_MIXED_FLOAT_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_FLOAT_HELLO, KEY_BYE to VALUE_MIXED_FLOAT_BYE, KEY_NULL to null)
             }
-        MixedType.DOUBLE ->
+        RealmAnyType.DOUBLE ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_BYE, KEY_BYE to VALUE_MIXED_DOUBLE_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_HELLO, KEY_BYE to VALUE_MIXED_DOUBLE_BYE, KEY_NULL to null)
             }
-        MixedType.DECIMAL128 ->
+        RealmAnyType.DECIMAL128 ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_BYE, KEY_BYE to VALUE_MIXED_DECIMAL128_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_HELLO, KEY_BYE to VALUE_MIXED_DECIMAL128_BYE, KEY_NULL to null)
             }
-        MixedType.OBJECT_ID ->
+        RealmAnyType.OBJECT_ID ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_BYE, KEY_BYE to VALUE_MIXED_OBJECT_ID_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_HELLO, KEY_BYE to VALUE_MIXED_OBJECT_ID_BYE, KEY_NULL to null)
             }
-        MixedType.OBJECT ->
+        RealmAnyType.OBJECT ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_LINK_BYE, KEY_BYE to VALUE_MIXED_LINK_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_LINK_HELLO, KEY_BYE to VALUE_MIXED_LINK_BYE, KEY_NULL to null)
             }
-        MixedType.UUID ->
+        RealmAnyType.UUID ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_UUID_BYE, KEY_BYE to VALUE_MIXED_UUID_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_UUID_HELLO, KEY_BYE to VALUE_MIXED_UUID_BYE, KEY_NULL to null)
             }
-        MixedType.NULL ->
+        RealmAnyType.NULL ->
             if (shouldSwapValues) {
-                listOf(KEY_HELLO to Mixed.valueOf("Not null"), KEY_BYE to Mixed.nullValue(), KEY_NULL to null)
+                listOf(KEY_HELLO to RealmAny.valueOf("Not null"), KEY_BYE to RealmAny.nullValue(), KEY_NULL to null)
             } else {
-                listOf(KEY_HELLO to Mixed.nullValue(), KEY_BYE to Mixed.valueOf("Not null"), KEY_NULL to null)
+                listOf(KEY_HELLO to RealmAny.nullValue(), KEY_BYE to RealmAny.valueOf("Not null"), KEY_NULL to null)
             }
     }
 }

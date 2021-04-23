@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -53,7 +53,7 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     public static final String FIELD_DECIMAL128 = "fieldDecimal128";
     public static final String FIELD_OBJECT_ID = "fieldObjectId";
     public static final String FIELD_UUID = "fieldUUID";
-    public static final String FIELD_MIXED = "fieldMixed";
+    public static final String FIELD_REALM_ANY = "fieldRealmAny";
     public static final String FIELD_OBJECT = "fieldObject";
     public static final String FIELD_LIST = "fieldList";
 
@@ -70,7 +70,7 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     public static final String FIELD_DECIMAL128_LIST = "fieldDecimal128List";
     public static final String FIELD_OBJECT_ID_LIST = "fieldObjectIdList";
     public static final String FIELD_UUID_LIST = "fieldUUIDList";
-    public static final String FIELD_MIXED_LIST = "fieldMixedList";
+    public static final String FIELD_REALM_ANY_LIST = "fieldRealmAnyList";
 
     public static final String FIELD_LINK_DICTIONARY = "columnRealmDictionary";
     public static final String FIELD_BOOLEAN_DICTIONARY = "columnBooleanDictionary";
@@ -86,7 +86,7 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     public static final String FIELD_OBJECT_ID_DICTIONARY = "columnObjectIdDictionary";
     public static final String FIELD_UUID_DICTIONARY = "columnUUIDDictionary";
     public static final String FIELD_DECIMAL128_DICTIONARY = "columnDecimal128Dictionary";
-    public static final String FIELD_MIXED_DICTIONARY = "columnMixedDictionary";
+    public static final String FIELD_REALM_ANY_DICTIONARY = "columnRealmAnyDictionary";
 
     public static final String FIELD_LINK_SET = "columnRealmSet";
     public static final String FIELD_BOOLEAN_SET = "columnBooleanSet";
@@ -102,7 +102,7 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     public static final String FIELD_OBJECT_ID_SET = "columnObjectIdSet";
     public static final String FIELD_UUID_SET = "columnUUIDSet";
     public static final String FIELD_DECIMAL128_SET = "columnDecimal128Set";
-    public static final String FIELD_MIXED_SET = "columnMixedSet";
+    public static final String FIELD_REALM_ANY_SET = "columnRealmAnySet";
 
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
@@ -142,7 +142,7 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     private Decimal128 fieldDecimal128;
     private ObjectId fieldObjectId;
     private UUID fieldUUID;
-    private Mixed fieldMixed;
+    private RealmAny fieldRealmAny;
     private AllJavaTypesUnsupportedTypes fieldObject;
     private RealmList<AllJavaTypesUnsupportedTypes> fieldList;
 
@@ -159,7 +159,7 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     private RealmList<Decimal128> fieldDecimal128List;
     private RealmList<ObjectId> fieldObjectIdList;
     private RealmList<UUID> fieldUUIDList;
-    private RealmList<Mixed> fieldMixedList;
+    private RealmList<RealmAny> fieldRealmAnyList;
 
     private RealmDictionary<AllJavaTypesUnsupportedTypes> columnRealmDictionary;
     private RealmDictionary<Boolean> columnBooleanDictionary;
@@ -175,7 +175,7 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     private RealmDictionary<ObjectId> columnObjectIdDictionary;
     private RealmDictionary<UUID> columnUUIDDictionary;
     private RealmDictionary<Decimal128> columnDecimal128Dictionary;
-    private RealmDictionary<Mixed> columnMixedDictionary;
+    private RealmDictionary<RealmAny> columnRealmAnyDictionary;
 
     private RealmSet<AllJavaTypesUnsupportedTypes> columnRealmSet;
     private RealmSet<Boolean> columnBooleanSet;
@@ -191,7 +191,7 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
     private RealmSet<ObjectId> columnObjectIdSet;
     private RealmSet<UUID> columnUUIDSet;
     private RealmSet<Decimal128> columnDecimal128Set;
-    private RealmSet<Mixed> columnMixedSet;
+    private RealmSet<RealmAny> columnRealmAnySet;
 
     @LinkingObjects(FIELD_OBJECT)
     private final RealmResults<AllJavaTypesUnsupportedTypes> objectParents = null;
@@ -423,12 +423,12 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
         this.fieldUUID = fieldUUID;
     }
 
-    public Mixed getFieldMixed() {
-        return fieldMixed;
+    public RealmAny getFieldRealmAny() {
+        return fieldRealmAny;
     }
 
-    public void setFieldMixed(Mixed fieldMixed) {
-        this.fieldMixed = fieldMixed;
+    public void setFieldRealmAny(RealmAny fieldRealmAny) {
+        this.fieldRealmAny = fieldRealmAny;
     }
 
     public RealmList<Decimal128> getFieldDecimal128List() {
@@ -455,12 +455,12 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
         this.fieldUUIDList = fieldUUIDList;
     }
 
-    public RealmList<Mixed> getFieldMixedList() {
-        return fieldMixedList;
+    public RealmList<RealmAny> getFieldRealmAnyList() {
+        return fieldRealmAnyList;
     }
 
-    public void setFieldMixedList(RealmList<Mixed> fieldMixedList) {
-        this.fieldMixedList = fieldMixedList;
+    public void setFieldRealmAnyList(RealmList<RealmAny> fieldRealmAnyList) {
+        this.fieldRealmAnyList = fieldRealmAnyList;
     }
 
     public RealmResults<AllJavaTypesUnsupportedTypes> getObjectParents() {
@@ -583,12 +583,12 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
         this.columnDecimal128Dictionary = columnDecimal128Dictionary;
     }
 
-    public RealmDictionary<Mixed> getColumnMixedDictionary() {
-        return columnMixedDictionary;
+    public RealmDictionary<RealmAny> getColumnRealmAnyDictionary() {
+        return columnRealmAnyDictionary;
     }
 
-    public void setColumnMixedDictionary(RealmDictionary<Mixed> columnMixedDictionary) {
-        this.columnMixedDictionary = columnMixedDictionary;
+    public void setColumnRealmAnyDictionary(RealmDictionary<RealmAny> columnRealmAnyDictionary) {
+        this.columnRealmAnyDictionary = columnRealmAnyDictionary;
     }
 
     public RealmSet<AllJavaTypesUnsupportedTypes> getColumnRealmSet() {
@@ -703,11 +703,11 @@ public class AllJavaTypesUnsupportedTypes extends RealmObject {
         this.columnDecimal128Set = columnDecimal12Set;
     }
 
-    public RealmSet<Mixed> getColumnMixedSet() {
-        return columnMixedSet;
+    public RealmSet<RealmAny> getColumnRealmAnySet() {
+        return columnRealmAnySet;
     }
 
-    public void setColumnMixedSet(RealmSet<Mixed> columnMixedSet) {
-        this.columnMixedSet = columnMixedSet;
+    public void setColumnRealmAnySet(RealmSet<RealmAny> columnRealmAnySet) {
+        this.columnRealmAnySet = columnRealmAnySet;
     }
 }

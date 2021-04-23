@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
-import io.realm.internal.objectstore.OsKeyPathMapping;
 
 
 /**
@@ -563,9 +562,9 @@ public class Table implements NativeObject {
         }
     }
 
-    public void setMixed(long columnKey, long rowKey, long nativePtr, boolean isDefault) {
+    public void setRealmAny(long columnKey, long rowKey, long nativePtr, boolean isDefault) {
         checkImmutable();
-        nativeSetMixed(nativeTableRefPtr, columnKey, rowKey, nativePtr, isDefault);
+        nativeSetRealmAny(nativeTableRefPtr, columnKey, rowKey, nativePtr, isDefault);
     }
 
     public void setLink(long columnKey, long rowKey, long value, boolean isDefault) {
@@ -906,7 +905,7 @@ public class Table implements NativeObject {
 
     public static native void nativeSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 
-    public static native void nativeSetMixed(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
+    public static native void nativeSetRealmAny(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 
     private native void nativeAddSearchIndex(long nativePtr, long columnKey);
 

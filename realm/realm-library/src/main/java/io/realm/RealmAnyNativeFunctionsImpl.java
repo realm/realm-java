@@ -18,26 +18,26 @@ package io.realm;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-import io.realm.internal.MixedNativeFunctions;
+import io.realm.internal.RealmAnyNativeFunctions;
 import io.realm.internal.TableQuery;
 import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.internal.objectstore.OsObjectBuilder;
 
 
-public class MixedNativeFunctionsImpl implements MixedNativeFunctions {
+public class RealmAnyNativeFunctionsImpl implements RealmAnyNativeFunctions {
 
     @Override
-    public void handleItem(long listPtr, Mixed mixed) {
-        OsObjectBuilder.nativeAddMixedListItem(listPtr, mixed.getNativePtr());
+    public void handleItem(long listPtr, RealmAny realmAny) {
+        OsObjectBuilder.nativeAddRealmAnyListItem(listPtr, realmAny.getNativePtr());
     }
 
     @Override
-    public void handleItem(long containerPtr, Map.Entry<String, Mixed> entry) {
-        OsObjectBuilder.nativeAddMixedDictionaryEntry(containerPtr, entry.getKey(), entry.getValue().getNativePtr());
+    public void handleItem(long containerPtr, Map.Entry<String, RealmAny> entry) {
+        OsObjectBuilder.nativeAddRealmAnyDictionaryEntry(containerPtr, entry.getKey(), entry.getValue().getNativePtr());
     }
 
     @Override
-    public void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, Mixed... arguments) {
+    public void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, RealmAny... arguments) {
         long[] args = new long[arguments.length];
 
         try {
@@ -45,7 +45,7 @@ public class MixedNativeFunctionsImpl implements MixedNativeFunctions {
                 args[i] = arguments[i].getNativePtr();
             }
         } catch (IllegalStateException cause) {
-            // This might happen if a query is constructed with a Mixed value containing an unmanaged Realm object.
+            // This might happen if a query is constructed with a RealmAny value containing an unmanaged Realm object.
             throw new IllegalArgumentException("Unmanaged Realm objects are not valid query arguments", cause);
         }
 

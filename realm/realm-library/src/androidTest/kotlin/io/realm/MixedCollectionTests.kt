@@ -20,7 +20,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.entities.*
-import io.realm.internal.core.NativeMixedCollection
+import io.realm.internal.core.NativeRealmAnyCollection
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.After
@@ -33,7 +33,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @RunWith(AndroidJUnit4::class)
-class MixedCollectionTests {
+class RealmAnyCollectionTests {
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
 
@@ -61,17 +61,17 @@ class MixedCollectionTests {
     @Test
     fun validateBoolean() {
         val collection = listOf(true, false, null, true)
-        val nativeMixedCollection = NativeMixedCollection.newBooleanCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newBooleanCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.BOOLEAN, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asBoolean())
+                assertEquals(RealmAnyType.BOOLEAN, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asBoolean())
             }
         }
     }
@@ -79,17 +79,17 @@ class MixedCollectionTests {
     @Test
     fun validateByte() {
         val collection = listOf(1.toByte(), 2.toByte(), null, 5.toByte())
-        val nativeMixedCollection = NativeMixedCollection.newIntegerCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newIntegerCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.INTEGER, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asLong().toByte())
+                assertEquals(RealmAnyType.INTEGER, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asLong().toByte())
             }
         }
     }
@@ -97,17 +97,17 @@ class MixedCollectionTests {
     @Test
     fun validateShort() {
         val collection = listOf(1.toShort(), 2.toShort(), null, 5.toShort())
-        val nativeMixedCollection = NativeMixedCollection.newIntegerCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newIntegerCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.INTEGER, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asLong().toShort())
+                assertEquals(RealmAnyType.INTEGER, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asLong().toShort())
             }
         }
     }
@@ -115,17 +115,17 @@ class MixedCollectionTests {
     @Test
     fun validateInteger() {
         val collection = listOf(2, 3, null, 5)
-        val nativeMixedCollection = NativeMixedCollection.newIntegerCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newIntegerCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.INTEGER, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asLong().toInt())
+                assertEquals(RealmAnyType.INTEGER, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asLong().toInt())
             }
         }
     }
@@ -133,17 +133,17 @@ class MixedCollectionTests {
     @Test
     fun validateLong() {
         val collection = listOf(2.toLong(), 3.toLong(), null, 5.toLong())
-        val nativeMixedCollection = NativeMixedCollection.newIntegerCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newIntegerCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.INTEGER, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asLong())
+                assertEquals(RealmAnyType.INTEGER, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asLong())
             }
         }
     }
@@ -151,17 +151,17 @@ class MixedCollectionTests {
     @Test
     fun validateFloat() {
         val collection = listOf(1.4.toFloat(), 2.1.toFloat(), null, 5.5.toFloat())
-        val nativeMixedCollection = NativeMixedCollection.newFloatCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newFloatCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.FLOAT, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asFloat().toFloat())
+                assertEquals(RealmAnyType.FLOAT, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asFloat().toFloat())
             }
         }
     }
@@ -169,17 +169,17 @@ class MixedCollectionTests {
     @Test
     fun validateDouble() {
         val collection = listOf(1.4, 2.1, null, 5.5)
-        val nativeMixedCollection = NativeMixedCollection.newDoubleCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newDoubleCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.DOUBLE, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asDouble())
+                assertEquals(RealmAnyType.DOUBLE, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asDouble())
             }
         }
     }
@@ -187,17 +187,17 @@ class MixedCollectionTests {
     @Test
     fun validateString() {
         val collection = listOf(UUID.randomUUID().toString(), UUID.randomUUID().toString(), null, UUID.randomUUID().toString())
-        val nativeMixedCollection = NativeMixedCollection.newStringCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newStringCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.STRING, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asString())
+                assertEquals(RealmAnyType.STRING, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asString())
             }
         }
     }
@@ -210,17 +210,17 @@ class MixedCollectionTests {
                 null,
                 byteArrayOf(0, 1, 1)
         )
-        val nativeMixedCollection = NativeMixedCollection.newBinaryCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newBinaryCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.BINARY, nativeMixed.type)
-                assertTrue(Arrays.equals(expectedValue, nativeMixed.asBinary()))
+                assertEquals(RealmAnyType.BINARY, nativeRealmAny.type)
+                assertTrue(Arrays.equals(expectedValue, nativeRealmAny.asBinary()))
             }
         }
     }
@@ -228,17 +228,17 @@ class MixedCollectionTests {
     @Test
     fun validateDate() {
         val collection = listOf(Date(1), Date(2), null, Date(5))
-        val nativeMixedCollection = NativeMixedCollection.newDateCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newDateCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.DATE, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asDate())
+                assertEquals(RealmAnyType.DATE, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asDate())
             }
         }
     }
@@ -246,17 +246,17 @@ class MixedCollectionTests {
     @Test
     fun validateObjectId() {
         val collection = listOf(ObjectId(Date(1)), ObjectId(Date(2)), null, ObjectId(Date(5)))
-        val nativeMixedCollection = NativeMixedCollection.newObjectIdCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newObjectIdCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.OBJECT_ID, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asObjectId())
+                assertEquals(RealmAnyType.OBJECT_ID, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asObjectId())
             }
         }
     }
@@ -264,17 +264,17 @@ class MixedCollectionTests {
     @Test
     fun validateDecimal128() {
         val collection = listOf(Decimal128(1), Decimal128(2), null, Decimal128(5))
-        val nativeMixedCollection = NativeMixedCollection.newDecimal128Collection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newDecimal128Collection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.DECIMAL128, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asDecimal128())
+                assertEquals(RealmAnyType.DECIMAL128, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asDecimal128())
             }
         }
     }
@@ -282,17 +282,17 @@ class MixedCollectionTests {
     @Test
     fun validateUUID() {
         val collection = listOf(UUID.randomUUID(), UUID.randomUUID(), null, UUID.randomUUID())
-        val nativeMixedCollection = NativeMixedCollection.newUUIDCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newUUIDCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(MixedType.UUID, nativeMixed.type)
-                assertEquals(expectedValue, nativeMixed.asUUID())
+                assertEquals(RealmAnyType.UUID, nativeRealmAny.type)
+                assertEquals(expectedValue, nativeRealmAny.asUUID())
             }
         }
     }
@@ -300,8 +300,8 @@ class MixedCollectionTests {
     @Test
     fun validateEmpty() {
         val collection = listOf<Double?>()
-        val nativeMixedCollection = NativeMixedCollection.newDoubleCollection(collection)
-        assertEquals(collection.size, nativeMixedCollection.size)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newDoubleCollection(collection)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
     }
 
     @Test
@@ -319,18 +319,18 @@ class MixedCollectionTests {
             collection.add(2, null)
         }
 
-        val nativeMixedCollection = NativeMixedCollection.newRealmModelCollection(collection)
+        val nativeRealmAnyCollection = NativeRealmAnyCollection.newRealmModelCollection(collection)
 
-        assertEquals(collection.size, nativeMixedCollection.size)
+        assertEquals(collection.size, nativeRealmAnyCollection.size)
         collection.forEachIndexed { index, expectedValue ->
-            val nativeMixed = nativeMixedCollection.getItem(index)
+            val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(MixedType.NULL, nativeMixed.type)
+                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
             } else {
-                val mixed = Mixed(MixedOperator.fromNativeMixed(realm, nativeMixed))
-                assertEquals(MixedType.OBJECT, mixed.type)
-                assertEquals(expectedValue.name, mixed.asRealmModel(PrimaryKeyAsString::class.java).name)
+                val realmAny = RealmAny(RealmAnyOperator.fromNativeRealmAny(realm, nativeRealmAny))
+                assertEquals(RealmAnyType.OBJECT, realmAny.type)
+                assertEquals(expectedValue.name, realmAny.asRealmModel(PrimaryKeyAsString::class.java).name)
             }
         }
     }

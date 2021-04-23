@@ -35,7 +35,7 @@ import kotlin.test.*
  */
 class ManagedSetTester<T : Any>(
         private val testerName: String,
-        private val mixedType: MixedType? = null,
+        private val realmAnyType: RealmAnyType? = null,
         private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
         private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
         private val requiredSetGetter: KFunction1<SetAllTypes, RealmSet<T>>? = null,
@@ -426,7 +426,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun requiredConstraints() {
-        // RealmModel and Mixed setters are ignored since they cannot be marked with "@Required"
+        // RealmModel and RealmAny setters are ignored since they cannot be marked with "@Required"
         if (requiredSetGetter != null) {
             val allTypesObject = createAllTypesManagedContainerAndAssert(realm, "id")
             assertNotNull(allTypesObject)
@@ -1106,12 +1106,12 @@ fun managedSetFactory(): List<SetTester> {
                         },
                         nullable = false
                 )
-            // Ignore Mixed in this switch
+            // Ignore RealmAny in this switch
             else -> null
         }
     }
 
-    // Add extra tests for Mixed datatype and Realm Models without PK
+    // Add extra tests for RealmAny datatype and Realm Models without PK
     return primitiveTesters
             // We add an extra test for Realm models without a PK
             .plus(NoPKRealmModelSetTester<Owner>(
@@ -1124,49 +1124,49 @@ fun managedSetFactory(): List<SetTester> {
                     notPresentValue = VALUE_LINK_NO_PK_NOT_PRESENT,
                     toArrayManaged = ToArrayManaged.RealmModelNoPKManaged()
             ))
-            // Then we add the tests for Mixed types
-            .plus(MixedType.values().map { mixedType ->
-                when (mixedType) {
-                    MixedType.OBJECT -> RealmModelManagedSetTester<Mixed>(
-                            testerName = "MIXED-${mixedType.name}",
-                            mixedType = mixedType,
-                            setGetter = SetAllTypes::getColumnMixedSet,
-                            setSetter = SetAllTypes::setColumnMixedSet,
-                            managedSetGetter = SetContainerClass::myMixedSet,
-                            managedCollectionGetter = SetContainerClass::myMixedList,
-                            unmanagedInitializedSet = getMixedKeyValuePairs(mixedType).map {
+            // Then we add the tests for RealmAny types
+            .plus(RealmAnyType.values().map { realmAnyType ->
+                when (realmAnyType) {
+                    RealmAnyType.OBJECT -> RealmModelManagedSetTester<RealmAny>(
+                            testerName = "MIXED-${realmAnyType.name}",
+                            realmAnyType = realmAnyType,
+                            setGetter = SetAllTypes::getColumnRealmAnySet,
+                            setSetter = SetAllTypes::setColumnRealmAnySet,
+                            managedSetGetter = SetContainerClass::myRealmAnySet,
+                            managedCollectionGetter = SetContainerClass::myRealmAnyList,
+                            unmanagedInitializedSet = getRealmAnyKeyValuePairs(realmAnyType).map {
                                 it.second
                             },
-                            unmanagedNotPresentValue = Mixed.valueOf(VALUE_LINK_NOT_PRESENT),
-                            toArrayManaged = ToArrayManaged.MixedManaged(),
+                            unmanagedNotPresentValue = RealmAny.valueOf(VALUE_LINK_NOT_PRESENT),
+                            toArrayManaged = ToArrayManaged.RealmAnyManaged(),
                             insertObjects = { realm, objects ->
-                                objects.map { mixed ->
-                                    if (mixed?.type == MixedType.OBJECT) {
-                                        val unmanagedObject = mixed.asRealmModel(DogPrimaryKey::class.java)
+                                objects.map { realmAny ->
+                                    if (realmAny?.type == RealmAnyType.OBJECT) {
+                                        val unmanagedObject = realmAny.asRealmModel(DogPrimaryKey::class.java)
                                         val managedObject = realm.copyToRealmOrUpdate(unmanagedObject)
-                                        Mixed.valueOf(managedObject)
+                                        RealmAny.valueOf(managedObject)
                                     } else {
-                                        mixed
+                                        realmAny
                                     }
                                 }
                             },
-                            deleteObjects = { objects: List<Mixed?> ->
-                                objects.map { mixed ->
-                                    if (mixed?.type == MixedType.OBJECT) {
-                                        val managedObject = mixed.asRealmModel(DogPrimaryKey::class.java)
+                            deleteObjects = { objects: List<RealmAny?> ->
+                                objects.map { realmAny ->
+                                    if (realmAny?.type == RealmAnyType.OBJECT) {
+                                        val managedObject = realmAny.asRealmModel(DogPrimaryKey::class.java)
                                         managedObject.deleteFromRealm()
                                     } else {
-                                        mixed
+                                        realmAny
                                     }
                                 }
                             },
                             nullable = true,
                             equalsTo = { expected, value ->
-                                if (expected == null && value == Mixed.nullValue()) {
+                                if (expected == null && value == RealmAny.nullValue()) {
                                     true
-                                } else if(expected != null && value != Mixed.nullValue()) {
+                                } else if(expected != null && value != RealmAny.nullValue()) {
                                     val expectedModel = expected.asRealmModel(DogPrimaryKey::class.java)
-                                    // Managed Mixed values are cannot be null but Mixed.nullValue()
+                                    // Managed RealmAny values are cannot be null but RealmAny.nullValue()
                                     val valueModel = value!!.asRealmModel(DogPrimaryKey::class.java)
 
                                     expectedModel.id == valueModel.id
@@ -1174,28 +1174,28 @@ fun managedSetFactory(): List<SetTester> {
                                     false
                                 }
                             },
-                            primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnMixedSet
+                            primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnRealmAnySet
                     )
-                    MixedType.NULL -> NullMixedSetTester(
-                            testerName = "MIXED-${mixedType.name}",
-                            setGetter = SetAllTypes::getColumnMixedSet
+                    RealmAnyType.NULL -> NullRealmAnySetTester(
+                            testerName = "MIXED-${realmAnyType.name}",
+                            setGetter = SetAllTypes::getColumnRealmAnySet
                     )
-                    else -> ManagedSetTester<Mixed>(
-                            testerName = "MIXED-${mixedType.name}",
-                            mixedType = mixedType,
-                            setGetter = SetAllTypes::getColumnMixedSet,
-                            setSetter = SetAllTypes::setColumnMixedSet,
-                            managedSetGetter = SetContainerClass::myMixedSet,
-                            managedCollectionGetter = SetContainerClass::myMixedList,
-                            initializedSet = getMixedKeyValuePairs(mixedType).map {
+                    else -> ManagedSetTester<RealmAny>(
+                            testerName = "MIXED-${realmAnyType.name}",
+                            realmAnyType = realmAnyType,
+                            setGetter = SetAllTypes::getColumnRealmAnySet,
+                            setSetter = SetAllTypes::setColumnRealmAnySet,
+                            managedSetGetter = SetContainerClass::myRealmAnySet,
+                            managedCollectionGetter = SetContainerClass::myRealmAnyList,
+                            initializedSet = getRealmAnyKeyValuePairs(realmAnyType).map {
                                 it.second
                             },
                             notPresentValue = VALUE_MIXED_NOT_PRESENT,
-                            toArrayManaged = ToArrayManaged.MixedManaged(),
+                            toArrayManaged = ToArrayManaged.RealmAnyManaged(),
                             equalsTo = { expected, value ->
-                                (expected == null && value == Mixed.nullValue()) || ((expected != null) && (expected == value))
+                                (expected == null && value == RealmAny.nullValue()) || ((expected != null) && (expected == value))
                             },
-                            primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnMixedSet
+                            primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnRealmAnySet
                     )
                 }
             })
@@ -1310,8 +1310,8 @@ abstract class ToArrayManaged<T> {
             test(realm, set, values, emptyArray(), arrayOf())
     }
 
-    class MixedManaged : ToArrayManaged<Mixed>() {
-        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<Mixed>, values: List<Mixed?>) =
+    class RealmAnyManaged : ToArrayManaged<RealmAny>() {
+        override fun assertToArrayWithParameter(realm: Realm, set: RealmSet<RealmAny>, values: List<RealmAny?>) =
             test(realm, set, values, emptyArray(), arrayOf())
     }
 }

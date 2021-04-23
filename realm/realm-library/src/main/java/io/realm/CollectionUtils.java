@@ -102,26 +102,26 @@ public class CollectionUtils {
     }
 
     /**
-     * Called by both list and dictionary operators to determine whether a Mixed instance contains
+     * Called by both list and dictionary operators to determine whether a RealmAny instance contains
      * a RealmModel in it and, if so, copy it to the provided Realm or not. This method acts as a
-     * pass-through in case the Mixed instance contains a Realm primitive.
+     * pass-through in case the RealmAny instance contains a Realm primitive.
      *
-     * @param realm the Realm instance to check against and to which the object inside the Mixed
+     * @param realm the Realm instance to check against and to which the object inside the RealmAny
      *              instance will be copied if needed.
-     * @param mixed the Mixed instance containing the RealmModel to copy to Realm, if needed.
-     * @return the Mixed instance that may or may not be copied
+     * @param realmAny the RealmAny instance containing the RealmModel to copy to Realm, if needed.
+     * @return the RealmAny instance that may or may not be copied
      */
     @SuppressWarnings("unchecked")
-    static Mixed copyToRealmIfNeeded(BaseRealm realm, Mixed mixed) {
-        if (mixed.getType() == MixedType.OBJECT) {
-            Class<? extends RealmModel> objectClass = (Class<? extends RealmModel>) mixed.getValueClass();
-            RealmModel object = mixed.asRealmModel(objectClass);
+    static RealmAny copyToRealmIfNeeded(BaseRealm realm, RealmAny realmAny) {
+        if (realmAny.getType() == RealmAnyType.OBJECT) {
+            Class<? extends RealmModel> objectClass = (Class<? extends RealmModel>) realmAny.getValueClass();
+            RealmModel object = realmAny.asRealmModel(objectClass);
 
             if (object instanceof RealmObjectProxy) {
                 RealmObjectProxy proxy = (RealmObjectProxy) object;
                 if (proxy instanceof DynamicRealmObject) {
                     if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
-                        return mixed;
+                        return realmAny;
                     } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
                         // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
                         // you have to run a full schema validation for each object.
@@ -132,7 +132,7 @@ public class CollectionUtils {
                     }
                 } else {
                     if (realm.getSchema().getSchemaForClass(objectClass).isEmbedded()) {
-                        throw new IllegalArgumentException("Embedded objects are not supported by Mixed.");
+                        throw new IllegalArgumentException("Embedded objects are not supported by RealmAny.");
                     }
 
                     // Object is already in this realm
@@ -140,15 +140,15 @@ public class CollectionUtils {
                         if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
                             throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
                         }
-                        return mixed;
+                        return realmAny;
                     }
                 }
             }
 
-            return Mixed.valueOf(copyToRealm(realm, object));
+            return RealmAny.valueOf(copyToRealm(realm, object));
         }
 
-        return mixed;
+        return realmAny;
     }
 
     /**

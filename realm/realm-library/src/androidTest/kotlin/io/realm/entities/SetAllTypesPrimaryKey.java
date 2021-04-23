@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmObject;
 import io.realm.RealmSet;
 import io.realm.annotations.PrimaryKey;
@@ -47,7 +47,7 @@ public class SetAllTypesPrimaryKey extends RealmObject {
     public RealmSet<Decimal128> columnDecimal128Set;
     public RealmSet<DogPrimaryKey> columnRealmModelSet;
     public RealmSet<Owner> columnRealmModelNoPkSet;
-    public RealmSet<Mixed> columnMixedSet;
+    public RealmSet<RealmAny> columnRealmAnySet;
 
     public long getColumnLong() {
         return columnLong;

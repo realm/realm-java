@@ -16,20 +16,20 @@
 
 package some.test;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
 
-public class RealmDictionaryModelMixedRequired extends RealmObject {
+public class RealmDictionaryModelRealmAnyRequired extends RealmObject {
 
-    @Required private RealmDictionary<Mixed> myRequiredMixedRealmDictionary;
+    @Required private RealmDictionary<RealmAny> myRequiredRealmAnyRealmDictionary;
 
-    public RealmDictionary<Mixed> getMyRequiredMixedRealmDictionary() {
-        return myRequiredMixedRealmDictionary;
+    public RealmDictionary<RealmAny> getMyRequiredRealmAnyRealmDictionary() {
+        return myRequiredRealmAnyRealmDictionary;
     }
 
-    public void setMyRequiredMixedRealmDictionary(RealmDictionary<Mixed> myRequiredMixedRealmDictionary) {
-        this.myRequiredMixedRealmDictionary = myRequiredMixedRealmDictionary;
+    public void setMyRequiredRealmAnyRealmDictionary(RealmDictionary<RealmAny> myRequiredRealmAnyRealmDictionary) {
+        this.myRequiredRealmAnyRealmDictionary = myRequiredRealmAnyRealmDictionary;
     }
 }
