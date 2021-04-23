@@ -196,7 +196,7 @@ public class RealmObjectSchemaTests {
         OBJECT_ID_DICTIONARY(ObjectId.class, true),
         DECIMAL128_DICTIONARY(Decimal128.class, true),
         UUID_DICTIONARY(UUID.class, true),
-        MIXED_DICTIONARY(Mixed.class, true),
+        MIXED_DICTIONARY(RealmAny.class, true),
         DICTIONARY(RealmDictionary.class, false); // Dictionary of Realm Objects
 
         final Class<?> clazz;

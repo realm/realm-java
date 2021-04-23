@@ -15,7 +15,7 @@ import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.core.NativeMixed;
+import io.realm.internal.core.NativeRealmAny;
 
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
@@ -617,9 +617,9 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
             } else if (clazz == Byte.class) {
                 //noinspection unchecked
                 return (CollectionOperator<T>) new ByteValueOperator(baseRealm, osResults, Byte.class, className);
-            } else if (clazz == Mixed.class) {
+            } else if (clazz == RealmAny.class) {
                 //noinspection unchecked
-                return (CollectionOperator<T>) new MixedValueOperator(baseRealm, osResults, Mixed.class, className);
+                return (CollectionOperator<T>) new RealmAnyValueOperator(baseRealm, osResults, RealmAny.class, className);
             } else {
                 return new PrimitiveValueOperator<>(baseRealm, osResults, clazz, className);
             }
@@ -858,26 +858,26 @@ abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements 
         }
     }
 
-    static class MixedValueOperator extends PrimitiveValueOperator<Mixed> {
+    static class RealmAnyValueOperator extends PrimitiveValueOperator<RealmAny> {
 
-        MixedValueOperator(BaseRealm baseRealm,
+        RealmAnyValueOperator(BaseRealm baseRealm,
                                   OsResults osResults,
-                                  @Nullable Class<Mixed> classSpec,
+                                  @Nullable Class<RealmAny> classSpec,
                                   @Nullable String className) {
             super(baseRealm, osResults, classSpec, className);
         }
 
         @Override
-        public Mixed get(int location) {
+        public RealmAny get(int location) {
             Object value = osResults.getValue(location);
-            NativeMixed nativeMixed = (NativeMixed) value;
-            return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
+            NativeRealmAny nativeRealmAny = (NativeRealmAny) value;
+            return new RealmAny(RealmAnyOperator.fromNativeRealmAny(baseRealm, nativeRealmAny));
         }
 
         @Override
-        public Mixed getFromResults(int pos, OsResults iteratorOsResults) {
-            NativeMixed nativeMixed = (NativeMixed) iteratorOsResults.getValue(pos);
-            return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
+        public RealmAny getFromResults(int pos, OsResults iteratorOsResults) {
+            NativeRealmAny nativeRealmAny = (NativeRealmAny) iteratorOsResults.getValue(pos);
+            return new RealmAny(RealmAnyOperator.fromNativeRealmAny(baseRealm, nativeRealmAny));
         }
     }
 }

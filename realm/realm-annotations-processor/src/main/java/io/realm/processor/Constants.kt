@@ -84,7 +84,7 @@ object Constants {
             "org.bson.types.Decimal128" to RealmFieldType.STRING_TO_DECIMAL128_MAP,
             "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
             "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
-            "io.realm.Mixed" to RealmFieldType.STRING_TO_MIXED_MAP
+            "io.realm.RealmAny" to RealmFieldType.STRING_TO_MIXED_MAP
     )
 
     /**

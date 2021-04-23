@@ -837,7 +837,7 @@ final class RealmAnyListOperator extends ManagedListOperator<RealmAny> {
     public void appendValue(Object value) {
         RealmAny realmAny = (RealmAny) value;
         realmAny = CollectionUtils.copyToRealmIfNeeded(realm, realmAny);
-        osList.addRealmAny(mixed.getNativePtr());
+        osList.addRealmAny(realmAny.getNativePtr());
     }
 
     @Override

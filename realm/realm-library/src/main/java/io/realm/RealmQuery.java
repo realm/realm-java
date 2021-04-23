@@ -38,7 +38,6 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.TableQuery;
 import io.realm.internal.Util;
-import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -1955,7 +1954,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsKey(String fieldName, @Nullable String key) {
         realm.checkIfValid();
-        this.query.containsKey(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(key));
+        this.query.containsKey(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(key));
         return this;
     }
 
@@ -1969,7 +1968,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Boolean value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -1983,7 +1982,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Byte value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -1997,7 +1996,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Short value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2011,7 +2010,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Integer value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2025,7 +2024,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Long value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2039,7 +2038,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Double value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2053,7 +2052,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Float value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2067,7 +2066,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable String value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2081,7 +2080,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable byte[] value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2095,7 +2094,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Date value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2109,7 +2108,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable Decimal128 value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2123,7 +2122,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable ObjectId value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2137,7 +2136,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, @Nullable UUID value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2149,7 +2148,7 @@ public class RealmQuery<E> {
      * @return the query object.
      * @throws java.lang.IllegalArgumentException if the field name isn't valid.
      */
-    public RealmQuery<E> containsValue(String fieldName, Mixed value) {
+    public RealmQuery<E> containsValue(String fieldName, RealmAny value) {
         realm.checkIfValid();
         this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, value);
         return this;
@@ -2165,7 +2164,7 @@ public class RealmQuery<E> {
      */
     public RealmQuery<E> containsValue(String fieldName, RealmModel value) {
         realm.checkIfValid();
-        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(value));
+        this.query.containsValue(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(value));
         return this;
     }
 
@@ -2180,7 +2179,7 @@ public class RealmQuery<E> {
     public RealmQuery<E> containsEntry(String fieldName, Map.Entry<String, ?> entry) {
         Util.checkNull(entry, "entry");
         realm.checkIfValid();
-        this.query.containsEntry(realm.getSchema().getKeyPathMapping(), fieldName, Mixed.valueOf(entry.getKey()), Mixed.valueOf(entry.getValue()));
+        this.query.containsEntry(realm.getSchema().getKeyPathMapping(), fieldName, RealmAny.valueOf(entry.getKey()), RealmAny.valueOf(entry.getValue()));
         return this;
     }
 
@@ -2678,12 +2677,12 @@ public class RealmQuery<E> {
             throw new IllegalArgumentException("Non-null 'predicate' required.");
         }
 
-        Mixed[] mixedArgs = new Mixed[arguments.length];
+        RealmAny[] realmAnyArgs = new RealmAny[arguments.length];
         for (int i = 0; i < arguments.length; i++) {
-            mixedArgs[i] = Mixed.valueOf(arguments[i]);
+            realmAnyArgs[i] = RealmAny.valueOf(arguments[i]);
         }
 
-        query.rawPredicate(realm.getSchema().getKeyPathMapping(), predicate, mixedArgs);
+        query.rawPredicate(realm.getSchema().getKeyPathMapping(), predicate, realmAnyArgs);
 
         return this;
     }

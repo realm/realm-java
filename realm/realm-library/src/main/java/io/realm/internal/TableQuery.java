@@ -22,15 +22,8 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
-<<<<<<< HEAD
-import io.realm.Mixed;
-import io.realm.MixedNativeFunctionsImpl;
-=======
 import io.realm.RealmAny;
 import io.realm.RealmAnyNativeFunctionsImpl;
-import io.realm.RealmModel;
-import io.realm.RealmObject;
->>>>>>> ct/mixed-rename-mixed
 import io.realm.Sort;
 import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.objectstore.OsKeyPathMapping;
@@ -183,61 +176,9 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-<<<<<<< HEAD
-    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, Mixed... args) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, predicate, args);
-=======
-    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, Object... args) {
-        RealmAny[] realmAnyArgs = new RealmAny[args.length];
-
-        for (int i = 0; i < args.length; i++) {
-            Object argument = args[i];
-            if (argument == null) {
-                realmAnyArgs[i] = RealmAny.nullValue();
-            } else if (argument instanceof Boolean) {
-                realmAnyArgs[i] = RealmAny.valueOf((Boolean) argument);
-            } else if (argument instanceof Byte) {
-                realmAnyArgs[i] = RealmAny.valueOf((Byte) argument);
-            } else if (argument instanceof Short) {
-                realmAnyArgs[i] = RealmAny.valueOf((Short) argument);
-            } else if (argument instanceof Integer) {
-                realmAnyArgs[i] = RealmAny.valueOf((Integer) argument);
-            } else if (argument instanceof Long) {
-                realmAnyArgs[i] = RealmAny.valueOf((Long) argument);
-            } else if (argument instanceof Float) {
-                realmAnyArgs[i] = RealmAny.valueOf((Float) argument);
-            } else if (argument instanceof Double) {
-                realmAnyArgs[i] = RealmAny.valueOf((Double) argument);
-            } else if (argument instanceof Decimal128) {
-                realmAnyArgs[i] = RealmAny.valueOf((Decimal128) argument);
-            } else if (argument instanceof String) {
-                realmAnyArgs[i] = RealmAny.valueOf((String) argument);
-            } else if (argument instanceof byte[]) {
-                realmAnyArgs[i] = RealmAny.valueOf((byte[]) argument);
-            } else if (argument instanceof Date) {
-                realmAnyArgs[i] = RealmAny.valueOf((Date) argument);
-            } else if (argument instanceof ObjectId) {
-                realmAnyArgs[i] = RealmAny.valueOf((ObjectId) argument);
-            } else if (argument instanceof UUID) {
-                realmAnyArgs[i] = RealmAny.valueOf((UUID) argument);
-            } else if (argument instanceof RealmAny) {
-                realmAnyArgs[i] = (RealmAny) argument;
-            } else if (RealmModel.class.isAssignableFrom(argument.getClass())) {
-                RealmModel value = (RealmModel) argument;
-
-                if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
-                    throw new IllegalArgumentException("Argument[" + i + "] is not a valid managed object.");
-                }
-
-                realmAnyArgs[i] = RealmAny.valueOf((RealmModel) argument);
-            } else {
-                throw new IllegalArgumentException("Unsupported query argument type: " + argument.getClass().getSimpleName());
-            }
-        }
-
+    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, RealmAny... realmAnyArgs) {
         realmAnyNativeFunctions.callRawPredicate(this, mapping, predicate, realmAnyArgs);
 
->>>>>>> ct/mixed-rename-mixed
         return this;
     }
 
@@ -358,20 +299,20 @@ public class TableQuery implements NativeObject {
 
     // Dictionary queries
 
-    public TableQuery containsKey(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@keys == $0", key);
+    public TableQuery containsKey(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny key) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@keys == $0", key);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery containsValue(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@values == $0", value);
+    public TableQuery containsValue(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@values == $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery containsEntry(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + "[$0] == $1", key, value);
+    public TableQuery containsEntry(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny key, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + "[$0] == $1", key, value);
         queryValidated = false;
         return this;
     }

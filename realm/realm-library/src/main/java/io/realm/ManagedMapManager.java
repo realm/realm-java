@@ -30,7 +30,7 @@ import io.realm.internal.ObserverPairList;
 import io.realm.internal.OsMap;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
-import io.realm.internal.core.NativeMixed;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.util.Pair;
 
 /**
@@ -207,7 +207,7 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
 /**
  * Specialization for {@link ManagedMapManager}s targeting {@link RealmDictionary}.
  * <p>
- * Dictionaries can in turn contain values of type {@link Mixed} and Realm primitive types, i.e.
+ * Dictionaries can in turn contain values of type {@link RealmAny} and Realm primitive types, i.e.
  * integer, boolean, string, byte array, date, float, double, decimal, object id, UUID and
  * {@link RealmModel}.
  * <p>
@@ -400,55 +400,55 @@ abstract class MapValueOperator<K, V> {
 }
 
 /**
- * {@link MapValueOperator} targeting {@link Mixed} values in {@link RealmMap}s.
+ * {@link MapValueOperator} targeting {@link RealmAny} values in {@link RealmMap}s.
  */
-class MixedValueOperator<K> extends MapValueOperator<K, Mixed> {
+class RealmAnyValueOperator<K> extends MapValueOperator<K, RealmAny> {
 
-    MixedValueOperator(BaseRealm baseRealm,
+    RealmAnyValueOperator(BaseRealm baseRealm,
                        OsMap osMap,
-                       TypeSelectorForMap<K, Mixed> typeSelectorForMap) {
-        super(Mixed.class, baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.MIXED);
+                       TypeSelectorForMap<K, RealmAny> typeSelectorForMap) {
+        super(RealmAny.class, baseRealm, osMap, typeSelectorForMap, RealmMapEntrySet.IteratorType.MIXED);
     }
 
     @Nullable
     @Override
-    Mixed get(Object key) {
-        long mixedPtr = osMap.getMixedPtr(key);
-        if (mixedPtr == OsMap.NOT_FOUND) {
+    RealmAny get(Object key) {
+        long realmAnyPtr = osMap.getRealmAnyPtr(key);
+        if (realmAnyPtr == OsMap.NOT_FOUND) {
             return null;
         }
-        NativeMixed nativeMixed = new NativeMixed(mixedPtr);
-        return new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
+        NativeRealmAny nativeRealmAny = new NativeRealmAny(realmAnyPtr);
+        return new RealmAny(RealmAnyOperator.fromNativeRealmAny(baseRealm, nativeRealmAny));
     }
 
     @Nullable
     @Override
-    Mixed put(Object key, @Nullable Mixed value) {
-        Mixed original = get(key);
+    RealmAny put(Object key, @Nullable RealmAny value) {
+        RealmAny original = get(key);
 
         if (value == null) {
             osMap.put(key, null);
         } else {
-            osMap.putMixed(key, CollectionUtils.copyToRealmIfNeeded(baseRealm, value).getNativePtr());
+            osMap.putRealmAny(key, CollectionUtils.copyToRealmIfNeeded(baseRealm, value).getNativePtr());
         }
         return original;
     }
 
     @Override
-    Set<Map.Entry<K, Mixed>> entrySet() {
+    Set<Map.Entry<K, RealmAny>> entrySet() {
         return new RealmMapEntrySet<>(baseRealm, osMap, RealmMapEntrySet.IteratorType.MIXED, null);
     }
 
     @Override
     boolean containsValueInternal(@Nullable Object value) {
-        // Mixed dictionaries store null values as Mixed.nullValue()
+        // RealmAny dictionaries store null values as RealmAny.nullValue()
         if (value == null) {
             return false;
         }
-        if (value instanceof Mixed) {
-            return osMap.containsMixedValue(((Mixed) value).getNativePtr());
+        if (value instanceof RealmAny) {
+            return osMap.containsRealmAnyValue(((RealmAny) value).getNativePtr());
         }
-        throw new IllegalArgumentException("This dictionary can only contain 'Mixed' values.");
+        throw new IllegalArgumentException("This dictionary can only contain 'RealmAny' values.");
     }
 }
 

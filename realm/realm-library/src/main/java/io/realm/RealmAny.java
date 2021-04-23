@@ -18,7 +18,6 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.UUID;
@@ -456,42 +455,42 @@ public class RealmAny {
     }
 
     /**
-     * Creates a new Mixed out of an Object.
+     * Creates a new RealmAny out of an Object.
      *
      * @param value initial value.
-     * @return a new Mixed wrapping the object.
+     * @return a new RealmAny wrapping the object.
      */
-    static Mixed valueOf(@Nullable Object value) {
+    static RealmAny valueOf(@Nullable Object value) {
         if (value == null) {
-            return Mixed.nullValue();
+            return RealmAny.nullValue();
         } else if (value instanceof Boolean) {
-            return Mixed.valueOf((Boolean) value);
+            return RealmAny.valueOf((Boolean) value);
         } else if (value instanceof Byte) {
-            return Mixed.valueOf((Byte) value);
+            return RealmAny.valueOf((Byte) value);
         } else if (value instanceof Short) {
-            return Mixed.valueOf((Short) value);
+            return RealmAny.valueOf((Short) value);
         } else if (value instanceof Integer) {
-            return Mixed.valueOf((Integer) value);
+            return RealmAny.valueOf((Integer) value);
         } else if (value instanceof Long) {
-            return Mixed.valueOf((Long) value);
+            return RealmAny.valueOf((Long) value);
         } else if (value instanceof Float) {
-            return Mixed.valueOf((Float) value);
+            return RealmAny.valueOf((Float) value);
         } else if (value instanceof Double) {
-            return Mixed.valueOf((Double) value);
+            return RealmAny.valueOf((Double) value);
         } else if (value instanceof Decimal128) {
-            return Mixed.valueOf((Decimal128) value);
+            return RealmAny.valueOf((Decimal128) value);
         } else if (value instanceof String) {
-            return Mixed.valueOf((String) value);
+            return RealmAny.valueOf((String) value);
         } else if (value instanceof byte[]) {
-            return Mixed.valueOf((byte[]) value);
+            return RealmAny.valueOf((byte[]) value);
         } else if (value instanceof Date) {
-            return Mixed.valueOf((Date) value);
+            return RealmAny.valueOf((Date) value);
         } else if (value instanceof ObjectId) {
-            return Mixed.valueOf((ObjectId) value);
+            return RealmAny.valueOf((ObjectId) value);
         } else if (value instanceof UUID) {
-            return Mixed.valueOf((UUID) value);
-        } else if (value instanceof Mixed) {
-            return (Mixed) value;
+            return RealmAny.valueOf((UUID) value);
+        } else if (value instanceof RealmAny) {
+            return (RealmAny) value;
         } else if (RealmModel.class.isAssignableFrom(value.getClass())) {
             RealmModel model = (RealmModel) value;
 
@@ -499,9 +498,9 @@ public class RealmAny {
                 throw new IllegalArgumentException("RealmObject is not a valid managed object.");
             }
 
-            return Mixed.valueOf((RealmModel) model);
+            return RealmAny.valueOf((RealmModel) model);
         } else {
-            throw new IllegalArgumentException("Type not supported on Mixed: " + value.getClass().getSimpleName());
+            throw new IllegalArgumentException("Type not supported on RealmAny: " + value.getClass().getSimpleName());
         }
     }
 

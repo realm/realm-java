@@ -57,7 +57,7 @@ class DictionaryMiscTests {
             Triple(DictionaryContainerClass::myObjectIdDictionary, ObjectId::class.java, RealmFieldType.STRING_TO_OBJECT_ID_MAP),
             Triple(DictionaryContainerClass::myUUIDDictionary, UUID::class.java, RealmFieldType.STRING_TO_UUID_MAP),
             Triple(DictionaryContainerClass::myDecimal128Dictionary, Decimal128::class.java, RealmFieldType.STRING_TO_DECIMAL128_MAP),
-            Triple(DictionaryContainerClass::myMixedDictionary, Mixed::class.java, RealmFieldType.STRING_TO_MIXED_MAP),
+            Triple(DictionaryContainerClass::myRealmAnyDictionary, RealmAny::class.java, RealmFieldType.STRING_TO_MIXED_MAP),
             Triple(DictionaryContainerClass::myRealmModelDictionary, StringOnly::class.java, RealmFieldType.STRING_TO_LINK_MAP)
     )
 

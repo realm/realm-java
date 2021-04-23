@@ -33,7 +33,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import io.realm.internal.OsMap;
-import io.realm.internal.core.NativeMixed;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.util.Pair;
 
 /**
@@ -257,7 +257,7 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
                 return (EntrySetIterator<K, V>) new UUIDValueIterator<>(osMap, baseRealm);
             case MIXED:
                 //noinspection unchecked
-                return (EntrySetIterator<K, V>) new MixedValueIterator<K>(osMap, baseRealm);
+                return (EntrySetIterator<K, V>) new RealmAnyValueIterator<K>(osMap, baseRealm);
             case OBJECT:
                 if (typeSelectorForMap == null) {
                     throw new IllegalArgumentException("Missing class container when creating RealmModelValueIterator.");
@@ -554,18 +554,18 @@ class RealmMapEntrySet<K, V> implements Set<Map.Entry<K, V>> {
         }
     }
 
-    private static class MixedValueIterator<K> extends EntrySetIterator<K, Mixed> {
+    private static class RealmAnyValueIterator<K> extends EntrySetIterator<K, RealmAny> {
 
-        MixedValueIterator(OsMap osMap, BaseRealm baseRealm) {
+        RealmAnyValueIterator(OsMap osMap, BaseRealm baseRealm) {
             super(osMap, baseRealm);
         }
 
         @Override
-        protected Map.Entry<K, Mixed> getEntryInternal(int position) {
-            Pair<K, NativeMixed> pair = osMap.getKeyMixedPair(position);
+        protected Map.Entry<K, RealmAny> getEntryInternal(int position) {
+            Pair<K, NativeRealmAny> pair = osMap.getKeyRealmAnyPair(position);
             K key = pair.first;
-            NativeMixed nativeMixed = pair.second;
-            Mixed value = new Mixed(MixedOperator.fromNativeMixed(baseRealm, nativeMixed));
+            NativeRealmAny nativeRealmAny = pair.second;
+            RealmAny value = new RealmAny(RealmAnyOperator.fromNativeRealmAny(baseRealm, nativeRealmAny));
             return new AbstractMap.SimpleImmutableEntry<>(key, value);
         }
     }

@@ -239,7 +239,7 @@ object Utils {
      */
     fun isRealmValueDictionary(field: VariableElement): Boolean {
         val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field) ?: return false
-        return !isRealmModel(elementTypeMirror) && !isMixed(elementTypeMirror)
+        return !isRealmModel(elementTypeMirror) && !isRealmAny(elementTypeMirror)
     }
 
     /**
@@ -251,12 +251,12 @@ object Utils {
     }
 
     /**
-     * @return `true` if a given field type is `RealmDictionary` and its element type is `Mixed`,
+     * @return `true` if a given field type is `RealmDictionary` and its element type is `RealmAny`,
      * `false` otherwise.
      */
-    fun isMixedDictionary(field: VariableElement): Boolean {
+    fun isRealmAnyDictionary(field: VariableElement): Boolean {
         val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field) ?: return false
-        return isMixed(elementTypeMirror)
+        return isRealmAny(elementTypeMirror)
     }
 
     /**

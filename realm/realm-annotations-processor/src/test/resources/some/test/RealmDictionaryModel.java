@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
@@ -46,7 +46,7 @@ public class RealmDictionaryModel extends RealmObject {
     @Required private RealmDictionary<Decimal128> myRequiredDecimal128IdRealmDictionary;
 
     private RealmDictionary<RealmDictionaryModel> myRealmDictionaryModel;
-    private RealmDictionary<Mixed> myMixedRealmDictionary;
+    private RealmDictionary<RealmAny> myRealmAnyRealmDictionary;
     private RealmDictionary<Boolean> myBooleanRealmDictionary;
     private RealmDictionary<String> myStringRealmDictionary;
     private RealmDictionary<Integer> myIntegerRealmDictionary;
@@ -177,12 +177,12 @@ public class RealmDictionaryModel extends RealmObject {
         return immutableRealmDictionaryField;
     }
 
-    public RealmDictionary<Mixed> getMyMixedRealmDictionary() {
-        return myMixedRealmDictionary;
+    public RealmDictionary<RealmAny> getMyRealmAnyRealmDictionary() {
+        return myRealmAnyRealmDictionary;
     }
 
-    public void setMyMixedRealmDictionary(RealmDictionary<Mixed> myMixedRealmDictionary) {
-        this.myMixedRealmDictionary = myMixedRealmDictionary;
+    public void setMyRealmAnyRealmDictionary(RealmDictionary<RealmAny> myRealmAnyRealmDictionary) {
+        this.myRealmAnyRealmDictionary = myRealmAnyRealmDictionary;
     }
 
     public RealmDictionary<Boolean> getMyBooleanRealmDictionary() {

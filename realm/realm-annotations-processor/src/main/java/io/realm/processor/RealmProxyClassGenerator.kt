@@ -505,7 +505,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             fieldTypeCanonicalName: String,
             valueTypeMirror: TypeMirror
     ) {
-        val forMixed = Utils.isMixed(valueTypeMirror)
+        val forRealmAny = Utils.isRealmAny(valueTypeMirror)
         val forRealmModel = Utils.isRealmModel(valueTypeMirror)
 
         with(writer) {
@@ -520,8 +520,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("return ${fieldName}RealmDictionary")
                 nextControlFlow("else")
 
-                    if (forMixed) {
-                        emitStatement("OsMap osMap = proxyState.getRow\$realm().getMixedMap(%s)", fieldColKeyVariableReference(field))
+                    if (forRealmAny) {
+                        emitStatement("OsMap osMap = proxyState.getRow\$realm().getRealmAnyMap(%s)", fieldColKeyVariableReference(field))
                     } else if (forRealmModel) {
                         emitStatement("OsMap osMap = proxyState.getRow\$realm().getModelMap(%s)", fieldColKeyVariableReference(field))
                     } else {
@@ -543,9 +543,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("return")
                     endControlFlow()
 
-                    // Either mixed, which may or may not contain RealmObjects inside...
-                    if (forMixed) {
-                        emitSingleLineComment("if the dictionary contains unmanaged RealmModel instances boxed in Mixed objects, convert them to managed.")
+                    // Either realmAny, which may or may not contain RealmObjects inside...
+                    if (forRealmAny) {
+                        emitSingleLineComment("if the dictionary contains unmanaged RealmModel instances boxed in RealmAny objects, convert them to managed.")
                         beginControlFlow("if (value != null && !value.isManaged())")
                             emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
                             emitStatement("final RealmDictionary<%s> original = value", genericType)
@@ -553,13 +553,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             beginControlFlow("for (java.util.Map.Entry<String, %s> item : original.entrySet())", genericType)
                                 emitStatement("String entryKey = item.getKey()")
                                 emitStatement("%s entryValue = item.getValue()", genericType)
-                                emitSingleLineComment("ensure (potential) RealmModel instances are copied to Realm if generic type is Mixed")
+                                emitSingleLineComment("ensure (potential) RealmModel instances are copied to Realm if generic type is RealmAny")
                                 beginControlFlow("if (entryValue == null)")
                                     emitStatement("value.put(entryKey, null)")
-                                nextControlFlow("else if (entryValue.getType() == MixedType.OBJECT)")
+                                nextControlFlow("else if (entryValue.getType() == RealmAnyType.OBJECT)")
                                     emitStatement("RealmModel realmModel = entryValue.asRealmModel(RealmModel.class)")
                                     emitStatement("RealmModel modelFromRealm = realm.copyToRealmOrUpdate(realmModel)")
-                                    emitStatement("value.put(entryKey, Mixed.valueOf(modelFromRealm))")
+                                    emitStatement("value.put(entryKey, RealmAny.valueOf(modelFromRealm))")
                                 nextControlFlow("else")
                                     emitStatement("value.put(entryKey, entryValue)")
                                 endControlFlow()
@@ -587,8 +587,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                 emitStatement("proxyState.getRealm\$realm().checkIfValid()")
 
-                if (forMixed) {
-                    emitStatement("OsMap osMap = proxyState.getRow\$realm().getMixedMap(%s)", fieldColKeyVariableReference(field))
+                if (forRealmAny) {
+                    emitStatement("OsMap osMap = proxyState.getRow\$realm().getRealmAnyMap(%s)", fieldColKeyVariableReference(field))
                 } else if (forRealmModel) {
                     emitStatement("OsMap osMap = proxyState.getRow\$realm().getModelMap(%s)", fieldColKeyVariableReference(field))
                 } else {
@@ -603,11 +603,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     emitStatement("String entryKey = item.getKey()")
                     emitStatement("%s entryValue = item.getValue()", genericType)
 
-                    if (forMixed) {
+                    if (forRealmAny) {
                         beginControlFlow("if (entryValue == null)")
                             emitStatement("osMap.put(entryKey, null)")
                         nextControlFlow("else")
-                            emitStatement("osMap.putMixed(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue).getNativePtr())")
+                            emitStatement("osMap.putRealmAny(entryKey, ProxyUtils.copyToRealmIfNeeded(proxyState, entryValue).getNativePtr())")
                         endControlFlow()
                     } else if (forRealmModel) {
                         beginControlFlow("if (entryValue == null)")
@@ -2163,18 +2163,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                             emitEmptyLine()
                         }
-                        Utils.isMixedDictionary(field) -> {
+                        Utils.isRealmAnyDictionary(field) -> {
                             val genericType = Utils.getGenericTypeQualifiedName(field)
-                            emitStatement("RealmDictionary<Mixed> ${fieldName}UnmanagedDictionary = unmanagedSource.${getter}()")
+                            emitStatement("RealmDictionary<RealmAny> ${fieldName}UnmanagedDictionary = unmanagedSource.${getter}()")
                             beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
-                                emitStatement("RealmDictionary<Mixed> ${fieldName}ManagedDictionary = managedCopy.${getter}()")
+                                emitStatement("RealmDictionary<RealmAny> ${fieldName}ManagedDictionary = managedCopy.${getter}()")
                                 emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
                                 emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
-                                emitStatement("java.util.List<Long> mixedPointers = new java.util.ArrayList<>()")
+                                emitStatement("java.util.List<Long> realmAnyPointers = new java.util.ArrayList<>()")
                                 beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
-                                    emitStatement("Mixed mixedItem = entry.getValue()")
-                                    emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, update, cache, flags)")
-                                    emitStatement("${fieldName}ManagedDictionary.put(entry.getKey(), mixedItem)")
+                                    emitStatement("RealmAny realmAnyItem = entry.getValue()")
+                                    emitStatement("realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, update, cache, flags)")
+                                    emitStatement("${fieldName}ManagedDictionary.put(entry.getKey(), realmAnyItem)")
                                 endControlFlow()
                             endControlFlow()
                             emitEmptyLine()
@@ -2350,18 +2350,18 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("unmanagedCopy.${getter}().put(entry.getKey(), entry.getValue())")
                             endControlFlow()
                         }
-                        Utils.isMixedDictionary(field) -> {
+                        Utils.isRealmAnyDictionary(field) -> {
                             emitEmptyLine()
                             emitSingleLineComment("Deep copy of %s", fieldName)
                             beginControlFlow("if (currentDepth == maxDepth)")
                                 emitStatement("unmanagedCopy.%s(null)", setter)
                             nextControlFlow("else")
-                                emitStatement("RealmDictionary<Mixed> managed${fieldName}Dictionary = realmSource.${getter}()")
-                                emitStatement("RealmDictionary<Mixed> unmanaged${fieldName}Dictionary = new RealmDictionary<Mixed>()")
+                                emitStatement("RealmDictionary<RealmAny> managed${fieldName}Dictionary = realmSource.${getter}()")
+                                emitStatement("RealmDictionary<RealmAny> unmanaged${fieldName}Dictionary = new RealmDictionary<RealmAny>()")
                                 emitStatement("unmanagedCopy.${setter}(unmanaged${fieldName}Dictionary)")
                                 emitStatement("int nextDepth = currentDepth + 1")
-                            beginControlFlow("for (Map.Entry<String, Mixed> entry : managed${fieldName}Dictionary.entrySet())")
-                                emitStatement("Mixed detachedValue = ProxyUtils.createDetachedCopy(entry.getValue(), objectRealm, nextDepth, maxDepth, cache)")
+                            beginControlFlow("for (Map.Entry<String, RealmAny> entry : managed${fieldName}Dictionary.entrySet())")
+                                emitStatement("RealmAny detachedValue = ProxyUtils.createDetachedCopy(entry.getValue(), objectRealm, nextDepth, maxDepth, cache)")
                                 emitStatement("unmanaged${fieldName}Dictionary.put(entry.getKey(), detachedValue)")
                                 endControlFlow()
                             endControlFlow()
@@ -2511,24 +2511,24 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("builder.addRealmAnyList(${fieldColKey}, new RealmList<RealmAny>())")
                             endControlFlow()
                         }
-                        Utils.isMixedDictionary(field) -> {
+                        Utils.isRealmAnyDictionary(field) -> {
                             emitEmptyLine()
 
                             val genericType = Utils.getGenericTypeQualifiedName(field)
-                            emitStatement("RealmDictionary<Mixed> ${fieldName}UnmanagedDictionary = realmObjectSource.${getter}()")
+                            emitStatement("RealmDictionary<RealmAny> ${fieldName}UnmanagedDictionary = realmObjectSource.${getter}()")
                             beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
-                                emitStatement("RealmDictionary<Mixed> ${fieldName}ManagedDictionary = new RealmDictionary<>()")
+                                emitStatement("RealmDictionary<RealmAny> ${fieldName}ManagedDictionary = new RealmDictionary<>()")
                                 emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
                                 emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
-                                emitStatement("java.util.List<Long> mixedPointers = new java.util.ArrayList<>()")
+                                emitStatement("java.util.List<Long> realmAnyPointers = new java.util.ArrayList<>()")
                                 beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
-                                    emitStatement("Mixed mixedItem = entry.getValue()")
-                                    emitStatement("mixedItem = ProxyUtils.copyOrUpdate(mixedItem, realm, true, cache, flags)")
-                                    emitStatement("${fieldName}ManagedDictionary.put(entry.getKey(), mixedItem)")
+                                    emitStatement("RealmAny realmAnyItem = entry.getValue()")
+                                    emitStatement("realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, true, cache, flags)")
+                                    emitStatement("${fieldName}ManagedDictionary.put(entry.getKey(), realmAnyItem)")
                                 endControlFlow()
-                                emitStatement("builder.addMixedValueDictionary(${fieldColKey}, ${fieldName}ManagedDictionary)")
+                                emitStatement("builder.addRealmAnyValueDictionary(${fieldColKey}, ${fieldName}ManagedDictionary)")
                             nextControlFlow("else")
-                                emitStatement("builder.addMixedValueDictionary(${fieldColKey}, null)")
+                                emitStatement("builder.addRealmAnyValueDictionary(${fieldColKey}, null)")
                             endControlFlow()
                             emitEmptyLine()
                         }

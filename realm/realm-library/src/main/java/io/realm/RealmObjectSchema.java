@@ -97,7 +97,7 @@ public abstract class RealmObjectSchema {
         dictionaryMap.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.STRING_TO_OBJECT_ID_MAP, true));
         dictionaryMap.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.STRING_TO_DECIMAL128_MAP, true));
         dictionaryMap.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.STRING_TO_UUID_MAP, true));
-        dictionaryMap.put(Mixed.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.STRING_TO_MIXED_MAP, true));
+        dictionaryMap.put(RealmAny.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.STRING_TO_MIXED_MAP, true));
         SUPPORTED_DICTIONARY_SIMPLE_FIELDS = Collections.unmodifiableMap(dictionaryMap);
     }
 

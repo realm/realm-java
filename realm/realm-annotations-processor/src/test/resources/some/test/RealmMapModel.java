@@ -16,7 +16,7 @@
 
 package some.test;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmMap;
 import io.realm.RealmObject;
 
@@ -25,13 +25,13 @@ import io.realm.RealmObject;
  */
 public class RealmMapModel extends RealmObject {
 
-    private RealmMap<String, Mixed> myMap;      // this currently fails
+    private RealmMap<String, RealmAny> myMap;      // this currently fails
 
-    public RealmMap<String, Mixed> getMyMap() {
+    public RealmMap<String, RealmAny> getMyMap() {
         return myMap;
     }
 
-    public void setMyMap(RealmMap<String, Mixed> map) {
+    public void setMyMap(RealmMap<String, RealmAny> map) {
         this.myMap = map;
     }
 }

@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmDictionary;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -48,7 +48,7 @@ public class DictionaryAllTypes extends RealmObject {
     private RealmDictionary<ObjectId> columnObjectIdDictionary;
     private RealmDictionary<UUID> columnUUIDDictionary;
     private RealmDictionary<Decimal128> columnDecimal128Dictionary;
-    private RealmDictionary<Mixed> columnMixedDictionary;
+    private RealmDictionary<RealmAny> columnRealmAnyDictionary;
 
     @Required
     private RealmDictionary<Boolean> columnRequiredBooleanDictionary;
@@ -197,12 +197,12 @@ public class DictionaryAllTypes extends RealmObject {
         this.columnDecimal128Dictionary = columnDecimal128Dictionary;
     }
 
-    public RealmDictionary<Mixed> getColumnMixedDictionary() {
-        return columnMixedDictionary;
+    public RealmDictionary<RealmAny> getColumnRealmAnyDictionary() {
+        return columnRealmAnyDictionary;
     }
 
-    public void setColumnMixedDictionary(RealmDictionary<Mixed> columnMixedDictionary) {
-        this.columnMixedDictionary = columnMixedDictionary;
+    public void setColumnRealmAnyDictionary(RealmDictionary<RealmAny> columnRealmAnyDictionary) {
+        this.columnRealmAnyDictionary = columnRealmAnyDictionary;
     }
 
     public RealmDictionary<Boolean> getColumnRequiredBooleanDictionary() {

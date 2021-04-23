@@ -237,7 +237,7 @@ class UnmanagedGenericTester<T : Any>(
 
 /**
  * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
- * many Mixed testers as [MixedType]s.
+ * many RealmAny testers as [RealmAnyType]s.
  */
 fun unmanagedFactory(): List<DictionaryTester> {
     // Create primitive testers first
@@ -341,21 +341,21 @@ fun unmanagedFactory(): List<DictionaryTester> {
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_LINK_NOT_PRESENT
                 )
-            // Ignore Mixed in this switch
+            // Ignore RealmAny in this switch
             else -> null
         }
     }
 
-    // Create Mixed testers now
-    val mixedTesters = MixedType.values().map { mixedType ->
-        UnmanagedGenericTester<Mixed>(
-                "UnmanagedMixed-${mixedType.name}",
-                getMixedKeyValuePairs(mixedType),
+    // Create RealmAny testers now
+    val realmAnyTesters = RealmAnyType.values().map { realmAnyType ->
+        UnmanagedGenericTester<RealmAny>(
+                "UnmanagedRealmAny-${realmAnyType.name}",
+                getRealmAnyKeyValuePairs(realmAnyType),
                 KEY_NOT_PRESENT,
                 VALUE_MIXED_NOT_PRESENT
         )
     }
 
     // Put them together
-    return primitiveTesters.plus(mixedTesters)
+    return primitiveTesters.plus(realmAnyTesters)
 }

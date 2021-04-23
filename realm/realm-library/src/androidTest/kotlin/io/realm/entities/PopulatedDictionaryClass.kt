@@ -51,16 +51,16 @@ open class PopulatedDictionaryClass : RealmObject() {
             RealmDictionary<Decimal128>().init(listOf(KEY_HELLO to VALUE_DECIMAL128_HELLO, KEY_BYE to VALUE_DECIMAL128_BYE, KEY_NULL to null))
     val populatedRealmModelDictionary: RealmDictionary<DogPrimaryKey> =
             RealmDictionary<DogPrimaryKey>().init(listOf(KEY_HELLO to VALUE_LINK_HELLO, KEY_BYE to VALUE_LINK_BYE, KEY_NULL to null))
-    val populatedMixedDictionary: RealmDictionary<Mixed> =
-            MixedType.values()
-                    .map { mixedType ->
+    val populatedRealmAnyDictionary: RealmDictionary<RealmAny> =
+            RealmAnyType.values()
+                    .map { realmAnyType ->
                         DictionaryKey.values().map { key ->
-                            Pair("${key.name}_${mixedType.name}", getMixedForType(mixedType, key))
+                            Pair("${key.name}_${realmAnyType.name}", getRealmAnyForType(realmAnyType, key))
                         }
                     }
                     .flatten()
                     .let { keyValuePairs ->
-                        RealmDictionary<Mixed>().init(keyValuePairs)
+                        RealmDictionary<RealmAny>().init(keyValuePairs)
                     }
 
     companion object {
