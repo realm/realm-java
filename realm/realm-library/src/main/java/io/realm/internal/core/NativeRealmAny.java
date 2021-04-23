@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import io.realm.RealmAnyType;
 import io.realm.RealmModel;
+import io.realm.internal.Keep;
 import io.realm.internal.NativeContext;
 import io.realm.internal.NativeObject;
 import io.realm.internal.OsSharedRealm;
@@ -32,7 +33,7 @@ import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 
-
+@Keep
 public class NativeRealmAny implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
@@ -44,43 +45,43 @@ public class NativeRealmAny implements NativeObject {
     }
 
     public NativeRealmAny(Boolean value) {
-        this(nativeCreateRealmAnyBoolean(value));
+        this(nativeCreateBoolean(value));
     }
 
     public NativeRealmAny(Number value) {
-        this(nativeCreateRealmAnyLong(value.longValue()));
+        this(nativeCreateLong(value.longValue()));
     }
 
     public NativeRealmAny(Float value) {
-        this(nativeCreateRealmAnyFloat(value));
+        this(nativeCreateFloat(value));
     }
 
     public NativeRealmAny(Double value) {
-        this(nativeCreateRealmAnyDouble(value));
+        this(nativeCreateDouble(value));
     }
 
     public NativeRealmAny(String value) {
-        this(nativeCreateRealmAnyString(value));
+        this(nativeCreateString(value));
     }
 
     public NativeRealmAny(byte[] value) {
-        this(nativeCreateRealmAnyBinary(value));
+        this(nativeCreateBinary(value));
     }
 
     public NativeRealmAny(Date value) {
-        this(nativeCreateRealmAnyDate(value.getTime()));
+        this(nativeCreateDate(value.getTime()));
     }
 
     public NativeRealmAny(ObjectId value) {
-        this(nativeCreateRealmAnyObjectId(value.toString()));
+        this(nativeCreateObjectId(value.toString()));
     }
 
     public NativeRealmAny(Decimal128 value) {
-        this(nativeCreateRealmAnyDecimal128(value.getLow(), value.getHigh()));
+        this(nativeCreateDecimal128(value.getLow(), value.getHigh()));
     }
 
     public NativeRealmAny(UUID value) {
-        this(nativeCreateRealmAnyUUID(value.toString()));
+        this(nativeCreateUUID(value.toString()));
     }
 
     public NativeRealmAny(RealmObjectProxy model) {
@@ -93,11 +94,11 @@ public class NativeRealmAny implements NativeObject {
         long targetTablePtr = row$realm.getTable().getNativePtr();
         long targetObjectKey = row$realm.getObjectKey();
 
-        return nativeCreateRealmAnyLink(targetTablePtr, targetObjectKey);
+        return nativeCreateLink(targetTablePtr, targetObjectKey);
     }
 
     public NativeRealmAny() {
-        this(nativeCreateRealmAnyNull());
+        this(nativeCreateNull());
     }
 
     @Override
@@ -115,44 +116,44 @@ public class NativeRealmAny implements NativeObject {
     }
 
     public boolean asBoolean() {
-        return nativeRealmAnyAsBoolean(nativePtr);
+        return nativeAsBoolean(nativePtr);
     }
 
     public long asLong() {
-        return nativeRealmAnyAsLong(nativePtr);
+        return nativeAsLong(nativePtr);
     }
 
     public float asFloat() {
-        return nativeRealmAnyAsFloat(nativePtr);
+        return nativeAsFloat(nativePtr);
     }
 
     public double asDouble() {
-        return nativeRealmAnyAsDouble(nativePtr);
+        return nativeAsDouble(nativePtr);
     }
 
     public String asString() {
-        return nativeRealmAnyAsString(nativePtr);
+        return nativeAsString(nativePtr);
     }
 
     public byte[] asBinary() {
-        return nativeRealmAnyAsBinary(nativePtr);
+        return nativeAsBinary(nativePtr);
     }
 
     public Date asDate() {
-        return new Date(nativeRealmAnyAsDate(nativePtr));
+        return new Date(nativeAsDate(nativePtr));
     }
 
     public ObjectId asObjectId() {
-        return new ObjectId(nativeRealmAnyAsObjectId(nativePtr));
+        return new ObjectId(nativeAsObjectId(nativePtr));
     }
 
     public Decimal128 asDecimal128() {
-        long[] data = nativeRealmAnyAsDecimal128(nativePtr);
+        long[] data = nativeAsDecimal128(nativePtr);
         return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
     }
 
     public UUID asUUID() {
-        return UUID.fromString(nativeRealmAnyAsUUID(nativePtr));
+        return UUID.fromString(nativeAsUUID(nativePtr));
     }
 
     public <T extends RealmModel> Class<T> getModelClass(OsSharedRealm osSharedRealm, RealmProxyMediator mediator) {
@@ -172,49 +173,49 @@ public class NativeRealmAny implements NativeObject {
         return nativeEquals(nativePtr, nativeRealmAny.nativePtr);
     }
 
-    private static native long nativeCreateRealmAnyNull();
+    private static native long nativeCreateNull();
 
-    private static native long nativeCreateRealmAnyBoolean(boolean value);
+    private static native long nativeCreateBoolean(boolean value);
 
-    private static native boolean nativeRealmAnyAsBoolean(long nativePtr);
+    private static native boolean nativeAsBoolean(long nativePtr);
 
-    private static native long nativeCreateRealmAnyLong(long value);
+    private static native long nativeCreateLong(long value);
 
-    private static native long nativeRealmAnyAsLong(long nativePtr);
+    private static native long nativeAsLong(long nativePtr);
 
-    private static native long nativeCreateRealmAnyFloat(float value);
+    private static native long nativeCreateFloat(float value);
 
-    private static native float nativeRealmAnyAsFloat(long nativePtr);
+    private static native float nativeAsFloat(long nativePtr);
 
-    private static native long nativeCreateRealmAnyDouble(double value);
+    private static native long nativeCreateDouble(double value);
 
-    private static native double nativeRealmAnyAsDouble(long nativePtr);
+    private static native double nativeAsDouble(long nativePtr);
 
-    private static native long nativeCreateRealmAnyString(String value);
+    private static native long nativeCreateString(String value);
 
-    private static native String nativeRealmAnyAsString(long nativePtr);
+    private static native String nativeAsString(long nativePtr);
 
-    private static native long nativeCreateRealmAnyBinary(byte[] value);
+    private static native long nativeCreateBinary(byte[] value);
 
-    private static native byte[] nativeRealmAnyAsBinary(long nativePtr);
+    private static native byte[] nativeAsBinary(long nativePtr);
 
-    private static native long nativeCreateRealmAnyDate(long value);
+    private static native long nativeCreateDate(long value);
 
-    private static native long nativeRealmAnyAsDate(long nativePtr);
+    private static native long nativeAsDate(long nativePtr);
 
-    private static native long nativeCreateRealmAnyObjectId(String value);
+    private static native long nativeCreateObjectId(String value);
 
-    private static native String nativeRealmAnyAsObjectId(long nativePtr);
+    private static native String nativeAsObjectId(long nativePtr);
 
-    private static native long nativeCreateRealmAnyDecimal128(long low, long high);
+    private static native long nativeCreateDecimal128(long low, long high);
 
-    private static native long[] nativeRealmAnyAsDecimal128(long nativePtr);
+    private static native long[] nativeAsDecimal128(long nativePtr);
 
-    private static native long nativeCreateRealmAnyUUID(String value);
+    private static native long nativeCreateUUID(String value);
 
-    private static native String nativeRealmAnyAsUUID(long nativePtr);
+    private static native String nativeAsUUID(long nativePtr);
 
-    private static native long nativeCreateRealmAnyLink(long targetTablePtr, long targetObjectKey);
+    private static native long nativeCreateLink(long targetTablePtr, long targetObjectKey);
 
     private static native int nativeGetRealmAnyType(long nativePtr);
 

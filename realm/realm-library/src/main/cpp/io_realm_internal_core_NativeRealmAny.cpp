@@ -28,12 +28,12 @@ static void finalize_mixed(jlong ptr) {
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeGetFinalizerPtr(JNIEnv *, jclass) {
+Java_io_realm_internal_core_NativeRealmAny_nativeGetFinalizerPtr(JNIEnv *, jclass) {
     return reinterpret_cast<jlong>(&finalize_mixed);
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedNull(JNIEnv *env, jclass) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateNull(JNIEnv *env, jclass) {
     try {
         return reinterpret_cast<jlong>(new JavaValue());
     } CATCH_STD()
@@ -42,7 +42,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedNull(JNIEnv *env, jclas
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedBoolean(JNIEnv *env, jclass, jboolean j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateBoolean(JNIEnv *env, jclass, jboolean j_value) {
     try {
         return reinterpret_cast<jlong>(new JavaValue(j_value));
     } CATCH_STD()
@@ -51,7 +51,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedBoolean(JNIEnv *env, jc
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsBoolean(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsBoolean(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return java_value.get_boolean();
@@ -61,7 +61,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsBoolean(JNIEnv *env, jclass
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedLong(JNIEnv *env, jclass, jlong j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateLong(JNIEnv *env, jclass, jlong j_value) {
     try {
         return reinterpret_cast<jlong>(new JavaValue(j_value));
     } CATCH_STD()
@@ -70,7 +70,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedLong(JNIEnv *env, jclas
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsLong(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsLong(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return java_value.get_int();
@@ -80,7 +80,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsLong(JNIEnv *env, jclass, j
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedFloat(JNIEnv *env, jclass, jfloat j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateFloat(JNIEnv *env, jclass, jfloat j_value) {
     try {
         return reinterpret_cast<jlong>(new JavaValue(j_value));
     } CATCH_STD()
@@ -89,7 +89,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedFloat(JNIEnv *env, jcla
 }
 
 JNIEXPORT jfloat JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsFloat(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsFloat(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return java_value.get_float();
@@ -99,7 +99,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsFloat(JNIEnv *env, jclass, 
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDouble(JNIEnv *env, jclass, jdouble j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateDouble(JNIEnv *env, jclass, jdouble j_value) {
     try {
         return reinterpret_cast<jlong>(new JavaValue(j_value));
     } CATCH_STD()
@@ -108,7 +108,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDouble(JNIEnv *env, jcl
 }
 
 JNIEXPORT jdouble JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsDouble(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsDouble(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return java_value.get_double();
@@ -118,7 +118,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsDouble(JNIEnv *env, jclass,
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedString(JNIEnv *env, jclass, jstring j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateString(JNIEnv *env, jclass, jstring j_value) {
     try {
         JStringAccessor string_accessor(env, j_value); // throws
         return reinterpret_cast<jlong>(new JavaValue(std::string(string_accessor)));
@@ -128,7 +128,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedString(JNIEnv *env, jcl
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsString(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsString(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return to_jstring(env, java_value.get_string());
@@ -138,7 +138,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsString(JNIEnv *env, jclass,
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedBinary(JNIEnv *env, jclass, jbyteArray j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateBinary(JNIEnv *env, jclass, jbyteArray j_value) {
     try {
         JByteArrayAccessor array_accessor(env, j_value); // throws
         auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
@@ -149,7 +149,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedBinary(JNIEnv *env, jcl
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsBinary(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsBinary(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return JavaClassGlobalDef::new_byte_array(env, java_value.get_binary().get());
@@ -159,7 +159,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsBinary(JNIEnv *env, jclass,
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDate(JNIEnv *env, jclass, jlong j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateDate(JNIEnv *env, jclass, jlong j_value) {
     try {
         return reinterpret_cast<jlong>(new JavaValue(from_milliseconds(j_value)));
     } CATCH_STD()
@@ -168,7 +168,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDate(JNIEnv *env, jclas
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsDate(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsDate(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return to_milliseconds(java_value.get_date());
@@ -178,7 +178,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsDate(JNIEnv *env, jclass, j
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedObjectId(JNIEnv *env, jclass, jstring j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateObjectId(JNIEnv *env, jclass, jstring j_value) {
     try {
         JStringAccessor string_accessor(env, j_value); // throws
         return reinterpret_cast<jlong>(new JavaValue(ObjectId(StringData(string_accessor).data())));
@@ -188,7 +188,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedObjectId(JNIEnv *env, j
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsObjectId(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsObjectId(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return to_jstring(env, java_value.get_object_id().to_string().data());
@@ -198,7 +198,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsObjectId(JNIEnv *env, jclas
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDecimal128(JNIEnv *env, jclass, jlong j_low, jlong j_high) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateDecimal128(JNIEnv *env, jclass, jlong j_low, jlong j_high) {
     try {
         Decimal128::Bid128 raw{static_cast<uint64_t>(j_low), static_cast<uint64_t>(j_high)};
         return reinterpret_cast<jlong>(new JavaValue(Decimal128(raw)));
@@ -208,7 +208,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedDecimal128(JNIEnv *env,
 }
 
 JNIEXPORT jlongArray JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsDecimal128(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsDecimal128(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         Decimal128 decimal128 = java_value.get_decimal128();
@@ -219,7 +219,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsDecimal128(JNIEnv *env, jcl
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedUUID(JNIEnv *env, jclass, jstring j_value) {
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateUUID(JNIEnv *env, jclass, jstring j_value) {
     try {
         JStringAccessor string_accessor(env, j_value); // throws
         return reinterpret_cast<jlong>(new JavaValue(UUID(StringData(string_accessor).data())));
@@ -229,7 +229,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedUUID(JNIEnv *env, jclas
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeMixedAsUUID(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeAsUUID(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         return to_jstring(env, java_value.get_uuid().to_string().data());
@@ -239,7 +239,7 @@ Java_io_realm_internal_core_NativeMixed_nativeMixedAsUUID(JNIEnv *env, jclass, j
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeCreateMixedLink(JNIEnv *env, jclass, jlong target_table_ref,
+Java_io_realm_internal_core_NativeRealmAny_nativeCreateLink(JNIEnv *env, jclass, jlong target_table_ref,
                                                               jlong target_object_key) {
     try {
         TableRef target_table = TBL_REF(target_table_ref);
@@ -253,7 +253,7 @@ Java_io_realm_internal_core_NativeMixed_nativeCreateMixedLink(JNIEnv *env, jclas
 }
 
 JNIEXPORT jint JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeGetRealmAnyType(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeGetRealmAnyType(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         auto mixed = java_value.to_mixed();
@@ -265,7 +265,7 @@ Java_io_realm_internal_core_NativeMixed_nativeGetRealmAnyType(JNIEnv *env, jclas
 }
 
 JNIEXPORT jstring JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeGetRealmModelTableName(JNIEnv *env, jclass, jlong native_ptr,
+Java_io_realm_internal_core_NativeRealmAny_nativeGetRealmModelTableName(JNIEnv *env, jclass, jlong native_ptr,
                                                                      jlong shared_realm_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
@@ -280,7 +280,7 @@ Java_io_realm_internal_core_NativeMixed_nativeGetRealmModelTableName(JNIEnv *env
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeGetRealmModelRowKey(JNIEnv *env, jclass, jlong native_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeGetRealmModelRowKey(JNIEnv *env, jclass, jlong native_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
 
@@ -292,7 +292,7 @@ Java_io_realm_internal_core_NativeMixed_nativeGetRealmModelRowKey(JNIEnv *env, j
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_core_NativeMixed_nativeEquals(JNIEnv *env, jclass, jlong native_ptr, jlong native_other_ptr) {
+Java_io_realm_internal_core_NativeRealmAny_nativeEquals(JNIEnv *env, jclass, jlong native_ptr, jlong native_other_ptr) {
     try {
         auto java_value = *reinterpret_cast<JavaValue *>(native_ptr);
         auto other_java_value = *reinterpret_cast<JavaValue *>(native_other_ptr);
