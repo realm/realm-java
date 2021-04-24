@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.OsMap;
 
 /**
@@ -117,6 +118,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         return new ManagedMapStrategy<>(manager);
     }
 
+    @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD", justification = "This function would be used on dynamic realms, not yet implemented")
     private static <V> ManagedMapStrategy<String, V> getStrategy(String valueClass,
                                                                  BaseRealm baseRealm,
                                                                  OsMap osMap) {
