@@ -178,7 +178,6 @@ public class TableQuery implements NativeObject {
 
     public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, RealmAny... realmAnyArgs) {
         realmAnyNativeFunctions.callRawPredicate(this, mapping, predicate, realmAnyArgs);
-
         return this;
     }
 
