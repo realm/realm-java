@@ -19,11 +19,14 @@ package io.realm.realmany
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
-import io.realm.entities.RealmAnyNotIndexed
 import io.realm.entities.PrimaryKeyAsString
+import io.realm.entities.RealmAnyNotIndexed
 import io.realm.kotlin.where
 import org.bson.types.Decimal128
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.collections.HashSet
@@ -37,21 +40,19 @@ class RealmAnyQueryTests {
     private lateinit var realmConfiguration: RealmConfiguration
     private lateinit var realm: Realm
 
-    private fun initializeTestData(stripNulls: Boolean = false) {
+    private fun initializeTestData() {
         val realmAnyValues = RealmAnyHelper.generateRealmAnyValues()
 
         realm.beginTransaction()
 
         for (value in realmAnyValues) {
-            if (!value.isNull || !stripNulls) {
-                val realmAnyObject = RealmAnyNotIndexed(value)
-                realm.insert(realmAnyObject)
-            }
+            val realmAnyObject = RealmAnyNotIndexed(value)
+            realm.insert(realmAnyObject)
         }
 
         realm.commitTransaction()
     }
-
+    
     @get:Rule
     val configFactory = TestRealmConfigurationFactory()
 
@@ -133,44 +134,14 @@ class RealmAnyQueryTests {
         assertEquals(Decimal128.parse("279.0"), value)
     }
 
-    // This test case is meant to catch when  https://github.com/realm/realm-core/issues/4571 gets fixed
     @Test
-    fun catch_minAggregationFixed() {
-        initializeTestData(stripNulls = true)
-        realm.executeTransaction {
-            val realmAnyObject = RealmAnyNotIndexed(RealmAny.nullValue())
-            realm.insert(realmAnyObject)
-        }
-
-        val value = realm.where<RealmAnyNotIndexed>().minRealmAny(RealmAnyNotIndexed.FIELD_MIXED)
-        assertTrue(value.isNull)
-    }
-
-    @Test
-    @Ignore("FIXME: see https://github.com/realm/realm-core/issues/4571")
     fun min() {
         initializeTestData()
         val value = realm.where<RealmAnyNotIndexed>().minRealmAny(RealmAnyNotIndexed.FIELD_MIXED)
 
         assertFalse(value.isNull)
-        assertEquals(RealmAnyType.INTEGER, value.type)
-        assertEquals(0.toLong(), value.asLong())
-    }
-
-    @Test
-    @Ignore("FIXME: see https://github.com/realm/realm-core/issues/4571")
-    fun min_without_nulls() {
-        initializeTestData(true)
-        realm.executeTransaction {
-            val realmAnyObject = RealmAnyNotIndexed(RealmAny.nullValue())
-            realm.insert(realmAnyObject)
-        }
-
-        val value = realm.where<RealmAnyNotIndexed>().minRealmAny(RealmAnyNotIndexed.FIELD_MIXED)
-
-        assertFalse(value.isNull)
-        assertEquals(RealmAnyType.INTEGER, value.type)
-        assertEquals(0.toLong(), value.asLong())
+        assertEquals(RealmAnyType.BOOLEAN, value.type)
+        assertFalse(value.asBoolean())
     }
 
     @Test
