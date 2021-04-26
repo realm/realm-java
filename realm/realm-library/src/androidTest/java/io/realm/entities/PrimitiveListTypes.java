@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
@@ -42,7 +42,7 @@ public class PrimitiveListTypes extends RealmObject {
     public static final String FIELD_DECIMAL128_LIST = "decimal128List";
     public static final String FIELD_OBJECT_ID_LIST = "objectIdList";
     public static final String FIELD_UUID_LIST = "uuidList";
-    public static final String FIELD_MIXED_LIST = "mixedList";
+    public static final String FIELD_MIXED_LIST = "realmAnyList";
     public static final String FIELD_REQUIRED_STRING_LIST = "requiredStringList";
     public static final String FIELD_REQUIRED_BINARY_LIST = "requiredBinaryList";
     public static final String FIELD_REQUIRED_BOOLEAN_LIST = "requiredBooleanList";
@@ -84,7 +84,7 @@ public class PrimitiveListTypes extends RealmObject {
     @SuppressWarnings("unused")
     private RealmList<UUID> uuidList;
     @SuppressWarnings("unused")
-    private RealmList<Mixed> mixedList;
+    private RealmList<RealmAny> realmAnyList;
 
     @SuppressWarnings("unused")
     @Required
@@ -155,7 +155,7 @@ public class PrimitiveListTypes extends RealmObject {
             case FIELD_UUID_LIST:
                 return uuidList;
             case FIELD_MIXED_LIST:
-                return mixedList;
+                return realmAnyList;
             case FIELD_REQUIRED_STRING_LIST:
                 return requiredStringList;
             case FIELD_REQUIRED_BINARY_LIST:

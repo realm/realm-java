@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
 
-public enum MixedType {
+public enum RealmAnyType {
     INTEGER(RealmFieldType.INTEGER, Long.class),
     BOOLEAN(RealmFieldType.BOOLEAN, Boolean.class),
     STRING(RealmFieldType.STRING, String.class),
@@ -41,27 +41,27 @@ public enum MixedType {
     UUID(RealmFieldType.UUID, java.util.UUID.class),
     NULL(null, null);
 
-    private static final MixedType[] realmFieldToMixedTypeMap = new MixedType[MAX_CORE_TYPE_VALUE + 1];
+    private static final RealmAnyType[] realmFieldToRealmAnyTypeMap = new RealmAnyType[MAX_CORE_TYPE_VALUE + 1];
 
     static {
-        for (MixedType mixedType : values()) {
-            if (mixedType == NULL) { continue; }
+        for (RealmAnyType realmAnyType : values()) {
+            if (realmAnyType == NULL) { continue; }
 
-            final int nativeValue = mixedType.realmFieldType.getNativeValue();
-            realmFieldToMixedTypeMap[nativeValue] = mixedType;
+            final int nativeValue = realmAnyType.realmFieldType.getNativeValue();
+            realmFieldToRealmAnyTypeMap[nativeValue] = realmAnyType;
         }
     }
 
-    public static MixedType fromNativeValue(int realmFieldType) {
+    public static RealmAnyType fromNativeValue(int realmFieldType) {
         if (realmFieldType == -1) { return NULL; }
 
-        return realmFieldToMixedTypeMap[realmFieldType];
+        return realmFieldToRealmAnyTypeMap[realmFieldType];
     }
 
     private final Class<?> clazz;
     private final RealmFieldType realmFieldType;
 
-    MixedType(@Nullable RealmFieldType realmFieldType, @Nullable Class<?> clazz) {
+    RealmAnyType(@Nullable RealmFieldType realmFieldType, @Nullable Class<?> clazz) {
         this.realmFieldType = realmFieldType;
         this.clazz = clazz;
     }

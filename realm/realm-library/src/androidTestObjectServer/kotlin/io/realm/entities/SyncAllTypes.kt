@@ -79,7 +79,7 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUID: UUID = UUID.randomUUID()
 
-    var columnMixed: Mixed? = Mixed.nullValue()
+    var columnRealmAny: RealmAny? = RealmAny.nullValue()
 
     val columnRealmInteger: MutableRealmInteger = MutableRealmInteger.ofNull()
 
@@ -112,7 +112,7 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUIDList: RealmList<UUID> = RealmList()
 
-    var columnMixedList: RealmList<Mixed> = RealmList()
+    var columnRealmAnyList: RealmList<RealmAny> = RealmList()
 
     var columnRealmDictionary: RealmDictionary<SyncDog> = RealmDictionary()
     @Required // Cloud only supports non-null values for this type

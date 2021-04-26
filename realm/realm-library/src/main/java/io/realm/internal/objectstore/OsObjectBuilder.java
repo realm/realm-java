@@ -28,13 +28,13 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.ImportFlag;
-import io.realm.Mixed;
-import io.realm.MixedNativeFunctionsImpl;
+import io.realm.RealmAny;
+import io.realm.RealmAnyNativeFunctionsImpl;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmModel;
-import io.realm.internal.MixedNativeFunctions;
+import io.realm.internal.RealmAnyNativeFunctions;
 import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
@@ -300,12 +300,12 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
-    private static ItemCallback<Mixed> mixedItemCallback = new ItemCallback<Mixed>() {
-        private final MixedNativeFunctions mixedNativeFunctions = new MixedNativeFunctionsImpl();
+    private static ItemCallback<RealmAny> realmAnyItemCallback = new ItemCallback<RealmAny>() {
+        private final RealmAnyNativeFunctions realmAnyNativeFunctions = new RealmAnyNativeFunctionsImpl();
 
         @Override
-        public void handleItem(long listPtr, Mixed mixed) {
-            mixedNativeFunctions.handleItem(listPtr, mixed);
+        public void handleItem(long listPtr, RealmAny realmAny) {
+            realmAnyNativeFunctions.handleItem(listPtr, realmAny);
         }
     };
 
@@ -363,8 +363,8 @@ public class OsObjectBuilder implements Closeable {
         }
     }
 
-    public void addMixed(long columnKey, long mixedPtr) {
-        nativeAddMixed(builderPtr, columnKey, mixedPtr);
+    public void addRealmAny(long columnKey, long realmAnyPtr) {
+        nativeAddRealmAny(builderPtr, columnKey, realmAnyPtr);
     }
 
     public void addString(long columnKey, @Nullable String val) {
@@ -549,8 +549,8 @@ public class OsObjectBuilder implements Closeable {
         addListItem(builderPtr, columnKey, list, uuidItemCallback);
     }
 
-    public void addMixedList(long columnKey, RealmList<Mixed> list) {
-        addListItem(builderPtr, columnKey, list, mixedItemCallback);
+    public void addRealmAnyList(long columnKey, RealmList<RealmAny> list) {
+        addListItem(builderPtr, columnKey, list, realmAnyItemCallback);
     }
 
     private void addEmptyList(long columnKey) {
@@ -762,7 +762,7 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddUUID(long builderPtr, long columnKey, String data);
 
-    private static native void nativeAddMixed(long builderPtr, long columnKey, long mixedPtr);
+    private static native void nativeAddRealmAny(long builderPtr, long columnKey, long realmAnyPtr);
 
     // Methods for adding lists
     // Lists sent across JNI one element at a time
@@ -792,7 +792,7 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddUUIDListItem(long listPtr, String data);
 
-    public static native void nativeAddMixedListItem(long listPtr, long mixedPtr);
+    public static native void nativeAddRealmAnyListItem(long listPtr, long realmAnyPtr);
 
     private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
 

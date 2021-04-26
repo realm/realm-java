@@ -511,17 +511,17 @@ class SyncedRealmTests {
 
     @Test
     fun allTypes_roundTrip() {
-        val expectedMixedValues = arrayListOf(
-                Mixed.valueOf(1.toLong()),
-                Mixed.valueOf(false),
+        val expectedRealmAnyValues = arrayListOf(
+                RealmAny.valueOf(1.toLong()),
+                RealmAny.valueOf(false),
 //              Float not supported in sync yet, uncomment once it does
-//                Mixed.valueOf(10.5.toFloat()),
-                Mixed.valueOf(10.5.toDouble()),
-                Mixed.valueOf("hello world 2"),
-                Mixed.valueOf(Date(105)),
-                Mixed.valueOf(Decimal128(102)),
-                Mixed.valueOf(ObjectId()),
-                Mixed.valueOf(UUID.randomUUID())
+//                RealmAny.valueOf(10.5.toFloat()),
+                RealmAny.valueOf(10.5.toDouble()),
+                RealmAny.valueOf("hello world 2"),
+                RealmAny.valueOf(Date(105)),
+                RealmAny.valueOf(Decimal128(102)),
+                RealmAny.valueOf(ObjectId()),
+                RealmAny.valueOf(UUID.randomUUID())
         )
 
         val primaryKeyValue = ObjectId()
@@ -548,8 +548,8 @@ class SyncedRealmTests {
         val expectedDecimal128List = RealmList<Decimal128>(Decimal128(10), Decimal128(100), Decimal128(20))
         val expectedObjectIdList = RealmList<ObjectId>(ObjectId(Date(1000)), ObjectId(Date(100)), ObjectId(Date(2000)))
         val expectedUUIDList = RealmList<UUID>(UUID.randomUUID())
-        val expectedMixedList = RealmList<Mixed>()
-        expectedMixedList.addAll(expectedMixedValues)
+        val expectedRealmAnyList = RealmList<RealmAny>()
+        expectedRealmAnyList.addAll(expectedRealmAnyValues)
 
         val expectedRealmDict = RealmDictionary<SyncDog>()
         val expectedStringDict = RealmDictionary<String>().init(listOf("key" to expectedString))
@@ -571,7 +571,7 @@ class SyncedRealmTests {
 
         Realm.getInstance(config1).use { realm1 ->
             Realm.getInstance(config2).use { realm2 ->
-                for (expectedMixed in expectedMixedValues) {
+                for (expectedRealmAny in expectedRealmAnyValues) {
                     realm1.executeTransaction {
                         expectedRealmObject = realm1.copyToRealmOrUpdate(expectedRealmObject)
                         expectedRealmList.add(expectedRealmObject)
@@ -597,7 +597,7 @@ class SyncedRealmTests {
                                     RealmFieldType.DECIMAL128 -> columnDecimal128 = expectedDecimal128
                                     RealmFieldType.OBJECT_ID -> columnObjectId = expectedObjectId
                                     RealmFieldType.UUID -> columnUUID = expectedUUID
-                                    RealmFieldType.MIXED -> columnMixed = expectedMixed
+                                    RealmFieldType.MIXED -> columnRealmAny = expectedRealmAny
                                     RealmFieldType.LIST -> columnRealmList = expectedRealmList
                                     RealmFieldType.INTEGER_LIST -> columnLongList = expectedLongList
                                     RealmFieldType.BOOLEAN_LIST -> columnBooleanList = expectedBooleanList
@@ -608,7 +608,7 @@ class SyncedRealmTests {
                                     RealmFieldType.DECIMAL128_LIST -> columnDecimal128List = expectedDecimal128List
                                     RealmFieldType.OBJECT_ID_LIST -> columnObjectIdList = expectedObjectIdList
                                     RealmFieldType.UUID_LIST -> columnUUIDList = expectedUUIDList
-                                    RealmFieldType.MIXED_LIST -> columnMixedList = expectedMixedList
+                                    RealmFieldType.MIXED_LIST -> columnRealmAnyList = expectedRealmAnyList
                                     RealmFieldType.STRING_TO_INTEGER_MAP -> columnLongDictionary = expectedLongDict
                                     RealmFieldType.STRING_TO_BOOLEAN_MAP -> columnBooleanDictionary = expectedBooleanDict
                                     RealmFieldType.STRING_TO_STRING_MAP -> columnStringDictionary = expectedStringDict
@@ -666,7 +666,7 @@ class SyncedRealmTests {
                                 RealmFieldType.DECIMAL128 -> assertEquals(expectedDecimal128, syncAllTypes.columnDecimal128)
                                 RealmFieldType.OBJECT_ID -> assertEquals(expectedObjectId, syncAllTypes.columnObjectId)
                                 RealmFieldType.UUID -> assertEquals(expectedUUID, syncAllTypes.columnUUID)
-                                RealmFieldType.MIXED -> assertEquals(expectedMixed, syncAllTypes.columnMixed)
+                                RealmFieldType.MIXED -> assertEquals(expectedRealmAny, syncAllTypes.columnRealmAny)
                                 RealmFieldType.LIST -> assertEquals(expectedObjectId, syncAllTypes.columnRealmList.first()!!.id)
                                 RealmFieldType.INTEGER_LIST -> assertEquals(expectedLongList, syncAllTypes.columnLongList)
                                 RealmFieldType.BOOLEAN_LIST -> assertEquals(expectedBooleanList, syncAllTypes.columnBooleanList)
@@ -681,7 +681,7 @@ class SyncedRealmTests {
                                 RealmFieldType.DECIMAL128_LIST -> assertEquals(expectedDecimal128List, syncAllTypes.columnDecimal128List)
                                 RealmFieldType.OBJECT_ID_LIST -> assertEquals(expectedObjectIdList, syncAllTypes.columnObjectIdList)
                                 RealmFieldType.UUID_LIST -> assertEquals(expectedUUIDList, syncAllTypes.columnUUIDList)
-                                RealmFieldType.MIXED_LIST -> assertEquals(expectedMixedList, syncAllTypes.columnMixedList)
+                                RealmFieldType.MIXED_LIST -> assertEquals(expectedRealmAnyList, syncAllTypes.columnRealmAnyList)
                                 RealmFieldType.STRING_TO_INTEGER_MAP -> assertEquals(expectedLong, syncAllTypes.columnLongDictionary["key"])
                                 RealmFieldType.STRING_TO_BOOLEAN_MAP -> assertEquals(expectedBoolean, syncAllTypes.columnBooleanDictionary["key"])
                                 RealmFieldType.STRING_TO_STRING_MAP -> assertEquals(expectedString, syncAllTypes.columnStringDictionary["key"])

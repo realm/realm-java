@@ -42,9 +42,9 @@ import io.realm.entities.AnnotationTypes;
 import io.realm.entities.CatOwner;
 import io.realm.entities.Dog;
 import io.realm.entities.FieldOrder;
-import io.realm.entities.MixedIndexed;
-import io.realm.entities.MixedNotIndexed;
-import io.realm.entities.MixedRealmListWithPK;
+import io.realm.entities.RealmAnyIndexed;
+import io.realm.entities.RealmAnyNotIndexed;
+import io.realm.entities.RealmAnyRealmListWithPK;
 import io.realm.entities.NullTypes;
 import io.realm.entities.ObjectIdPrimaryKey;
 import io.realm.entities.PrimaryKeyAsBoxedByte;
@@ -1525,7 +1525,7 @@ public class RealmMigrationTests {
     }
 
     @Test
-    public void migrateRealm_mixedNotIndexed() {
+    public void migrateRealm_realmAnyNotIndexed() {
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
                 .schema(StringOnly.class)
@@ -1537,8 +1537,8 @@ public class RealmMigrationTests {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.create(MixedNotIndexed.CLASS_NAME)
-                        .addField(MixedNotIndexed.FIELD_MIXED, Mixed.class);
+                schema.create(RealmAnyNotIndexed.CLASS_NAME)
+                        .addField(RealmAnyNotIndexed.FIELD_MIXED, RealmAny.class);
             }
         };
 
@@ -1546,42 +1546,42 @@ public class RealmMigrationTests {
         RealmConfiguration realmConfig = configFactory
                 .createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(StringOnly.class, MixedNotIndexed.class)
+                .schema(StringOnly.class, RealmAnyNotIndexed.class)
                 .migration(migration)
                 .build();
 
         realm = Realm.getInstance(realmConfig);
-        RealmObjectSchema objectSchema = realm.getSchema().get(MixedNotIndexed.CLASS_NAME);
-        assertTrue(objectSchema.hasField(MixedNotIndexed.FIELD_MIXED));
-        assertFalse(objectSchema.hasIndex(MixedNotIndexed.FIELD_MIXED));
+        RealmObjectSchema objectSchema = realm.getSchema().get(RealmAnyNotIndexed.CLASS_NAME);
+        assertTrue(objectSchema.hasField(RealmAnyNotIndexed.FIELD_MIXED));
+        assertFalse(objectSchema.hasIndex(RealmAnyNotIndexed.FIELD_MIXED));
         realm.close();
     }
 
     @Test(expected = IllegalStateException.class)
-    public void migrateRealm_mixedDeleteLinkedTable() {
+    public void migrateRealm_realmAnyDeleteLinkedTable() {
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
-                .schema(StringOnly.class, MixedNotIndexed.class)
+                .schema(StringOnly.class, RealmAnyNotIndexed.class)
                 .build();
 
         Realm realm = Realm.getInstance(originalConfig);
 
         realm.executeTransaction(transactionRealm -> {
-            MixedNotIndexed mixedNotIndexed = new MixedNotIndexed();
+            RealmAnyNotIndexed realmAnyNotIndexed = new RealmAnyNotIndexed();
             StringOnly stringOnly = new StringOnly();
             stringOnly.setChars("hello world");
-            mixedNotIndexed.setMixed(Mixed.valueOf(stringOnly));
+            realmAnyNotIndexed.setRealmAny(RealmAny.valueOf(stringOnly));
 
-            transactionRealm.copyToRealm(mixedNotIndexed);
+            transactionRealm.copyToRealm(realmAnyNotIndexed);
         });
 
-        RealmResults<MixedNotIndexed> results = realm.where(MixedNotIndexed.class).findAll();
+        RealmResults<RealmAnyNotIndexed> results = realm.where(RealmAnyNotIndexed.class).findAll();
         assertEquals(1, results.size());
         assertNotNull(results.get(0));
 
-        Mixed mixed = results.get(0).getMixed();
-        assertEquals(MixedType.OBJECT, mixed.getType());
-        assertEquals(StringOnly.class, mixed.getValueClass());
+        RealmAny realmAny = results.get(0).getRealmAny();
+        assertEquals(RealmAnyType.OBJECT, realmAny.getType());
+        assertEquals(StringOnly.class, realmAny.getValueClass());
 
         realm.close();
 
@@ -1597,7 +1597,7 @@ public class RealmMigrationTests {
         RealmConfiguration realmConfig = configFactory
                 .createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(MixedNotIndexed.class)
+                .schema(RealmAnyNotIndexed.class)
                 .migration(migration)
                 .build();
 
@@ -1605,7 +1605,7 @@ public class RealmMigrationTests {
     }
 
     @Test
-    public void migrateRealm_mixedIndexed() {
+    public void migrateRealm_realmAnyIndexed() {
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
                 .schema(StringOnly.class)
@@ -1617,8 +1617,8 @@ public class RealmMigrationTests {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.create(MixedIndexed.CLASS_NAME)
-                        .addField(MixedIndexed.FIELD_MIXED, Mixed.class, FieldAttribute.INDEXED);
+                schema.create(RealmAnyIndexed.CLASS_NAME)
+                        .addField(RealmAnyIndexed.FIELD_MIXED, RealmAny.class, FieldAttribute.INDEXED);
             }
         };
 
@@ -1626,21 +1626,21 @@ public class RealmMigrationTests {
         RealmConfiguration realmConfig = configFactory
                 .createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(StringOnly.class, MixedIndexed.class)
+                .schema(StringOnly.class, RealmAnyIndexed.class)
                 .migration(migration)
                 .build();
 
         realm = Realm.getInstance(realmConfig);
-        RealmObjectSchema objectSchema = realm.getSchema().get(MixedIndexed.CLASS_NAME);
+        RealmObjectSchema objectSchema = realm.getSchema().get(RealmAnyIndexed.CLASS_NAME);
 
-        assertTrue(objectSchema.hasField(MixedIndexed.FIELD_MIXED));
-        assertTrue(objectSchema.hasIndex(MixedIndexed.FIELD_MIXED));
+        assertTrue(objectSchema.hasField(RealmAnyIndexed.FIELD_MIXED));
+        assertTrue(objectSchema.hasIndex(RealmAnyIndexed.FIELD_MIXED));
 
         realm.close();
     }
 
     @Test
-    public void migrateRealm_mixedList() {
+    public void migrateRealm_realmAnyList() {
         // Creates v0 of the Realm.
         RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
                 .schema(StringOnly.class)
@@ -1652,9 +1652,9 @@ public class RealmMigrationTests {
             @Override
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
-                schema.create(MixedRealmListWithPK.CLASS_NAME)
-                        .addField(MixedRealmListWithPK.PK, long.class, FieldAttribute.PRIMARY_KEY)
-                        .addRealmListField(MixedRealmListWithPK.FIELD_MIXED, Mixed.class);
+                schema.create(RealmAnyRealmListWithPK.CLASS_NAME)
+                        .addField(RealmAnyRealmListWithPK.PK, long.class, FieldAttribute.PRIMARY_KEY)
+                        .addRealmListField(RealmAnyRealmListWithPK.FIELD_MIXED, RealmAny.class);
             }
         };
 
@@ -1662,14 +1662,14 @@ public class RealmMigrationTests {
         RealmConfiguration realmConfig = configFactory
                 .createConfigurationBuilder()
                 .schemaVersion(1)
-                .schema(StringOnly.class, MixedRealmListWithPK.class)
+                .schema(StringOnly.class, RealmAnyRealmListWithPK.class)
                 .migration(migration)
                 .build();
 
         realm = Realm.getInstance(realmConfig);
-        RealmObjectSchema objectSchema = realm.getSchema().get(MixedRealmListWithPK.CLASS_NAME);
-        assertTrue(objectSchema.hasField(MixedRealmListWithPK.FIELD_MIXED));
-        assertEquals(RealmFieldType.MIXED_LIST, objectSchema.getFieldType(MixedRealmListWithPK.FIELD_MIXED));
+        RealmObjectSchema objectSchema = realm.getSchema().get(RealmAnyRealmListWithPK.CLASS_NAME);
+        assertTrue(objectSchema.hasField(RealmAnyRealmListWithPK.FIELD_MIXED));
+        assertEquals(RealmFieldType.MIXED_LIST, objectSchema.getFieldType(RealmAnyRealmListWithPK.FIELD_MIXED));
         assertTrue(objectSchema.hasPrimaryKey());
         realm.close();
     }

@@ -10,7 +10,7 @@ import java.util.UUID;
 import io.realm.FrozenPendingRow;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
-import io.realm.internal.core.NativeMixed;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -143,7 +143,7 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public NativeMixed getNativeMixed(long columnKey) {
+    public NativeRealmAny getNativeRealmAny(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
@@ -213,7 +213,7 @@ public class PendingRow implements Row {
     }
 
     @Override
-    public void setMixed(long columnKey, long value) {
+    public void setRealmAny(long columnKey, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

@@ -72,7 +72,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
         DECIMAL128_MIRROR = elementUtils.getTypeElement(Decimal128::class.javaObjectType.name).asType()
         OBJECT_ID_MIRROR = elementUtils.getTypeElement(ObjectId::class.javaObjectType.name).asType()
         UUID_MIRROR = elementUtils.getTypeElement(UUID::class.javaObjectType.name).asType()
-        MIXED_MIRROR = elementUtils.getTypeElement("io.realm.Mixed").asType()
+        MIXED_MIRROR = elementUtils.getTypeElement("io.realm.RealmAny").asType()
 
         PRIMITIVE_LONG_MIRROR = typeUtils.getPrimitiveType(TypeKind.LONG)
         PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT)

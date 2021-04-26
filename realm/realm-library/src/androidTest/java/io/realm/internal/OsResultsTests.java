@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import io.realm.Mixed;
+import io.realm.RealmAny;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
@@ -189,8 +189,8 @@ public class OsResultsTests {
     @Test
     public void where() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
-        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo(null,"firstName", Mixed.valueOf("John")));
-        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo(null, "lastName",  Mixed.valueOf("Anderson")));
+        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo(null,"firstName", RealmAny.valueOf("John")));
+        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo(null, "lastName",  RealmAny.valueOf("Anderson")));
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -203,7 +203,7 @@ public class OsResultsTests {
 
     @Test
     public void sort() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(null,"age", Mixed.valueOf(1)));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(null,"age", RealmAny.valueOf(1)));
 
         OsResults osResults2 = osResults.sort(null,"age", Sort.ASCENDING);
 
@@ -242,7 +242,7 @@ public class OsResultsTests {
 
     @Test
     public void distinct() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(null,"age", Mixed.valueOf(4)));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(null,"age", RealmAny.valueOf(4)));
 
         OsResults osResults2 = osResults.distinct(null, new String[]{"age"});
 
