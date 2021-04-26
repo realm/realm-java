@@ -25,7 +25,7 @@ import io.realm.internal.objectstore.OsKeyPathMapping;
 public interface RealmAnyNativeFunctions {
     void handleItem(long listPtr, RealmAny realmAny);
 
-    void handleItem(long listPtr, Map.Entry<String, Mixed> mixed);
+    void handleItem(long listPtr, Map.Entry<String, RealmAny> realmAny);
 
     void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, RealmAny... arguments);
 }

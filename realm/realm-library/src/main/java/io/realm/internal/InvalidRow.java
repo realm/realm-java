@@ -141,7 +141,7 @@ public enum InvalidRow implements Row {
     }
 
     @Override
-    public OsMap getMixedMap(long columnKey) {
+    public OsMap getRealmAnyMap(long columnKey) {
         throw getStubException();
     }
 

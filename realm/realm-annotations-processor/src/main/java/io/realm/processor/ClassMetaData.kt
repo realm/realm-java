@@ -415,7 +415,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 field,
                 elementTypeMirror,
                 validDictionaryTypes,
-                "Element type of RealmDictionary must be of type 'Mixed' or any type that can be boxed inside 'Mixed': "
+                "Element type of RealmDictionary must be of type 'RealmAny' or any type that can be boxed inside 'RealmAny': "
         )
     }
 
@@ -615,11 +615,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             val hasRequiredAnnotation = hasRequiredAnnotation(field)
             val listGenericType = (field.asType() as DeclaredType).typeArguments
             val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
-            val containsMixed = (listGenericType.isNotEmpty() && Utils.isMixed(listGenericType[0]))
+            val containsRealmAny = (listGenericType.isNotEmpty() && Utils.isRealmAny(listGenericType[0]))
 
             // @Required not allowed if the dictionary contains Realm model classes
-            if (hasRequiredAnnotation && (containsRealmModelClasses || containsMixed)) {
-                Utils.error("@Required not allowed on RealmDictionaries that contain other Realm model classes and Mixed.")
+            if (hasRequiredAnnotation && (containsRealmModelClasses || containsRealmAny)) {
+                Utils.error("@Required not allowed on RealmDictionaries that contain other Realm model classes and RealmAny.")
                 return false
             }
 
@@ -670,7 +670,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 Utils.isRealmAnyList(field) ||
                 Utils.isRealmAny(field) ||
                 Utils.isRealmModelDictionary(field) ||
-                Utils.isMixedDictionary(field)) {
+                Utils.isRealmAnyDictionary(field)) {
             _objectReferenceFields.add(field)
         } else {
             basicTypeFields.add(field)

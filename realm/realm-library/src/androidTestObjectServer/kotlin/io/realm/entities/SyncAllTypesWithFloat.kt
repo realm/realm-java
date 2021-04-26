@@ -129,7 +129,7 @@ open class SyncAllTypesWithFloat : RealmObject() {
     var columnUUIDDictionary: RealmDictionary<UUID> = RealmDictionary()
     @Required // Cloud only supports non-null values for this type
     var columnDecimal128Dictionary: RealmDictionary<Decimal128> = RealmDictionary()
-    var columnMixedDictionary: RealmDictionary<Mixed> = RealmDictionary()
+    var columnRealmAnyDictionary: RealmDictionary<RealmAny> = RealmDictionary()
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())

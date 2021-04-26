@@ -355,7 +355,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
             return putInternal(key, value);
         }
 
-        protected void checkValidKey(@Nullable K key) {
+        protected void checkValidKey(K key) {
             if (key == null) {
                 // As per Map interface
                 throw new NullPointerException("Null keys are not allowed.");

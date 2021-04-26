@@ -16,7 +16,7 @@
 
 package io.realm.entities
 
-import io.realm.Mixed
+import io.realm.RealmAny
 import io.realm.RealmDictionary
 import io.realm.RealmList
 import io.realm.RealmObject
@@ -42,7 +42,7 @@ open class DictionaryContainerClass : RealmObject() {
     val myObjectIdDictionary = RealmDictionary<ObjectId>()
     val myUUIDDictionary = RealmDictionary<UUID>()
     val myDecimal128Dictionary = RealmDictionary<Decimal128>()
-    val myMixedDictionary = RealmDictionary<Mixed>()
+    val myRealmAnyDictionary = RealmDictionary<RealmAny>()
 
     companion object {
         const val CLASS_NAME = "DictionaryContainerClass"
@@ -71,5 +71,5 @@ open class PrimaryKeyDictionaryContainer : RealmObject() {
     val myObjectIdDictionary = RealmDictionary<ObjectId>()
     val myUUIDDictionary = RealmDictionary<UUID>()
     val myDecimal128Dictionary = RealmDictionary<Decimal128>()
-    val myMixedDictionary = RealmDictionary<Mixed>()
+    val myRealmAnyDictionary = RealmDictionary<RealmAny>()
 }

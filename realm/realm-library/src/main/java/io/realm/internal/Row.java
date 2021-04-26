@@ -100,7 +100,7 @@ public interface Row {
 
     OsList getValueList(long columnKey, RealmFieldType fieldType);
 
-    OsMap getMixedMap(long columnKey);
+    OsMap getRealmAnyMap(long columnKey);
 
     OsMap getModelMap(long columnKey);
 

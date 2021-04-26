@@ -291,12 +291,12 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
-    private static ItemCallback<Map.Entry<String, Mixed>> mixedMapItemCallback = new ItemCallback<Map.Entry<String, Mixed>>() {
-        private final MixedNativeFunctions mixedNativeFunctions = new MixedNativeFunctionsImpl();
+    private static ItemCallback<Map.Entry<String, RealmAny>> realmAnyMapItemCallback = new ItemCallback<Map.Entry<String, RealmAny>>() {
+        private final RealmAnyNativeFunctions realmAnyNativeFunctions = new RealmAnyNativeFunctionsImpl();
 
         @Override
-        public void handleItem(long containerPtr, Map.Entry<String, Mixed> item) {
-            mixedNativeFunctions.handleItem(containerPtr, item);
+        public void handleItem(long containerPtr, Map.Entry<String, RealmAny> item) {
+            realmAnyNativeFunctions.handleItem(containerPtr, item);
         }
     };
 
@@ -610,8 +610,8 @@ public class OsObjectBuilder implements Closeable {
         addDictionaryItem(builderPtr, columnKey, dictionary, uuidMapItemCallback);
     }
 
-    public void addMixedValueDictionary(long columnKey, RealmDictionary<Mixed> dictionary) {
-        addDictionaryItem(builderPtr, columnKey, dictionary, mixedMapItemCallback);
+    public void addRealmAnyValueDictionary(long columnKey, RealmDictionary<RealmAny> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, realmAnyMapItemCallback);
     }
 
     public <T extends RealmModel> void addObjectDictionary(long columnKey, @Nullable RealmDictionary<T> dictionary) {
@@ -827,5 +827,5 @@ public class OsObjectBuilder implements Closeable {
 
     private static native void nativeAddObjectDictionaryEntry(long dictionaryPtr, String key, long rowPtr);
 
-    public static native void nativeAddMixedDictionaryEntry(long dictionaryPtr, String key, long mixedPtr);
+    public static native void nativeAddRealmAnyDictionaryEntry(long dictionaryPtr, String key, long realmAnyPtr);
 }

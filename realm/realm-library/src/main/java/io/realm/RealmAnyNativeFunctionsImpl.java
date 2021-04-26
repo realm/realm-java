@@ -32,8 +32,8 @@ public class RealmAnyNativeFunctionsImpl implements RealmAnyNativeFunctions {
     }
 
     @Override
-    public void handleItem(long containerPtr, Map.Entry<String, Mixed> entry) {
-        OsObjectBuilder.nativeAddMixedDictionaryEntry(containerPtr, entry.getKey(), entry.getValue().getNativePtr());
+    public void handleItem(long containerPtr, Map.Entry<String, RealmAny> entry) {
+        OsObjectBuilder.nativeAddRealmAnyDictionaryEntry(containerPtr, entry.getKey(), entry.getValue().getNativePtr());
     }
 
     @Override

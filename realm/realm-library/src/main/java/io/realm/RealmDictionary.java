@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.OsMap;
 
 /**
@@ -117,6 +118,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         return new ManagedMapStrategy<>(manager);
     }
 
+    @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD", justification = "This function would be used on dynamic realms, not yet implemented")
     private static <V> ManagedMapStrategy<String, V> getStrategy(String valueClass,
                                                                  BaseRealm baseRealm,
                                                                  OsMap osMap) {
@@ -132,8 +134,8 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
 
         MapValueOperator<String, ?> mapValueOperator;
 
-        if (valueClass == Mixed.class) {
-            mapValueOperator = new MixedValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Mixed>) typeSelectorForMap);
+        if (valueClass == RealmAny.class) {
+            mapValueOperator = new RealmAnyValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, RealmAny>) typeSelectorForMap);
         } else if (valueClass == Long.class) {
             mapValueOperator = new GenericPrimitiveValueOperator<>(Long.class, baseRealm, osMap, (TypeSelectorForMap<String, Long>) typeSelectorForMap, RealmMapEntrySet.IteratorType.LONG);
         } else if (valueClass == Float.class) {
@@ -161,7 +163,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         } else if (valueClass == UUID.class) {
             mapValueOperator = new GenericPrimitiveValueOperator<>(UUID.class, baseRealm, osMap, (TypeSelectorForMap<String, UUID>) typeSelectorForMap, RealmMapEntrySet.IteratorType.UUID);
         } else {
-            throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
+            throw new IllegalArgumentException("Only Maps of RealmAny or one of the types that can be boxed inside RealmAny can be used.");
         }
 
         return new DictionaryManager<>(baseRealm,
@@ -177,8 +179,8 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
 
         MapValueOperator<String, ?> mapValueOperator;
 
-        if (valueClass.equals(Mixed.class.getCanonicalName())) {
-            mapValueOperator = new MixedValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, Mixed>) typeSelectorForMap);
+        if (valueClass.equals(RealmAny.class.getCanonicalName())) {
+            mapValueOperator = new RealmAnyValueOperator<>(baseRealm, osMap, (TypeSelectorForMap<String, RealmAny>) typeSelectorForMap);
         } else if (valueClass.equals(Long.class.getCanonicalName())) {
             mapValueOperator = new GenericPrimitiveValueOperator<>(Long.class, baseRealm, osMap, (TypeSelectorForMap<String, Long>) typeSelectorForMap, RealmMapEntrySet.IteratorType.LONG);
         } else if (valueClass.equals(Float.class.getCanonicalName())) {
@@ -206,7 +208,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         } else if (valueClass.equals(UUID.class.getCanonicalName())) {
             mapValueOperator = new GenericPrimitiveValueOperator<>(UUID.class, baseRealm, osMap, (TypeSelectorForMap<String, UUID>) typeSelectorForMap, RealmMapEntrySet.IteratorType.UUID);
         } else {
-            throw new IllegalArgumentException("Only Maps of Mixed or one of the types that can be boxed inside Mixed can be used.");
+            throw new IllegalArgumentException("Only Maps of RealmAny or one of the types that can be boxed inside RealmAny can be used.");
         }
 
         return new DictionaryManager<>(baseRealm,

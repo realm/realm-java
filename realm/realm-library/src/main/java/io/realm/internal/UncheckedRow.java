@@ -212,7 +212,7 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public OsMap getMixedMap(long columnKey) {
+    public OsMap getRealmAnyMap(long columnKey) {
         return new OsMap(this, columnKey);
     }
 

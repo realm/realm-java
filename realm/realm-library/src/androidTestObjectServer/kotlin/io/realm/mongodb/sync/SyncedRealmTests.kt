@@ -561,7 +561,7 @@ class SyncedRealmTests {
         val expectedDecimal128Dict = RealmDictionary<Decimal128>().init(listOf("key" to expectedDecimal128))
         val expectedObjectIdDict = RealmDictionary<ObjectId>().init(listOf("key" to expectedObjectId))
         val expectedUUIDDict = RealmDictionary<UUID>().init(listOf("key" to expectedUUID))
-        val expectedMixedDict = RealmDictionary<Mixed>()
+        val expectedRealmAnyDict = RealmDictionary<RealmAny>()
 
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
@@ -619,12 +619,12 @@ class SyncedRealmTests {
                                     RealmFieldType.STRING_TO_OBJECT_ID_MAP -> columnObjectIdDictionary = expectedObjectIdDict
                                     RealmFieldType.STRING_TO_UUID_MAP -> columnUUIDDictionary = expectedUUIDDict
                                     RealmFieldType.STRING_TO_MIXED_MAP -> {
-                                        expectedMixedDict["key"] = expectedMixed
-                                        columnMixedDictionary = expectedMixedDict
+                                        expectedRealmAnyDict["key"] = expectedRealmAny
+                                        columnRealmAnyDictionary = expectedRealmAnyDict
                                     }
                                     RealmFieldType.STRING_TO_LINK_MAP -> columnRealmDictionary = expectedRealmDict
                                     RealmFieldType.LINKING_OBJECTS,     // Nothing to set
-                                    RealmFieldType.TYPED_LINK,          // Not an actual exposed type, it is used internally by Mixed
+                                    RealmFieldType.TYPED_LINK,          // Not an actual exposed type, it is used internally by RealmAny
                                     RealmFieldType.FLOAT,               // Float is not cloud compatible yet
                                     RealmFieldType.FLOAT_LIST,          // Float is not cloud compatible yet
                                     RealmFieldType.STRING_TO_FLOAT_MAP  // Float is not cloud compatible yet
@@ -691,10 +691,10 @@ class SyncedRealmTests {
                                 RealmFieldType.STRING_TO_DECIMAL128_MAP -> assertEquals(expectedDecimal128, syncAllTypes.columnDecimal128Dictionary["key"])
                                 RealmFieldType.STRING_TO_OBJECT_ID_MAP -> assertEquals(expectedObjectId, syncAllTypes.columnObjectIdDictionary["key"])
                                 RealmFieldType.STRING_TO_UUID_MAP -> assertEquals(expectedUUID, syncAllTypes.columnUUIDDictionary["key"])
-                                RealmFieldType.STRING_TO_MIXED_MAP -> assertEquals(expectedMixed, syncAllTypes.columnMixedDictionary["key"])
+                                RealmFieldType.STRING_TO_MIXED_MAP -> assertEquals(expectedRealmAny, syncAllTypes.columnRealmAnyDictionary["key"])
                                 RealmFieldType.STRING_TO_LINK_MAP -> assertEquals(expectedObjectId, syncAllTypes.columnRealmDictionary["key"]!!.id)
                                 RealmFieldType.LINKING_OBJECTS -> assertEquals(primaryKeyValue, syncAllTypes.columnRealmObject!!.syncAllTypes!!.first()!!.id)
-                                RealmFieldType.TYPED_LINK,          // Not an actual exposed type, it is used internally by Mixed
+                                RealmFieldType.TYPED_LINK,          // Not an actual exposed type, it is used internally by RealmAny
                                 RealmFieldType.FLOAT,               // Float is not cloud compatible yet
                                 RealmFieldType.FLOAT_LIST,          // Float is not cloud compatible yet
                                 RealmFieldType.STRING_TO_FLOAT_MAP  // Float is not cloud compatible yet

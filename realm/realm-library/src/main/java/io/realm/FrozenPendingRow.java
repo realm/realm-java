@@ -146,7 +146,7 @@ public enum FrozenPendingRow implements Row {
     }
 
     @Override
-    public OsMap getMixedMap(long columnKey) {
+    public OsMap getRealmAnyMap(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

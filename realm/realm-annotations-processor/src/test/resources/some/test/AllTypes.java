@@ -100,7 +100,7 @@ public class AllTypes extends RealmObject {
     private RealmDictionary<ObjectId> columnObjectIdDictionary;
     private RealmDictionary<UUID> columnUUIDDictionary;
     private RealmDictionary<Decimal128> columnDecimal128Dictionary;
-    private RealmDictionary<Mixed> columnMixedDictionary;
+    private RealmDictionary<RealmAny> columnRealmAnyDictionary;
 
     @LinkingObjects(FIELD_PARENTS)
     private final RealmResults<AllTypes> parentObjects = null;
@@ -377,11 +377,11 @@ public class AllTypes extends RealmObject {
         this.columnDecimal128Dictionary = columnDecimal128Dictionary;
     }
 
-    public RealmDictionary<Mixed> getColumnMixedDictionary() {
-        return columnMixedDictionary;
+    public RealmDictionary<RealmAny> getColumnRealmAnyDictionary() {
+        return columnRealmAnyDictionary;
     }
 
-    public void setColumnMixedDictionary(RealmDictionary<Mixed> columnMixedDictionary) {
-        this.columnMixedDictionary = columnMixedDictionary;
+    public void setColumnRealmAnyDictionary(RealmDictionary<RealmAny> columnRealmAnyDictionary) {
+        this.columnRealmAnyDictionary = columnRealmAnyDictionary;
     }
 }

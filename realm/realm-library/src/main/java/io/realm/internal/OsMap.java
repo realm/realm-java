@@ -25,7 +25,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.internal.android.TypeUtils;
-import io.realm.internal.core.NativeMixed;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.util.Pair;
 
 /**
@@ -120,8 +120,8 @@ public class OsMap implements NativeObject {
         throw new IllegalArgumentException("Invalid object type: " + value.getClass().getCanonicalName());
     }
 
-    public boolean containsMixedValue(long mixedPtr) {
-        return nativeContainsMixed(nativePtr, mixedPtr);
+    public boolean containsRealmAnyValue(long realmAnyPtr) {
+        return nativeContainsRealmAny(nativePtr, realmAnyPtr);
     }
 
     public boolean containsRealmModel(long objKey, long tablePtr) {
@@ -194,8 +194,8 @@ public class OsMap implements NativeObject {
         nativePutRow(nativePtr, (String) key, objKey);
     }
 
-    public void putMixed(Object key, long nativeMixedPtr) {
-        nativePutMixed(nativePtr, (String) key, nativeMixedPtr);
+    public void putRealmAny(Object key, long nativeRealmAnyPtr) {
+        nativePutRealmAny(nativePtr, (String) key, nativeRealmAnyPtr);
     }
 
     // TODO: add more put methods for different value types ad-hoc
@@ -213,8 +213,8 @@ public class OsMap implements NativeObject {
         return nativeGetValue(nativePtr, (String) key);
     }
 
-    public long getMixedPtr(Object key) {
-        return nativeGetMixedPtr(nativePtr, (String) key);
+    public long getRealmAnyPtr(Object key) {
+        return nativeGetRealmAnyPtr(nativePtr, (String) key);
     }
 
     public long createAndPutEmbeddedObject(Object key) {
@@ -245,14 +245,14 @@ public class OsMap implements NativeObject {
         return new Pair<>((K) key, objRow);
     }
 
-    public <K> Pair<K, NativeMixed> getKeyMixedPair(int position) {
-        // entry from OsMap is an array: entry[0] is key and entry[1] is a Mixed value
-        Object[] entry = nativeGetEntryForMixed(nativePtr, position);
+    public <K> Pair<K, NativeRealmAny> getKeyRealmAnyPair(int position) {
+        // entry from OsMap is an array: entry[0] is key and entry[1] is a RealmAny value
+        Object[] entry = nativeGetEntryForRealmAny(nativePtr, position);
         String key = (String) entry[0];
-        NativeMixed nativeMixed = new NativeMixed((long) entry[1]);
+        NativeRealmAny nativeRealmAny = new NativeRealmAny((long) entry[1]);
 
         //noinspection unchecked
-        return new Pair<>((K) key, nativeMixed);
+        return new Pair<>((K) key, nativeRealmAny);
     }
 
     public void startListening(ObservableMap observableMap) {
@@ -269,7 +269,7 @@ public class OsMap implements NativeObject {
 
     private static native Object nativeGetValue(long nativePtr, String key);
 
-    private static native long nativeGetMixedPtr(long nativePtr, String key);
+    private static native long nativeGetRealmAnyPtr(long nativePtr, String key);
 
     private static native long nativeGetRow(long nativePtr, String key);
 
@@ -295,7 +295,7 @@ public class OsMap implements NativeObject {
 
     private static native void nativePutUUID(long nativePtr, String key, String value);
 
-    private static native void nativePutMixed(long nativePtr, String key, long nativeMixedPtr);
+    private static native void nativePutRealmAny(long nativePtr, String key, long nativeRealmAnyPtr);
 
     private static native void nativePutRow(long nativePtr, String key, long objKey);
 
@@ -319,7 +319,7 @@ public class OsMap implements NativeObject {
 
     private static native Object[] nativeGetEntryForModel(long nativePtr, int position);
 
-    private static native Object[] nativeGetEntryForMixed(long nativePtr, int position);
+    private static native Object[] nativeGetEntryForRealmAny(long nativePtr, int position);
 
     private static native Object[] nativeGetEntryForPrimitive(long nativePtr, int position);
 
@@ -343,7 +343,7 @@ public class OsMap implements NativeObject {
 
     private static native boolean nativeContainsDecimal128(long nativePtr, long high, long low);
 
-    private static native boolean nativeContainsMixed(long nativePtr, long mixedPtr);
+    private static native boolean nativeContainsRealmAny(long nativePtr, long realmAnyPtr);
 
     private static native boolean nativeContainsRealmModel(long nativePtr, long objKey, long tablePtr);
 

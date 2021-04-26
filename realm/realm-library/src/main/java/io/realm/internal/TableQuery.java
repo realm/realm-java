@@ -176,8 +176,8 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, RealmAny... args) {
-        realmAnyNativeFunctions.callRawPredicate(this, mapping, predicate, args);
+    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, RealmAny... realmAnyArgs) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, predicate, realmAnyArgs);
         return this;
     }
 
@@ -298,20 +298,20 @@ public class TableQuery implements NativeObject {
 
     // Dictionary queries
 
-    public TableQuery containsKey(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@keys == $0", key);
+    public TableQuery containsKey(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny key) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@keys == $0", key);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery containsValue(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@values == $0", value);
+    public TableQuery containsValue(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@values == $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery containsEntry(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed key, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + "[$0] == $1", key, value);
+    public TableQuery containsEntry(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny key, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + "[$0] == $1", key, value);
         queryValidated = false;
         return this;
     }
