@@ -414,7 +414,6 @@ public class LinkingObjectsQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isEmpty_acrossLinkingObjectObjectLink() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
@@ -543,7 +542,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_SET).count());
                     break;
                 case LINK_SET:
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
+                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
                     break;
                 default:
                     fail("Unknown type: " + type);

@@ -2517,7 +2517,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isEmpty() throws IOException {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
@@ -2651,7 +2650,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isEmpty_acrossLink() {
         createIsEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_EMPTY_TYPES) {
@@ -2862,7 +2860,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isNotEmpty() {
         createIsNotEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
@@ -2995,7 +2992,6 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    @Ignore("Ignore until https://github.com/realm/realm-core/issues/4633 is fixed")
     public void isNotEmpty_acrossLink() {
         createIsNotEmptyDataSet(realm);
         for (RealmFieldType type : SUPPORTED_IS_NOT_EMPTY_TYPES) {
