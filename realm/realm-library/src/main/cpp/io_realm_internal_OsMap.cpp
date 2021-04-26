@@ -124,7 +124,7 @@ Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong wrapper_p
 }
 
 JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMap_nativeGetMixedPtr(JNIEnv *env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsMap_nativeGetRealmAnyPtr(JNIEnv *env, jclass, jlong wrapper_ptr,
                                                jstring j_key) {
     try {
         auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
@@ -159,7 +159,7 @@ Java_io_realm_internal_OsMap_nativeGetRow(JNIEnv* env, jclass, jlong wrapper_ptr
 }
 
 JNIEXPORT void JNICALL
-Java_io_realm_internal_OsMap_nativePutMixed(JNIEnv* env, jclass, jlong wrapper_ptr, jstring j_key,
+Java_io_realm_internal_OsMap_nativePutRealmAny(JNIEnv* env, jclass, jlong wrapper_ptr, jstring j_key,
                                             jlong mixed_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
@@ -481,7 +481,7 @@ Java_io_realm_internal_OsMap_nativeGetEntryForModel(JNIEnv* env, jclass, jlong w
 }
 
 JNIEXPORT jobjectArray JNICALL
-Java_io_realm_internal_OsMap_nativeGetEntryForMixed(JNIEnv* env, jclass, jlong wrapper_ptr, jint j_pos) {
+Java_io_realm_internal_OsMap_nativeGetEntryForRealmAny(JNIEnv* env, jclass, jlong wrapper_ptr, jint j_pos) {
     try {
         auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
         auto& dictionary = wrapper.collection();
@@ -716,7 +716,7 @@ Java_io_realm_internal_OsMap_nativeContainsDecimal128(JNIEnv* env, jclass, jlong
 }
 
 JNIEXPORT jboolean JNICALL
-Java_io_realm_internal_OsMap_nativeContainsMixed(JNIEnv* env, jclass, jlong wrapper_ptr,
+Java_io_realm_internal_OsMap_nativeContainsRealmAny(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                  jlong mixed_ptr) {
     try {
         auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
