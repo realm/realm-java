@@ -1163,7 +1163,7 @@ public class DynamicRealmObjectTests {
     }
 
     @Test
-    public void untypedSetter_listMixedTypesThrows() {
+    public void untypedSetter_listRealmAnyTypesThrows() {
         realm.beginTransaction();
         AllJavaTypes obj1 = realm.createObject(AllJavaTypes.class, 2);
         CyclicType obj2 = realm.createObject(CyclicType.class);
@@ -1810,7 +1810,7 @@ public class DynamicRealmObjectTests {
             assertNull(primitiveNullables.getFieldObjectId());
             assertNull(primitiveNullables.getFieldDecimal128());
             assertNull(primitiveNullables.getFieldUUID());
-            assertTrue(primitiveNullables.getFieldMixed().isNull());
+            assertTrue(primitiveNullables.getFieldRealmAny().isNull());
 
             realm.delete(AllJavaTypes.class);
             AllJavaTypes allJavaTypes = realm.createObject(AllJavaTypes.class, UUID.randomUUID().getLeastSignificantBits());
@@ -1826,7 +1826,7 @@ public class DynamicRealmObjectTests {
             allJavaTypes.getFieldObjectIdList().add(null);
             allJavaTypes.getFieldDecimal128List().add(null);
             allJavaTypes.getFieldUUIDList().add(null);
-            allJavaTypes.getFieldMixedList().add(null);
+            allJavaTypes.getFieldRealmAnyList().add(null);
 
         });
         realm.close();
@@ -1904,7 +1904,7 @@ public class DynamicRealmObjectTests {
                     assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_UUID_LIST, UUID.class).get(0));
                     break;
                 case MIXED_LIST:
-                    assertTrue(allJavaTypes.getList(AllJavaTypes.FIELD_MIXED_LIST, Mixed.class).get(0).isNull());
+                    assertTrue(allJavaTypes.getList(AllJavaTypes.FIELD_MIXED_LIST, RealmAny.class).get(0).isNull());
                     break;
                 case TYPED_LINK:
                 case LIST:

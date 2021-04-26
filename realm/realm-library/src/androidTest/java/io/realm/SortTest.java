@@ -577,7 +577,7 @@ public class SortTest {
     }
 
     @Test
-    public void sortAndDistinctMixed() {
+    public void sortAndDistinctRealmAny() {
         // Dataset:
         // (FIELD_INDEX_LONG, FIELD_INDEX_INT, FIELD_INDEX_STRING)
         // (1, 1, "A")

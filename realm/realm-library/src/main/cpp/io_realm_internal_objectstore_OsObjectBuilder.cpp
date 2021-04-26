@@ -167,7 +167,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixed
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddRealmAny
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong native_ptr)
 {
     try {
@@ -432,7 +432,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddMixedListItem
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddRealmAnyListItem
         (JNIEnv* env, jclass, jlong list_ptr, jlong mixed_ptr)
 {
     try {

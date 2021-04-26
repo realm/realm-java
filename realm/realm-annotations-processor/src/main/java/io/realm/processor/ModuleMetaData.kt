@@ -236,10 +236,10 @@ class ModuleMetaData {
             defineModule(qualifiedModuleClassName, classData)
         }
 
-        // Check that app and library modules are not mixed
+        // Check that app and library modules are not realmAny
         if (modules.size > 0 && libraryModules.size > 0) {
             val sb = StringBuilder()
-            sb.append("Normal modules and library modules cannot be mixed in the same project.")
+            sb.append("Normal modules and library modules cannot be realmAny in the same project.")
             sb.append('\n')
             sb.append("Normal module(s):\n")
             for (module in modules.keys) {

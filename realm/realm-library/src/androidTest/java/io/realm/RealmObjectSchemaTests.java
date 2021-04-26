@@ -127,7 +127,7 @@ public class RealmObjectSchemaTests {
         DECIMAL128(Decimal128.class, true),
         UUID(UUID.class, true),
         OBJECT(RealmObject.class, false),
-        MIXED(Mixed.class, true);
+        MIXED(RealmAny.class, true);
 
         final Class<?> clazz;
         final boolean defaultNullable;
@@ -161,7 +161,7 @@ public class RealmObjectSchemaTests {
         OBJECT_ID_LIST(ObjectId.class, true),
         DECIMAL128_LIST(Decimal128.class, true),
         UUID_LIST(UUID.class, true),
-        MIXED_LIST(Mixed.class, true),
+        MIXED_LIST(RealmAny.class, true),
         LIST(RealmList.class, false); // List of Realm Objects
 
         final Class<?> clazz;
@@ -190,7 +190,7 @@ public class RealmObjectSchemaTests {
         BOOLEAN(Boolean.class, true), PRIMITIVE_BOOLEAN(boolean.class, false),
         OBJECT_ID(ObjectId.class, true),
         UUID(UUID.class, true),
-        MIXED(Mixed.class, true),
+        MIXED(RealmAny.class, true),
         DATE(Date.class, true);
 
         private final Class<?> clazz;
@@ -262,7 +262,7 @@ public class RealmObjectSchemaTests {
         BLOB(byte[].class),
         DATE(Date.class),
         DECIMAL128(Decimal128.class),
-        MIXED(Mixed.class),
+        MIXED(RealmAny.class),
         OBJECT(RealmObject.class),
         LIST(RealmList.class);
 

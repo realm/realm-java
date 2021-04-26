@@ -88,7 +88,7 @@ public class RealmQueryTests extends QueryTests {
             allTypes.setColumnObjectId(new ObjectId(TestHelper.generateObjectIdHexString(i)));
             allTypes.setColumnDecimal128(new Decimal128(new BigDecimal(i + ".23456789")));
             allTypes.setColumnUUID(UUID.fromString(TestHelper.generateUUIDString(i)));
-            allTypes.setColumnMixed(Mixed.valueOf(i));
+            allTypes.setColumnRealmAny(RealmAny.valueOf(i));
 
             NonLatinFieldNames nonLatinFieldNames = testRealm.createObject(NonLatinFieldNames.class);
             nonLatinFieldNames.set델타(i);
@@ -2986,7 +2986,7 @@ public class RealmQueryTests extends QueryTests {
                 obj.setColumnMutableRealmInteger(j);
                 obj.setColumnRealmLink(obj);
                 obj.setColumnRealmObject(dog);
-                obj.setColumnMixed(Mixed.valueOf(i));
+                obj.setColumnRealmAny(RealmAny.valueOf(i));
             }
         }
         realm.commitTransaction();
@@ -3519,7 +3519,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void rawPredicate_mixedWithTypedPredicates() {
+    public void rawPredicate_realmAnyWithTypedPredicates() {
         populateTestRealm();
         RealmResults<AllTypes> result = realm.where(AllTypes.class)
                 .equalTo("columnString", "test data 0")
@@ -3550,7 +3550,7 @@ public class RealmQueryTests extends QueryTests {
         assertEquals("Fido", dogs.get(1).getName());
     }
 
-    // Descriptors defined by raw predicates can be mixed with typed ones and still be applied in order
+    // Descriptors defined by raw predicates can be realmAny with typed ones and still be applied in order
     @Test
     public void rawPredicate_mixTypedAndRawDescriptors() {
         realm.beginTransaction();

@@ -520,11 +520,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             val hasRequiredAnnotation = hasRequiredAnnotation(field)
             val listGenericType = (field.asType() as DeclaredType).typeArguments
             val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
-            val containsMixed = (listGenericType.isNotEmpty() && Utils.isMixed(listGenericType[0]))
+            val containsRealmAny = (listGenericType.isNotEmpty() && Utils.isRealmAny(listGenericType[0]))
 
             // @Required not allowed if the list contains Realm model classes
-            if (hasRequiredAnnotation && (containsRealmModelClasses || containsMixed)) {
-                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes or Mixed.")
+            if (hasRequiredAnnotation && (containsRealmModelClasses || containsRealmAny)) {
+                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes or RealmAny.")
                 return false
             }
 
@@ -570,7 +570,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field)
-        if (Utils.isRealmModel(field) || Utils.isRealmModelList(field) || Utils.isMixedList(field) || Utils.isMixed(field)) {
+        if (Utils.isRealmModel(field) || Utils.isRealmModelList(field) || Utils.isRealmAnyList(field) || Utils.isRealmAny(field)) {
             _objectReferenceFields.add(field)
         } else {
             basicTypeFields.add(field)
@@ -639,7 +639,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     private fun categorizeIndexField(element: Element, fieldElement: RealmFieldElement): Boolean {
         var indexable = false
 
-        if (Utils.isMutableRealmInteger(fieldElement) || Utils.isMixed(fieldElement)) {
+        if (Utils.isMutableRealmInteger(fieldElement) || Utils.isRealmAny(fieldElement)) {
             indexable = true
         } else {
             when (Constants.JAVA_TO_REALM_TYPES[fieldElement.asType().toString()]) {
@@ -682,8 +682,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             }
         }
 
-        if (Utils.isMixed(field)) {
-            Utils.error(String.format(Locale.US, "Mixed field \"${field}\" cannot be @Required or @NotNull."))
+        if (Utils.isRealmAny(field)) {
+            Utils.error(String.format(Locale.US, "RealmAny field \"${field}\" cannot be @Required or @NotNull."))
             return false
         }
 

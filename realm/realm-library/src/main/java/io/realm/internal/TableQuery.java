@@ -24,12 +24,12 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import io.realm.Mixed;
-import io.realm.MixedNativeFunctionsImpl;
+import io.realm.RealmAny;
+import io.realm.RealmAnyNativeFunctionsImpl;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
 import io.realm.Sort;
-import io.realm.internal.core.NativeMixed;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.log.RealmLog;
 
@@ -42,7 +42,7 @@ public class TableQuery implements NativeObject {
     private final Table table;
     private final long nativePtr;
 
-    private final MixedNativeFunctionsImpl mixedNativeFunctions = new MixedNativeFunctionsImpl();
+    private final RealmAnyNativeFunctionsImpl realmAnyNativeFunctions = new RealmAnyNativeFunctionsImpl();
 
     private boolean queryValidated = true;
 
@@ -181,40 +181,40 @@ public class TableQuery implements NativeObject {
     }
 
     public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, Object... args) {
-        Mixed[] mixedArgs = new Mixed[args.length];
+        RealmAny[] realmAnyArgs = new RealmAny[args.length];
 
         for (int i = 0; i < args.length; i++) {
             Object argument = args[i];
             if (argument == null) {
-                mixedArgs[i] = Mixed.nullValue();
+                realmAnyArgs[i] = RealmAny.nullValue();
             } else if (argument instanceof Boolean) {
-                mixedArgs[i] = Mixed.valueOf((Boolean) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Boolean) argument);
             } else if (argument instanceof Byte) {
-                mixedArgs[i] = Mixed.valueOf((Byte) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Byte) argument);
             } else if (argument instanceof Short) {
-                mixedArgs[i] = Mixed.valueOf((Short) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Short) argument);
             } else if (argument instanceof Integer) {
-                mixedArgs[i] = Mixed.valueOf((Integer) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Integer) argument);
             } else if (argument instanceof Long) {
-                mixedArgs[i] = Mixed.valueOf((Long) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Long) argument);
             } else if (argument instanceof Float) {
-                mixedArgs[i] = Mixed.valueOf((Float) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Float) argument);
             } else if (argument instanceof Double) {
-                mixedArgs[i] = Mixed.valueOf((Double) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Double) argument);
             } else if (argument instanceof Decimal128) {
-                mixedArgs[i] = Mixed.valueOf((Decimal128) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Decimal128) argument);
             } else if (argument instanceof String) {
-                mixedArgs[i] = Mixed.valueOf((String) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((String) argument);
             } else if (argument instanceof byte[]) {
-                mixedArgs[i] = Mixed.valueOf((byte[]) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((byte[]) argument);
             } else if (argument instanceof Date) {
-                mixedArgs[i] = Mixed.valueOf((Date) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((Date) argument);
             } else if (argument instanceof ObjectId) {
-                mixedArgs[i] = Mixed.valueOf((ObjectId) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((ObjectId) argument);
             } else if (argument instanceof UUID) {
-                mixedArgs[i] = Mixed.valueOf((UUID) argument);
-            } else if (argument instanceof Mixed) {
-                mixedArgs[i] = (Mixed) argument;
+                realmAnyArgs[i] = RealmAny.valueOf((UUID) argument);
+            } else if (argument instanceof RealmAny) {
+                realmAnyArgs[i] = (RealmAny) argument;
             } else if (RealmModel.class.isAssignableFrom(argument.getClass())) {
                 RealmModel value = (RealmModel) argument;
 
@@ -222,13 +222,13 @@ public class TableQuery implements NativeObject {
                     throw new IllegalArgumentException("Argument[" + i + "] is not a valid managed object.");
                 }
 
-                mixedArgs[i] = Mixed.valueOf((RealmModel) argument);
+                realmAnyArgs[i] = RealmAny.valueOf((RealmModel) argument);
             } else {
                 throw new IllegalArgumentException("Unsupported query argument type: " + argument.getClass().getSimpleName());
             }
         }
 
-        mixedNativeFunctions.callRawPredicate(this, mapping, predicate, mixedArgs);
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, predicate, realmAnyArgs);
 
         return this;
     }
@@ -246,104 +246,104 @@ public class TableQuery implements NativeObject {
                 (mapping != null) ? mapping.getNativePtr() : 0);
     }
 
-    public TableQuery equalTo(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " = $0", value);
+    public TableQuery equalTo(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " = $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery notEqualTo(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " != $0", value);
+    public TableQuery notEqualTo(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " != $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery equalToInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " =[c] $0", value);
+    public TableQuery equalToInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " =[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery notEqualToInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " !=[c] $0", value);
+    public TableQuery notEqualToInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " !=[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery greaterThan(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " > $0", value);
+    public TableQuery greaterThan(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " > $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery greaterThanOrEqual(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " >= $0", value);
+    public TableQuery greaterThanOrEqual(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " >= $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery lessThan(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " < $0", value);
+    public TableQuery lessThan(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " < $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery lessThanOrEqual(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " <= $0", value);
+    public TableQuery lessThanOrEqual(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " <= $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery between(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value1, Mixed value2) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, "(" + escapeFieldName(fieldName) + " >= $0 AND " + escapeFieldName(fieldName) + " <= $1)", value1, value2);
+    public TableQuery between(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value1, RealmAny value2) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, "(" + escapeFieldName(fieldName) + " >= $0 AND " + escapeFieldName(fieldName) + " <= $1)", value1, value2);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery beginsWith(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " BEGINSWITH $0", value);
+    public TableQuery beginsWith(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " BEGINSWITH $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery beginsWithInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " BEGINSWITH[c] $0", value);
+    public TableQuery beginsWithInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " BEGINSWITH[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery endsWith(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " ENDSWITH $0", value);
+    public TableQuery endsWith(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " ENDSWITH $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery endsWithInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " ENDSWITH[c] $0", value);
+    public TableQuery endsWithInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " ENDSWITH[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery like(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " LIKE $0", value);
+    public TableQuery like(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " LIKE $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery likeInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " LIKE[c] $0", value);
+    public TableQuery likeInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " LIKE[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery contains(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS $0", value);
+    public TableQuery contains(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery containsInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed value) {
-        mixedNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS[c] $0", value);
+    public TableQuery containsInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS[c] $0", value);
         queryValidated = false;
         return this;
     }
@@ -373,13 +373,13 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public TableQuery in(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed[] values) {
+    public TableQuery in(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny[] values) {
         fieldName = escapeFieldName(fieldName);
 
         beginGroup();
 
         boolean first = true;
-        for (Mixed value : values) {
+        for (RealmAny value : values) {
             if (!first) { or(); }
             if (value == null) {
                 isNull(mapping, fieldName);
@@ -394,13 +394,13 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    public TableQuery inInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, Mixed[] values) {
+    public TableQuery inInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny[] values) {
         fieldName = escapeFieldName(fieldName);
 
         beginGroup();
 
         boolean first = true;
-        for (Mixed value : values) {
+        for (RealmAny value : values) {
             if (!first) { or(); }
             if (value == null) {
                 isNull(mapping, fieldName);
@@ -505,26 +505,26 @@ public class TableQuery implements NativeObject {
         return nativeAverageDouble(nativePtr, columnKey);
     }
 
-    // Mixed aggregation
-    public Decimal128 sumMixed(long columnKey) {
+    // RealmAny aggregation
+    public Decimal128 sumRealmAny(long columnKey) {
         validateQuery();
-        long[] data =  nativeSumMixed(nativePtr, columnKey);
+        long[] data =  nativeSumRealmAny(nativePtr, columnKey);
         return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
     }
 
-    public NativeMixed maximumMixed(long columnKey) {
+    public NativeRealmAny maximumRealmAny(long columnKey) {
         validateQuery();
-        return nativeMaximumMixed(nativePtr, columnKey);
+        return nativeMaximumRealmAny(nativePtr, columnKey);
     }
 
-    public NativeMixed minimumMixed(long columnKey) {
+    public NativeRealmAny minimumRealmAny(long columnKey) {
         validateQuery();
-        return nativeMinimumMixed(nativePtr, columnKey);
+        return nativeMinimumRealmAny(nativePtr, columnKey);
     }
 
-    public Decimal128 averageMixed(long columnKey) {
+    public Decimal128 averageRealmAny(long columnKey) {
         validateQuery();
-        long[] data =  nativeAverageMixed(nativePtr, columnKey);
+        long[] data =  nativeAverageRealmAny(nativePtr, columnKey);
         return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
     }
 
@@ -617,7 +617,7 @@ public class TableQuery implements NativeObject {
 
     private native double nativeAverageFloat(long nativeQueryPtr, long columnKey);
 
-    private native long[] nativeSumMixed(long nativeQueryPtr, long columnKey);
+    private native long[] nativeSumRealmAny(long nativeQueryPtr, long columnKey);
 
     private native double nativeSumDouble(long nativeQueryPtr, long columnKey);
 
@@ -625,17 +625,17 @@ public class TableQuery implements NativeObject {
 
     private native Double nativeMaximumDouble(long nativeQueryPtr, long columnKey);
 
-    private native NativeMixed nativeMaximumMixed(long nativeQueryPtr, long columnKey);
+    private native NativeRealmAny nativeMaximumRealmAny(long nativeQueryPtr, long columnKey);
 
     private native long[] nativeMaximumDecimal128(long nativeQueryPtr, long columnKey);
 
-    private native NativeMixed nativeMinimumMixed(long nativeQueryPtr, long columnKey);
+    private native NativeRealmAny nativeMinimumRealmAny(long nativeQueryPtr, long columnKey);
 
     private native Double nativeMinimumDouble(long nativeQueryPtr, long columnKey);
 
     private native long[] nativeMinimumDecimal128(long nativeQueryPtr, long columnKey);
 
-    private native long[] nativeAverageMixed(long nativeQueryPtr, long columnKey);
+    private native long[] nativeAverageRealmAny(long nativeQueryPtr, long columnKey);
 
     private native double nativeAverageDouble(long nativeQueryPtr, long columnKey);
 

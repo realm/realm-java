@@ -80,7 +80,7 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUID: UUID = UUID.randomUUID()
 
-    var columnMixed: Mixed? = Mixed.nullValue()
+    var columnRealmAny: RealmAny? = RealmAny.nullValue()
 
     val columnRealmInteger: MutableRealmInteger = MutableRealmInteger.ofNull()
 
@@ -111,7 +111,7 @@ open class SyncAllTypes : RealmObject() {
     @Required
     var columnUUIDList: RealmList<UUID> = RealmList()
 
-    var columnMixedList: RealmList<Mixed> = RealmList()
+    var columnRealmAnyList: RealmList<RealmAny> = RealmList()
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())

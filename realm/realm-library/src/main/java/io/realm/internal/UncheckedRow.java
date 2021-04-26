@@ -25,7 +25,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
-import io.realm.internal.core.NativeMixed;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -187,8 +187,8 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public NativeMixed getNativeMixed(long columnKey) {
-        return new NativeMixed(nativeGetMixed(nativePtr, columnKey));
+    public NativeRealmAny getNativeRealmAny(long columnKey) {
+        return new NativeRealmAny(nativeGetRealmAny(nativePtr, columnKey));
     }
 
     @Override
@@ -249,9 +249,9 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
-    public void setMixed(long columnKey, long mixedNativePtr) {
+    public void setRealmAny(long columnKey, long realmAnyNativePtr) {
         parent.checkImmutable();
-        nativeSetMixed(nativePtr, columnKey, mixedNativePtr);
+        nativeSetRealmAny(nativePtr, columnKey, realmAnyNativePtr);
     }
 
     /**
@@ -419,7 +419,7 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native String nativeGetUUID(long nativePtr, long columnKey);
 
-    protected native long nativeGetMixed(long nativePtr, long columnKey);
+    protected native long nativeGetRealmAny(long nativePtr, long columnKey);
 
     protected native void nativeSetLong(long nativeRowPtr, long columnKey, long value);
 
@@ -443,7 +443,7 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native void nativeSetUUID(long nativePtr, long columnKey, String value);
 
-    protected native void nativeSetMixed(long nativeRowPtr, long columnKey, long nativePtr);
+    protected native void nativeSetRealmAny(long nativeRowPtr, long columnKey, long nativePtr);
 
     protected native void nativeSetLink(long nativeRowPtr, long columnKey, long value);
 
