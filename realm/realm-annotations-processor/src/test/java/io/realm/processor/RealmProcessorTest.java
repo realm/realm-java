@@ -515,7 +515,7 @@ public class RealmProcessorTest {
 
 
     @Test
-    public void compileRealmDictionaryModelMixedRequiredFails() {
+    public void compileRealmDictionaryModelRealmAnyRequiredFails() {
         assertAbout(javaSource())
                 .that(realmDictionaryModelRealmAnyRequired)
                 .processedWith(new RealmProcessor())
