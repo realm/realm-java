@@ -32,7 +32,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-
 @RunWith(AndroidJUnit4::class)
 class DynamicRealmAnyTests {
     @get:Rule

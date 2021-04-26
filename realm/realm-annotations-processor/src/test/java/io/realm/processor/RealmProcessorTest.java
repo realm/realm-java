@@ -211,7 +211,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileLibraryModuleRealmAnyParametersFail() {
+    public void compileLibraryModuleMixedParametersFail() {
         assertAbout(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource("some/test/InvalidLibraryModuleMixedParameters.java")))
                 .processedWith(new RealmProcessor())

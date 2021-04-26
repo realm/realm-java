@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.OsList;
 import io.realm.internal.RealmObjectProxy;
+
 import io.realm.internal.core.NativeRealmAny;
 
 import static io.realm.CollectionUtils.LIST_TYPE;
@@ -840,7 +841,6 @@ final class RealmAnyListOperator extends ManagedListOperator<RealmAny> {
     @Override
     protected void setValue(int index, Object value) {
         RealmAny realmAny = (RealmAny) value;
-
         realmAny = CollectionUtils.copyToRealmIfNeeded(realm, realmAny);
         osList.setRealmAny(index, realmAny.getNativePtr());
     }
