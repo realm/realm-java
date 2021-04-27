@@ -106,7 +106,6 @@ import javax.annotation.Nullable;
  * a realization of {@link io.realm.RealmModel} asRealmModel() can be
  * called to cast the RealmAny value to a Realm object reference.
  */
-
 public class RealmAny {
     @Nonnull
     private final RealmAnyOperator operator;
