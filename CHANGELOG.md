@@ -1,4 +1,5 @@
-## 10.4.0 (YYYY-MM-DD)
+## 11.0.0 (YYYY-MM-DD)
+
 ### Breaking Changes
 * Queries no longer do nullability checks on non-nullable fields, so using `null` as an argument will not throw an `IllegalArgumentException`.
 * String query filters `contains`, `beginsWith`, `endsWith`, and `like`, now throw a null pointer exception on null values.
@@ -10,10 +11,69 @@
 * Added support for `java.util.UUID` as supported field in model classes.
 * Added support for `java.util.UUID` as a primary key.
 * Added support for `RealmAny` as supported field in model classes. A `RealmAny` is used to represent a polymorphic Realm value or Realm Object, is indexable but cannot be used as a primary key. See [Javadoc for RealmAny](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmAny.html).
+* Allow UTF8 encoded characters in property names in string-based queries ([#4467](https://github.com/realm/realm-core/issues/4467))
+* The error message when the initial steps of opening a Realm file fails is now more descriptive.
+* Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. ([#4548](https://github.com/realm/realm-core/issues/4548))
+* We now make a backup of the realm file prior to any file format upgrade. The backup is retained for 3 months.
+  Backups from before a file format upgrade allows for better analysis of any upgrade failure. We also restore
+  a backup, if a) an attempt is made to open a realm file with a "future" file format and b) a backup file exist
+  that fits the current file format. ([#4166](https://github.com/realm/realm-core/pull/4166))
+* Remove type coercion on bool and ObjectId when doing queries.
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
 * Queries across relationships now support the `between` operator.
 * Queries on numerical fields (byte, short, int, long, float, double, decimal128) now accept any numerical value as an argument.
 * `isEmpty` query filter can now be applied on `RealmList` and `RealmObject` fields.
+
+### Fixed
+* Fix assertion failures such as "!m_notifier_skip_version.version" or "m_notifier_sg->get_version() + 1 == new_version.version" when performing writes inside change notification callbacks. Previously refreshing the Realm by beginning a write transaction would skip delivering notifications, leaving things in an inconsistent state. Notifications are now delivered recursively when needed instead. ([Cocoa #7165](https://github.com/realm/realm-cocoa/issues/7165)).
+* Fixed name aliasing not working in sort/distinct clauses when doing string-based queries. ([#4550](https://github.com/realm/realm-core/issues/4550), never before working).
+* Potential/unconfirmed fix for crashes associated with failure to memory map (low on memory, low on virtual address space). For example ([#4514](https://github.com/realm/realm-core/issues/4514)).
+* Syncing large Decimal128 values will cause "Assertion failed: cx.w[1] == 0" ([#4519](https://github.com/realm/realm-core/issues/4519), since v10.0.0)
+* Classes names "class_class_..." were not handled correctly when doing queries ([#4480](https://github.com/realm/realm-core/issues/4480))
+* Fix collection notification reporting for modifications. This could be observed by receiving the wrong indices of modifications on sorted or distinct results, or notification blocks sometimes not being called when only modifications have occurred. ([#4573](https://github.com/realm/realm-core/pull/4573) since v6).
+
+### Breaking changes
+* Sync protocol version increased to 3. This version adds support for the new data types introduced in file format version 21.
+* File format version bumped to 21. In this version we support new basic datatypes `UUID` and `RealmAny`, as well as `RealmSet` and `RealmMap` collections with string-based keys (i.e. `RealmDictionary`).
+
+### Internal
+* Updated to Realm Core commit: <TBD>.
+
+## 10.4.0 (2021-03-26)
+
+All releases from 10.4.0 and forward are now found on `mavenCentral()` instead of `jcenter()`.
+
+A minimal supported setup will therefore now look like this:
+
+```
+allprojects {
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            classpath "io.realm:realm-gradle-plugin:10.4.0"
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
+`SNAPSHOT` releases have also been moved from `http://oss.jfrog.org/artifactory/oss-snapshot-local`
+to `https://oss.sonatype.org/content/repositories/snapshots/`. See [here](https://github.com/realm/realm-java/blob/master/README.md#using-snapshots)
+for more information.
+
+### Enhancements
+* Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
+* Performance of sorting on more than one property has been improved. Especially important if many elements match on the first property.
+
+### Fixes
+* Calling max/min/sum/avg on a List may give wrong results (Realm Core [#4252](https://github.com/realm/realm-core/issues/4252), since v10.0.0)
+* Fix an issue when using `RealmResults.freeze()` across threads with different transaction versions. Previously, copying the `RealmsResults`' native resource could result in a stale state or objects from a future version. (Realm Core [#4254](https://github.com/realm/realm-core/pull/4254)).
+* On 32-bit devices you may get exception with "No such object" when upgrading to v10.* ([#7314](https://github.com/realm/realm-java/issues/7314), since v10.0.0)
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -21,9 +81,9 @@
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core commit: df57de0101b5b817f8f4158cf45e11985cd640c2.
+* Updated to Realm Core 10.5.6, commit 92129110dece2cee59839e20be3a7067084a1196.
 * Updated to NDK 22.0.7026061.
-
+* Updated to ReLinker 1.4.3.
 
 ## 10.3.1 (2021-01-28)
 
@@ -31,7 +91,7 @@
 * None.
 
 ### Fixes
-* RxJava Flowables/Observables and Coroutine Flows would crash if they were created from a `RealmList` and the parent object holding the list was deleted. Now, the stream is disposed/closed instead. (Issue [#7242](https://github.com/realm/realm-java/issues/7242)) 
+* RxJava Flowables/Observables and Coroutine Flows would crash if they were created from a `RealmList` and the parent object holding the list was deleted. Now, the stream is disposed/closed instead. (Issue [#7242](https://github.com/realm/realm-java/issues/7242))
 * Fixes Realm models default values containing objects with a PK might crash with a `RealmPrimaryKeyConstraintException`. (Issue [#7269] (https://github.com/realm/realm-java/issues/7269))
 
 ### Compatibility
