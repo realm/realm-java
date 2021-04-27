@@ -1,7 +1,7 @@
 ## 11.0.0 (YYYY-MM-DD)
 
 ### Enhancements
-* Allow UTF8 encoded characters in property names in query parser ([#4467](https://github.com/realm/realm-core/issues/4467))
+* Allow UTF8 encoded characters in property names in string-based queries ([#4467](https://github.com/realm/realm-core/issues/4467))
 * The error message when the initial steps of opening a Realm file fails is now more descriptive.
 * Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. ([#4548](https://github.com/realm/realm-core/issues/4548))
 * We now make a backup of the realm file prior to any file format upgrade. The backup is retained for 3 months.
@@ -9,19 +9,18 @@
   a backup, if a) an attempt is made to open a realm file with a "future" file format and b) a backup file exist
   that fits the current file format. ([#4166](https://github.com/realm/realm-core/pull/4166))
 * Remove type coercion on bool and ObjectId when doing queries.
-* Pass CreatePolicy to `unbox<T>` from the object accessor.
 
 ### Fixed
 * Fix assertion failures such as "!m_notifier_skip_version.version" or "m_notifier_sg->get_version() + 1 == new_version.version" when performing writes inside change notification callbacks. Previously refreshing the Realm by beginning a write transaction would skip delivering notifications, leaving things in an inconsistent state. Notifications are now delivered recursively when needed instead. ([Cocoa #7165](https://github.com/realm/realm-cocoa/issues/7165)).
-* Fixed name aliasing not working in sort/distinct clauses of the query parser. ([#4550](https://github.com/realm/realm-core/issues/4550), never before working).
+* Fixed name aliasing not working in sort/distinct clauses when doing string-based queries. ([#4550](https://github.com/realm/realm-core/issues/4550), never before working).
 * Potential/unconfirmed fix for crashes associated with failure to memory map (low on memory, low on virtual address space). For example ([#4514](https://github.com/realm/realm-core/issues/4514)).
 * Syncing large Decimal128 values will cause "Assertion failed: cx.w[1] == 0" ([#4519](https://github.com/realm/realm-core/issues/4519), since v10.0.0)
-* Classes names "class_class_..." was not handled correctly in KeyPathMapping ([#4480](https://github.com/realm/realm-core/issues/4480))
+* Classes names "class_class_..." were not handled correctly when doing queries ([#4480](https://github.com/realm/realm-core/issues/4480))
 * Fix collection notification reporting for modifications. This could be observed by receiving the wrong indices of modifications on sorted or distinct results, or notification blocks sometimes not being called when only modifications have occurred. ([#4573](https://github.com/realm/realm-core/pull/4573) since v6).
 
 ### Breaking changes
 * Sync protocol version increased to 3. This version adds support for the new data types introduced in file format version 21.
-* File format version bumped to 21. In this version we support new basic datatypes 'UUID' and 'Mixed', and we support Set and Dictionary collections.
+* File format version bumped to 21. In this version we support new basic datatypes `UUID` and `RealmAny`, as well as `RealmSet` and `RealmMap` collections with string-based keys (i.e. `RealmDictionary`).
 
 ### Internal
 * Updated to Realm Core commit: <TBD>.
