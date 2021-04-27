@@ -7,6 +7,7 @@
 ### Enhancements
 * Added support for `java.util.UUID` as supported field in model classes.
 * Added support for `java.util.UUID` as a primary key.
+* Added support for `RealmAny` as supported field in model classes. A `RealmAny` is used to represent a polymorphic Realm value or Realm Object, is indexable but cannot be used as a primary key. See [Javadoc for RealmAny](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmAny.html).
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
 * Queries across relationships now support the `between` operator.
 * Queries on numerical fields (byte, short, int, long, float, double, decimal128) now accept any numerical value as an argument.
