@@ -33,14 +33,14 @@ allprojects {
             kotlin_version = projectDependencies.get('KOTLIN')
         }
         repositories {
-            google()
             mavenLocal()
-            jcenter()
+            mavenCentral()
             maven { url 'https://jitpack.io' }
+            google()
+            jcenter()
         }
         dependencies {
             classpath "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
-            classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${props.get('GRADLE_BINTRAY_PLUGIN')}"
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         }
@@ -51,8 +51,9 @@ allprojects {
 
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         google()
+        jcenter()
     }
 
     if (!project.name.startsWith("realm-examples")
