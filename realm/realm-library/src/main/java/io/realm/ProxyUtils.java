@@ -409,7 +409,7 @@ class ProxyUtils {
     static <T extends RealmModel> RealmAny copyToRealmIfNeeded(ProxyState<T> proxyState, @Nullable RealmAny value) {
         final Realm realm = (Realm) proxyState.getRealm$realm();
 
-        if ((value != null) && (value.getType() == RealmAnyType.OBJECT)) {
+        if ((value != null) && (value.getType() == RealmAny.Type.OBJECT)) {
             RealmModel realmAnyRealmModel = value.asRealmModel(RealmModel.class);
 
             if (realm.getSchema().getSchemaForClass(realmAnyRealmModel.getClass()).isEmbedded()) {
@@ -436,7 +436,7 @@ class ProxyUtils {
             return RealmAny.nullValue();
         }
 
-        if (realmAny.getType() == RealmAnyType.OBJECT) {
+        if (realmAny.getType() == RealmAny.Type.OBJECT) {
             Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
             RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
@@ -462,7 +462,7 @@ class ProxyUtils {
             return RealmAny.nullValue();
         }
 
-        if (realmAny.getType() == RealmAnyType.OBJECT) {
+        if (realmAny.getType() == RealmAny.Type.OBJECT) {
             Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
             RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
@@ -489,7 +489,7 @@ class ProxyUtils {
             return RealmAny.nullValue();
         }
 
-        if (realmAny.getType() == RealmAnyType.OBJECT) {
+        if (realmAny.getType() == RealmAny.Type.OBJECT) {
             Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
             RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
@@ -514,7 +514,7 @@ class ProxyUtils {
             return RealmAny.nullValue();
         }
 
-        if (realmAny.getType() == RealmAnyType.OBJECT) {
+        if (realmAny.getType() == RealmAny.Type.OBJECT) {
             Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
             RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 
@@ -534,7 +534,7 @@ class ProxyUtils {
             return RealmAny.nullValue();
         }
 
-        if (realmAny.getType() == RealmAnyType.OBJECT) {
+        if (realmAny.getType() == RealmAny.Type.OBJECT) {
             Class<? extends RealmModel> realmAnyValueClass = (Class<? extends RealmModel>) realmAny.getValueClass();
             RealmModel realmAnyRealmObject = realmAny.asRealmModel(realmAnyValueClass);
 

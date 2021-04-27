@@ -18,13 +18,14 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
 
 /**
@@ -124,9 +125,9 @@ public class RealmAny {
     /**
      * Gets the inner type of this RealmAny object.
      *
-     * @return the inner RealmAnyType.
+     * @return the inner RealmAny.Type
      */
-    public RealmAnyType getType() {
+    public RealmAny.Type getType() {
         return this.operator.getType();
     }
 
@@ -142,7 +143,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#INTEGER}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#INTEGER}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny containing a Byte value.
@@ -153,7 +154,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#INTEGER}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#INTEGER}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a Short.
@@ -164,7 +165,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#INTEGER}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#INTEGER}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a Integer.
@@ -175,7 +176,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#INTEGER}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#INTEGER}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a Long.
@@ -187,7 +188,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#BOOLEAN}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#BOOLEAN}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a Boolean.
@@ -198,7 +199,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#FLOAT}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#FLOAT}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a Float.
@@ -209,7 +210,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#DOUBLE}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#DOUBLE}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a Double.
@@ -220,7 +221,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#STRING}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#STRING}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a String.
@@ -231,7 +232,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#BINARY}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#BINARY}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a byte[].
@@ -242,7 +243,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#DATE}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#DATE}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a Date.
@@ -253,7 +254,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#OBJECT_ID}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#OBJECT_ID}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of an ObjectId.
@@ -264,7 +265,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#DECIMAL128}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#DECIMAL128}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of a Decimal128.
@@ -275,7 +276,7 @@ public class RealmAny {
 
     /**
      * Creates a new RealmAny with the specified value.
-     * If the value is not null the type will be {@link RealmAnyType#UUID}, {@link RealmAnyType#NULL} otherwise.
+     * If the value is not null the type will be {@link RealmAny.Type#UUID}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
      * @return a new RealmAny of an UUID.
@@ -309,7 +310,7 @@ public class RealmAny {
      * @return true if the inner value is null, false otherwise.
      */
     public boolean isNull() {
-        return this.getType() == RealmAnyType.NULL;
+        return this.getType() == RealmAny.Type.NULL;
     }
 
     /**
@@ -491,5 +492,52 @@ public class RealmAny {
     @Override
     public String toString() {
         return this.operator.toString();
+    }
+
+    /**
+     * Enum describing all the types supported by RealmAny.
+     */
+    public enum Type {
+        INTEGER(RealmFieldType.INTEGER, Long.class),
+        BOOLEAN(RealmFieldType.BOOLEAN, Boolean.class),
+        STRING(RealmFieldType.STRING, String.class),
+        BINARY(RealmFieldType.BINARY, Byte[].class),
+        DATE(RealmFieldType.DATE, Date.class),
+        FLOAT(RealmFieldType.FLOAT, Float.class),
+        DOUBLE(RealmFieldType.DOUBLE, Double.class),
+        DECIMAL128(RealmFieldType.DECIMAL128, Decimal128.class),
+        OBJECT_ID(RealmFieldType.OBJECT_ID, ObjectId.class),
+        OBJECT(RealmFieldType.TYPED_LINK, RealmModel.class),
+        UUID(RealmFieldType.UUID, java.util.UUID.class),
+        NULL(null, null);
+
+        private static final Type[] realmFieldToRealmAnyTypeMap = new Type[MAX_CORE_TYPE_VALUE + 1];
+
+        static {
+            for (Type realmAnyType : values()) {
+                if (realmAnyType == NULL) { continue; }
+
+                final int nativeValue = realmAnyType.realmFieldType.getNativeValue();
+                realmFieldToRealmAnyTypeMap[nativeValue] = realmAnyType;
+            }
+        }
+
+        public static Type fromNativeValue(int realmFieldType) {
+            if (realmFieldType == -1) { return NULL; }
+
+            return realmFieldToRealmAnyTypeMap[realmFieldType];
+        }
+
+        private final Class<?> clazz;
+        private final RealmFieldType realmFieldType;
+
+        Type(@Nullable RealmFieldType realmFieldType, @Nullable Class<?> clazz) {
+            this.realmFieldType = realmFieldType;
+            this.clazz = clazz;
+        }
+
+        public Class<?> getTypedClass() {
+            return clazz;
+        }
     }
 }

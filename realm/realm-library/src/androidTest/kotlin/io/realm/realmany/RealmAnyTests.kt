@@ -30,7 +30,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.test.*
@@ -77,8 +76,8 @@ class RealmAnyTests {
 
         assertEquals(10, realmAny.asByte())
         assertEquals(RealmAny.valueOf(10.toByte()), realmAny)
-        assertEquals(RealmAnyType.INTEGER, realmAny.type)
-        assertEquals(RealmAnyType.INTEGER.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.INTEGER, realmAny.type)
+        assertEquals(RealmAny.Type.INTEGER.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -87,8 +86,8 @@ class RealmAnyTests {
 
         assertEquals(10, realmAny.asShort())
         assertEquals(RealmAny.valueOf(10.toShort()), realmAny)
-        assertEquals(RealmAnyType.INTEGER, realmAny.type)
-        assertEquals(RealmAnyType.INTEGER.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.INTEGER, realmAny.type)
+        assertEquals(RealmAny.Type.INTEGER.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -97,8 +96,8 @@ class RealmAnyTests {
 
         assertEquals(10, realmAny.asInteger())
         assertEquals(RealmAny.valueOf(10.toInt()), realmAny)
-        assertEquals(RealmAnyType.INTEGER, realmAny.type)
-        assertEquals(RealmAnyType.INTEGER.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.INTEGER, realmAny.type)
+        assertEquals(RealmAny.Type.INTEGER.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -107,8 +106,8 @@ class RealmAnyTests {
 
         assertEquals(10, realmAny.asLong())
         assertEquals(RealmAny.valueOf(10.toLong()), realmAny)
-        assertEquals(RealmAnyType.INTEGER, realmAny.type)
-        assertEquals(RealmAnyType.INTEGER.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.INTEGER, realmAny.type)
+        assertEquals(RealmAny.Type.INTEGER.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -117,8 +116,8 @@ class RealmAnyTests {
 
         assertEquals(true, realmAny.asBoolean())
         assertEquals(RealmAny.valueOf(true), realmAny)
-        assertEquals(RealmAnyType.BOOLEAN, realmAny.type)
-        assertEquals(RealmAnyType.BOOLEAN.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.BOOLEAN, realmAny.type)
+        assertEquals(RealmAny.Type.BOOLEAN.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -127,8 +126,8 @@ class RealmAnyTests {
 
         assertEquals("hello world", realmAny.asString())
         assertEquals(RealmAny.valueOf("hello world"), realmAny)
-        assertEquals(RealmAnyType.STRING, realmAny.type)
-        assertEquals(RealmAnyType.STRING.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.STRING, realmAny.type)
+        assertEquals(RealmAny.Type.STRING.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -137,8 +136,8 @@ class RealmAnyTests {
 
         assertTrue(Arrays.equals(byteArrayOf(0, 1, 0), realmAny.asBinary()))
         assertEquals(RealmAny.valueOf(byteArrayOf(0, 1, 0)), realmAny)
-        assertEquals(RealmAnyType.BINARY, realmAny.type)
-        assertEquals(RealmAnyType.BINARY.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.BINARY, realmAny.type)
+        assertEquals(RealmAny.Type.BINARY.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -147,8 +146,8 @@ class RealmAnyTests {
 
         assertEquals(Date(10), realmAny.asDate())
         assertEquals(RealmAny.valueOf(Date(10)), realmAny)
-        assertEquals(RealmAnyType.DATE, realmAny.type)
-        assertEquals(RealmAnyType.DATE.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.DATE, realmAny.type)
+        assertEquals(RealmAny.Type.DATE.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -157,8 +156,8 @@ class RealmAnyTests {
 
         assertEquals(Decimal128.fromIEEE754BIDEncoding(10, 10), realmAny.asDecimal128())
         assertEquals(RealmAny.valueOf(Decimal128.fromIEEE754BIDEncoding(10, 10)), realmAny)
-        assertEquals(RealmAnyType.DECIMAL128, realmAny.type)
-        assertEquals(RealmAnyType.DECIMAL128.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.DECIMAL128, realmAny.type)
+        assertEquals(RealmAny.Type.DECIMAL128.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -167,8 +166,8 @@ class RealmAnyTests {
 
         assertEquals(10.0, realmAny.asDouble())
         assertEquals(RealmAny.valueOf(10.0), realmAny)
-        assertEquals(RealmAnyType.DOUBLE, realmAny.type)
-        assertEquals(RealmAnyType.DOUBLE.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.DOUBLE, realmAny.type)
+        assertEquals(RealmAny.Type.DOUBLE.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -177,8 +176,8 @@ class RealmAnyTests {
 
         assertEquals(10.0f, realmAny.asFloat())
         assertEquals(RealmAny.valueOf(10.0f), realmAny)
-        assertEquals(RealmAnyType.FLOAT, realmAny.type)
-        assertEquals(RealmAnyType.FLOAT.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.FLOAT, realmAny.type)
+        assertEquals(RealmAny.Type.FLOAT.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -187,8 +186,8 @@ class RealmAnyTests {
 
         assertEquals(ObjectId(TestHelper.generateObjectIdHexString(0)), realmAny.asObjectId())
         assertEquals(RealmAny.valueOf(ObjectId(TestHelper.generateObjectIdHexString(0))), realmAny)
-        assertEquals(RealmAnyType.OBJECT_ID, realmAny.type)
-        assertEquals(RealmAnyType.OBJECT_ID.typedClass, realmAny.valueClass)
+        assertEquals(RealmAny.Type.OBJECT_ID, realmAny.type)
+        assertEquals(RealmAny.Type.OBJECT_ID.typedClass, realmAny.valueClass)
     }
 
     @Test
@@ -198,7 +197,7 @@ class RealmAnyTests {
 
         assertEquals(obj, realmAny.asRealmModel(RealmAnyNotIndexed::class.java))
         assertEquals(RealmAny.valueOf(obj), realmAny)
-        assertEquals(RealmAnyType.OBJECT, realmAny.type)
+        assertEquals(RealmAny.Type.OBJECT, realmAny.type)
         assertEquals(RealmAnyNotIndexed::class.simpleName, realmAny.valueClass?.simpleName)
     }
 
@@ -208,7 +207,7 @@ class RealmAnyTests {
 
         assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), realmAny.asUUID())
         assertEquals(RealmAny.valueOf(UUID.fromString(TestHelper.generateUUIDString(0))), realmAny)
-        assertEquals(RealmAnyType.UUID, realmAny.type)
+        assertEquals(RealmAny.Type.UUID, realmAny.type)
     }
 
     @Test
@@ -220,7 +219,7 @@ class RealmAnyTests {
         assertTrue(realmAny.isNull)
         assertNotNull(realmAny)
         assertEquals(RealmAny.nullValue(), realmAny)
-        assertEquals(RealmAnyType.NULL, realmAny.type)
+        assertEquals(RealmAny.Type.NULL, realmAny.type)
         assertEquals(null, realmAny.valueClass)
     }
 
@@ -238,7 +237,7 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(10, realmAnyObject.realmAny!!.asByte())
         assertEquals(RealmAny.valueOf(10.toByte()), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.INTEGER, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.INTEGER, realmAnyObject.realmAny!!.type)
     }
 
     @Test
@@ -253,7 +252,7 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(10, realmAnyObject.realmAny!!.asShort())
         assertEquals(RealmAny.valueOf(10.toShort()), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.INTEGER, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.INTEGER, realmAnyObject.realmAny!!.type)
     }
 
     @Test
@@ -268,7 +267,7 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(10, realmAnyObject.realmAny!!.asInteger())
         assertEquals(RealmAny.valueOf(10.toInt()), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.INTEGER, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.INTEGER, realmAnyObject.realmAny!!.type)
     }
 
     @Test
@@ -283,8 +282,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(10, realmAnyObject.realmAny!!.asLong())
         assertEquals(RealmAny.valueOf(10.toLong()), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.INTEGER, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.INTEGER.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.INTEGER, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.INTEGER.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -299,8 +298,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(true, realmAnyObject.realmAny!!.asBoolean())
         assertEquals(RealmAny.valueOf(true), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.BOOLEAN, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.BOOLEAN.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.BOOLEAN, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.BOOLEAN.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -315,8 +314,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals("hello world", realmAnyObject.realmAny!!.asString())
         assertEquals(RealmAny.valueOf("hello world"), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.STRING, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.STRING.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.STRING, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.STRING.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -331,8 +330,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertTrue(Arrays.equals(byteArrayOf(0, 1, 0), realmAnyObject.realmAny!!.asBinary()))
         assertEquals(RealmAny.valueOf(byteArrayOf(0, 1, 0)), realmAnyObject.realmAny!!)
-        assertEquals(RealmAnyType.BINARY, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.BINARY.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.BINARY, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.BINARY.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -347,8 +346,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(Date(10), realmAnyObject.realmAny!!.asDate())
         assertEquals(RealmAny.valueOf(Date(10)), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.DATE, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.DATE.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.DATE, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.DATE.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -363,8 +362,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(Decimal128(10), realmAnyObject.realmAny!!.asDecimal128())
         assertEquals(RealmAny.valueOf(Decimal128(10)), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.DECIMAL128, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.DECIMAL128.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.DECIMAL128, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.DECIMAL128.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -379,8 +378,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(10.0, realmAnyObject.realmAny!!.asDouble())
         assertEquals(RealmAny.valueOf(10.0), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.DOUBLE, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.DOUBLE.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.DOUBLE, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.DOUBLE.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -395,8 +394,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(10f, realmAnyObject.realmAny!!.asFloat())
         assertEquals(RealmAny.valueOf(10f), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.FLOAT, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.FLOAT.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.FLOAT, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.FLOAT.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -411,8 +410,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(ObjectId(TestHelper.generateObjectIdHexString(0)), realmAnyObject.realmAny!!.asObjectId())
         assertEquals(RealmAny.valueOf(ObjectId(TestHelper.generateObjectIdHexString(0))), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.OBJECT_ID, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.OBJECT_ID.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.OBJECT_ID, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.OBJECT_ID.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -427,7 +426,7 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.isManaged)
         assertEquals(UUID.fromString(TestHelper.generateUUIDString(0)), realmAnyObject.realmAny!!.asUUID())
         assertEquals(RealmAny.valueOf(UUID.fromString(TestHelper.generateUUIDString(0))), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.UUID, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.UUID, realmAnyObject.realmAny!!.type)
     }
 
     @Test
@@ -443,8 +442,8 @@ class RealmAnyTests {
         assertNotNull(realmAnyObject.realmAny!!)
         assertTrue(realmAnyObject.realmAny!!.isNull)
         assertEquals(RealmAny.nullValue(), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.NULL, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.NULL.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.NULL, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.NULL.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -472,7 +471,7 @@ class RealmAnyTests {
 
         assertEquals(innerObject, realmAnyObject.realmAny!!.asRealmModel(PrimaryKeyAsString::class.java))
         assertEquals(RealmAny.valueOf(innerObject), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.OBJECT, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.OBJECT, realmAnyObject.realmAny!!.type)
         assertEquals(PrimaryKeyAsString::class.simpleName, realmAnyObject.realmAny!!.valueClass!!.simpleName)
     }
 
@@ -501,7 +500,7 @@ class RealmAnyTests {
 
         assertEquals(innerObject, realmAnyObject.realmAny!!.asRealmModel(PrimaryKeyAsString::class.java))
         assertEquals(RealmAny.valueOf(innerObject), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.OBJECT, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.OBJECT, realmAnyObject.realmAny!!.type)
         assertEquals(PrimaryKeyAsString::class.simpleName, realmAnyObject.realmAny!!.valueClass!!.simpleName)
     }
 
@@ -518,8 +517,8 @@ class RealmAnyTests {
         assertTrue(realmAnyObject.realmAny!!.isNull)
         assertNotNull(realmAnyObject.realmAny)
         assertEquals(RealmAny.nullValue(), realmAnyObject.realmAny)
-        assertEquals(RealmAnyType.NULL, realmAnyObject.realmAny!!.type)
-        assertEquals(RealmAnyType.NULL.typedClass, realmAnyObject.realmAny!!.valueClass)
+        assertEquals(RealmAny.Type.NULL, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.NULL.typedClass, realmAnyObject.realmAny!!.valueClass)
     }
 
     @Test
@@ -552,7 +551,7 @@ class RealmAnyTests {
         assertFalse(realmAnyObject!!.isFrozen)
         assertTrue(realmAnyObject.isValid)
         assertTrue(realmAnyObject.realmAny!!.isNull)
-        assertEquals(RealmAnyType.NULL, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.NULL, realmAnyObject.realmAny!!.type)
     }
 
     @Test
@@ -567,7 +566,7 @@ class RealmAnyTests {
         assertTrue(realmAnyObjectFrozen!!.isFrozen)
         assertTrue(realmAnyObjectFrozen.isValid)
         assertTrue(realmAnyObjectFrozen.realmAny!!.isNull)
-        assertEquals(RealmAnyType.NULL, realmAnyObjectFrozen.realmAny!!.type)
+        assertEquals(RealmAny.Type.NULL, realmAnyObjectFrozen.realmAny!!.type)
     }
 
     @Test
@@ -905,7 +904,7 @@ class RealmAnyTests {
 
         assertTrue(realmAnyObject.isManaged)
         assertEquals(RealmAnyDefaultPK.NAME, realmAnyObject.realmAny!!.asRealmModel(PrimaryKeyAsString::class.java).name)
-        assertEquals(RealmAnyType.OBJECT, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.OBJECT, realmAnyObject.realmAny!!.type)
         assertEquals(PrimaryKeyAsString::class.simpleName, realmAnyObject.realmAny!!.valueClass?.simpleName)
     }
 
@@ -922,7 +921,7 @@ class RealmAnyTests {
         val realmAnyObject = realm.where<RealmAnyDefaultNonPK>().findFirst()!!
 
         assertTrue(realmAnyObject.isManaged)
-        assertEquals(RealmAnyType.OBJECT, realmAnyObject.realmAny!!.type)
+        assertEquals(RealmAny.Type.OBJECT, realmAnyObject.realmAny!!.type)
         assertEquals(RealmAnyNotIndexed::class.simpleName, realmAnyObject.realmAny!!.valueClass?.simpleName)
     }
 
@@ -952,7 +951,7 @@ class RealmAnyTests {
         realm = Realm.getInstance(realmConfiguration)
 
         val realmAnyNotIndexed = realm.where(RealmAnyNotIndexed::class.java).findFirst()!!
-        assertEquals(RealmAnyType.OBJECT, realmAnyNotIndexed.realmAny!!.type)
+        assertEquals(RealmAny.Type.OBJECT, realmAnyNotIndexed.realmAny!!.type)
         assertEquals(DynamicRealmObject::class.java, realmAnyNotIndexed.realmAny!!.valueClass)
 
         val innerObject = realmAnyNotIndexed.realmAny!!.asRealmModel(DynamicRealmObject::class.java)
