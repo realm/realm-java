@@ -121,7 +121,7 @@ public class RealmAny {
     /**
      * Gets the inner type of this RealmAny object.
      *
-     * @return the inner RealmAnyType
+     * @return the inner RealmAnyType.
      */
     public RealmAnyType getType() {
         return this.operator.getType();
