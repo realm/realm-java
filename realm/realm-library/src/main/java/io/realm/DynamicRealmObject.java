@@ -1303,7 +1303,6 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : proxyState.getRow$realm().getUUID(columnKey));
                     break;
                 case MIXED:
-                    //TODO: MIXED VALIDATE STRING CONVERSION
                     sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : getRealmAny(columnKey));
                     break;
                 case OBJECT:
