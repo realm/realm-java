@@ -1,6 +1,8 @@
 ## 11.0.0 (YYYY-MM-DD)
 
 ### Enhancements
+* Added support for `java.util.UUID` as supported field in model classes.
+* Added support for `java.util.UUID` as a primary key.
 * Allow UTF8 encoded characters in property names in string-based queries ([#4467](https://github.com/realm/realm-core/issues/4467))
 * The error message when the initial steps of opening a Realm file fails is now more descriptive.
 * Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. ([#4548](https://github.com/realm/realm-core/issues/4548))
@@ -53,8 +55,6 @@ to `https://oss.sonatype.org/content/repositories/snapshots/`. See [here](https:
 for more information.
 
 ### Enhancements
-* Added support for `java.util.UUID` as supported field in model classes.
-* Added support for `java.util.UUID` as a primary key.
 * Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
 * Performance of sorting on more than one property has been improved. Especially important if many elements match on the first property.
 
