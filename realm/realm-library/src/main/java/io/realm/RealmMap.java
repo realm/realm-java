@@ -42,8 +42,8 @@ import io.realm.internal.OsMap;
  * <p>
  * Unmanaged RealmDictionaries can be created by the user and can contain both managed and unmanaged
  * RealmObjects. This is useful when dealing with JSON deserializers like GSON or other frameworks
- * that inject values into a class. Unmanaged elements in this list can be added to a Realm using
- * the {@link Realm#copyToRealm(Iterable, ImportFlag...)} method.
+ * that inject values into a class. Unmanaged RealmMaps can be added to a Realm using the
+ * {@link Realm#copyToRealm(Iterable, ImportFlag...)} method.
  *
  * @param <K> the type of the keys stored in this map
  * @param <V> the type of the values stored in this map
@@ -297,12 +297,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         mapStrategy.removeAllChangeListeners();
     }
 
-    /**
-     * Indicates whether a map has any listeners attached to it.
-     *
-     * @return {@code true} if any listeners have been added, {@code false} otherwise.
-     */
-    public boolean hasListeners() {
+    boolean hasListeners() {
         return mapStrategy.hasListeners();
     }
 

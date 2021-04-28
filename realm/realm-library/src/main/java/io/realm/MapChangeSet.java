@@ -41,8 +41,7 @@ public interface MapChangeSet<T> {
     T[] getInsertions();
 
     /**
-     * Array containing the keys or the values that have been modified in the previous version of
-     * the map.
+     * Array containing the keys that have been modified in the previous version of the map.
      *
      * @return array with the keys that have been modified.
      */

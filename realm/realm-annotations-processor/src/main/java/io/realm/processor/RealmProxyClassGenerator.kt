@@ -494,9 +494,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
     }
 
-    /**
-     * FIXME
-     */
     @Throws(IOException::class)
     private fun emitRealmDictionary(
             writer: JavaWriter,

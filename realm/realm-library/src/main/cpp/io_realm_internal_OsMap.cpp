@@ -113,7 +113,7 @@ Java_io_realm_internal_OsMap_nativeGetValue(JNIEnv* env, jclass, jlong wrapper_p
                     case DataType::Type::Decimal:
                         return JavaClassGlobalDef::new_decimal128(env, value.get_decimal());
                     default:
-                        throw std::logic_error("'getValue' method only suitable for int, double, boolean, String, byte[], float, UUID, Decimal128 and ObjectId.");
+                        throw std::logic_error("'getValue' method only suitable for int, float, double, boolean, String, byte[], float, UUID, Decimal128 and ObjectId.");
                 }
             }
         }
