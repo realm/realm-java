@@ -19,7 +19,7 @@
   a backup, if a) an attempt is made to open a realm file with a "future" file format and b) a backup file exist
   that fits the current file format. ([#4166](https://github.com/realm/realm-core/pull/4166))
 * Remove type coercion on bool and ObjectId when doing queries.
-* Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
+* Allow passing arguments into string-based query predicates.
 * Queries across relationships now support the `between` operator.
 * Queries on numerical fields (byte, short, int, long, float, double, decimal128) now accept any numerical value as an argument.
 * `isEmpty` query filter can now be applied on `RealmList` and `RealmObject` fields.
