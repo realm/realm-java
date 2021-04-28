@@ -28,7 +28,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.OsMap;
 
 /**
- * Specialization for {@link RealmMap}s whose keys are strings.
+ * Specialization of {@link RealmMap}s whose keys are strings.
  * <p>
  * Similarly to {@link RealmList}s, a RealmDictionary can operate in managed and unmanaged modes. In
  * managed mode a RealmDictionary persists all its contents inside a Realm whereas in unmanaged mode
@@ -40,8 +40,8 @@ import io.realm.internal.OsMap;
  * <p>
  * Unmanaged RealmDictionaries can be created by the user and can contain both managed and unmanaged
  * RealmObjects. This is useful when dealing with JSON deserializers like GSON or other frameworks
- * that inject values into a class. Unmanaged elements in this list can be added to a Realm using
- * the {@link Realm#copyToRealm(Iterable, ImportFlag...)} method.
+ * that inject values into a class. Unmanaged RealmDictionaries can be added to a Realm using the
+ * {@link Realm#copyToRealm(Iterable, ImportFlag...)} method.
  *
  * @param <V> the type of the values stored in this dictionary
  */
@@ -61,10 +61,10 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     /**
      * Instantiates a RealmDictionary in unmanaged mode with an initial dictionary.
      *
-     * @param dictionary initial dictionary
+     * @param map initial dictionary
      */
-    public RealmDictionary(RealmDictionary<V> dictionary) {
-        super(dictionary.toMap());
+    public RealmDictionary(Map<String, V> map) {
+        super(map);
     }
 
     // ------------------------------------------
