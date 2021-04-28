@@ -43,11 +43,11 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.TestHelper;
+import io.realm.TestRealmConfigurationFactory;
 import io.realm.entities.AllTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;

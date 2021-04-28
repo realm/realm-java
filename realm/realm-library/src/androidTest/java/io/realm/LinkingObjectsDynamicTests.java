@@ -248,6 +248,20 @@ public class LinkingObjectsDynamicTests {
                     case MIXED_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED_LIST);
                         break;
+                    case STRING_TO_MIXED_MAP:
+                    case STRING_TO_BOOLEAN_MAP:
+                    case STRING_TO_STRING_MAP:
+                    case STRING_TO_INTEGER_MAP:
+                    case STRING_TO_FLOAT_MAP:
+                    case STRING_TO_DOUBLE_MAP:
+                    case STRING_TO_BINARY_MAP:
+                    case STRING_TO_DATE_MAP:
+                    case STRING_TO_OBJECT_ID_MAP:
+                    case STRING_TO_UUID_MAP:
+                    case STRING_TO_DECIMAL128_MAP:
+                    case STRING_TO_LINK_MAP:
+                        // TODO: fix this when adding support for dictionary in AllJavaTypes
+                        throw new IllegalArgumentException("Unexpected field type");
                     default:
                         fail("unknown type: " + fieldType);
                         break;

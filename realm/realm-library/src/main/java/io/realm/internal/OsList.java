@@ -21,7 +21,7 @@ public class OsList implements NativeObject, ObservableCollection {
     private final Table targetTable;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final ObserverPairList<CollectionObserverPair> observerPairs =
-            new ObserverPairList<CollectionObserverPair>();
+            new ObserverPairList<>();
 
     public OsList(UncheckedRow row, long columnKey) {
         OsSharedRealm sharedRealm = row.getTable().getSharedRealm();

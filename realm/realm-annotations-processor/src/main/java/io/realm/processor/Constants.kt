@@ -70,6 +70,23 @@ object Constants {
             "io.realm.RealmAny" to RealmFieldType.MIXED_LIST
     )
 
+    val DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
+            "java.lang.Byte" to RealmFieldType.STRING_TO_INTEGER_MAP,
+            "java.lang.Short" to RealmFieldType.STRING_TO_INTEGER_MAP,
+            "java.lang.Integer" to RealmFieldType.STRING_TO_INTEGER_MAP,
+            "java.lang.Long" to RealmFieldType.STRING_TO_INTEGER_MAP,
+            "java.lang.Float" to RealmFieldType.STRING_TO_FLOAT_MAP,
+            "java.lang.Double" to RealmFieldType.STRING_TO_DOUBLE_MAP,
+            "java.lang.Boolean" to RealmFieldType.STRING_TO_BOOLEAN_MAP,
+            "java.lang.String" to RealmFieldType.STRING_TO_STRING_MAP,
+            "java.util.Date" to RealmFieldType.STRING_TO_DATE_MAP,
+            "byte[]" to RealmFieldType.STRING_TO_BINARY_MAP,
+            "org.bson.types.Decimal128" to RealmFieldType.STRING_TO_DECIMAL128_MAP,
+            "org.bson.types.ObjectId" to RealmFieldType.STRING_TO_OBJECT_ID_MAP,
+            "java.util.UUID" to RealmFieldType.STRING_TO_UUID_MAP,
+            "io.realm.RealmAny" to RealmFieldType.STRING_TO_MIXED_MAP
+    )
+
     /**
      * Realm types and their corresponding Java types.
      *
@@ -105,7 +122,21 @@ object Constants {
         DECIMAL128_LIST("DECIMAL128_LIST", "List"),
         OBJECT_ID_LIST("OBJECT_ID_LIST", "List"),
         UUID_LIST("UUID_LIST", "List"),
-        MIXED_LIST("MIXED_LIST", "List");
+        MIXED_LIST("MIXED_LIST", "List"),
+
+        STRING_TO_LINK_MAP("STRING_TO_LINK_MAP", "Map"),
+        STRING_TO_INTEGER_MAP("STRING_TO_INTEGER_MAP", "Map"),
+        STRING_TO_BOOLEAN_MAP("STRING_TO_BOOLEAN_MAP", "Map"),
+        STRING_TO_STRING_MAP("STRING_TO_STRING_MAP", "Map"),
+        STRING_TO_BINARY_MAP("STRING_TO_BINARY_MAP", "Map"),
+        STRING_TO_DATE_MAP("STRING_TO_DATE_MAP", "Map"),
+        STRING_TO_FLOAT_MAP("STRING_TO_FLOAT_MAP", "Map"),
+        STRING_TO_DOUBLE_MAP("STRING_TO_DOUBLE_MAP", "Map"),
+        STRING_TO_DECIMAL128_MAP("STRING_TO_DECIMAL128_MAP", "Map"),
+        STRING_TO_OBJECT_ID_MAP("STRING_TO_OBJECT_ID_MAP", "Map"),
+        STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map"),
+        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map");
+
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

@@ -15,6 +15,7 @@
  */
 package io.realm;
 
+import java.util.Map;
 import javax.annotation.Nullable;
 
 import io.realm.internal.RealmAnyNativeFunctions;
@@ -28,6 +29,11 @@ public class RealmAnyNativeFunctionsImpl implements RealmAnyNativeFunctions {
     @Override
     public void handleItem(long listPtr, RealmAny realmAny) {
         OsObjectBuilder.nativeAddRealmAnyListItem(listPtr, realmAny.getNativePtr());
+    }
+
+    @Override
+    public void handleItem(long containerPtr, Map.Entry<String, RealmAny> entry) {
+        OsObjectBuilder.nativeAddRealmAnyDictionaryEntry(containerPtr, entry.getKey(), entry.getValue().getNativePtr());
     }
 
     @Override

@@ -33,18 +33,20 @@ import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_FLOAT;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_INTEGER;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LINKING_OBJECTS;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_LIST;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_MIXED;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECT;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECTID;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
-import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UUID;
-import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_MIXED;
 import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_TYPED_LINK;
+import static io.realm.RealmFieldTypeConstants.CORE_TYPE_VALUE_UUID;
+import static io.realm.RealmFieldTypeConstants.DICTIONARY_OFFSET;
 import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
 
 interface RealmFieldTypeConstants {
     int LIST_OFFSET = Property.TYPE_ARRAY;
+    int DICTIONARY_OFFSET = Property.TYPE_DICTIONARY;
 
     int CORE_TYPE_VALUE_INTEGER = 0;
     int CORE_TYPE_VALUE_BOOLEAN = 1;
@@ -87,7 +89,7 @@ public enum RealmFieldType {
     OBJECT_ID(CORE_TYPE_VALUE_OBJECTID),
     UUID(CORE_TYPE_VALUE_UUID),
     MIXED(CORE_TYPE_VALUE_MIXED),
-    TYPED_LINK(CORE_TYPE_VALUE_TYPED_LINK),
+    TYPED_LINK(CORE_TYPE_VALUE_TYPED_LINK), // It is only used by RealmAny internally.
 
     LIST(CORE_TYPE_VALUE_LIST),
     LINKING_OBJECTS(CORE_TYPE_VALUE_LINKING_OBJECTS),
@@ -102,20 +104,36 @@ public enum RealmFieldType {
     DECIMAL128_LIST(CORE_TYPE_VALUE_DECIMAL128 + LIST_OFFSET),
     OBJECT_ID_LIST(CORE_TYPE_VALUE_OBJECTID + LIST_OFFSET),
     UUID_LIST(CORE_TYPE_VALUE_UUID + LIST_OFFSET),
-    MIXED_LIST(CORE_TYPE_VALUE_MIXED + LIST_OFFSET);
+    MIXED_LIST(CORE_TYPE_VALUE_MIXED + LIST_OFFSET),
+
+    STRING_TO_INTEGER_MAP(CORE_TYPE_VALUE_INTEGER + DICTIONARY_OFFSET),
+    STRING_TO_BOOLEAN_MAP(CORE_TYPE_VALUE_BOOLEAN + DICTIONARY_OFFSET),
+    STRING_TO_STRING_MAP(CORE_TYPE_VALUE_STRING + DICTIONARY_OFFSET),
+    STRING_TO_BINARY_MAP(CORE_TYPE_VALUE_BINARY + DICTIONARY_OFFSET),
+    STRING_TO_DATE_MAP(CORE_TYPE_VALUE_DATE + DICTIONARY_OFFSET),
+    STRING_TO_FLOAT_MAP(CORE_TYPE_VALUE_FLOAT + DICTIONARY_OFFSET),
+    STRING_TO_DOUBLE_MAP(CORE_TYPE_VALUE_DOUBLE + DICTIONARY_OFFSET),
+    STRING_TO_DECIMAL128_MAP(CORE_TYPE_VALUE_DECIMAL128 + DICTIONARY_OFFSET),
+    STRING_TO_OBJECT_ID_MAP(CORE_TYPE_VALUE_OBJECTID + DICTIONARY_OFFSET),
+    STRING_TO_UUID_MAP(CORE_TYPE_VALUE_UUID + DICTIONARY_OFFSET),
+    STRING_TO_MIXED_MAP(CORE_TYPE_VALUE_MIXED + DICTIONARY_OFFSET),
+    STRING_TO_LINK_MAP(CORE_TYPE_VALUE_OBJECT + DICTIONARY_OFFSET);
 
 
     // Primitive array for fast mapping between between native values and their Realm type.
     private static final RealmFieldType[] basicTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
     private static final RealmFieldType[] listTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
+    private static final RealmFieldType[] mapTypes = new RealmFieldType[MAX_CORE_TYPE_VALUE + 1];
 
     static {
         for (RealmFieldType columnType : values()) {
             final int nativeValue = columnType.nativeValue;
             if (nativeValue < LIST_OFFSET) {
                 basicTypes[nativeValue] = columnType;
-            } else {
+            } else if (nativeValue < DICTIONARY_OFFSET) {
                 listTypes[nativeValue - LIST_OFFSET] = columnType;
+            } else {
+                mapTypes[nativeValue - DICTIONARY_OFFSET] = columnType;
             }
         }
     }
@@ -180,6 +198,19 @@ public enum RealmFieldType {
             case CORE_TYPE_VALUE_UUID + LIST_OFFSET:
             case CORE_TYPE_VALUE_MIXED + LIST_OFFSET:
                 return false;
+            case CORE_TYPE_VALUE_INTEGER + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_BOOLEAN + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_STRING + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_BINARY + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_DATE + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_FLOAT + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_DOUBLE + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_MIXED + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_OBJECTID + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_UUID + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_DECIMAL128 + DICTIONARY_OFFSET:
+            case CORE_TYPE_VALUE_OBJECT + DICTIONARY_OFFSET:
+                return false;
             default:
                 throw new RuntimeException("Unsupported Realm type:  " + this);
         }
@@ -199,10 +230,19 @@ public enum RealmFieldType {
                 return e;
             }
         }
-        if (LIST_OFFSET <= value) {
+        if (LIST_OFFSET <= value && value < DICTIONARY_OFFSET) {
             final int elementValue = value - LIST_OFFSET;
             if (elementValue < listTypes.length) {
                 RealmFieldType e = listTypes[elementValue];
+                if (e != null) {
+                    return e;
+                }
+            }
+        }
+        if (DICTIONARY_OFFSET <= value) {
+            final int elementValue = value - DICTIONARY_OFFSET;
+            if (elementValue < mapTypes.length) {
+                RealmFieldType e = mapTypes[elementValue];
                 if (e != null) {
                     return e;
                 }

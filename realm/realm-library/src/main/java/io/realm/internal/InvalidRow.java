@@ -141,6 +141,21 @@ public enum InvalidRow implements Row {
     }
 
     @Override
+    public OsMap getRealmAnyMap(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsMap getValueMap(long columnKey, RealmFieldType fieldType) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsMap getModelMap(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
     public void setLong(long columnKey, long value) {
         throw getStubException();
     }

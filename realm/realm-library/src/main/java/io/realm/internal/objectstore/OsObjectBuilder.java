@@ -21,6 +21,7 @@ import org.bson.types.ObjectId;
 import java.io.Closeable;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,6 +31,7 @@ import io.realm.ImportFlag;
 import io.realm.RealmAny;
 import io.realm.RealmAnyNativeFunctionsImpl;
 import io.realm.MutableRealmInteger;
+import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.internal.RealmAnyNativeFunctions;
@@ -38,14 +40,15 @@ import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.android.TypeUtils;
 
 
 /**
  * This class is a wrapper around building up object data for calling `Object::create()`
  * <p>
  * Fill the object data by calling the various `addX()` methods, then create a new Object or update
- * an existing one by calling {@link #createNewObject()}, {@link #updateExistingTopLevelObject()} or.
- * {@link #updateExistingEmbeddedObject(RealmObjectProxy)}
+ * an existing one by calling {@link #createNewObject()}, {@link #updateExistingTopLevelObject()} or
+ * {@link #updateExistingEmbeddedObject(RealmObjectProxy)}.
  * <p>
  * This class assumes it is only being used from within a write transaction. Using it outside one
  * will result in undefined behaviour.
@@ -78,114 +81,222 @@ public class OsObjectBuilder implements Closeable {
     private final long tablePtr;
     private final NativeContext context;
 
+    // ------------------------------------------
+    // List handlers
+    // ------------------------------------------
+
     private static ItemCallback<? extends RealmModel> objectItemCallback = new ItemCallback<RealmModel>() {
         @Override
-        public void handleItem(long listPtr, RealmModel item) {
+        public void handleItem(long containerPtr, RealmModel item) {
             RealmObjectProxy proxyItem = (RealmObjectProxy) item;
-            nativeAddIntegerListItem(listPtr, ((UncheckedRow) proxyItem.realmGet$proxyState().getRow$realm()).getNativePtr());
+            nativeAddIntegerListItem(containerPtr, ((UncheckedRow) proxyItem.realmGet$proxyState().getRow$realm()).getNativePtr());
         }
     };
 
     private static ItemCallback<String> stringItemCallback = new ItemCallback<String>() {
         @Override
-        public void handleItem(long listPtr, String item) {
-            nativeAddStringListItem(listPtr, item);
+        public void handleItem(long containerPtr, String item) {
+            nativeAddStringListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Byte> byteItemCallback = new ItemCallback<Byte>() {
         @Override
-        public void handleItem(long listPtr, Byte item) {
-            nativeAddIntegerListItem(listPtr, item.longValue());
+        public void handleItem(long containerPtr, Byte item) {
+            nativeAddIntegerListItem(containerPtr, item.longValue());
         }
     };
 
     private static ItemCallback<Short> shortItemCallback = new ItemCallback<Short>() {
         @Override
-        public void handleItem(long listPtr, Short item) {
-            nativeAddIntegerListItem(listPtr, item);
+        public void handleItem(long containerPtr, Short item) {
+            nativeAddIntegerListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Integer> integerItemCallback = new ItemCallback<Integer>() {
         @Override
-        public void handleItem(long listPtr, Integer item) {
-            nativeAddIntegerListItem(listPtr, item);
+        public void handleItem(long containerPtr, Integer item) {
+            nativeAddIntegerListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Long> longItemCallback = new ItemCallback<Long>() {
         @Override
-        public void handleItem(long listPtr, Long item) {
-            nativeAddIntegerListItem(listPtr, item);
+        public void handleItem(long containerPtr, Long item) {
+            nativeAddIntegerListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Boolean> booleanItemCallback = new ItemCallback<Boolean>() {
         @Override
-        public void handleItem(long listPtr, Boolean item) {
-            nativeAddBooleanListItem(listPtr, item);
+        public void handleItem(long containerPtr, Boolean item) {
+            nativeAddBooleanListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Float> floatItemCallback = new ItemCallback<Float>() {
         @Override
-        public void handleItem(long listPtr, Float item) {
-            nativeAddFloatListItem(listPtr, item);
+        public void handleItem(long containerPtr, Float item) {
+            nativeAddFloatListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Double> doubleItemCallback = new ItemCallback<Double>() {
         @Override
-        public void handleItem(long listPtr, Double item) {
-            nativeAddDoubleListItem(listPtr, item);
+        public void handleItem(long containerPtr, Double item) {
+            nativeAddDoubleListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<Date> dateItemCallback = new ItemCallback<Date>() {
         @Override
-        public void handleItem(long listPtr, Date item) {
-            nativeAddDateListItem(listPtr, item.getTime());
+        public void handleItem(long containerPtr, Date item) {
+            nativeAddDateListItem(containerPtr, item.getTime());
         }
     };
 
     private static ItemCallback<byte[]> byteArrayItemCallback = new ItemCallback<byte[]>() {
         @Override
-        public void handleItem(long listPtr, byte[] item) {
-            nativeAddByteArrayListItem(listPtr, item);
+        public void handleItem(long containerPtr, byte[] item) {
+            nativeAddByteArrayListItem(containerPtr, item);
         }
     };
 
     private static ItemCallback<MutableRealmInteger> mutableRealmIntegerItemCallback = new ItemCallback<MutableRealmInteger>() {
         @Override
-        public void handleItem(long listPtr, MutableRealmInteger item) {
+        public void handleItem(long containerPtr, MutableRealmInteger item) {
             Long value = item.get();
             if (value == null) {
-                nativeAddNullListItem(listPtr);
+                nativeAddNullListItem(containerPtr);
             } else {
-                nativeAddIntegerListItem(listPtr, value);
+                nativeAddIntegerListItem(containerPtr, value);
             }
         }
     };
 
     private static ItemCallback<Decimal128> decimal128ItemCallback = new ItemCallback<Decimal128>() {
         @Override
-        public void handleItem(long listPtr, Decimal128 item) {
-            nativeAddDecimal128ListItem(listPtr, item.getLow(), item.getHigh());
+        public void handleItem(long containerPtr, Decimal128 item) {
+            nativeAddDecimal128ListItem(containerPtr, item.getLow(), item.getHigh());
         }
     };
 
     private static ItemCallback<ObjectId> objectIdItemCallback = new ItemCallback<ObjectId>() {
         @Override
-        public void handleItem(long listPtr, ObjectId item) {
-            nativeAddObjectIdListItem(listPtr, item.toString());
+        public void handleItem(long containerPtr, ObjectId item) {
+            nativeAddObjectIdListItem(containerPtr, item.toString());
         }
     };
 
     private static ItemCallback<UUID> uuidItemCallback = new ItemCallback<UUID>() {
         @Override
-        public void handleItem(long listPtr, UUID item) {
-            nativeAddUUIDListItem(listPtr, item.toString());
+        public void handleItem(long containerPtr, UUID item) {
+            nativeAddUUIDListItem(containerPtr, item.toString());
+        }
+    };
+
+    // ------------------------------------------
+    // Map/Dictionary handlers
+    // ------------------------------------------
+
+    private static ItemCallback<Map.Entry<String, Boolean>> booleanMapItemCallback = new ItemCallback<Map.Entry<String, Boolean>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Boolean> item) {
+            nativeAddBooleanDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, String>> stringMapItemCallback = new ItemCallback<Map.Entry<String, String>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, String> item) {
+            nativeAddStringDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Integer>> integerMapItemCallback = new ItemCallback<Map.Entry<String, Integer>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Integer> item) {
+            nativeAddIntegerDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Float>> floatMapItemCallback = new ItemCallback<Map.Entry<String, Float>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Float> item) {
+            nativeAddFloatDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Long>> longMapItemCallback = new ItemCallback<Map.Entry<String, Long>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Long> item) {
+            nativeAddIntegerDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Short>> shortMapItemCallback = new ItemCallback<Map.Entry<String, Short>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Short> item) {
+            nativeAddIntegerDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Byte>> byteMapItemCallback = new ItemCallback<Map.Entry<String, Byte>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Byte> item) {
+            nativeAddIntegerDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Double>> doubleMapItemCallback = new ItemCallback<Map.Entry<String, Double>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Double> item) {
+            nativeAddDoubleDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, byte[]>> binaryMapItemCallback = new ItemCallback<Map.Entry<String, byte[]>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, byte[]> item) {
+            nativeAddBinaryDictionaryEntry(containerPtr, item.getKey(), item.getValue());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Date>> dateMapItemCallback = new ItemCallback<Map.Entry<String, Date>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Date> item) {
+            nativeAddDateDictionaryEntry(containerPtr, item.getKey(), item.getValue().getTime());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, Decimal128>> decimal128MapItemCallback = new ItemCallback<Map.Entry<String, Decimal128>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, Decimal128> item) {
+            nativeAddDecimal128DictionaryEntry(containerPtr, item.getKey(), item.getValue().getHigh(), item.getValue().getLow());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, ObjectId>> objectIdMapItemCallback = new ItemCallback<Map.Entry<String, ObjectId>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, ObjectId> item) {
+            nativeAddObjectIdDictionaryEntry(containerPtr, item.getKey(), item.getValue().toString());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, UUID>> uuidMapItemCallback = new ItemCallback<Map.Entry<String, UUID>>() {
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, UUID> item) {
+            nativeAddUUIDDictionaryEntry(containerPtr, item.getKey(), item.getValue().toString());
+        }
+    };
+
+    private static ItemCallback<Map.Entry<String, RealmAny>> realmAnyMapItemCallback = new ItemCallback<Map.Entry<String, RealmAny>>() {
+        private final RealmAnyNativeFunctions realmAnyNativeFunctions = new RealmAnyNativeFunctionsImpl();
+
+        @Override
+        public void handleItem(long containerPtr, Map.Entry<String, RealmAny> item) {
+            realmAnyNativeFunctions.handleItem(containerPtr, item);
         }
     };
 
@@ -447,6 +558,105 @@ public class OsObjectBuilder implements Closeable {
         nativeStopList(builderPtr, columnKey, listPtr);
     }
 
+    public void addBooleanValueDictionary(long columnKey, RealmDictionary<Boolean> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, booleanMapItemCallback);
+    }
+
+    public void addIntegerValueDictionary(long columnKey, RealmDictionary<Integer> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, integerMapItemCallback);
+    }
+
+    public void addFloatValueDictionary(long columnKey, RealmDictionary<Float> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, floatMapItemCallback);
+    }
+
+    public void addLongValueDictionary(long columnKey, RealmDictionary<Long> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, longMapItemCallback);
+    }
+
+    public void addShortValueDictionary(long columnKey, RealmDictionary<Short> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, shortMapItemCallback);
+    }
+
+    public void addByteValueDictionary(long columnKey, RealmDictionary<Byte> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, byteMapItemCallback);
+    }
+
+    public void addDoubleValueDictionary(long columnKey, RealmDictionary<Double> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, doubleMapItemCallback);
+    }
+
+    public void addStringValueDictionary(long columnKey, RealmDictionary<String> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, stringMapItemCallback);
+    }
+
+    public void addDateValueDictionary(long columnKey, RealmDictionary<Date> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, dateMapItemCallback);
+    }
+
+    public void addDecimal128ValueDictionary(long columnKey, RealmDictionary<Decimal128> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, decimal128MapItemCallback);
+    }
+
+    public void addBinaryValueDictionary(long columnKey, RealmDictionary<byte[]> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, binaryMapItemCallback);
+    }
+
+    public void addObjectIdValueDictionary(long columnKey, RealmDictionary<ObjectId> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, objectIdMapItemCallback);
+    }
+
+    public void addUUIDValueDictionary(long columnKey, RealmDictionary<UUID> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, uuidMapItemCallback);
+    }
+
+    public void addRealmAnyValueDictionary(long columnKey, RealmDictionary<RealmAny> dictionary) {
+        addDictionaryItem(builderPtr, columnKey, dictionary, realmAnyMapItemCallback);
+    }
+
+    public <T extends RealmModel> void addObjectDictionary(long columnKey, @Nullable RealmDictionary<T> dictionary) {
+        if (dictionary != null) {
+            long dictionaryPtr = nativeStartDictionary();
+            for (Map.Entry<String, T> entry : dictionary.entrySet()) {
+                if (entry.getValue() == null) {
+                    nativeAddNullDictionaryEntry(dictionaryPtr, entry.getKey());
+                } else {
+                    RealmObjectProxy realmObjectProxy = (RealmObjectProxy) entry.getValue();
+                    long objectPtr = ((UncheckedRow) realmObjectProxy.realmGet$proxyState().getRow$realm()).getNativePtr();
+                    nativeAddObjectDictionaryEntry(dictionaryPtr, entry.getKey(), objectPtr);
+                }
+            }
+            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+        } else {
+            addEmptyDictionary(columnKey);
+        }
+    }
+
+    private <T> void addDictionaryItem(
+            long builderPtr,
+            long columnKey,
+            @Nullable RealmDictionary<T> dictionary,
+            ItemCallback<Map.Entry<String, T>> mapItemCallback
+    ) {
+        if (dictionary != null) {
+            long dictionaryPtr = nativeStartDictionary();
+            for (Map.Entry<String, T> entry : dictionary.entrySet()) {
+                if (entry.getValue() == null) {
+                    nativeAddNullDictionaryEntry(dictionaryPtr, entry.getKey());
+                } else {
+                    mapItemCallback.handleItem(dictionaryPtr, entry);
+                }
+            }
+            nativeStopDictionary(builderPtr, columnKey, dictionaryPtr);
+        } else {
+            addEmptyDictionary(columnKey);
+        }
+    }
+
+    private void addEmptyDictionary(long columnKey) {
+        nativeStopDictionary(builderPtr, columnKey, nativeStartDictionary());
+    }
+
     /**
      * Updates any existing object if it exists, otherwise creates a new one.
      * <p>
@@ -508,7 +718,7 @@ public class OsObjectBuilder implements Closeable {
     }
 
     private interface ItemCallback<T> {
-        void handleItem(long listPtr, T item);
+        void handleItem(long containerPtr, T item);
     }
 
     private static native long nativeCreateBuilder();
@@ -516,16 +726,16 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeDestroyBuilder(long builderPtr);
 
     private static native long nativeCreateOrUpdateTopLevelObject(long sharedRealmPtr,
-            long tablePtr,
-            long builderPtr,
-            boolean updateExistingObject,
-            boolean ignoreFieldsWithSameValue);
+                                                                  long tablePtr,
+                                                                  long builderPtr,
+                                                                  boolean updateExistingObject,
+                                                                  boolean ignoreFieldsWithSameValue);
 
     private static native long nativeUpdateEmbeddedObject(long sharedRealmPtr,
-            long tablePtr,
-            long builderPtr,
-            long objKey,
-            boolean ignoreFieldsWithSameValue);
+                                                          long tablePtr,
+                                                          long builderPtr,
+                                                          long objKey,
+                                                          boolean ignoreFieldsWithSameValue);
 
     // Add simple properties
     private static native void nativeAddNull(long builderPtr, long columnKey);
@@ -587,4 +797,35 @@ public class OsObjectBuilder implements Closeable {
     private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
 
     private static native void nativeAddObjectList(long builderPtr, long columnKey, long[] rowPtrs);
+
+    // dictionaries
+    private static native long nativeStartDictionary();
+
+    private static native void nativeStopDictionary(long builderPtr, long columnKey, long dictionaryPtr);
+
+    private static native void nativeAddNullDictionaryEntry(long dictionaryPtr, String key);
+
+    private static native void nativeAddBooleanDictionaryEntry(long dictionaryPtr, String key, boolean value);
+
+    private static native void nativeAddStringDictionaryEntry(long dictionaryPtr, String key, String value);
+
+    private static native void nativeAddIntegerDictionaryEntry(long dictionaryPtr, String key, long value);
+
+    private static native void nativeAddDoubleDictionaryEntry(long dictionaryPtr, String key, double value);
+
+    private static native void nativeAddFloatDictionaryEntry(long dictionaryPtr, String key, float value);
+
+    private static native void nativeAddBinaryDictionaryEntry(long dictionaryPtr, String key, byte[] value);
+
+    private static native void nativeAddDateDictionaryEntry(long dictionaryPtr, String key, long value);
+
+    private static native void nativeAddDecimal128DictionaryEntry(long dictionaryPtr, String key, long high, long low);
+
+    private static native void nativeAddObjectIdDictionaryEntry(long dictionaryPtr, String key, String value);
+
+    private static native void nativeAddUUIDDictionaryEntry(long dictionaryPtr, String key, String value);
+
+    private static native void nativeAddObjectDictionaryEntry(long dictionaryPtr, String key, long rowPtr);
+
+    public static native void nativeAddRealmAnyDictionaryEntry(long dictionaryPtr, String key, long realmAnyPtr);
 }

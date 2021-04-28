@@ -458,6 +458,55 @@ public class RealmAny {
         return operator.getValue(clazz);
     }
 
+    /**
+     * Creates a new RealmAny out of an Object.
+     *
+     * @param value initial value.
+     * @return a new RealmAny wrapping the object.
+     */
+    static RealmAny valueOf(@Nullable Object value) {
+        if (value == null) {
+            return RealmAny.nullValue();
+        } else if (value instanceof Boolean) {
+            return RealmAny.valueOf((Boolean) value);
+        } else if (value instanceof Byte) {
+            return RealmAny.valueOf((Byte) value);
+        } else if (value instanceof Short) {
+            return RealmAny.valueOf((Short) value);
+        } else if (value instanceof Integer) {
+            return RealmAny.valueOf((Integer) value);
+        } else if (value instanceof Long) {
+            return RealmAny.valueOf((Long) value);
+        } else if (value instanceof Float) {
+            return RealmAny.valueOf((Float) value);
+        } else if (value instanceof Double) {
+            return RealmAny.valueOf((Double) value);
+        } else if (value instanceof Decimal128) {
+            return RealmAny.valueOf((Decimal128) value);
+        } else if (value instanceof String) {
+            return RealmAny.valueOf((String) value);
+        } else if (value instanceof byte[]) {
+            return RealmAny.valueOf((byte[]) value);
+        } else if (value instanceof Date) {
+            return RealmAny.valueOf((Date) value);
+        } else if (value instanceof ObjectId) {
+            return RealmAny.valueOf((ObjectId) value);
+        } else if (value instanceof UUID) {
+            return RealmAny.valueOf((UUID) value);
+        } else if (value instanceof RealmAny) {
+            return (RealmAny) value;
+        } else if (RealmModel.class.isAssignableFrom(value.getClass())) {
+            RealmModel model = (RealmModel) value;
+
+            if (!RealmObject.isValid(model) || !RealmObject.isManaged(model)) {
+                throw new IllegalArgumentException("RealmObject is not a valid managed object.");
+            }
+
+            return RealmAny.valueOf((RealmModel) model);
+        } else {
+            throw new IllegalArgumentException("Type not supported on RealmAny: " + value.getClass().getSimpleName());
+        }
+    }
 
     /**
      * A {@code RealmAny}'s hash code is, exactly, the hash code of its value.

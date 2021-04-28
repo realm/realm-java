@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.realm.internal.Freezable;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -91,11 +92,19 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz) {
-        super(realm, osResults, clazz);
+        this(realm, osResults, clazz, false);
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz, boolean forPrimitives) {
+        super(realm, osResults, clazz, getCollectionOperator(forPrimitives, realm, osResults, clazz, null));
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, String className) {
-        super(realm, osResults, className);
+        this(realm, osResults, className, false);
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, String className, boolean forPrimitives) {
+        super(realm, osResults, className, getCollectionOperator(forPrimitives, realm, osResults, null, className));
     }
 
     /**
@@ -549,7 +558,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                     osResults.setByteList(fieldName, (RealmList<Byte>) list);
                 } else {
                     throw new IllegalArgumentException(String.format("List contained the wrong type of elements. " +
-                            "Elements that can be mapped to Integers was expected, but the actual type is '%s'",
+                                    "Elements that can be mapped to Integers was expected, but the actual type is '%s'",
                             listType));
                 }
                 break;

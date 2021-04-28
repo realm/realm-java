@@ -47,7 +47,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     // Custom OsResults iterator. It ensures that we only iterate on a Realm OsResults that hasn't changed.
     public abstract static class Iterator<T> implements java.util.Iterator<T> {
-        OsResults iteratorOsResults;
+        protected OsResults iteratorOsResults;
         protected int pos = -1;
 
         public Iterator(OsResults osResults) {
@@ -123,12 +123,14 @@ public class OsResults implements NativeObject, ObservableCollection {
 
         @Nullable
         T get(int pos) {
-            return convertRowToObject(iteratorOsResults.getUncheckedRow(pos));
+            return getInternal(pos, iteratorOsResults);
         }
 
         // Returns the RealmModel by given row in this list. This has to be implemented in the upper layer since
         // we don't have information about the object types in the internal package.
         protected abstract T convertRowToObject(UncheckedRow row);
+
+        protected abstract T getInternal(int pos, OsResults iteratorOsResults);
     }
 
     // Custom Realm collection list iterator.
@@ -297,6 +299,20 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new OsResults(sharedRealm, query.getTable(), ptr);
     }
 
+    public static OsResults createFromMap(OsSharedRealm sharedRealm, long resultsPtr) {
+        return new OsResults(sharedRealm, resultsPtr);
+    }
+
+    // Use this when we don't have the table, e.g. when calling RealmDictionary.values()
+    OsResults(OsSharedRealm sharedRealm, long nativePtr) {
+        this.sharedRealm = sharedRealm;
+        this.context = sharedRealm.context;
+        this.nativePtr = nativePtr;
+        this.context.addReference(this);
+        this.loaded = getMode() != Mode.QUERY;
+        this.table = new Table(sharedRealm, nativeGetTable(nativePtr));
+    }
+
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
         this.sharedRealm = sharedRealm;
         this.context = sharedRealm.context;
@@ -331,6 +347,10 @@ public class OsResults implements NativeObject, ObservableCollection {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
+    }
+
+    public Object getValue(int index) {
+        return nativeGetValue(nativePtr, index);
     }
 
     public UncheckedRow getUncheckedRow(int index) {
@@ -787,6 +807,8 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private native void nativeStopListening(long nativePtr);
 
+    private static native long nativeGetTable(long nativePtr);
+
     private static native long nativeWhere(long nativePtr);
 
     private static native String toJSON(long nativePtr, int maxDepth);
@@ -801,4 +823,5 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeEvaluateQueryIfNeeded(long nativePtr, boolean wantsNotifications);
 
+    private static native Object nativeGetValue(long nativePtr, int index);
 }

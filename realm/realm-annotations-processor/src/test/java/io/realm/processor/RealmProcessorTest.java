@@ -58,6 +58,12 @@ public class RealmProcessorTest {
     private final JavaFileObject SimpleRealmModel = JavaFileObjects.forResource("some/test/SimpleRealmModel.java");
     private final JavaFileObject customInterface = JavaFileObjects.forResource("some/test/CustomInterface.java");
     private final JavaFileObject nonLatinName = JavaFileObjects.forResource("some/test/ÁrvíztűrőTükörfúrógép.java");
+    private final JavaFileObject realmMapModel = JavaFileObjects.forResource("some/test/RealmMapModel.java");
+    private final JavaFileObject realmDictionaryMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmDictionaryMissingGenerics.java");
+    private final JavaFileObject realmDictionaryModel = JavaFileObjects.forResource("some/test/RealmDictionaryModel.java");
+    private final JavaFileObject realmDictionaryModelWrongType = JavaFileObjects.forResource("some/test/RealmDictionaryModelWrongType.java");
+    private final JavaFileObject realmDictionaryModelRealmAnyRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelRealmAnyRequired.java");
+    private final JavaFileObject realmDictionaryModelRealmModelRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelRealmModelRequired.java");
 
     @Test
     public void compileSimpleFile() {
@@ -473,5 +479,54 @@ public class RealmProcessorTest {
                 .that(nonLatinName)
                 .processedWith(new RealmProcessor())
                 .compilesWithoutError();
+    }
+
+    @Test
+    public void compileRealmMapModelNotAllowed() {
+        assertAbout(javaSource())
+                .that(realmMapModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmDictionaryMissingGenerics() {
+        assertAbout(javaSource())
+                .that(realmDictionaryMissingGenericsModel)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmDictionaryModel() {
+        assertAbout(javaSource())
+                .that(realmDictionaryModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileRealmDictionaryModelWrongType() {
+        assertAbout(javaSource())
+                .that(realmDictionaryModelWrongType)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+
+    @Test
+    public void compileRealmDictionaryModelRealmAnyRequiredFails() {
+        assertAbout(javaSource())
+                .that(realmDictionaryModelRealmAnyRequired)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmDictionaryModelRealmModelRequiredFails() {
+        assertAbout(javaSource())
+                .that(realmDictionaryModelRealmModelRequired)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 }

@@ -266,7 +266,7 @@ class SyncSessionTests {
     fun uploadDownloadAllChangesWithFloatFails() {
         val config = configFactory
                 .createSyncConfigurationBuilder(user, syncConfiguration.partitionValue)
-                .testSchema(SyncAllTypesWithFloat::class.java, SyncDog::class.java, SyncPerson::class.java)
+                .testSchema(SyncAllTypesWithFloat::class.java, SyncAllTypes::class.java, SyncDog::class.java, SyncPerson::class.java)
                 .build()
 
         Realm.getInstance(config).use { realm ->

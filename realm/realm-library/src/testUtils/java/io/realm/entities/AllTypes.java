@@ -61,9 +61,10 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DATE_LIST = "columnDateList";
 
     public static final String[] INVALID_TYPES_FIELDS_FOR_DISTINCT
-            = new String[] {FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT,
+            = new String[]{FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT,
             FIELD_STRING_LIST, FIELD_BINARY_LIST, FIELD_BOOLEAN_LIST, FIELD_LONG_LIST,
             FIELD_DOUBLE_LIST, FIELD_FLOAT_LIST, FIELD_DATE_LIST};
+
 
     @Required
     private String columnString = "";

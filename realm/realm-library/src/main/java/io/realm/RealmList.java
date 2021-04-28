@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.realm.internal.Freezable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
 import io.realm.internal.OsResults;

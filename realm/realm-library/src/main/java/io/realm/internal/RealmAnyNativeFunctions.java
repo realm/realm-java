@@ -15,6 +15,7 @@
  */
 package io.realm.internal;
 
+import java.util.Map;
 import javax.annotation.Nullable;
 
 import io.realm.RealmAny;
@@ -23,6 +24,8 @@ import io.realm.internal.objectstore.OsKeyPathMapping;
 
 public interface RealmAnyNativeFunctions {
     void handleItem(long listPtr, RealmAny realmAny);
+
+    void handleItem(long listPtr, Map.Entry<String, RealmAny> realmAny);
 
     void callRawPredicate(TableQuery query, @Nullable OsKeyPathMapping mapping, String predicate, RealmAny... arguments);
 }

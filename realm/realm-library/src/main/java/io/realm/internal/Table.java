@@ -125,7 +125,26 @@ public class Table implements NativeObject {
             case OBJECT_ID_LIST:
             case UUID_LIST:
             case MIXED_LIST:
-                return nativeAddPrimitiveListColumn(nativeTableRefPtr, type.getNativeValue() - 128, name, isNullable);
+                return nativeAddPrimitiveListColumn(nativeTableRefPtr,
+                        type.getNativeValue() - Property.TYPE_ARRAY,
+                        name,
+                        isNullable);
+
+            case STRING_TO_INTEGER_MAP:
+            case STRING_TO_BOOLEAN_MAP:
+            case STRING_TO_STRING_MAP:
+            case STRING_TO_BINARY_MAP:
+            case STRING_TO_DATE_MAP:
+            case STRING_TO_FLOAT_MAP:
+            case STRING_TO_DOUBLE_MAP:
+            case STRING_TO_DECIMAL128_MAP:
+            case STRING_TO_OBJECT_ID_MAP:
+            case STRING_TO_UUID_MAP:
+            case STRING_TO_MIXED_MAP:
+                return nativeAddPrimitiveDictionaryColumn(nativeTableRefPtr,
+                        type.getNativeValue() - Property.TYPE_DICTIONARY,
+                        name,
+                        isNullable);
 
             default:
                 throw new IllegalArgumentException("Unsupported type: " + type);
@@ -149,6 +168,11 @@ public class Table implements NativeObject {
     public long addColumnLink(RealmFieldType type, String name, Table table) {
         verifyColumnName(name);
         return nativeAddColumnLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
+    }
+
+    public long addColumnDictionaryLink(RealmFieldType type, String name, Table table) {
+        verifyColumnName(name);
+        return nativeAddColumnDictionaryLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
     }
 
     /**
@@ -772,7 +796,11 @@ public class Table implements NativeObject {
 
     private native long nativeAddPrimitiveListColumn(long nativeTableRefPtr, int type, String name, boolean isNullable);
 
+    private native long nativeAddPrimitiveDictionaryColumn(long nativeTableRefPtr, int type, String name, boolean isNullable);
+
     private native long nativeAddColumnLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
+
+    private native long nativeAddColumnDictionaryLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
 
     private native void nativeRenameColumn(long nativeTableRefPtr, long columnKey, String name);
 

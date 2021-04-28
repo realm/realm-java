@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.Locale;
 
+import io.realm.internal.Freezable;
 import io.realm.internal.OsResults;
 import io.realm.internal.UncheckedRow;
 

@@ -25,11 +25,27 @@ object OsObjectBuilderTypeHelper {
 
     private val QUALIFIED_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
     private val QUALIFIED_LIST_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
+    private val QUALIFIED_MAP_VALUES: Map<QualifiedClassName, String> = mapOf(
+            QualifiedClassName("io.realm.RealmAny") to "RealmAnyValueDictionary",
+            QualifiedClassName("java.lang.Boolean") to "BooleanValueDictionary",
+            QualifiedClassName("java.lang.String") to "StringValueDictionary",
+            QualifiedClassName("java.lang.Integer") to "IntegerValueDictionary",
+            QualifiedClassName("java.lang.Float") to "FloatValueDictionary",
+            QualifiedClassName("java.lang.Long") to "LongValueDictionary",
+            QualifiedClassName("java.lang.Short") to "ShortValueDictionary",
+            QualifiedClassName("java.lang.Byte") to "ByteValueDictionary",
+            QualifiedClassName("java.lang.Double") to "DoubleValueDictionary",
+            QualifiedClassName("java.util.Date") to "DateValueDictionary",
+            QualifiedClassName("byte[]") to "BinaryValueDictionary",
+            QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdValueDictionary",
+            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128ValueDictionary",
+            QualifiedClassName("java.util.UUID") to "UUIDValueDictionary"
+    )
 
     init {
         // Map of qualified types to their OsObjectBuilder Type
         val fieldTypes = HashMap<QualifiedClassName, String>()
-        fieldTypes.apply { 
+        fieldTypes.apply {
             this[QualifiedClassName("byte")] = "Integer"
             this[QualifiedClassName("byte")] = "Integer"
             this[QualifiedClassName("short")] = "Integer"
@@ -89,6 +105,8 @@ object OsObjectBuilderTypeHelper {
             "addObjectList"
         } else if (Utils.isRealmValueList(field)) {
             "add" + getListTypeName(Utils.getRealmListType(field))
+        } else if (Utils.isRealmDictionary(field)) {
+            "add" + getDictionaryValueTypeName(Utils.getDictionaryType(field))
         } else if (Utils.isRealmResults(field)) {
             throw IllegalStateException("RealmResults are not supported by OsObjectBuilder: $field")
         } else {
@@ -112,4 +130,9 @@ object OsObjectBuilderTypeHelper {
         throw IllegalArgumentException("Unsupported list type: $type")
     }
 
+    private fun getDictionaryValueTypeName(typeName: QualifiedClassName?): String {
+        return requireNotNull(QUALIFIED_MAP_VALUES[typeName]) {
+            "Unsupported dictionary value type: '$typeName'"
+        }
+    }
 }
