@@ -2014,7 +2014,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     // ensure (potential) RealmModel instances are copied to Realm if generic type is RealmAny
                     if (entryValue == null) {
                         value.put(entryKey, null);
-                    } else if (entryValue.getType() == RealmAnyType.OBJECT) {
+                    } else if (entryValue.getType() == RealmAny.Type.OBJECT) {
                         RealmModel realmModel = entryValue.asRealmModel(RealmModel.class);
                         RealmModel modelFromRealm = realm.copyToRealmOrUpdate(realmModel);
                         value.put(entryKey, RealmAny.valueOf(modelFromRealm));

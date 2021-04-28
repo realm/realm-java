@@ -86,7 +86,7 @@ public class CollectionUtils {
      */
     @SuppressWarnings("unchecked")
     static RealmAny copyToRealmIfNeeded(BaseRealm realm, RealmAny realmAny) {
-        if (realmAny.getType() == RealmAnyType.OBJECT) {
+        if (realmAny.getType() == RealmAny.Type.OBJECT) {
             Class<? extends RealmModel> objectClass = (Class<? extends RealmModel>) realmAny.getValueClass();
             RealmModel object = realmAny.asRealmModel(objectClass);
 

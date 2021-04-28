@@ -39,11 +39,12 @@ If you want to test recent bugfixes or features that have not been packaged in a
 ```
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
         maven {
-            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
+        jcenter()
     }
     dependencies {
         classpath "io.realm:realm-gradle-plugin:<version>-SNAPSHOT"
@@ -52,11 +53,12 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
         maven {
-            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
+        jcenter()
     }
 }
 ```

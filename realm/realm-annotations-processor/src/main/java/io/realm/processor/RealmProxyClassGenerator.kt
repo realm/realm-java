@@ -556,7 +556,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitSingleLineComment("ensure (potential) RealmModel instances are copied to Realm if generic type is RealmAny")
                                 beginControlFlow("if (entryValue == null)")
                                     emitStatement("value.put(entryKey, null)")
-                                nextControlFlow("else if (entryValue.getType() == RealmAnyType.OBJECT)")
+                                nextControlFlow("else if (entryValue.getType() == RealmAny.Type.OBJECT)")
                                     emitStatement("RealmModel realmModel = entryValue.asRealmModel(RealmModel.class)")
                                     emitStatement("RealmModel modelFromRealm = realm.copyToRealmOrUpdate(realmModel)")
                                     emitStatement("value.put(entryKey, RealmAny.valueOf(modelFromRealm))")

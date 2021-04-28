@@ -69,10 +69,10 @@ RUN yes | sdkmanager --licenses
 # The `yes` is for accepting all non-standard tool licenses.
 # Please keep all sections in descending order!
 RUN yes | sdkmanager \
-    'build-tools;29.0.3' \
+    'build-tools;30.0.3' \
     'emulator' \
     'extras;android;m2repository' \
-    'platforms;android-29' \
+    'platforms;android-30' \
     'platform-tools' \
     'ndk;22.0.7026061' \
     'system-images;android-29;default;x86'

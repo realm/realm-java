@@ -40,7 +40,7 @@ import kotlin.test.*
  */
 class ManagedDictionaryTester<T : Any>(
         private val testerClass: String,
-        private val realmAnyType: RealmAnyType? = null,
+        private val realmAnyType: RealmAny.Type? = null,
         private val dictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>,
         private val dictionarySetter: KFunction2<DictionaryAllTypes, RealmDictionary<T>, Unit>,
         private val requiredDictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>? = null,
@@ -709,7 +709,7 @@ enum class ChangeListenerOperation {
 
 /**
  * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
- * many RealmAny testers as [RealmAnyType]s.
+ * many RealmAny testers as [RealmAny.Type]s.
  *
  * The `KFunction1` and `KFunction2` parameters for `dictionaryGetter` and `dictionarySetter`
  * respectively enables agnostic field processing, making it possible to cover all supported types
@@ -886,7 +886,7 @@ fun managedFactory(): List<DictionaryTester> {
     )
 
     // Create RealmAny testers now
-    val realmAnyTesters = RealmAnyType.values().map { realmAnyType ->
+    val realmAnyTesters = RealmAny.Type.values().map { realmAnyType ->
         ManagedDictionaryTester(
                 testerClass = "RealmAny",
                 realmAnyType = realmAnyType,
@@ -902,7 +902,7 @@ fun managedFactory(): List<DictionaryTester> {
     }.plus(
             ManagedDictionaryTester(
                     testerClass = "RealmAny-NonLatin",
-                    realmAnyType = RealmAnyType.STRING,
+                    realmAnyType = RealmAny.Type.STRING,
                     dictionaryGetter = DictionaryAllTypes::getColumnRealmAnyDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnRealmAnyDictionary,
                     initializedDictionary = RealmDictionary<RealmAny>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_NULL_NON_LATIN to null)),

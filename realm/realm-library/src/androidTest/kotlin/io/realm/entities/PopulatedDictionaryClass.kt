@@ -52,7 +52,7 @@ open class PopulatedDictionaryClass : RealmObject() {
     val populatedRealmModelDictionary: RealmDictionary<DogPrimaryKey> =
             RealmDictionary<DogPrimaryKey>().init(listOf(KEY_HELLO to VALUE_LINK_HELLO, KEY_BYE to VALUE_LINK_BYE, KEY_NULL to null))
     val populatedRealmAnyDictionary: RealmDictionary<RealmAny> =
-            RealmAnyType.values()
+            RealmAny.Type.values()
                     .map { realmAnyType ->
                         DictionaryKey.values().map { key ->
                             Pair("${key.name}_${realmAnyType.name}", getRealmAnyForType(realmAnyType, key))

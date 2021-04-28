@@ -237,7 +237,7 @@ class UnmanagedGenericTester<T : Any>(
 
 /**
  * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
- * many RealmAny testers as [RealmAnyType]s.
+ * many RealmAny testers as [RealmAny.Type]s.
  */
 fun unmanagedFactory(): List<DictionaryTester> {
     // Create primitive testers first
@@ -347,7 +347,7 @@ fun unmanagedFactory(): List<DictionaryTester> {
     }
 
     // Create RealmAny testers now
-    val realmAnyTesters = RealmAnyType.values().map { realmAnyType ->
+    val realmAnyTesters = RealmAny.Type.values().map { realmAnyType ->
         UnmanagedGenericTester<RealmAny>(
                 "UnmanagedRealmAny-${realmAnyType.name}",
                 getRealmAnyKeyValuePairs(realmAnyType),

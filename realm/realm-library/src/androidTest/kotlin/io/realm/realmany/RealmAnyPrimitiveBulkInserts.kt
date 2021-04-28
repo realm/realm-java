@@ -36,7 +36,7 @@ import kotlin.test.assertTrue
 
 @RunWith(Parameterized::class)
 class RealmAnyPrimitivesBulkInsertsTests(
-        private val testingType: RealmAnyType,
+        private val testingType: RealmAny.Type,
         private val first: RealmAny,
         private val second: RealmAny
 ) {
@@ -46,73 +46,73 @@ class RealmAnyPrimitivesBulkInsertsTests(
         fun data(): MutableList<Array<Any>> {
             val list = mutableListOf<Array<Any>>()
 
-            for (type in RealmAnyType.values()) {
+            for (type in RealmAny.Type.values()) {
                 when (type) {
-                    RealmAnyType.INTEGER -> {
-                        list.add(arrayOf(RealmAnyType.INTEGER,
+                    RealmAny.Type.INTEGER -> {
+                        list.add(arrayOf(RealmAny.Type.INTEGER,
                                 RealmAny.valueOf(1.toByte()),
                                 RealmAny.valueOf(10.toByte())
                         ))
-                        list.add(arrayOf(RealmAnyType.INTEGER,
+                        list.add(arrayOf(RealmAny.Type.INTEGER,
                                 RealmAny.valueOf(2.toShort()),
                                 RealmAny.valueOf(20.toShort())
                         ))
-                        list.add(arrayOf(RealmAnyType.INTEGER,
+                        list.add(arrayOf(RealmAny.Type.INTEGER,
                                 RealmAny.valueOf(3.toInt()),
                                 RealmAny.valueOf(30.toInt())
                         ))
-                        list.add(arrayOf(RealmAnyType.INTEGER,
+                        list.add(arrayOf(RealmAny.Type.INTEGER,
                                 RealmAny.valueOf(4.toLong()),
                                 RealmAny.valueOf(40.toLong())
                         ))
                     }
-                    RealmAnyType.BOOLEAN -> list.add(arrayOf(
-                            RealmAnyType.BOOLEAN,
+                    RealmAny.Type.BOOLEAN -> list.add(arrayOf(
+                            RealmAny.Type.BOOLEAN,
                             RealmAny.valueOf(false),
                             RealmAny.valueOf(true)
                     ))
-                    RealmAnyType.STRING -> list.add(arrayOf(
-                            RealmAnyType.STRING,
+                    RealmAny.Type.STRING -> list.add(arrayOf(
+                            RealmAny.Type.STRING,
                             RealmAny.valueOf("hello world1"),
                             RealmAny.valueOf("hello world2")
                     ))
-                    RealmAnyType.BINARY -> list.add(arrayOf(
-                            RealmAnyType.BINARY,
+                    RealmAny.Type.BINARY -> list.add(arrayOf(
+                            RealmAny.Type.BINARY,
                             RealmAny.valueOf(byteArrayOf(0, 1, 0)),
                             RealmAny.valueOf(byteArrayOf(0, 1, 1))
                     ))
-                    RealmAnyType.DATE -> list.add(arrayOf(
-                            RealmAnyType.DATE,
+                    RealmAny.Type.DATE -> list.add(arrayOf(
+                            RealmAny.Type.DATE,
                             RealmAny.valueOf(Date(0)),
                             RealmAny.valueOf(Date(10))
                     ))
-                    RealmAnyType.FLOAT -> list.add(arrayOf(
-                            RealmAnyType.FLOAT,
+                    RealmAny.Type.FLOAT -> list.add(arrayOf(
+                            RealmAny.Type.FLOAT,
                             RealmAny.valueOf(5.toFloat()),
                             RealmAny.valueOf(50.toFloat())
                     ))
-                    RealmAnyType.DOUBLE -> list.add(arrayOf(
-                            RealmAnyType.DOUBLE,
+                    RealmAny.Type.DOUBLE -> list.add(arrayOf(
+                            RealmAny.Type.DOUBLE,
                             RealmAny.valueOf(6.toDouble()),
                             RealmAny.valueOf(60.toDouble())
                     ))
-                    RealmAnyType.DECIMAL128 -> list.add(arrayOf(
-                            RealmAnyType.DECIMAL128,
+                    RealmAny.Type.DECIMAL128 -> list.add(arrayOf(
+                            RealmAny.Type.DECIMAL128,
                             RealmAny.valueOf(Decimal128(1)),
                             RealmAny.valueOf(Decimal128(10))
                     ))
-                    RealmAnyType.OBJECT_ID -> list.add(arrayOf(
-                            RealmAnyType.OBJECT_ID,
+                    RealmAny.Type.OBJECT_ID -> list.add(arrayOf(
+                            RealmAny.Type.OBJECT_ID,
                             RealmAny.valueOf(ObjectId(Date(10))),
                             RealmAny.valueOf(ObjectId(Date(100)))
                     ))
-                    RealmAnyType.UUID -> list.add(arrayOf(
-                            RealmAnyType.UUID,
+                    RealmAny.Type.UUID -> list.add(arrayOf(
+                            RealmAny.Type.UUID,
                             RealmAny.valueOf(UUID.randomUUID()),
                             RealmAny.valueOf(UUID.randomUUID())
                     ))
-                    RealmAnyType.OBJECT,   // Not tested in this test suite
-                    RealmAnyType.NULL
+                    RealmAny.Type.OBJECT,   // Not tested in this test suite
+                    RealmAny.Type.NULL
                     -> { // Not tested directly
                     }
 
@@ -162,7 +162,7 @@ class RealmAnyPrimitivesBulkInsertsTests(
 
         val copy = realm.copyFromRealm(value)
 
-        if (testingType == RealmAnyType.BINARY) {
+        if (testingType == RealmAny.Type.BINARY) {
             assertTrue(Arrays.equals(first.asBinary(), copy.realmAny!!.asBinary()))
         } else {
             assertEquals(first, copy.realmAny)
@@ -178,7 +178,7 @@ class RealmAnyPrimitivesBulkInsertsTests(
         val managedValue = realm.copyToRealm(value)
         realm.commitTransaction()
 
-        if (testingType == RealmAnyType.BINARY) {
+        if (testingType == RealmAny.Type.BINARY) {
             assertTrue(Arrays.equals(first.asBinary(), managedValue.realmAny!!.asBinary()))
         } else {
             assertEquals(first, managedValue.realmAny)
@@ -200,7 +200,7 @@ class RealmAnyPrimitivesBulkInsertsTests(
         val managedValue = realm.copyToRealmOrUpdate(value)
         realm.commitTransaction()
 
-        if (testingType == RealmAnyType.BINARY) {
+        if (testingType == RealmAny.Type.BINARY) {
             assertTrue(Arrays.equals(second.asBinary(), managedValue.realmAny!!.asBinary()))
         } else {
             assertEquals(second, managedValue.realmAny!!)
@@ -218,7 +218,7 @@ class RealmAnyPrimitivesBulkInsertsTests(
 
         val managedValue = realm.where<RealmAnyNotIndexedWithPK>().findFirst()!!
 
-        if (testingType == RealmAnyType.BINARY) {
+        if (testingType == RealmAny.Type.BINARY) {
             assertTrue(Arrays.equals(first.asBinary(), managedValue.realmAny!!.asBinary()))
         } else {
             assertEquals(first, managedValue.realmAny)
@@ -243,7 +243,7 @@ class RealmAnyPrimitivesBulkInsertsTests(
 
         assertEquals(1, all.size)
 
-        if (testingType == RealmAnyType.BINARY) {
+        if (testingType == RealmAny.Type.BINARY) {
             assertTrue(Arrays.equals(second.asBinary(), all[0]!!.realmAny!!.asBinary()))
         } else {
             assertEquals(second, all[0]!!.realmAny)

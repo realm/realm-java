@@ -2656,10 +2656,10 @@ public class RealmQuery<E> {
      * query.rawPredicate("ALL children.age > 18")
      *
      * // Sub queries
-     * query.rawPredicate("SUBQUERY(children, $child, $child.age > 21 AND $child.gender = 'male'").@count > 0');
+     * query.rawPredicate("SUBQUERY(children, $child, $child.age > 21 AND $child.gender = 'male').@count > 0");
      *
      * // Sort, Distinct, Limit
-     * query.rawPredicate("name = 'Jane' SORT(lastName) DISTINCT(city) LIMIT(5)");
+     * query.rawPredicate("name = 'Jane' SORT(lastName ASC) DISTINCT(city) LIMIT(5)");
      *
      * // Arguments
      * query.rawPredicate("name = $0 AND age > $1", "Jane", 18);
