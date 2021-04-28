@@ -37,7 +37,7 @@ import kotlin.test.*
  */
 class RealmModelManagedSetTester<T : Any>(
     private val testerName: String,
-    private val realmAnyType: RealmAnyType? = null,
+    private val realmAnyType: RealmAny.Type? = null,
     private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
     private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
     private val managedSetGetter: KProperty1<SetContainerClass, RealmSet<T>>,

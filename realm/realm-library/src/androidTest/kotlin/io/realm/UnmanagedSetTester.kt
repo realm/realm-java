@@ -30,7 +30,7 @@ class UnmanagedSetTester<T : Any>(
         private val values: List<T?>,
         private val notPresentValue: T,
         private val toArrayUnmanaged: ToArrayUnmanaged<T>,
-        private val realmAnyType: RealmAnyType? = null
+        private val realmAnyType: RealmAny.Type? = null
 ) : SetTester {
 
     override fun toString(): String = when (realmAnyType) {
@@ -332,7 +332,7 @@ fun unmanagedSetFactory(): List<SetTester> {
     }
 
     // Create RealmAny testers now
-    val realmAnyTesters = RealmAnyType.values().map { realmAnyType ->
+    val realmAnyTesters = RealmAny.Type.values().map { realmAnyType ->
         UnmanagedSetTester(
                 RealmAny::class.java,
                 getRealmAnyValues(realmAnyType),
@@ -346,31 +346,31 @@ fun unmanagedSetFactory(): List<SetTester> {
     return primitiveTesters.plus(realmAnyTesters)
 }
 
-fun getRealmAnyValues(realmAnyType: RealmAnyType): List<RealmAny?> {
+fun getRealmAnyValues(realmAnyType: RealmAny.Type): List<RealmAny?> {
     return when (realmAnyType) {
-        RealmAnyType.INTEGER ->
+        RealmAny.Type.INTEGER ->
             listOf(VALUE_MIXED_INTEGER_HELLO, VALUE_MIXED_INTEGER_BYE, null)
-        RealmAnyType.BOOLEAN ->
+        RealmAny.Type.BOOLEAN ->
             listOf(VALUE_MIXED_BOOLEAN_HELLO, null)
-        RealmAnyType.STRING ->
+        RealmAny.Type.STRING ->
             listOf(VALUE_MIXED_STRING_HELLO, VALUE_MIXED_STRING_BYE, null)
-        RealmAnyType.BINARY ->
+        RealmAny.Type.BINARY ->
             listOf(VALUE_MIXED_BINARY_HELLO, VALUE_MIXED_BINARY_BYE, null)
-        RealmAnyType.DATE ->
+        RealmAny.Type.DATE ->
             listOf(VALUE_MIXED_DATE_HELLO, VALUE_MIXED_DATE_BYE, null)
-        RealmAnyType.FLOAT ->
+        RealmAny.Type.FLOAT ->
             listOf(VALUE_MIXED_FLOAT_HELLO, VALUE_MIXED_FLOAT_BYE, null)
-        RealmAnyType.DOUBLE ->
+        RealmAny.Type.DOUBLE ->
             listOf(VALUE_MIXED_DOUBLE_HELLO, VALUE_MIXED_DOUBLE_BYE, null)
-        RealmAnyType.DECIMAL128 ->
+        RealmAny.Type.DECIMAL128 ->
             listOf(VALUE_MIXED_DECIMAL128_HELLO, VALUE_MIXED_DECIMAL128_BYE, null)
-        RealmAnyType.OBJECT_ID ->
+        RealmAny.Type.OBJECT_ID ->
             listOf(VALUE_MIXED_OBJECT_ID_HELLO, VALUE_MIXED_OBJECT_ID_BYE, null)
-        RealmAnyType.OBJECT ->
+        RealmAny.Type.OBJECT ->
             listOf(VALUE_MIXED_LINK_HELLO, VALUE_MIXED_LINK_BYE, null)
-        RealmAnyType.UUID ->
+        RealmAny.Type.UUID ->
             listOf(VALUE_MIXED_UUID_HELLO, VALUE_MIXED_UUID_BYE, null)
-        RealmAnyType.NULL ->
+        RealmAny.Type.NULL ->
             listOf(RealmAny.nullValue(), RealmAny.valueOf("Not null"), null)
     }
 }

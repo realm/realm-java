@@ -16,21 +16,11 @@
 
 package io.realm.processor
 
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.HashSet
-import java.util.LinkedHashMap
-import java.util.LinkedHashSet
-
-import javax.lang.model.element.AnnotationMirror
-import javax.lang.model.element.AnnotationValue
-import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.TypeElement
-
 import io.realm.annotations.RealmModule
 import io.realm.annotations.RealmNamingPolicy
 import io.realm.processor.nameconverter.NameConverter
+import java.util.*
+import javax.lang.model.element.*
 
 /**
  * Utility class for holding metadata for the Realm modules.
@@ -236,10 +226,10 @@ class ModuleMetaData {
             defineModule(qualifiedModuleClassName, classData)
         }
 
-        // Check that app and library modules are not realmAny
+        // Check that app and library modules are not mixed
         if (modules.size > 0 && libraryModules.size > 0) {
             val sb = StringBuilder()
-            sb.append("Normal modules and library modules cannot be realmAny in the same project.")
+            sb.append("Normal modules and library modules cannot be mixed in the same project.")
             sb.append('\n')
             sb.append("Normal module(s):\n")
             for (module in modules.keys) {

@@ -68,9 +68,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.BOOLEAN, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.BOOLEAN, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asBoolean())
             }
         }
@@ -86,9 +86,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.INTEGER, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.INTEGER, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asLong().toByte())
             }
         }
@@ -104,9 +104,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.INTEGER, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.INTEGER, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asLong().toShort())
             }
         }
@@ -122,9 +122,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.INTEGER, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.INTEGER, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asLong().toInt())
             }
         }
@@ -140,9 +140,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.INTEGER, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.INTEGER, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asLong())
             }
         }
@@ -158,9 +158,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.FLOAT, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.FLOAT, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asFloat().toFloat())
             }
         }
@@ -176,9 +176,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.DOUBLE, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.DOUBLE, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asDouble())
             }
         }
@@ -194,9 +194,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.STRING, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.STRING, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asString())
             }
         }
@@ -217,9 +217,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.BINARY, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.BINARY, nativeRealmAny.type)
                 assertTrue(Arrays.equals(expectedValue, nativeRealmAny.asBinary()))
             }
         }
@@ -235,9 +235,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.DATE, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.DATE, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asDate())
             }
         }
@@ -253,9 +253,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.OBJECT_ID, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.OBJECT_ID, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asObjectId())
             }
         }
@@ -271,9 +271,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.DECIMAL128, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.DECIMAL128, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asDecimal128())
             }
         }
@@ -289,9 +289,9 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
-                assertEquals(RealmAnyType.UUID, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.UUID, nativeRealmAny.type)
                 assertEquals(expectedValue, nativeRealmAny.asUUID())
             }
         }
@@ -326,10 +326,10 @@ class RealmAnyCollectionTests {
             val nativeRealmAny = nativeRealmAnyCollection.getItem(index)
 
             if (expectedValue == null) {
-                assertEquals(RealmAnyType.NULL, nativeRealmAny.type)
+                assertEquals(RealmAny.Type.NULL, nativeRealmAny.type)
             } else {
                 val realmAny = RealmAny(RealmAnyOperator.fromNativeRealmAny(realm, nativeRealmAny))
-                assertEquals(RealmAnyType.OBJECT, realmAny.type)
+                assertEquals(RealmAny.Type.OBJECT, realmAny.type)
                 assertEquals(expectedValue.name, realmAny.asRealmModel(PrimaryKeyAsString::class.java).name)
             }
         }

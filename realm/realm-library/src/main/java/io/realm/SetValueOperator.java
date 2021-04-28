@@ -1295,7 +1295,7 @@ class RealmAnySetOperator extends SetValueOperator<RealmAny> {
     private RealmAny getManagedRealmAny(@Nullable RealmAny value) {
         if (value == null) {
             value = RealmAny.nullValue();
-        } else if (value.getType() == RealmAnyType.OBJECT) {
+        } else if (value.getType() == RealmAny.Type.OBJECT) {
             RealmModel realmModel = value.asRealmModel(RealmModel.class);
             boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, realmModel, valueClass.getName(), SET_TYPE);
             RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, realmModel) : realmModel);

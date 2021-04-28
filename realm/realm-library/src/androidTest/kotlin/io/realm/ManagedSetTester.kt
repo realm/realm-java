@@ -35,7 +35,7 @@ import kotlin.test.*
  */
 class ManagedSetTester<T : Any>(
         private val testerName: String,
-        private val realmAnyType: RealmAnyType? = null,
+        private val realmAnyType: RealmAny.Type? = null,
         private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
         private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
         private val requiredSetGetter: KFunction1<SetAllTypes, RealmSet<T>>? = null,
@@ -1125,9 +1125,9 @@ fun managedSetFactory(): List<SetTester> {
                     toArrayManaged = ToArrayManaged.RealmModelNoPKManaged()
             ))
             // Then we add the tests for RealmAny types
-            .plus(RealmAnyType.values().map { realmAnyType ->
+            .plus(RealmAny.Type.values().map { realmAnyType ->
                 when (realmAnyType) {
-                    RealmAnyType.OBJECT -> RealmModelManagedSetTester<RealmAny>(
+                    RealmAny.Type.OBJECT -> RealmModelManagedSetTester<RealmAny>(
                             testerName = "MIXED-${realmAnyType.name}",
                             realmAnyType = realmAnyType,
                             setGetter = SetAllTypes::getColumnRealmAnySet,
@@ -1141,7 +1141,7 @@ fun managedSetFactory(): List<SetTester> {
                             toArrayManaged = ToArrayManaged.RealmAnyManaged(),
                             insertObjects = { realm, objects ->
                                 objects.map { realmAny ->
-                                    if (realmAny?.type == RealmAnyType.OBJECT) {
+                                    if (realmAny?.type == RealmAny.Type.OBJECT) {
                                         val unmanagedObject = realmAny.asRealmModel(DogPrimaryKey::class.java)
                                         val managedObject = realm.copyToRealmOrUpdate(unmanagedObject)
                                         RealmAny.valueOf(managedObject)
@@ -1152,7 +1152,7 @@ fun managedSetFactory(): List<SetTester> {
                             },
                             deleteObjects = { objects: List<RealmAny?> ->
                                 objects.map { realmAny ->
-                                    if (realmAny?.type == RealmAnyType.OBJECT) {
+                                    if (realmAny?.type == RealmAny.Type.OBJECT) {
                                         val managedObject = realmAny.asRealmModel(DogPrimaryKey::class.java)
                                         managedObject.deleteFromRealm()
                                     } else {
@@ -1176,7 +1176,7 @@ fun managedSetFactory(): List<SetTester> {
                             },
                             primaryKeyAllTypesSetProperty = SetAllTypesPrimaryKey::columnRealmAnySet
                     )
-                    RealmAnyType.NULL -> NullRealmAnySetTester(
+                    RealmAny.Type.NULL -> NullRealmAnySetTester(
                             testerName = "MIXED-${realmAnyType.name}",
                             setGetter = SetAllTypes::getColumnRealmAnySet
                     )

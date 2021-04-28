@@ -17,7 +17,7 @@
 package io.realm.realmany
 
 import io.realm.RealmAny
-import io.realm.RealmAnyType
+import io.realm.RealmAny.Type
 import io.realm.TestHelper
 import io.realm.entities.PrimaryKeyAsString
 import org.bson.types.Decimal128
@@ -29,9 +29,9 @@ class RealmAnyHelper {
         fun generateRealmAnyValues(): ArrayList<RealmAny> {
             val realmAnyValues = arrayListOf<RealmAny>()
 
-            for (type in RealmAnyType.values()) {
+            for (type in RealmAny.Type.values()) {
                 when (type) {
-                    RealmAnyType.INTEGER -> {
+                    RealmAny.Type.INTEGER -> {
                         for (i in 0..9) {
                             realmAnyValues.add(RealmAny.valueOf(i.toByte()))
                             realmAnyValues.add(RealmAny.valueOf((i).toShort()))
@@ -39,11 +39,11 @@ class RealmAnyHelper {
                             realmAnyValues.add(RealmAny.valueOf((i).toLong()))
                         }
                     }
-                    RealmAnyType.BOOLEAN -> {
+                    RealmAny.Type.BOOLEAN -> {
                         realmAnyValues.add(RealmAny.valueOf(false))
                         realmAnyValues.add(RealmAny.valueOf(true))
                     }
-                    RealmAnyType.STRING -> {
+                    RealmAny.Type.STRING -> {
                         for (i in 0..4) {
                             realmAnyValues.add(RealmAny.valueOf("hello world $i"))
                         }
@@ -51,49 +51,49 @@ class RealmAnyHelper {
                             realmAnyValues.add(RealmAny.valueOf("HELLO WORLD $i"))
                         }
                     }
-                    RealmAnyType.BINARY -> {
+                    RealmAny.Type.BINARY -> {
                         realmAnyValues.add(RealmAny.valueOf(byteArrayOf(0, 0, 0)))
                         realmAnyValues.add(RealmAny.valueOf(byteArrayOf(0, 1, 0)))
                         realmAnyValues.add(RealmAny.valueOf(byteArrayOf(0, 1, 1)))
                         realmAnyValues.add(RealmAny.valueOf(byteArrayOf(1, 1, 0)))
                         realmAnyValues.add(RealmAny.valueOf(byteArrayOf(1, 1, 1)))
                     }
-                    RealmAnyType.DATE -> {
+                    RealmAny.Type.DATE -> {
                         for (i in 0..4) {
                             realmAnyValues.add(RealmAny.valueOf(Date(i.toLong())))
                         }
                     }
-                    RealmAnyType.FLOAT -> {
+                    RealmAny.Type.FLOAT -> {
                         for (i in 0..9) {
                             realmAnyValues.add(RealmAny.valueOf((4 + i * 0.1).toFloat()))
                         }
                     }
-                    RealmAnyType.DOUBLE -> {
+                    RealmAny.Type.DOUBLE -> {
                         for (i in 0..9) {
                             realmAnyValues.add(RealmAny.valueOf((4 + i * 0.1).toDouble()))
                         }
                     }
-                    RealmAnyType.DECIMAL128 -> {
+                    RealmAny.Type.DECIMAL128 -> {
                         for (i in 0..4) {
                             realmAnyValues.add(RealmAny.valueOf(Decimal128(i.toLong())))
                         }
                     }
-                    RealmAnyType.OBJECT_ID -> {
+                    RealmAny.Type.OBJECT_ID -> {
                         for (i in 0..4) {
                             realmAnyValues.add(RealmAny.valueOf(ObjectId(TestHelper.generateObjectIdHexString(i))))
                         }
                     }
-                    RealmAnyType.UUID -> {
+                    RealmAny.Type.UUID -> {
                         for (i in 0..4) {
                             realmAnyValues.add(RealmAny.valueOf(UUID.fromString(TestHelper.generateUUIDString(i))))
                         }
                     }
-                    RealmAnyType.OBJECT -> {
+                    RealmAny.Type.OBJECT -> {
                         for (i in 0..5) {
                             realmAnyValues.add(RealmAny.valueOf(PrimaryKeyAsString("item $i")))
                         }
                     }
-                    RealmAnyType.NULL -> {
+                    RealmAny.Type.NULL -> {
                         for (i in 1..9) {
                             realmAnyValues.add(RealmAny.nullValue())
                         }

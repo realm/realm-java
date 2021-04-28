@@ -358,64 +358,64 @@ enum class DictionaryKey {
     KEY_HELLO, KEY_BYE, KEY_NULL
 }
 
-fun getRealmAnyForType(realmAnyType: RealmAnyType, dictionaryKey: DictionaryKey): RealmAny? {
+fun getRealmAnyForType(realmAnyType: RealmAny.Type, dictionaryKey: DictionaryKey): RealmAny? {
     return when (realmAnyType) {
-        RealmAnyType.INTEGER -> when (dictionaryKey) {
+        RealmAny.Type.INTEGER -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_INTEGER_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_INTEGER_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.BOOLEAN -> when (dictionaryKey) {
+        RealmAny.Type.BOOLEAN -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_BOOLEAN_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_BOOLEAN_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.STRING -> when (dictionaryKey) {
+        RealmAny.Type.STRING -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_STRING_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_STRING_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.BINARY -> when (dictionaryKey) {
+        RealmAny.Type.BINARY -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_BINARY_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_BINARY_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.DATE -> when (dictionaryKey) {
+        RealmAny.Type.DATE -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_DATE_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_DATE_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.FLOAT -> when (dictionaryKey) {
+        RealmAny.Type.FLOAT -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_FLOAT_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_FLOAT_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.DOUBLE -> when (dictionaryKey) {
+        RealmAny.Type.DOUBLE -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_DOUBLE_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_DOUBLE_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.DECIMAL128 -> when (dictionaryKey) {
+        RealmAny.Type.DECIMAL128 -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_DECIMAL128_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_DECIMAL128_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.OBJECT_ID -> when (dictionaryKey) {
+        RealmAny.Type.OBJECT_ID -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_OBJECT_ID_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_OBJECT_ID_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.OBJECT -> when (dictionaryKey) {
+        RealmAny.Type.OBJECT -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_LINK_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_LINK_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.UUID -> when (dictionaryKey) {
+        RealmAny.Type.UUID -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> VALUE_MIXED_UUID_HELLO
             DictionaryKey.KEY_BYE -> VALUE_MIXED_UUID_BYE
             DictionaryKey.KEY_NULL -> null
         }
-        RealmAnyType.NULL -> when (dictionaryKey) {
+        RealmAny.Type.NULL -> when (dictionaryKey) {
             DictionaryKey.KEY_HELLO -> RealmAny.valueOf("Not null")
             DictionaryKey.KEY_BYE -> RealmAny.nullValue()
             DictionaryKey.KEY_NULL -> null
@@ -424,77 +424,77 @@ fun getRealmAnyForType(realmAnyType: RealmAnyType, dictionaryKey: DictionaryKey)
 }
 
 fun getRealmAnyKeyValuePairs(
-        realmAnyType: RealmAnyType,
+        realmAnyType: RealmAny.Type,
         shouldSwapValues: Boolean = false
 ): List<Pair<String, RealmAny?>> {
     return when (realmAnyType) {
-        RealmAnyType.INTEGER ->
+        RealmAny.Type.INTEGER ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_INTEGER_BYE, KEY_BYE to VALUE_MIXED_INTEGER_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_INTEGER_HELLO, KEY_BYE to VALUE_MIXED_INTEGER_BYE, KEY_NULL to null)
             }
-        RealmAnyType.BOOLEAN ->
+        RealmAny.Type.BOOLEAN ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to null, KEY_NULL to VALUE_MIXED_BOOLEAN_HELLO)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_BOOLEAN_HELLO, KEY_NULL to null)
             }
-        RealmAnyType.STRING ->
+        RealmAny.Type.STRING ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_STRING_BYE, KEY_BYE to VALUE_MIXED_STRING_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_STRING_HELLO, KEY_BYE to VALUE_MIXED_STRING_BYE, KEY_NULL to null)
             }
-        RealmAnyType.BINARY ->
+        RealmAny.Type.BINARY ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_BINARY_BYE, KEY_BYE to VALUE_MIXED_BINARY_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_BINARY_HELLO, KEY_BYE to VALUE_MIXED_BINARY_BYE, KEY_NULL to null)
             }
-        RealmAnyType.DATE ->
+        RealmAny.Type.DATE ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DATE_BYE, KEY_BYE to VALUE_MIXED_DATE_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DATE_HELLO, KEY_BYE to VALUE_MIXED_DATE_BYE, KEY_NULL to null)
             }
-        RealmAnyType.FLOAT ->
+        RealmAny.Type.FLOAT ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_FLOAT_BYE, KEY_BYE to VALUE_MIXED_FLOAT_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_FLOAT_HELLO, KEY_BYE to VALUE_MIXED_FLOAT_BYE, KEY_NULL to null)
             }
-        RealmAnyType.DOUBLE ->
+        RealmAny.Type.DOUBLE ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_BYE, KEY_BYE to VALUE_MIXED_DOUBLE_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DOUBLE_HELLO, KEY_BYE to VALUE_MIXED_DOUBLE_BYE, KEY_NULL to null)
             }
-        RealmAnyType.DECIMAL128 ->
+        RealmAny.Type.DECIMAL128 ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_BYE, KEY_BYE to VALUE_MIXED_DECIMAL128_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_DECIMAL128_HELLO, KEY_BYE to VALUE_MIXED_DECIMAL128_BYE, KEY_NULL to null)
             }
-        RealmAnyType.OBJECT_ID ->
+        RealmAny.Type.OBJECT_ID ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_BYE, KEY_BYE to VALUE_MIXED_OBJECT_ID_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_OBJECT_ID_HELLO, KEY_BYE to VALUE_MIXED_OBJECT_ID_BYE, KEY_NULL to null)
             }
-        RealmAnyType.OBJECT ->
+        RealmAny.Type.OBJECT ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_LINK_BYE, KEY_BYE to VALUE_MIXED_LINK_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_LINK_HELLO, KEY_BYE to VALUE_MIXED_LINK_BYE, KEY_NULL to null)
             }
-        RealmAnyType.UUID ->
+        RealmAny.Type.UUID ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to VALUE_MIXED_UUID_BYE, KEY_BYE to VALUE_MIXED_UUID_HELLO, KEY_NULL to null)
             } else {
                 listOf(KEY_HELLO to VALUE_MIXED_UUID_HELLO, KEY_BYE to VALUE_MIXED_UUID_BYE, KEY_NULL to null)
             }
-        RealmAnyType.NULL ->
+        RealmAny.Type.NULL ->
             if (shouldSwapValues) {
                 listOf(KEY_HELLO to RealmAny.valueOf("Not null"), KEY_BYE to RealmAny.nullValue(), KEY_NULL to null)
             } else {

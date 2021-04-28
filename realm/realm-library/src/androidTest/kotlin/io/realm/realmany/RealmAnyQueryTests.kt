@@ -140,7 +140,7 @@ class RealmAnyQueryTests {
         val value = realm.where<RealmAnyNotIndexed>().minRealmAny(RealmAnyNotIndexed.FIELD_REALM_ANY)
 
         assertFalse(value.isNull)
-        assertEquals(RealmAnyType.BOOLEAN, value.type)
+        assertEquals(RealmAny.Type.BOOLEAN, value.type)
         assertFalse(value.asBoolean())
     }
 
@@ -157,7 +157,7 @@ class RealmAnyQueryTests {
         val results = realm.where<RealmAnyNotIndexed>().sort(RealmAnyNotIndexed.FIELD_REALM_ANY).findAll()
         assertEquals(112, results.size)
         assertTrue(results.first()!!.realmAny!!.isNull)
-        assertEquals(RealmAnyType.UUID, results.last()!!.realmAny!!.type)
+        assertEquals(RealmAny.Type.UUID, results.last()!!.realmAny!!.type)
     }
 
     @Test

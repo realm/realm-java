@@ -1580,7 +1580,7 @@ public class RealmMigrationTests {
         assertNotNull(results.get(0));
 
         RealmAny realmAny = results.get(0).getRealmAny();
-        assertEquals(RealmAnyType.OBJECT, realmAny.getType());
+        assertEquals(RealmAny.Type.OBJECT, realmAny.getType());
         assertEquals(StringOnly.class, realmAny.getValueClass());
 
         realm.close();

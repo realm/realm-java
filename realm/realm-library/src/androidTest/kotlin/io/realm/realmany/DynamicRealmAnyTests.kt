@@ -101,7 +101,7 @@ class DynamicRealmAnyTests {
         assertNotNull(myRealmAny)
         assertTrue(myRealmAny.isNull)
         assertEquals(RealmAny.nullValue(), myRealmAny)
-        assertEquals(RealmAnyType.NULL, myRealmAny.type)
+        assertEquals(RealmAny.Type.NULL, myRealmAny.type)
     }
 
     @Test
@@ -116,7 +116,7 @@ class DynamicRealmAnyTests {
         val myRealmAny = anObject.getRealmAny("myRealmAny")
 
         assertTrue(myRealmAny.isNull)
-        assertEquals(RealmAnyType.NULL, myRealmAny.type)
+        assertEquals(RealmAny.Type.NULL, myRealmAny.type)
     }
 
     @Test

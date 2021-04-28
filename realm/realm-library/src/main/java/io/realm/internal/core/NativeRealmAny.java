@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
-import io.realm.RealmAnyType;
+import io.realm.RealmAny;
 import io.realm.RealmModel;
 import io.realm.internal.Keep;
 import io.realm.internal.NativeContext;
@@ -111,8 +111,8 @@ public class NativeRealmAny implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    public RealmAnyType getType() {
-        return RealmAnyType.fromNativeValue(nativeGetType(nativePtr));
+    public RealmAny.Type getType() {
+        return RealmAny.Type.fromNativeValue(nativeGetType(nativePtr));
     }
 
     public boolean asBoolean() {

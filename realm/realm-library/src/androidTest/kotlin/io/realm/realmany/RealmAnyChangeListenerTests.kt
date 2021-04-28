@@ -35,7 +35,7 @@ import kotlin.test.assertTrue
 
 
 @RunWith(Parameterized::class)
-class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private val first: Any, private val second: Any, private val third: Any) {
+class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, private val first: Any, private val second: Any, private val third: Any) {
     private lateinit var realmConfiguration: RealmConfiguration
 
     @get:Rule
@@ -68,84 +68,84 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
         fun data(): MutableList<Array<Any>> {
             val list = mutableListOf<Array<Any>>()
 
-            for (type in RealmAnyType.values()) {
+            for (type in RealmAny.Type.values()) {
                 when (type) {
-                    RealmAnyType.INTEGER -> {
-                        list.add(arrayOf(RealmAnyType.INTEGER,
+                    RealmAny.Type.INTEGER -> {
+                        list.add(arrayOf(RealmAny.Type.INTEGER,
                                 RealmAny.valueOf(1.toByte()),
                                 RealmAny.valueOf(10.toByte()),
                                 RealmAny.valueOf(true))
                         )
-                        list.add(arrayOf(RealmAnyType.INTEGER,
+                        list.add(arrayOf(RealmAny.Type.INTEGER,
                                 RealmAny.valueOf(2.toShort()),
                                 RealmAny.valueOf(20.toShort()
                                 ),
                                 RealmAny.valueOf(true)))
-                        list.add(arrayOf(RealmAnyType.INTEGER,
+                        list.add(arrayOf(RealmAny.Type.INTEGER,
                                 RealmAny.valueOf(3.toInt()),
                                 RealmAny.valueOf(30.toInt()),
                                 RealmAny.valueOf(true))
                         )
-                        list.add(arrayOf(RealmAnyType.INTEGER,
+                        list.add(arrayOf(RealmAny.Type.INTEGER,
                                 RealmAny.valueOf(4.toLong()),
                                 RealmAny.valueOf(40.toLong()),
                                 RealmAny.valueOf(true))
                         )
                     }
-                    RealmAnyType.BOOLEAN -> list.add(arrayOf(
-                            RealmAnyType.BOOLEAN,
+                    RealmAny.Type.BOOLEAN -> list.add(arrayOf(
+                            RealmAny.Type.BOOLEAN,
                             RealmAny.valueOf(false),
                             RealmAny.valueOf(true),
                             RealmAny.valueOf(0.toInt()))
                     )
-                    RealmAnyType.STRING -> list.add(arrayOf(
-                            RealmAnyType.STRING,
+                    RealmAny.Type.STRING -> list.add(arrayOf(
+                            RealmAny.Type.STRING,
                             RealmAny.valueOf("hello world1"),
                             RealmAny.valueOf("hello world2"),
                             RealmAny.valueOf(10.toInt()))
                     )
-                    RealmAnyType.BINARY -> list.add(arrayOf(
-                            RealmAnyType.BINARY,
+                    RealmAny.Type.BINARY -> list.add(arrayOf(
+                            RealmAny.Type.BINARY,
                             RealmAny.valueOf(byteArrayOf(0, 1, 0)),
                             RealmAny.valueOf(byteArrayOf(0, 1, 1)),
                             RealmAny.valueOf("hello world3"))
                     )
-                    RealmAnyType.DATE -> list.add(arrayOf(
-                            RealmAnyType.DATE,
+                    RealmAny.Type.DATE -> list.add(arrayOf(
+                            RealmAny.Type.DATE,
                             RealmAny.valueOf(Date(0)),
                             RealmAny.valueOf(Date(10)),
                             RealmAny.valueOf(ObjectId(Date(10))))
                     )
-                    RealmAnyType.FLOAT -> list.add(arrayOf(
-                            RealmAnyType.FLOAT,
+                    RealmAny.Type.FLOAT -> list.add(arrayOf(
+                            RealmAny.Type.FLOAT,
                             RealmAny.valueOf(5.toFloat()),
                             RealmAny.valueOf(50.toFloat()),
                             RealmAny.valueOf(false))
                     )
-                    RealmAnyType.DOUBLE -> list.add(arrayOf(
-                            RealmAnyType.DOUBLE,
+                    RealmAny.Type.DOUBLE -> list.add(arrayOf(
+                            RealmAny.Type.DOUBLE,
                             RealmAny.valueOf(6.toDouble()),
                             RealmAny.valueOf(60.toDouble()),
                             RealmAny.valueOf(false)))
-                    RealmAnyType.DECIMAL128 -> list.add(arrayOf(
-                            RealmAnyType.DECIMAL128,
+                    RealmAny.Type.DECIMAL128 -> list.add(arrayOf(
+                            RealmAny.Type.DECIMAL128,
                             RealmAny.valueOf(Decimal128(1)),
                             RealmAny.valueOf(Decimal128(10)),
                             RealmAny.valueOf(10.5.toFloat()))
                     )
-                    RealmAnyType.OBJECT_ID -> list.add(arrayOf(
-                            RealmAnyType.OBJECT_ID,
+                    RealmAny.Type.OBJECT_ID -> list.add(arrayOf(
+                            RealmAny.Type.OBJECT_ID,
                             RealmAny.valueOf(ObjectId(Date(10))),
                             RealmAny.valueOf(ObjectId(Date(100))),
                             RealmAny.valueOf(Date(100)))
                     )
-                    RealmAnyType.UUID -> list.add(arrayOf(
-                            RealmAnyType.UUID,
+                    RealmAny.Type.UUID -> list.add(arrayOf(
+                            RealmAny.Type.UUID,
                             RealmAny.valueOf(UUID.randomUUID()),
                             RealmAny.valueOf(UUID.randomUUID()),
                             RealmAny.valueOf("hello world1"))
                     )
-                    RealmAnyType.OBJECT -> {
+                    RealmAny.Type.OBJECT -> {
                         val first = AllJavaTypes(0)
                         first.fieldString = "FOO"
 
@@ -154,13 +154,13 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
                         second.fieldRealmAny = RealmAny.valueOf(first)
 
                         list.add(arrayOf(
-                                RealmAnyType.OBJECT,
+                                RealmAny.Type.OBJECT,
                                 first,
                                 second,
                                 "hello world1")
                         )
                     }
-                    RealmAnyType.NULL -> { // Not tested directly
+                    RealmAny.Type.NULL -> { // Not tested directly
                     }
 
                     else -> throw AssertionError("Missing case for type: ${type.name}")
@@ -174,7 +174,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
     @Test
     fun primitives_changeValueKeepType() {
         // Do not test on object types
-        if (testingType == RealmAnyType.OBJECT)
+        if (testingType == RealmAny.Type.OBJECT)
             return
 
         looperThread.runBlocking {
@@ -212,7 +212,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
     @Test
     fun primitives_changeValueChangeType() {
         // Do not test on object types
-        if (testingType == RealmAnyType.OBJECT)
+        if (testingType == RealmAny.Type.OBJECT)
             return
 
         looperThread.runBlocking {
@@ -250,7 +250,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
     @Test
     fun primitives_changeValueChangeType_checkSameValueFlag() {
         // Do not test on object types
-        if (testingType == RealmAnyType.OBJECT)
+        if (testingType == RealmAny.Type.OBJECT)
             return
 
         looperThread.runBlocking {
@@ -291,7 +291,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
     @Test
     fun primitives_keepValues() {
         // Do not test on object types
-        if (testingType == RealmAnyType.OBJECT)
+        if (testingType == RealmAny.Type.OBJECT)
             return
 
         looperThread.runBlocking {
@@ -329,7 +329,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
     @Test
     fun primitives_keepValues_checkSameValuesFlag() {
         // Do not test on object types
-        if (testingType == RealmAnyType.OBJECT)
+        if (testingType == RealmAny.Type.OBJECT)
             return
 
         looperThread.runBlocking {
@@ -370,7 +370,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
     @Test
     fun primitives_fromNull() {
         // Do not test on object types
-        if (testingType == RealmAnyType.OBJECT)
+        if (testingType == RealmAny.Type.OBJECT)
             return
 
         looperThread.runBlocking {
@@ -407,7 +407,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
     @Test
     fun primitives_toNull() {
         // Do not test on object types
-        if (testingType == RealmAnyType.OBJECT)
+        if (testingType == RealmAny.Type.OBJECT)
             return
 
         looperThread.runBlocking {
@@ -445,7 +445,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAnyType, private
     @Test
     fun realmModels_cyclicDependency() {
         // Do not test on object types
-        if (testingType != RealmAnyType.OBJECT)
+        if (testingType != RealmAny.Type.OBJECT)
             return
 
         looperThread.runBlocking {

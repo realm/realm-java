@@ -19,7 +19,6 @@ package io.realm
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import java.lang.NullPointerException
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -237,7 +236,7 @@ class UnmanagedDictionaryTester<T : Any>(
 
 /**
  * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
- * many RealmAny testers as [RealmAnyType]s.
+ * many RealmAny testers as [RealmAny.Type]s.
  */
 fun unmanagedDictionaryFactory(): List<DictionaryTester> {
     // Create primitive testers first
@@ -347,7 +346,7 @@ fun unmanagedDictionaryFactory(): List<DictionaryTester> {
     }
 
     // Create RealmAny testers now
-    val realmAnyTesters = RealmAnyType.values().map { realmAnyType ->
+    val realmAnyTesters = RealmAny.Type.values().map { realmAnyType ->
         UnmanagedDictionaryTester<RealmAny>(
                 "UnmanagedDictionaryRealmAny-${realmAnyType.name}",
                 getRealmAnyKeyValuePairs(realmAnyType),

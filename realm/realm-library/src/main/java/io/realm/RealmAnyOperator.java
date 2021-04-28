@@ -36,7 +36,7 @@ import io.realm.internal.core.NativeRealmAny;
 
 public abstract class RealmAnyOperator {
     static RealmAnyOperator fromNativeRealmAny(BaseRealm realm, NativeRealmAny nativeRealmAny) {
-        RealmAnyType fieldType = nativeRealmAny.getType();
+        RealmAny.Type fieldType = nativeRealmAny.getType();
 
         switch (fieldType) {
             case INTEGER:
@@ -78,7 +78,7 @@ public abstract class RealmAnyOperator {
 
     @Nullable
     private NativeRealmAny nativeRealmAny;
-    private RealmAnyType type;
+    private RealmAny.Type type;
 
     private synchronized NativeRealmAny getNativeRealmAny() {
         if (nativeRealmAny == null) { nativeRealmAny = createNativeRealmAny(); }
@@ -92,18 +92,18 @@ public abstract class RealmAnyOperator {
 
     protected abstract NativeRealmAny createNativeRealmAny();
 
-    protected RealmAnyOperator(RealmAnyType type) {
+    protected RealmAnyOperator(RealmAny.Type type) {
         this.type = type;
     }
 
-    protected RealmAnyOperator(RealmAnyType type, NativeRealmAny nativeRealmAny) {
+    protected RealmAnyOperator(RealmAny.Type type, NativeRealmAny nativeRealmAny) {
         this.type = type;
         this.nativeRealmAny = nativeRealmAny;
     }
 
     abstract <T> T getValue(Class<T> clazz);
 
-    RealmAnyType getType() {
+    RealmAny.Type getType(){
         return this.type;
     }
 
@@ -120,11 +120,11 @@ public abstract class RealmAnyOperator {
 
 final class NullRealmAnyOperator extends RealmAnyOperator {
     NullRealmAnyOperator() {
-        super(RealmAnyType.NULL);
+        super(RealmAny.Type.NULL);
     }
 
     NullRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(RealmAnyType.NULL, nativeRealmAny);
+        super(RealmAny.Type.NULL, nativeRealmAny);
     }
 
     @Override
@@ -157,12 +157,12 @@ abstract class PrimitiveRealmAnyOperator extends RealmAnyOperator {
     @Nullable
     private final Object value;
 
-    PrimitiveRealmAnyOperator(@Nullable Object value, @Nonnull RealmAnyType type) {
+    PrimitiveRealmAnyOperator(@Nullable Object value, @Nonnull RealmAny.Type type) {
         super(type);
         this.value = value;
     }
 
-    PrimitiveRealmAnyOperator(@Nullable Object value, @Nonnull RealmAnyType type, @Nonnull NativeRealmAny nativeRealmAny) {
+    PrimitiveRealmAnyOperator(@Nullable Object value, @Nonnull RealmAny.Type type, @Nonnull NativeRealmAny nativeRealmAny) {
         super(type, nativeRealmAny);
         this.value = value;
     }
@@ -193,11 +193,11 @@ abstract class PrimitiveRealmAnyOperator extends RealmAnyOperator {
 
 final class BooleanRealmAnyOperator extends PrimitiveRealmAnyOperator {
     BooleanRealmAnyOperator(Boolean value) {
-        super(value, RealmAnyType.BOOLEAN);
+        super(value, RealmAny.Type.BOOLEAN);
     }
 
     BooleanRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asBoolean(), RealmAnyType.BOOLEAN, nativeRealmAny);
+        super(nativeRealmAny.asBoolean(), RealmAny.Type.BOOLEAN, nativeRealmAny);
     }
 
     @Override
@@ -208,23 +208,23 @@ final class BooleanRealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class IntegerRealmAnyOperator extends PrimitiveRealmAnyOperator {
     IntegerRealmAnyOperator(Byte value) {
-        super(value, RealmAnyType.INTEGER);
+        super(value, RealmAny.Type.INTEGER);
     }
 
     IntegerRealmAnyOperator(Short value) {
-        super(value, RealmAnyType.INTEGER);
+        super(value, RealmAny.Type.INTEGER);
     }
 
     IntegerRealmAnyOperator(Integer value) {
-        super(value, RealmAnyType.INTEGER);
+        super(value, RealmAny.Type.INTEGER);
     }
 
     IntegerRealmAnyOperator(Long value) {
-        super(value, RealmAnyType.INTEGER);
+        super(value, RealmAny.Type.INTEGER);
     }
 
     IntegerRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asLong(), RealmAnyType.INTEGER, nativeRealmAny);
+        super(nativeRealmAny.asLong(), RealmAny.Type.INTEGER, nativeRealmAny);
     }
 
     @Override
@@ -243,11 +243,11 @@ final class IntegerRealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class FloatRealmAnyOperator extends PrimitiveRealmAnyOperator {
     FloatRealmAnyOperator(Float value) {
-        super(value, RealmAnyType.FLOAT);
+        super(value, RealmAny.Type.FLOAT);
     }
 
     FloatRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asFloat(), RealmAnyType.FLOAT, nativeRealmAny);
+        super(nativeRealmAny.asFloat(), RealmAny.Type.FLOAT, nativeRealmAny);
     }
 
     @Override
@@ -258,11 +258,11 @@ final class FloatRealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class DoubleRealmAnyOperator extends PrimitiveRealmAnyOperator {
     DoubleRealmAnyOperator(Double value) {
-        super(value, RealmAnyType.DOUBLE);
+        super(value, RealmAny.Type.DOUBLE);
     }
 
     DoubleRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asDouble(), RealmAnyType.DOUBLE, nativeRealmAny);
+        super(nativeRealmAny.asDouble(), RealmAny.Type.DOUBLE, nativeRealmAny);
     }
 
     @Override
@@ -273,11 +273,11 @@ final class DoubleRealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class StringRealmAnyOperator extends PrimitiveRealmAnyOperator {
     StringRealmAnyOperator(String value) {
-        super(value, RealmAnyType.STRING);
+        super(value, RealmAny.Type.STRING);
     }
 
     StringRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asString(), RealmAnyType.STRING, nativeRealmAny);
+        super(nativeRealmAny.asString(), RealmAny.Type.STRING, nativeRealmAny);
     }
 
     @Override
@@ -288,11 +288,11 @@ final class StringRealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class BinaryRealmAnyOperator extends PrimitiveRealmAnyOperator {
     BinaryRealmAnyOperator(byte[] value) {
-        super(value, RealmAnyType.BINARY);
+        super(value, RealmAny.Type.BINARY);
     }
 
     BinaryRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asBinary(), RealmAnyType.BINARY, nativeRealmAny);
+        super(nativeRealmAny.asBinary(), RealmAny.Type.BINARY, nativeRealmAny);
     }
 
     @Override
@@ -311,11 +311,11 @@ final class BinaryRealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class DateRealmAnyOperator extends PrimitiveRealmAnyOperator {
     DateRealmAnyOperator(Date value) {
-        super(value, RealmAnyType.DATE);
+        super(value, RealmAny.Type.DATE);
     }
 
     DateRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asDate(), RealmAnyType.DATE, nativeRealmAny);
+        super(nativeRealmAny.asDate(), RealmAny.Type.DATE, nativeRealmAny);
     }
 
     @Override
@@ -326,11 +326,11 @@ final class DateRealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class ObjectIdRealmAnyOperator extends PrimitiveRealmAnyOperator {
     ObjectIdRealmAnyOperator(ObjectId value) {
-        super(value, RealmAnyType.OBJECT_ID);
+        super(value, RealmAny.Type.OBJECT_ID);
     }
 
     ObjectIdRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asObjectId(), RealmAnyType.OBJECT_ID, nativeRealmAny);
+        super(nativeRealmAny.asObjectId(), RealmAny.Type.OBJECT_ID, nativeRealmAny);
     }
 
     @Override
@@ -341,11 +341,11 @@ final class ObjectIdRealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class Decimal128RealmAnyOperator extends PrimitiveRealmAnyOperator {
     Decimal128RealmAnyOperator(Decimal128 value) {
-        super(value, RealmAnyType.DECIMAL128);
+        super(value, RealmAny.Type.DECIMAL128);
     }
 
     Decimal128RealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asDecimal128(), RealmAnyType.DECIMAL128, nativeRealmAny);
+        super(nativeRealmAny.asDecimal128(), RealmAny.Type.DECIMAL128, nativeRealmAny);
     }
 
     @Override
@@ -356,11 +356,11 @@ final class Decimal128RealmAnyOperator extends PrimitiveRealmAnyOperator {
 
 final class UUIDRealmAnyOperator extends PrimitiveRealmAnyOperator {
     UUIDRealmAnyOperator(UUID value) {
-        super(value, RealmAnyType.UUID);
+        super(value, RealmAny.Type.UUID);
     }
 
     UUIDRealmAnyOperator(NativeRealmAny nativeRealmAny) {
-        super(nativeRealmAny.asUUID(), RealmAnyType.UUID, nativeRealmAny);
+        super(nativeRealmAny.asUUID(), RealmAny.Type.UUID, nativeRealmAny);
     }
 
     @Override
@@ -379,13 +379,13 @@ class RealmModelOperator extends RealmAnyOperator {
     private final RealmModel value;
 
     RealmModelOperator(RealmModel realmModel) {
-        super(RealmAnyType.OBJECT);
+        super(RealmAny.Type.OBJECT);
         this.value = realmModel;
         this.clazz = realmModel.getClass();
     }
 
     <T extends RealmModel> RealmModelOperator(BaseRealm realm, NativeRealmAny nativeRealmAny, Class<T> clazz) {
-        super(RealmAnyType.OBJECT, nativeRealmAny);
+        super(RealmAny.Type.OBJECT, nativeRealmAny);
 
         this.clazz = clazz;
         this.value = getRealmModel(realm, clazz, nativeRealmAny);
