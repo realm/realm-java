@@ -23,12 +23,8 @@ import io.realm.exceptions.RealmException
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.rule.TestRealmConfigurationFactory
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
 import kotlin.test.assertFailsWith
@@ -300,15 +296,11 @@ class UUIDTests {
     fun linkQueryNotSupported() {
         val uuid1 = UUID.randomUUID()
 
-        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on UUID") {
-            realm.where<UUIDRequiredRealmList>().greaterThan("ids", uuid1).findAll()
-        }
-
         realm.beginTransaction()
         val obj = realm.createObject<UUIDRequiredRealmList>()
         realm.cancelTransaction()
 
-        assertFailsWith<UnsupportedOperationException> {
+        assertFailsWith<UnsupportedOperationException>("It should not be possible to perform link query on UUID") {
             obj.ids.where().equalTo("ids", uuid1).findAll()
         }
     }

@@ -22,7 +22,9 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.RealmFieldType;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -114,6 +116,11 @@ public enum InvalidRow implements Row {
     }
 
     @Override
+    public NativeRealmAny getNativeRealmAny(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw getStubException();
     }
@@ -200,6 +207,11 @@ public enum InvalidRow implements Row {
 
     @Override
     public void setUUID(long columnKey, UUID value) {
+        throw getStubException();
+    }
+
+    @Override
+    public void setRealmAny(long columnKey, long value) {
         throw getStubException();
     }
 

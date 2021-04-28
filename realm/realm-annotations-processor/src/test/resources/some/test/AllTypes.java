@@ -22,6 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -52,6 +53,8 @@ public class AllTypes extends RealmObject {
     @Required
     private Date columnDate;
 
+    private RealmAny columnRealmAny;
+
     @Required
     private byte[] columnBinary;
 
@@ -79,6 +82,7 @@ public class AllTypes extends RealmObject {
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<ObjectId> columnObjectIdList;
     private RealmList<UUID> columnUUIDList;
+    private RealmList<RealmAny> columnRealmAnyList;
 
     @LinkingObjects(FIELD_PARENTS)
     private final RealmResults<AllTypes> parentObjects = null;
@@ -233,5 +237,13 @@ public class AllTypes extends RealmObject {
 
     public MutableRealmInteger realmGet$columnMutableRealmInteger() {
         return columnMutableRealmInteger;
+    }
+
+    public RealmAny getColumnRealmAny() {
+        return realmGet$columnRealmAny();
+    }
+
+    public RealmAny realmGet$columnRealmAny() {
+        return columnRealmAny;
     }
 }

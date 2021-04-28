@@ -18,6 +18,7 @@
 #include "io_realm_internal_Property.h"
 
 #include "java_accessor.hpp"
+#include "java_object_accessor.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -224,6 +225,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLong(JNIEnv*
 
     try {
         OBJ(nativeRowPtr)->set<int64_t>(ColKey(columnKey), value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetRealmAny(JNIEnv* env, jobject, jlong nativeRowPtr,
+                                                                              jlong columnKey, jlong nativePtr)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        auto java_value = *reinterpret_cast<JavaValue *>(nativePtr);
+        auto mixed = java_value.to_mixed();
+        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), mixed);
     }
     CATCH_STD()
 }
@@ -491,6 +507,22 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetUUID(JNIE
     }
     CATCH_STD()
     return nullptr;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetRealmAny(JNIEnv* env, jobject,
+                                                                            jlong nativeRowPtr,
+                                                                            jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return reinterpret_cast<jlong>(nullptr);
+    }
+
+    try {
+        auto mixed = OBJ(nativeRowPtr)->get<Mixed>(ColKey(columnKey));
+        return reinterpret_cast<jlong>(new JavaValue(from_mixed(mixed)));
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetUUID(JNIEnv* env, jobject,

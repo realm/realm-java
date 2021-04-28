@@ -110,6 +110,7 @@ public class Table implements NativeObject {
             case DOUBLE:
             case DECIMAL128:
             case OBJECT_ID:
+            case MIXED:
             case UUID:
                 return nativeAddColumn(nativeTableRefPtr, type.getNativeValue(), name, isNullable);
 
@@ -123,6 +124,7 @@ public class Table implements NativeObject {
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
             case UUID_LIST:
+            case MIXED_LIST:
                 return nativeAddPrimitiveListColumn(nativeTableRefPtr, type.getNativeValue() - 128, name, isNullable);
 
             default:
@@ -515,6 +517,11 @@ public class Table implements NativeObject {
         }
     }
 
+    public void setRealmAny(long columnKey, long rowKey, long nativePtr, boolean isDefault) {
+        checkImmutable();
+        nativeSetRealmAny(nativeTableRefPtr, columnKey, rowKey, nativePtr, isDefault);
+    }
+
     public void setLink(long columnKey, long rowKey, long value, boolean isDefault) {
         checkImmutable();
         nativeSetLink(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
@@ -844,6 +851,8 @@ public class Table implements NativeObject {
     public static native void nativeSetUUID(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
 
     public static native void nativeSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
+
+    public static native void nativeSetRealmAny(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 
     private native void nativeAddSearchIndex(long nativePtr, long columnKey);
 

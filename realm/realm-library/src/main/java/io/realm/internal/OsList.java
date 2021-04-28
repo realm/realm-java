@@ -252,6 +252,18 @@ public class OsList implements NativeObject, ObservableCollection {
         }
     }
 
+    public void addRealmAny(long realmAnyPtr) {
+        nativeAddRealmAny(nativePtr, realmAnyPtr);
+    }
+
+    public void insertRealmAny(long pos, long realmAnyPtr) {
+        nativeInsertRealmAny(nativePtr, pos, realmAnyPtr);
+    }
+
+    public void setRealmAny(long pos, long realmAnyPtr) {
+        nativeSetRealmAny(nativePtr, pos, realmAnyPtr);
+    }
+
     @Nullable
     public Object getValue(long pos) {
         return nativeGetValue(nativePtr, pos);
@@ -454,6 +466,12 @@ public class OsList implements NativeObject, ObservableCollection {
     private static native void nativeInsertUUID(long nativePtr, long pos, String data);
 
     private static native void nativeSetUUID(long nativePtr, long pos, String data);
+
+    private static native void nativeAddRealmAny(long nativePtr, long realmAnyPtr);
+
+    private static native void nativeInsertRealmAny(long nativePtr, long pos, long realmAnyPtr);
+
+    private static native void nativeSetRealmAny(long nativePtr, long pos, long realmAnyPtr);
 
     private static native Object nativeGetValue(long nativePtr, long pos);
 

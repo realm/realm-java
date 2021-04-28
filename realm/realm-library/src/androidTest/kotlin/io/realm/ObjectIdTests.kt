@@ -24,13 +24,9 @@ import io.realm.exceptions.RealmException
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.rule.TestRealmConfigurationFactory
 import org.bson.types.ObjectId
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.*
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
 
@@ -297,10 +293,6 @@ class ObjectIdTests {
 
     @Test
     fun linkQueryNotSupported() {
-        assertFailsWith<IllegalArgumentException>("It should not be possible to perform link query on ObjectId") {
-            realm.where<ObjectIdRequiredRealmList>().greaterThan("ids", ObjectId(generateObjectIdHexString(0))).findAll()
-        }
-
         realm.beginTransaction()
         val obj = realm.createObject<ObjectIdRequiredRealmList>()
         realm.cancelTransaction()
@@ -535,7 +527,7 @@ class ObjectIdTests {
         realm.commitTransaction()
 
         assertFailsWith<IllegalArgumentException>("isEmpty is not supported for ObjectId") {
-            realm.where<ObjectIdAndString>().isEmpty("id")
+            realm.where<ObjectIdAndString>().isEmpty("id").count()
         }
     }
 

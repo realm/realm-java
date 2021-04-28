@@ -82,6 +82,44 @@ public abstract class RealmProxyMediator {
     protected abstract String getSimpleClassNameImpl(Class<? extends RealmModel> clazz);
 
     /**
+     * Returns a reference of the class that represents the specified class name. The returning class reference would be
+     * a realization of {@link RealmModel}.
+     *
+     * @param className the class name.
+     * @return a class reference to the representing class.
+     */
+    public final <T extends RealmModel> Class<T> getClazz(String className) {
+        return getClazzImpl(className);
+    }
+
+    /**
+     * Returns a reference of the class that represents the specified class name. The returning class reference would be
+     * a realization of {@link RealmModel}.
+     *
+     * @param className the class name.
+     * @return a class reference to the representing class.
+     */
+    protected abstract <T extends RealmModel> Class<T> getClazzImpl(String className);
+
+    /**
+     * Returns {@code true} true if the provided class reference has a primary key defined.
+     *
+     * @param clazz the {@link RealmModel} or the Realm object proxy class reference.
+     * @return true if the class has a defined primary key, false otherwise.
+     */
+    public boolean hasPrimaryKey(Class<? extends RealmModel> clazz){
+        return hasPrimaryKeyImpl(clazz);
+    }
+
+    /**
+     * Returns {@code true} if the provided class reference has a primary key defined.
+     *
+     * @param clazz the {@link RealmModel} or the Realm object proxy class reference.
+     * @return true if the class has a defined primary key, false otherwise.
+     */
+    protected abstract boolean hasPrimaryKeyImpl(Class<? extends RealmModel> clazz);
+
+    /**
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
@@ -128,19 +166,23 @@ public abstract class RealmProxyMediator {
      * @param realm reference to the {@link Realm} where the object will be inserted.
      * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
+     *
+     * @return the key of the object inserted in the realm.
      */
-    public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract long insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
      * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
      * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      *
-     * @param realm reference to the {@link Realm} where the objecs will be inserted.
+     * @param realm reference to the {@link Realm} where the objects will be inserted.
      * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
+     *
+     * @return the key of the object inserted or updated in the realm.
      */
-    public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract long insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
      * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
@@ -242,6 +284,13 @@ public abstract class RealmProxyMediator {
     protected static void checkClass(Class<? extends RealmModel> clazz) {
         //noinspection ConstantConditions
         if (clazz == null) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
+    }
+
+    protected static void checkClassName(String className) {
+        //noinspection ConstantConditions
+        if ((className == null) || (className.isEmpty())) {
             throw new NullPointerException("A class extending RealmObject must be provided");
         }
     }

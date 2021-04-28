@@ -247,6 +247,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             when {
                 Constants.JAVA_TO_REALM_TYPES.containsKey(fieldTypeCanonicalName) -> emitPrimitiveType(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isMutableRealmInteger(field) -> emitMutableRealmInteger(writer, field, fieldName, fieldTypeCanonicalName)
+                Utils.isRealmAny(field) -> emitRealmAny(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isRealmModel(field) -> emitRealmModel(writer, field, fieldName, fieldTypeCanonicalName)
                 Utils.isRealmList(field) -> {
                     val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
@@ -349,9 +350,60 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         writer.apply {
             emitAnnotation("Override")
             beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
-                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
-                emitStatement("return this.%s", mutableRealmIntegerFieldName(field))
+            emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+            emitStatement("return this.%s", mutableRealmIntegerFieldName(field))
             endMethod()
+        }
+    }
+
+    /**
+     * Emit Get method for RealmAny fields.
+     */
+    @Throws(IOException::class)
+    private fun emitRealmAny(writer: JavaWriter, field: VariableElement, fieldName: String, fieldTypeCanonicalName: String) {
+        writer.apply {
+            // Getter - Start
+            emitAnnotation("Override")
+            beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
+                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+                emitStatement("NativeRealmAny nativeRealmAny = proxyState.getRow\$realm().getNativeRealmAny(%s)", fieldColKeyVariableReference(field))
+                emitStatement("return new RealmAny(RealmAnyOperator.fromNativeRealmAny(proxyState.getRealm\$realm(), nativeRealmAny))")
+            endMethod()
+            // Getter - End
+
+            emitEmptyLine()
+
+            // Setter - Start
+            emitAnnotation("Override")
+            beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+
+            emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) {
+                beginControlFlow("if (proxyState.getExcludeFields\$realm().contains(\"%1\$s\"))", field.simpleName.toString())
+                    emitStatement("return")
+                endControlFlow()
+                emitEmptyLine()
+                emitStatement("value = ProxyUtils.copyToRealmIfNeeded(proxyState, value)")
+                emitEmptyLine()
+                emitStatement("final Row row = proxyState.getRow\$realm()")
+                beginControlFlow("if (value == null)")
+                    emitStatement("row.getTable().setNull(%s, row.getObjectKey(), true)", fieldColKeyVariableReference(field))
+                    emitStatement("return")
+                endControlFlow()
+                emitStatement("row.getTable().setRealmAny(%s, row.getObjectKey(), value.getNativePtr(), true)", fieldColKeyVariableReference(field))
+                emitStatement("return")
+
+            }
+            emitEmptyLine()
+            emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+            emitEmptyLine()
+            beginControlFlow("if (value == null)")
+                emitStatement("proxyState.getRow\$realm().setNull(%s)", fieldColKeyVariableReference(field))
+                emitStatement("return")
+            endControlFlow()
+            emitStatement("value = ProxyUtils.copyToRealmIfNeeded(proxyState, value)")
+            emitStatement("proxyState.getRow\$realm().setRealmAny(%s, value.getNativePtr())", fieldColKeyVariableReference(field))
+            endMethod()
+            // Setter - End
         }
     }
 
@@ -448,6 +500,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
         val genericType: QualifiedClassName? = Utils.getGenericTypeQualifiedName(field)
         val forRealmModel: Boolean = Utils.isRealmModel(elementTypeMirror)
+        val forRealmAny: Boolean = Utils.isRealmAny(elementTypeMirror)
 
         writer.apply {
             // Getter - Start
@@ -534,6 +587,17 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         endControlFlow()
                     endControlFlow()
             } else {
+                if(forRealmAny){
+                    beginControlFlow("if (value != null && !value.isManaged())")
+                        emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
+                        emitStatement("final RealmList<RealmAny> original = value")
+                        emitStatement("value = new RealmList<RealmAny>()")
+                        beginControlFlow("for (int i = 0; i < original.size(); i++)")
+                            emitStatement("value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, original.get(i)))")
+                        endControlFlow()
+                    endControlFlow()
+                }
+
                 // Value lists
                 emitStatement("osList.removeAll()")
                 beginControlFlow("if (value == null)")
@@ -590,6 +654,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
         if (typeUtils.isSameType(elementTypeMirror, typeMirrors.UUID_MIRROR)) {
             return "$osListVariableName.addUUID($valueVariableName)"
+        }
+        if (typeUtils.isSameType(elementTypeMirror, typeMirrors.MIXED_MIRROR)) {
+            return "$osListVariableName.addRealmAny($valueVariableName.getNativePtr())"
         }
         throw RuntimeException("unexpected element type: $elementTypeMirror")
     }
@@ -727,6 +794,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.DECIMAL128_LIST,
                         Constants.RealmFieldType.OBJECT_ID_LIST,
                         Constants.RealmFieldType.UUID_LIST,
+                        Constants.RealmFieldType.MIXED_LIST,
                         Constants.RealmFieldType.DOUBLE_LIST -> {
                             val requiredFlag = if (metadata.isElementNullable(field)) "!Property.REQUIRED" else "Property.REQUIRED"
                             emitStatement("builder.addPersistedValueListProperty(%s, \"%s\", %s, %s)", publicFieldName, internalFieldName, fieldType.realmType, requiredFlag)
@@ -744,6 +812,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Constants.RealmFieldType.DECIMAL128,
                         Constants.RealmFieldType.OBJECT_ID,
                         Constants.RealmFieldType.UUID,
+                        Constants.RealmFieldType.MIXED,
                         Constants.RealmFieldType.REALM_INTEGER -> {
                             val nullableFlag = (if (metadata.isNullable(field)) "!" else "") + "Property.REQUIRED"
                             val indexedFlag = (if (metadata.isIndexed(field)) "" else "!") + "Property.INDEXED"
@@ -955,7 +1024,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("Table.nativeSetLong(tableNativePtr, columnInfo.%sColKey, objKey, %s.longValue(), false)", fieldName, getter)
                         if (isUpdate) {
                             nextControlFlow("else")
-                                emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
+                            emitStatement("Table.nativeSetNull(tableNativePtr, columnInfo.%sColKey, objKey, false)", fieldName)
                         }
                     endControlFlow()
                 }
@@ -1163,6 +1232,26 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         endControlFlow()
                     }
+                    Utils.isRealmAny(field) -> {
+                        emitEmptyLine()
+
+                        emitStatement("RealmAny ${fieldName}RealmAny = ((${interfaceName}) object).${getter}()")
+                        emitStatement("${fieldName}RealmAny = ProxyUtils.insert(${fieldName}RealmAny, realm, cache)")
+                        emitStatement("Table.nativeSetRealmAny(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}RealmAny.getNativePtr(), false)")
+                    }
+                    Utils.isRealmAnyList(field) -> {
+                        emitEmptyLine()
+
+                        emitStatement("RealmList<RealmAny> ${fieldName}UnmanagedList = ((${interfaceName}) object).${getter}()")
+                        beginControlFlow("if (${fieldName}UnmanagedList != null)")
+                            emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                            beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
+                                emitStatement("RealmAny realmAnyItem = ${fieldName}UnmanagedList.get(i)")
+                                emitStatement("realmAnyItem = ProxyUtils.insert(realmAnyItem, realm, cache)")
+                                emitStatement("${fieldName}OsList.addRealmAny(realmAnyItem.getNativePtr())")
+                            endControlFlow()
+                        endControlFlow()
+                    }
                     else -> {
                         if (metadata.primaryKey !== field) {
                             setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
@@ -1274,6 +1363,24 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     nextControlFlow("else")
                                         emitStatement(getStatementForAppendingValueToOsList(fieldName + "OsList", fieldName + "Item", elementTypeMirror))
                                     endControlFlow()
+                                endControlFlow()
+                            endControlFlow()
+                        } else if (Utils.isRealmAny(field)) {
+                            emitEmptyLine()
+
+                            emitStatement("RealmAny ${fieldName}RealmAny = ((${interfaceName}) object).${getter}()")
+                            emitStatement("${fieldName}RealmAny = ProxyUtils.insert(${fieldName}RealmAny, realm, cache)")
+                            emitStatement("Table.nativeSetRealmAny(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}RealmAny.getNativePtr(), false)")
+                        } else if (Utils.isRealmAnyList(field)) {
+                            emitEmptyLine()
+
+                            emitStatement("RealmList<RealmAny> ${fieldName}UnmanagedList = ((${interfaceName}) object).${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedList != null)")
+                                emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                                beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
+                                    emitStatement("RealmAny realmAnyItem = ${fieldName}UnmanagedList.get(i)")
+                                    emitStatement("realmAnyItem = ProxyUtils.insert(realmAnyItem, realm, cache)")
+                                    emitStatement("${fieldName}OsList.addRealmAny(realmAnyItem.getNativePtr())")
                                 endControlFlow()
                             endControlFlow()
                         } else {
@@ -1405,6 +1512,38 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         endControlFlow()
                     endControlFlow()
                     emitEmptyLine()
+                } else if (Utils.isRealmAny(field)) {
+                    emitStatement("RealmAny ${fieldName}RealmAny = ((${interfaceName}) object).${getter}()")
+                    emitStatement("${fieldName}RealmAny = ProxyUtils.insertOrUpdate(${fieldName}RealmAny, realm, cache)")
+                    emitStatement("Table.nativeSetRealmAny(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}RealmAny.getNativePtr(), false)")
+                } else if (Utils.isRealmAnyList(field)) {
+                    emitEmptyLine()
+                    emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                    emitStatement("RealmList<RealmAny> ${fieldName}List = ((${interfaceName}) object).${getter}()")
+
+                    beginControlFlow("if (${fieldName}List != null && ${fieldName}List.size() == ${fieldName}OsList.size())")
+                        emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
+                        emitStatement("int objects = ${fieldName}List.size()")
+                        beginControlFlow("for (int i = 0; i < objects; i++)")
+                            emitStatement("RealmAny ${fieldName}Item = ${fieldName}List.get(i)")
+                            emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                            beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
+                            endControlFlow()
+                            emitStatement("${fieldName}OsList.setRealmAny(i, ${fieldName}Item.getNativePtr())")
+                        endControlFlow()
+                    nextControlFlow("else")
+                        emitStatement("${fieldName}OsList.removeAll()")
+                        beginControlFlow("if (${fieldName}List != null)")
+                            beginControlFlow("for (RealmAny ${fieldName}Item : ${fieldName}List)")
+                                emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                                beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                    emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
+                                endControlFlow()
+                                emitStatement("${fieldName}OsList.addRealmAny(${fieldName}Item.getNativePtr())")
+                            endControlFlow()
+                        endControlFlow()
+                    endControlFlow()
                 } else {
                     if (metadata.primaryKey !== field) {
                         setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, true)
@@ -1545,6 +1684,40 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     endControlFlow()
                                 endControlFlow()
                                 emitEmptyLine()
+                            }
+                            Utils.isRealmAny(field) -> {
+                                emitStatement("RealmAny ${fieldName}RealmAny = ((${interfaceName}) object).${getter}()")
+                                emitStatement("${fieldName}RealmAny = ProxyUtils.insertOrUpdate(${fieldName}RealmAny, realm, cache)")
+                                emitStatement("Table.nativeSetRealmAny(tableNativePtr, columnInfo.${fieldName}ColKey, objKey, ${fieldName}RealmAny.getNativePtr(), false)")
+                            }
+                            Utils.isRealmAnyList(field) -> {
+                                emitEmptyLine()
+                                emitStatement("OsList ${fieldName}OsList = new OsList(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                                emitStatement("RealmList<RealmAny> ${fieldName}List = ((${interfaceName}) object).${getter}()")
+
+                                beginControlFlow("if (${fieldName}List != null && ${fieldName}List.size() == ${fieldName}OsList.size())")
+                                    emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
+                                    emitStatement("int objectCount = ${fieldName}List.size()")
+                                    beginControlFlow("for (int i = 0; i < objectCount; i++)")
+                                        emitStatement("RealmAny ${fieldName}Item = ${fieldName}List.get(i)")
+                                        emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                                        beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                            emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
+                                        endControlFlow()
+                                        emitStatement("${fieldName}OsList.setRealmAny(i, ${fieldName}Item.getNativePtr())")
+                                    endControlFlow()
+                                nextControlFlow("else")
+                                    emitStatement("${fieldName}OsList.removeAll()")
+                                    beginControlFlow("if (${fieldName}List != null)")
+                                        beginControlFlow("for (RealmAny ${fieldName}Item : ${fieldName}List)")
+                                            emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                                            beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                                emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
+                                            endControlFlow()
+                                            emitStatement("${fieldName}OsList.addRealmAny(${fieldName}Item.getNativePtr())")
+                                        endControlFlow()
+                                    endControlFlow()
+                                endControlFlow()
                             }
                             else -> {
                                 if (metadata.primaryKey !== field) {
@@ -1764,6 +1937,26 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                             emitEmptyLine()
                         }
+                        Utils.isRealmAny(field) -> {
+                            emitStatement("RealmAny ${fieldName}RealmAny = unmanagedSource.${getter}()")
+                            emitStatement("${fieldName}RealmAny = ProxyUtils.copyOrUpdate(${fieldName}RealmAny, realm, update, cache, flags)")
+                            emitStatement("managedCopy.${setter}(${fieldName}RealmAny)")
+                            emitEmptyLine()
+                        }
+                        Utils.isRealmAnyList(field) -> {
+                            emitStatement("RealmList<RealmAny> ${fieldName}UnmanagedList = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedList != null)")
+                                emitStatement("RealmList<RealmAny> ${fieldName}ManagedList = managedCopy.${getter}()")
+                                emitStatement("${fieldName}ManagedList.clear()")
+
+                                beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
+                                    emitStatement("RealmAny realmAnyItem = ${fieldName}UnmanagedList.get(i)")
+                                    emitStatement("realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, update, cache, flags)")
+                                    emitStatement("${fieldName}ManagedList.add(realmAnyItem)")
+                                endControlFlow()
+                            endControlFlow()
+                            emitEmptyLine()
+                        }
                         else -> {
                             throw IllegalStateException("Unsupported field: $field")
                         }
@@ -1799,6 +1992,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 // may cause an unused variable warning if the object contains only null lists
                 emitStatement("%1\$s unmanagedCopy = (%1\$s) unmanagedObject", interfaceName)
                 emitStatement("%1\$s realmSource = (%1\$s) realmObject", interfaceName)
+                emitStatement("Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet\$proxyState().getRealm\$realm()")
 
                 for (field in metadata.fields) {
                     val fieldName = field.simpleName.toString()
@@ -1834,6 +2028,28 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isMutableRealmInteger(field) -> // If the user initializes the unmanaged MutableRealmInteger to null, this will fail mysteriously.
                             emitStatement("unmanagedCopy.%s().set(realmSource.%s().get())", getter, getter)
+                        Utils.isRealmAny(field) -> {
+                            emitEmptyLine()
+                            emitSingleLineComment("Deep copy of %s", fieldName)
+                            emitStatement("unmanagedCopy.${setter}(ProxyUtils.createDetachedCopy(realmSource.${getter}(), objectRealm, currentDepth + 1, maxDepth, cache))")
+                        }
+                        Utils.isRealmAnyList(field) -> {
+                            emitEmptyLine()
+                            emitSingleLineComment("Deep copy of %s", fieldName)
+                            beginControlFlow("if (currentDepth == maxDepth)")
+                                emitStatement("unmanagedCopy.%s(null)", setter)
+                            nextControlFlow("else")
+                                emitStatement("RealmList<RealmAny> managed${fieldName}List = realmSource.${getter}()", fieldName, getter)
+                                emitStatement("RealmList<RealmAny> unmanaged${fieldName}List = new RealmList<RealmAny>()")
+                                emitStatement("unmanagedCopy.${setter}(unmanaged${fieldName}List)")
+                                emitStatement("int nextDepth = currentDepth + 1")
+                                emitStatement("int size = managed${fieldName}List.size()")
+                                beginControlFlow("for (int i = 0; i < size; i++)")
+                                    emitStatement("RealmAny item = ProxyUtils.createDetachedCopy(managed${fieldName}List.get(i), objectRealm, nextDepth, maxDepth, cache)")
+                                    emitStatement("unmanaged${fieldName}List.add(item)")
+                                endControlFlow()
+                            endControlFlow()
+                        }
                         else -> {
                             emitStatement("unmanagedCopy.%s(realmSource.%s())", setter, getter)
                         }
@@ -1955,6 +2171,30 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("builder.addObjectList(%s, new RealmList<%s>())", fieldColKey, genericType)
                             endControlFlow()
                         }
+                        Utils.isRealmAny(field) -> {
+                            emitEmptyLine()
+
+                            emitStatement("RealmAny ${fieldName}RealmAny = realmObjectSource.${getter}()")
+                            emitStatement("${fieldName}RealmAny = ProxyUtils.copyOrUpdate(${fieldName}RealmAny, realm, true, cache, flags)")
+                            emitStatement("builder.addRealmAny(${fieldColKey}, ${fieldName}RealmAny.getNativePtr())")
+                        }
+                        Utils.isRealmAnyList(field) -> {
+                            emitEmptyLine()
+
+                            emitStatement("RealmList<RealmAny> ${fieldName}UnmanagedList = realmObjectSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedList != null)")
+                                emitStatement("RealmList<RealmAny> ${fieldName}ManagedCopy = new RealmList<RealmAny>()")
+                                beginControlFlow("for (int i = 0; i < ${fieldName}UnmanagedList.size(); i++)")
+                                    emitStatement("RealmAny realmAnyItem = ${fieldName}UnmanagedList.get(i)")
+                                    emitStatement("realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, true, cache, flags)")
+                                    emitStatement("${fieldName}ManagedCopy.add(realmAnyItem)")
+                                endControlFlow()
+
+                                emitStatement("builder.addRealmAnyList(${fieldColKey}, ${fieldName}ManagedCopy)")
+                            nextControlFlow("else")
+                                emitStatement("builder.addRealmAnyList(${fieldColKey}, new RealmList<RealmAny>())")
+                            endControlFlow()
+                        }
                         else -> {
                             emitStatement("builder.%s(%s, realmObjectSource.%s())", OsObjectBuilderTypeHelper.getOsObjectBuilderName(field), fieldColKey, getter)
                         }
@@ -2029,6 +2269,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             } else {
                                 emitStatement("stringBuilder.append(\"binary(\" + %1\$s().length + \")\")", metadata.getInternalGetter(fieldName))
                             }
+                        }
+                        Utils.isRealmAny(field) -> {
+                            emitStatement("stringBuilder.append((%1\$s().isNull()) ? \"null\" : \"%s()\")", metadata.getInternalGetter(fieldName), metadata.getInternalGetter(fieldName))
                         }
                         else -> {
                             if (metadata.isNullable(field)) {
@@ -2228,7 +2471,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     isFieldTypeEmbedded(fieldType),
                                     writer)
                         }
-                        Utils.isRealmValueList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(objProxy.%1\$s(), json, \"%2\$s\")", metadata.getInternalGetter(fieldName), fieldName)
+                        Utils.isRealmValueList(field) || Utils.isRealmAnyList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(realm, objProxy.%1\$s(), json, \"%2\$s\", update)", metadata.getInternalGetter(fieldName), fieldName)
                         Utils.isMutableRealmInteger(field) -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                                 "objProxy",
                                 metadata.getInternalGetter(fieldName),
@@ -2305,7 +2548,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     Utils.getProxyClassSimpleName(field),
                                     writer)
                         }
-                        Utils.isRealmValueList(field) -> {
+                        Utils.isRealmValueList(field) || Utils.isRealmAnyList(field) -> {
                             emitStatement("objProxy.%1\$s(ProxyUtils.createRealmListWithJsonStream(%2\$s.class, reader))", metadata.getInternalSetter(fieldName), Utils.getRealmListType(field))
                         }
                         Utils.isMutableRealmInteger(field) -> {
@@ -2376,6 +2619,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         return "${variableElement.simpleName}MutableRealmInteger"
     }
 
+    private fun realmAnyFieldName(variableElement: VariableElement): String {
+        return "${variableElement.simpleName}RealmAny"
+    }
+
     private fun fieldColKeyVariableReference(variableElement: VariableElement?): String {
         return "columnInfo.${columnKeyVarName(variableElement!!)}"
     }
@@ -2389,13 +2636,16 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (Utils.isMutableRealmInteger(field)) {
             return Constants.RealmFieldType.REALM_INTEGER
         }
+        if (Utils.isRealmAny(field)){
+            return Constants.RealmFieldType.MIXED
+        }
         if (Utils.isRealmModel(field)) {
             return Constants.RealmFieldType.OBJECT
         }
         if (Utils.isRealmModelList(field)) {
             return Constants.RealmFieldType.LIST
         }
-        if (Utils.isRealmValueList(field)) {
+        if (Utils.isRealmValueList(field) || Utils.isRealmAnyList(field)) {
             return Utils.getValueListFieldType(field)
         }
         return Constants.RealmFieldType.NOTYPE
@@ -2424,11 +2674,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "io.realm.ImportFlag",
                     "io.realm.exceptions.RealmMigrationNeededException",
                     "io.realm.internal.ColumnInfo",
+                    "io.realm.internal.NativeContext",
                     "io.realm.internal.OsList",
                     "io.realm.internal.OsObject",
                     "io.realm.internal.OsSchemaInfo",
                     "io.realm.internal.OsObjectSchemaInfo",
                     "io.realm.internal.Property",
+                    "io.realm.internal.core.NativeRealmAny",
                     "io.realm.internal.objectstore.OsObjectBuilder",
                     "io.realm.ProxyUtils",
                     "io.realm.internal.RealmObjectProxy",
@@ -2444,6 +2696,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "java.util.Date",
                     "java.util.Map",
                     "java.util.HashMap",
+                    "java.util.HashSet",
                     "java.util.Set",
                     "org.json.JSONObject",
                     "org.json.JSONException",

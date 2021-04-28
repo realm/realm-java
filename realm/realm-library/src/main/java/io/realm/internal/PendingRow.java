@@ -10,7 +10,7 @@ import java.util.UUID;
 import io.realm.FrozenPendingRow;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
-import io.realm.internal.core.DescriptorOrdering;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -41,10 +41,10 @@ public class PendingRow implements Row {
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors,
+    public PendingRow(OsSharedRealm sharedRealm, TableQuery query,
                       final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
-        pendingOsResults = OsResults.createFromQuery(sharedRealm, query, queryDescriptors);
+        pendingOsResults = OsResults.createFromQuery(sharedRealm, query);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override
@@ -143,6 +143,11 @@ public class PendingRow implements Row {
     }
 
     @Override
+    public NativeRealmAny getNativeRealmAny(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
@@ -189,6 +194,11 @@ public class PendingRow implements Row {
 
     @Override
     public void setString(long columnKey, String value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setRealmAny(long columnKey, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

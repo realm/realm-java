@@ -1353,6 +1353,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             //noinspection unchecked
             return (ManagedListOperator<E>) new UUIDListOperator(realm, osList, (Class<UUID>) clazz);
         }
+        if (clazz == RealmAny.class) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new RealmAnyListOperator(realm, osList, (Class<RealmAny>) clazz);
+        }
         throw new IllegalArgumentException("Unexpected value class: " + clazz.getName());
     }
 }

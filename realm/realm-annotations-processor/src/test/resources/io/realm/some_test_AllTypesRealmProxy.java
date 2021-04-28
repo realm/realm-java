@@ -1,4 +1,6 @@
 package io.realm;
+
+
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.util.JsonReader;
@@ -7,6 +9,7 @@ import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.NativeContext;
 import io.realm.internal.OsList;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
@@ -17,6 +20,7 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -24,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +40,7 @@ import org.json.JSONObject;
 @SuppressWarnings("all")
 public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         implements RealmObjectProxy, some_test_AllTypesRealmProxyInterface {
+
     static final class AllTypesColumnInfo extends ColumnInfo {
         long columnStringColKey;
         long columnLongColKey;
@@ -45,6 +51,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         long columnObjectIdColKey;
         long columnUUIDColKey;
         long columnDateColKey;
+        long columnRealmAnyColKey;
         long columnBinaryColKey;
         long columnMutableRealmIntegerColKey;
         long columnObjectColKey;
@@ -66,9 +73,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         long columnDecimal128ListColKey;
         long columnObjectIdListColKey;
         long columnUUIDListColKey;
+        long columnRealmAnyListColKey;
 
         AllTypesColumnInfo(OsSchemaInfo schemaInfo) {
-            super(30);
+            super(32);
             OsObjectSchemaInfo objectSchemaInfo = schemaInfo.getObjectSchemaInfo("AllTypes");
             this.columnStringColKey = addColumnDetails("columnString", "columnString", objectSchemaInfo);
             this.columnLongColKey = addColumnDetails("columnLong", "columnLong", objectSchemaInfo);
@@ -79,6 +87,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             this.columnObjectIdColKey = addColumnDetails("columnObjectId", "columnObjectId", objectSchemaInfo);
             this.columnUUIDColKey = addColumnDetails("columnUUID", "columnUUID", objectSchemaInfo);
             this.columnDateColKey = addColumnDetails("columnDate", "columnDate", objectSchemaInfo);
+            this.columnRealmAnyColKey = addColumnDetails("columnRealmAny", "columnRealmAny", objectSchemaInfo);
             this.columnBinaryColKey = addColumnDetails("columnBinary", "columnBinary", objectSchemaInfo);
             this.columnMutableRealmIntegerColKey = addColumnDetails("columnMutableRealmInteger", "columnMutableRealmInteger", objectSchemaInfo);
             this.columnObjectColKey = addColumnDetails("columnObject", "columnObject", objectSchemaInfo);
@@ -100,16 +109,20 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             this.columnDecimal128ListColKey = addColumnDetails("columnDecimal128List", "columnDecimal128List", objectSchemaInfo);
             this.columnObjectIdListColKey = addColumnDetails("columnObjectIdList", "columnObjectIdList", objectSchemaInfo);
             this.columnUUIDListColKey = addColumnDetails("columnUUIDList", "columnUUIDList", objectSchemaInfo);
+            this.columnRealmAnyListColKey = addColumnDetails("columnRealmAnyList", "columnRealmAnyList", objectSchemaInfo);
             addBacklinkDetails(schemaInfo, "parentObjects", "AllTypes", "columnObject");
         }
+
         AllTypesColumnInfo(ColumnInfo src, boolean mutable) {
             super(src, mutable);
             copy(src, this);
         }
+
         @Override
         protected final ColumnInfo copy(boolean mutable) {
             return new AllTypesColumnInfo(this, mutable);
         }
+
         @Override
         protected final void copy(ColumnInfo rawSrc, ColumnInfo rawDst) {
             final AllTypesColumnInfo src = (AllTypesColumnInfo) rawSrc;
@@ -123,6 +136,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             dst.columnObjectIdColKey = src.columnObjectIdColKey;
             dst.columnUUIDColKey = src.columnUUIDColKey;
             dst.columnDateColKey = src.columnDateColKey;
+            dst.columnRealmAnyColKey = src.columnRealmAnyColKey;
             dst.columnBinaryColKey = src.columnBinaryColKey;
             dst.columnMutableRealmIntegerColKey = src.columnMutableRealmIntegerColKey;
             dst.columnObjectColKey = src.columnObjectColKey;
@@ -144,10 +158,13 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             dst.columnDecimal128ListColKey = src.columnDecimal128ListColKey;
             dst.columnObjectIdListColKey = src.columnObjectIdListColKey;
             dst.columnUUIDListColKey = src.columnUUIDListColKey;
+            dst.columnRealmAnyListColKey = src.columnRealmAnyListColKey;
         }
     }
+
     private static final String NO_ALIAS = "";
     private static final OsObjectSchemaInfo expectedObjectSchemaInfo = createExpectedObjectSchemaInfo();
+
     private AllTypesColumnInfo columnInfo;
     private ProxyState<some.test.AllTypes> proxyState;
     private final MutableRealmInteger.Managed columnMutableRealmIntegerMutableRealmInteger = new MutableRealmInteger.Managed<some.test.AllTypes>() {
@@ -171,10 +188,13 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     private RealmList<org.bson.types.Decimal128> columnDecimal128ListRealmList;
     private RealmList<org.bson.types.ObjectId> columnObjectIdListRealmList;
     private RealmList<java.util.UUID> columnUUIDListRealmList;
+    private RealmList<RealmAny> columnRealmAnyListRealmList;
     private RealmResults<some.test.AllTypes> parentObjectsBacklinks;
+
     some_test_AllTypesRealmProxy() {
         proxyState.setConstructionFinished();
     }
+
     @Override
     public void realm$injectObjectContext() {
         if (this.proxyState != null) {
@@ -188,27 +208,32 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         proxyState.setAcceptDefaultValue$realm(context.getAcceptDefaultValue());
         proxyState.setExcludeFields$realm(context.getExcludeFields());
     }
+
     @Override
     @SuppressWarnings("cast")
     public String realmGet$columnString() {
         proxyState.getRealm$realm().checkIfValid();
         return (java.lang.String) proxyState.getRow$realm().getString(columnInfo.columnStringColKey);
     }
+
     @Override
     public void realmSet$columnString(String value) {
         if (proxyState.isUnderConstruction()) {
             // default value of the primary key is always ignored.
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         throw new io.realm.exceptions.RealmException("Primary key field 'columnString' cannot be changed after object was created.");
     }
+
     @Override
     @SuppressWarnings("cast")
     public long realmGet$columnLong() {
         proxyState.getRealm$realm().checkIfValid();
         return (long) proxyState.getRow$realm().getLong(columnInfo.columnLongColKey);
     }
+
     @Override
     public void realmSet$columnLong(long value) {
         if (proxyState.isUnderConstruction()) {
@@ -219,15 +244,18 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setLong(columnInfo.columnLongColKey, row.getObjectKey(), value, true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         proxyState.getRow$realm().setLong(columnInfo.columnLongColKey, value);
     }
+
     @Override
     @SuppressWarnings("cast")
     public float realmGet$columnFloat() {
         proxyState.getRealm$realm().checkIfValid();
         return (float) proxyState.getRow$realm().getFloat(columnInfo.columnFloatColKey);
     }
+
     @Override
     public void realmSet$columnFloat(float value) {
         if (proxyState.isUnderConstruction()) {
@@ -238,15 +266,18 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setFloat(columnInfo.columnFloatColKey, row.getObjectKey(), value, true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         proxyState.getRow$realm().setFloat(columnInfo.columnFloatColKey, value);
     }
+
     @Override
     @SuppressWarnings("cast")
     public double realmGet$columnDouble() {
         proxyState.getRealm$realm().checkIfValid();
         return (double) proxyState.getRow$realm().getDouble(columnInfo.columnDoubleColKey);
     }
+
     @Override
     public void realmSet$columnDouble(double value) {
         if (proxyState.isUnderConstruction()) {
@@ -257,15 +288,18 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setDouble(columnInfo.columnDoubleColKey, row.getObjectKey(), value, true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         proxyState.getRow$realm().setDouble(columnInfo.columnDoubleColKey, value);
     }
+
     @Override
     @SuppressWarnings("cast")
     public boolean realmGet$columnBoolean() {
         proxyState.getRealm$realm().checkIfValid();
         return (boolean) proxyState.getRow$realm().getBoolean(columnInfo.columnBooleanColKey);
     }
+
     @Override
     public void realmSet$columnBoolean(boolean value) {
         if (proxyState.isUnderConstruction()) {
@@ -276,15 +310,18 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setBoolean(columnInfo.columnBooleanColKey, row.getObjectKey(), value, true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         proxyState.getRow$realm().setBoolean(columnInfo.columnBooleanColKey, value);
     }
+
     @Override
     @SuppressWarnings("cast")
     public org.bson.types.Decimal128 realmGet$columnDecimal128() {
         proxyState.getRealm$realm().checkIfValid();
         return (org.bson.types.Decimal128) proxyState.getRow$realm().getDecimal128(columnInfo.columnDecimal128ColKey);
     }
+
     @Override
     public void realmSet$columnDecimal128(org.bson.types.Decimal128 value) {
         if (proxyState.isUnderConstruction()) {
@@ -298,18 +335,21 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setDecimal128(columnInfo.columnDecimal128ColKey, row.getObjectKey(), value, true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'columnDecimal128' to null.");
         }
         proxyState.getRow$realm().setDecimal128(columnInfo.columnDecimal128ColKey, value);
     }
+
     @Override
     @SuppressWarnings("cast")
     public org.bson.types.ObjectId realmGet$columnObjectId() {
         proxyState.getRealm$realm().checkIfValid();
         return (org.bson.types.ObjectId) proxyState.getRow$realm().getObjectId(columnInfo.columnObjectIdColKey);
     }
+
     @Override
     public void realmSet$columnObjectId(org.bson.types.ObjectId value) {
         if (proxyState.isUnderConstruction()) {
@@ -323,12 +363,14 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setObjectId(columnInfo.columnObjectIdColKey, row.getObjectKey(), value, true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'columnObjectId' to null.");
         }
         proxyState.getRow$realm().setObjectId(columnInfo.columnObjectIdColKey, value);
     }
+
     @Override
     @SuppressWarnings("cast")
     public java.util.UUID realmGet$columnUUID() {
@@ -363,6 +405,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         proxyState.getRealm$realm().checkIfValid();
         return (java.util.Date) proxyState.getRow$realm().getDate(columnInfo.columnDateColKey);
     }
+
     @Override
     public void realmSet$columnDate(Date value) {
         if (proxyState.isUnderConstruction()) {
@@ -376,18 +419,60 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setDate(columnInfo.columnDateColKey, row.getObjectKey(), value, true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'columnDate' to null.");
         }
         proxyState.getRow$realm().setDate(columnInfo.columnDateColKey, value);
     }
+
+    @Override
+    public RealmAny realmGet$columnRealmAny() {
+        proxyState.getRealm$realm().checkIfValid();
+        NativeRealmAny nativeRealmAny = proxyState.getRow$realm().getNativeRealmAny(columnInfo.columnRealmAnyColKey);
+        return new RealmAny(RealmAnyOperator.fromNativeRealmAny(proxyState.getRealm$realm(), nativeRealmAny));
+    }
+
+    @Override
+    public void realmSet$columnRealmAny(RealmAny value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("columnRealmAny")) {
+                return;
+            }
+
+            value = ProxyUtils.copyToRealmIfNeeded(proxyState, value);
+
+            final Row row = proxyState.getRow$realm();
+            if (value == null) {
+                row.getTable().setNull(columnInfo.columnRealmAnyColKey, row.getObjectKey(), true);
+                return;
+            }
+            row.getTable().setRealmAny(columnInfo.columnRealmAnyColKey, row.getObjectKey(), value.getNativePtr(), true);
+            return;
+        }
+
+
+        proxyState.getRealm$realm().checkIfValid();
+
+        if (value == null) {
+            proxyState.getRow$realm().setNull(columnInfo.columnRealmAnyColKey);
+            return;
+        }
+        value = ProxyUtils.copyToRealmIfNeeded(proxyState, value);
+        proxyState.getRow$realm().setRealmAny(columnInfo.columnRealmAnyColKey, value.getNativePtr());
+    }
+
     @Override
     @SuppressWarnings("cast")
     public byte[] realmGet$columnBinary() {
         proxyState.getRealm$realm().checkIfValid();
         return (byte[]) proxyState.getRow$realm().getBinaryByteArray(columnInfo.columnBinaryColKey);
     }
+
     @Override
     public void realmSet$columnBinary(byte[] value) {
         if (proxyState.isUnderConstruction()) {
@@ -401,17 +486,20 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setBinaryByteArray(columnInfo.columnBinaryColKey, row.getObjectKey(), value, true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             throw new IllegalArgumentException("Trying to set non-nullable field 'columnBinary' to null.");
         }
         proxyState.getRow$realm().setBinaryByteArray(columnInfo.columnBinaryColKey, value);
     }
+
     @Override
     public MutableRealmInteger realmGet$columnMutableRealmInteger() {
         proxyState.getRealm$realm().checkIfValid();
         return this.columnMutableRealmIntegerMutableRealmInteger;
     }
+
     @Override
     public some.test.AllTypes realmGet$columnObject() {
         proxyState.getRealm$realm().checkIfValid();
@@ -420,6 +508,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         }
         return proxyState.getRealm$realm().get(some.test.AllTypes.class, proxyState.getRow$realm().getLink(columnInfo.columnObjectColKey), false, Collections.<String>emptyList());
     }
+
     @Override
     public void realmSet$columnObject(some.test.AllTypes value) {
         Realm realm = (Realm) proxyState.getRealm$realm();
@@ -443,6 +532,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             row.getTable().setLink(columnInfo.columnObjectColKey, row.getObjectKey(), ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey(), true);
             return;
         }
+
         proxyState.getRealm$realm().checkIfValid();
         if (value == null) {
             proxyState.getRow$realm().nullifyLink(columnInfo.columnObjectColKey);
@@ -451,6 +541,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         proxyState.checkValidObject(value);
         proxyState.getRow$realm().setLink(columnInfo.columnObjectColKey, ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm().getObjectKey());
     }
+
     @Override
     public some.test.Simple realmGet$columnObjectWithoutPk() {
         proxyState.getRealm$realm().checkIfValid();
@@ -505,6 +596,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnRealmListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnRealmList(RealmList<some.test.AllTypes> value) {
         if (proxyState.isUnderConstruction()) {
@@ -528,6 +620,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getModelList(columnInfo.columnRealmListColKey);
         // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
@@ -551,6 +644,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<some.test.Simple> realmGet$columnRealmListNoPk() {
         proxyState.getRealm$realm().checkIfValid();
@@ -624,6 +718,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnRealmFinalListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnRealmFinalList(RealmList<some.test.AllTypes> value) {
         if (proxyState.isUnderConstruction()) {
@@ -647,6 +742,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getModelList(columnInfo.columnRealmFinalListColKey);
         // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
@@ -670,6 +766,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<some.test.Simple> realmGet$columnRealmFinalListNoPk() {
         proxyState.getRealm$realm().checkIfValid();
@@ -743,6 +840,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnStringListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnStringList(RealmList<String> value) {
         if (proxyState.isUnderConstruction()) {
@@ -753,6 +851,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnStringListColKey, RealmFieldType.STRING_LIST);
         osList.removeAll();
@@ -767,6 +866,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<byte[]> realmGet$columnBinaryList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -779,6 +879,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnBinaryListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnBinaryList(RealmList<byte[]> value) {
         if (proxyState.isUnderConstruction()) {
@@ -789,6 +890,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnBinaryListColKey, RealmFieldType.BINARY_LIST);
         osList.removeAll();
@@ -803,6 +905,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<Boolean> realmGet$columnBooleanList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -815,6 +918,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnBooleanListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnBooleanList(RealmList<Boolean> value) {
         if (proxyState.isUnderConstruction()) {
@@ -825,6 +929,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnBooleanListColKey, RealmFieldType.BOOLEAN_LIST);
         osList.removeAll();
@@ -839,6 +944,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<Long> realmGet$columnLongList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -851,6 +957,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnLongListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnLongList(RealmList<Long> value) {
         if (proxyState.isUnderConstruction()) {
@@ -861,6 +968,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnLongListColKey, RealmFieldType.INTEGER_LIST);
         osList.removeAll();
@@ -875,6 +983,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<Integer> realmGet$columnIntegerList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -887,6 +996,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnIntegerListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnIntegerList(RealmList<Integer> value) {
         if (proxyState.isUnderConstruction()) {
@@ -897,6 +1007,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnIntegerListColKey, RealmFieldType.INTEGER_LIST);
         osList.removeAll();
@@ -911,6 +1022,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<Short> realmGet$columnShortList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -923,6 +1035,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnShortListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnShortList(RealmList<Short> value) {
         if (proxyState.isUnderConstruction()) {
@@ -933,6 +1046,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnShortListColKey, RealmFieldType.INTEGER_LIST);
         osList.removeAll();
@@ -947,6 +1061,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<Byte> realmGet$columnByteList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -959,6 +1074,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnByteListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnByteList(RealmList<Byte> value) {
         if (proxyState.isUnderConstruction()) {
@@ -969,6 +1085,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnByteListColKey, RealmFieldType.INTEGER_LIST);
         osList.removeAll();
@@ -983,6 +1100,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<Double> realmGet$columnDoubleList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -995,6 +1113,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnDoubleListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnDoubleList(RealmList<Double> value) {
         if (proxyState.isUnderConstruction()) {
@@ -1005,6 +1124,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnDoubleListColKey, RealmFieldType.DOUBLE_LIST);
         osList.removeAll();
@@ -1019,6 +1139,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<Float> realmGet$columnFloatList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -1031,6 +1152,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnFloatListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnFloatList(RealmList<Float> value) {
         if (proxyState.isUnderConstruction()) {
@@ -1041,6 +1163,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnFloatListColKey, RealmFieldType.FLOAT_LIST);
         osList.removeAll();
@@ -1055,6 +1178,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<Date> realmGet$columnDateList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -1067,6 +1191,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnDateListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnDateList(RealmList<Date> value) {
         if (proxyState.isUnderConstruction()) {
@@ -1077,6 +1202,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnDateListColKey, RealmFieldType.DATE_LIST);
         osList.removeAll();
@@ -1091,6 +1217,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<org.bson.types.Decimal128> realmGet$columnDecimal128List() {
         proxyState.getRealm$realm().checkIfValid();
@@ -1103,6 +1230,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnDecimal128ListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnDecimal128List(RealmList<org.bson.types.Decimal128> value) {
         if (proxyState.isUnderConstruction()) {
@@ -1113,6 +1241,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnDecimal128ListColKey, RealmFieldType.DECIMAL128_LIST);
         osList.removeAll();
@@ -1127,6 +1256,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<org.bson.types.ObjectId> realmGet$columnObjectIdList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -1139,6 +1269,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             return columnObjectIdListRealmList;
         }
     }
+
     @Override
     public void realmSet$columnObjectIdList(RealmList<org.bson.types.ObjectId> value) {
         if (proxyState.isUnderConstruction()) {
@@ -1149,6 +1280,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 return;
             }
         }
+
         proxyState.getRealm$realm().checkIfValid();
         OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnObjectIdListColKey, RealmFieldType.OBJECT_ID_LIST);
         osList.removeAll();
@@ -1163,6 +1295,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
     }
+
     @Override
     public RealmList<java.util.UUID> realmGet$columnUUIDList() {
         proxyState.getRealm$realm().checkIfValid();
@@ -1203,6 +1336,53 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
     }
 
     @Override
+    public RealmList<RealmAny> realmGet$columnRealmAnyList() {
+        proxyState.getRealm$realm().checkIfValid();
+        // use the cached value if available
+        if (columnRealmAnyListRealmList != null) {
+            return columnRealmAnyListRealmList;
+        } else {
+            OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnRealmAnyListColKey, RealmFieldType.MIXED_LIST);
+            columnRealmAnyListRealmList = new RealmList<io.realm.RealmAny>(io.realm.RealmAny.class, osList, proxyState.getRealm$realm());
+            return columnRealmAnyListRealmList;
+        }
+    }
+
+    @Override
+    public void realmSet$columnRealmAnyList(RealmList<RealmAny> value) {
+        if (proxyState.isUnderConstruction()) {
+            if (!proxyState.getAcceptDefaultValue$realm()) {
+                return;
+            }
+            if (proxyState.getExcludeFields$realm().contains("columnRealmAnyList")) {
+                return;
+            }
+        }
+
+        proxyState.getRealm$realm().checkIfValid();
+        OsList osList = proxyState.getRow$realm().getValueList(columnInfo.columnRealmAnyListColKey, RealmFieldType.MIXED_LIST);
+        if (value != null && !value.isManaged()) {
+            final Realm realm = (Realm) proxyState.getRealm$realm();
+            final RealmList<RealmAny> original = value;
+            value = new RealmList<RealmAny>();
+            for (int i = 0; i < original.size(); i++) {
+                value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, original.get(i)));
+            }
+        }
+        osList.removeAll();
+        if (value == null) {
+            return;
+        }
+        for (io.realm.RealmAny item : value) {
+            if (item == null) {
+                osList.addNull();
+            } else {
+                osList.addRealmAny(item.getNativePtr());
+            }
+        }
+    }
+
+    @Override
     public RealmResults<some.test.AllTypes> realmGet$parentObjects() {
         BaseRealm realm = proxyState.getRealm$realm();
         realm.checkIfValid();
@@ -1212,8 +1392,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         }
         return parentObjectsBacklinks;
     }
+
     private static OsObjectSchemaInfo createExpectedObjectSchemaInfo() {
-        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(NO_ALIAS, "AllTypes", false, 28, 1);
+        OsObjectSchemaInfo.Builder builder = new OsObjectSchemaInfo.Builder(NO_ALIAS, "AllTypes", false, 32, 1);
         builder.addPersistedProperty(NO_ALIAS, "columnString", RealmFieldType.STRING, Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty(NO_ALIAS, "columnLong", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty(NO_ALIAS, "columnFloat", RealmFieldType.FLOAT, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
@@ -1221,7 +1402,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addPersistedProperty(NO_ALIAS, "columnBoolean", RealmFieldType.BOOLEAN, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty(NO_ALIAS, "columnDecimal128", RealmFieldType.DECIMAL128, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty(NO_ALIAS, "columnObjectId", RealmFieldType.OBJECT_ID, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnUUID", RealmFieldType.UUID, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty(NO_ALIAS, "columnDate", RealmFieldType.DATE, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
+        builder.addPersistedProperty(NO_ALIAS, "columnRealmAny", RealmFieldType.MIXED, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedProperty(NO_ALIAS, "columnBinary", RealmFieldType.BINARY, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED);
         builder.addPersistedProperty(NO_ALIAS, "columnMutableRealmInteger", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED);
         builder.addPersistedLinkProperty(NO_ALIAS, "columnObject", RealmFieldType.OBJECT, "AllTypes");
@@ -1243,26 +1426,31 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addPersistedValueListProperty(NO_ALIAS, "columnDecimal128List", RealmFieldType.DECIMAL128_LIST, !Property.REQUIRED);
         builder.addPersistedValueListProperty(NO_ALIAS, "columnObjectIdList", RealmFieldType.OBJECT_ID_LIST, !Property.REQUIRED);
         builder.addPersistedValueListProperty(NO_ALIAS, "columnUUIDList", RealmFieldType.UUID_LIST, !Property.REQUIRED);
-
+        builder.addPersistedValueListProperty(NO_ALIAS, "columnRealmAnyList", RealmFieldType.MIXED_LIST, !Property.REQUIRED);
         builder.addComputedLinkProperty("parentObjects", "AllTypes", "columnObject");
         return builder.build();
     }
+
     public static OsObjectSchemaInfo getExpectedObjectSchemaInfo() {
         return expectedObjectSchemaInfo;
     }
+
     public static AllTypesColumnInfo createColumnInfo(OsSchemaInfo schemaInfo) {
         return new AllTypesColumnInfo(schemaInfo);
     }
+
     public static String getSimpleClassName() {
         return "AllTypes";
     }
+
     public static final class ClassNameHelper {
         public static final String INTERNAL_CLASS_NAME = "AllTypes";
     }
+
     @SuppressWarnings("cast")
     public static some.test.AllTypes createOrUpdateUsingJsonObject(Realm realm, JSONObject json, boolean update)
             throws JSONException {
-        final List<String> excludeFields = new ArrayList<String>(19);
+        final List<String> excludeFields = new ArrayList<String>(20);
         some.test.AllTypes obj = null;
         if (update) {
             Table table = realm.getTable(some.test.AllTypes.class);
@@ -1342,6 +1530,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             if (json.has("columnUUIDList")) {
                 excludeFields.add("columnUUIDList");
             }
+            if (json.has("columnRealmAnyList")) {
+                excludeFields.add("columnRealmAnyList");
+            }
             if (json.has("columnString")) {
                 if (json.isNull("columnString")) {
                     obj = (io.realm.some_test_AllTypesRealmProxy) realm.createObjectInternal(some.test.AllTypes.class, null, true, excludeFields);
@@ -1352,6 +1543,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 throw new IllegalArgumentException("JSON object doesn't have the primary key field 'columnString'.");
             }
         }
+
         final some_test_AllTypesRealmProxyInterface objProxy = (some_test_AllTypesRealmProxyInterface) obj;
         if (json.has("columnLong")) {
             if (json.isNull("columnLong")) {
@@ -1437,6 +1629,31 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+        if (json.has("columnRealmAny")) {
+            if (json.isNull("columnRealmAny")) {
+                objProxy.realmSet$columnRealmAny(null);
+            } else {
+                Object value = json.get("columnRealmAny");
+                RealmAny realmAny;
+                if (value instanceof String) {
+                    realmAny = RealmAny.valueOf((String) value);
+                } else if (value instanceof Integer) {
+                    realmAny = RealmAny.valueOf((Integer) value);
+                } else if (value instanceof Long) {
+                    realmAny = RealmAny.valueOf((Long) value);
+                } else if (value instanceof Double) {
+                    realmAny = RealmAny.valueOf((Double) value);
+                } else if (value instanceof Boolean) {
+                    realmAny = RealmAny.valueOf((Boolean) value);
+                } else if (value instanceof RealmAny) {
+                    realmAny = (io.realm.RealmAny) value;
+                    realmAny = ProxyUtils.copyOrUpdate(realmAny, realm, update, new HashMap<>(), new HashSet<>());
+                } else {
+                    throw new IllegalArgumentException(String.format("Unsupported JSON type: %s", value.getClass().getSimpleName()));
+                }
+                objProxy.realmSet$columnRealmAny(realmAny);
+            }
+        }
         if (json.has("columnBinary")) {
             if (json.isNull("columnBinary")) {
                 objProxy.realmSet$columnBinary(null);
@@ -1511,21 +1728,23 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnStringList(), json, "columnStringList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnBinaryList(), json, "columnBinaryList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnBooleanList(), json, "columnBooleanList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnLongList(), json, "columnLongList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnIntegerList(), json, "columnIntegerList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnShortList(), json, "columnShortList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnByteList(), json, "columnByteList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDoubleList(), json, "columnDoubleList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnFloatList(), json, "columnFloatList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDateList(), json, "columnDateList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnDecimal128List(), json, "columnDecimal128List");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnObjectIdList(), json, "columnObjectIdList");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$columnUUIDList(), json, "columnUUIDList");
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnStringList(), json, "columnStringList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnBinaryList(), json, "columnBinaryList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnBooleanList(), json, "columnBooleanList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnLongList(), json, "columnLongList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnIntegerList(), json, "columnIntegerList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnShortList(), json, "columnShortList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnByteList(), json, "columnByteList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnDoubleList(), json, "columnDoubleList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnFloatList(), json, "columnFloatList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnDateList(), json, "columnDateList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnDecimal128List(), json, "columnDecimal128List", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnObjectIdList(), json, "columnObjectIdList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnUUIDList(), json, "columnUUIDList", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$columnRealmAnyList(), json, "columnRealmAnyList", update);
         return obj;
     }
+
     @SuppressWarnings("cast")
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public static some.test.AllTypes createUsingJsonStream(Realm realm, JsonReader reader)
@@ -1605,6 +1824,22 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 } else {
                     objProxy.realmSet$columnDate(JsonUtils.stringToDate(reader.nextString()));
+                }
+            } else if (name.equals("columnRealmAny")) {
+                if (reader.peek() == JsonToken.NULL) {
+                    reader.skipValue();
+                    objProxy.realmSet$columnRealmAny(RealmAny.nullValue());
+                } else if (reader.peek() == JsonToken.STRING) {
+                    objProxy.realmSet$columnRealmAny(RealmAny.valueOf(reader.nextString()));
+                } else if (reader.peek() == JsonToken.NUMBER) {
+                    String value = reader.nextString();
+                    if (value.contains(".")) {
+                        objProxy.realmSet$columnRealmAny(RealmAny.valueOf(Double.parseDouble(value)));
+                    } else {
+                        objProxy.realmSet$columnRealmAny(RealmAny.valueOf(Long.parseLong(value)));
+                    }
+                } else if (reader.peek() == JsonToken.BOOLEAN) {
+                    objProxy.realmSet$columnRealmAny(RealmAny.valueOf(reader.nextBoolean()));
                 }
             } else if (name.equals("columnBinary")) {
                 if (reader.peek() != JsonToken.NULL) {
@@ -1715,6 +1950,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 objProxy.realmSet$columnObjectIdList(ProxyUtils.createRealmListWithJsonStream(org.bson.types.ObjectId.class, reader));
             } else if (name.equals("columnUUIDList")) {
                 objProxy.realmSet$columnUUIDList(ProxyUtils.createRealmListWithJsonStream(java.util.UUID.class, reader));
+            } else if (name.equals("columnRealmAnyList")) {
+                objProxy.realmSet$columnRealmAnyList(ProxyUtils.createRealmListWithJsonStream(io.realm.RealmAny.class, reader));
             } else {
                 reader.skipValue();
             }
@@ -1725,6 +1962,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         }
         return realm.copyToRealmOrUpdate(obj);
     }
+
     static some_test_AllTypesRealmProxy newProxyInstance(BaseRealm realm, Row row) {
         // Ignore default values to avoid creating unexpected objects from RealmModel/RealmList fields
         final BaseRealm.RealmObjectContext objectContext = BaseRealm.objectContext.get();
@@ -1733,6 +1971,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         objectContext.clear();
         return obj;
     }
+
     public static some.test.AllTypes copyOrUpdate(Realm realm, AllTypesColumnInfo columnInfo, some.test.AllTypes object, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null) {
             final BaseRealm otherRealm = ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm();
@@ -1748,6 +1987,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         if (cachedRealmObject != null) {
             return (some.test.AllTypes) cachedRealmObject;
         }
+
         some.test.AllTypes realmObject = null;
         boolean canUpdate = update;
         if (canUpdate) {
@@ -1772,16 +2012,21 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         return (canUpdate) ? update(realm, columnInfo, realmObject, object, cache, flags) : copy(realm, columnInfo, object, update, cache, flags);
     }
+
     public static some.test.AllTypes copy(Realm realm, AllTypesColumnInfo columnInfo, some.test.AllTypes newObject, boolean update, Map<RealmModel,RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmObjectProxy cachedRealmObject = cache.get(newObject);
         if (cachedRealmObject != null) {
             return (some.test.AllTypes) cachedRealmObject;
         }
+
         some_test_AllTypesRealmProxyInterface unmanagedSource = (some_test_AllTypesRealmProxyInterface) newObject;
+
         Table table = realm.getTable(some.test.AllTypes.class);
         OsObjectBuilder builder = new OsObjectBuilder(table, flags);
+
         // Add all non-"object reference" fields
         builder.addString(columnInfo.columnStringColKey, unmanagedSource.realmGet$columnString());
         builder.addInteger(columnInfo.columnLongColKey, unmanagedSource.realmGet$columnLong());
@@ -1813,7 +2058,12 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         Row row = builder.createNewObject();
         io.realm.some_test_AllTypesRealmProxy managedCopy = newProxyInstance(realm, row);
         cache.put(newObject, managedCopy);
+
         // Finally add all fields that reference other Realm Objects, either directly or through a list
+        RealmAny columnRealmAnyRealmAny = unmanagedSource.realmGet$columnRealmAny();
+        columnRealmAnyRealmAny = ProxyUtils.copyOrUpdate(columnRealmAnyRealmAny, realm, update, cache, flags);
+        managedCopy.realmSet$columnRealmAny(columnRealmAnyRealmAny);
+
         some.test.AllTypes columnObjectObj = unmanagedSource.realmGet$columnObject();
         if (columnObjectObj == null) {
             managedCopy.realmSet$columnObject(null);
@@ -1898,8 +2148,20 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
 
+        RealmList<RealmAny> columnRealmAnyListUnmanagedList = unmanagedSource.realmGet$columnRealmAnyList();
+        if (columnRealmAnyListUnmanagedList != null) {
+            RealmList<RealmAny> columnRealmAnyListManagedList = managedCopy.realmGet$columnRealmAnyList();
+            columnRealmAnyListManagedList.clear();
+            for (int i = 0; i < columnRealmAnyListUnmanagedList.size(); i++) {
+                RealmAny realmAnyItem = columnRealmAnyListUnmanagedList.get(i);
+                realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, update, cache, flags);
+                columnRealmAnyListManagedList.add(realmAnyItem);
+            }
+        }
+
         return managedCopy;
     }
+
     public static long insert(Realm realm, some.test.AllTypes object, Map<RealmModel,Long> cache) {
         if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey();
@@ -1941,6 +2203,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         if (realmGet$columnDate != null) {
             Table.nativeSetTimestamp(tableNativePtr, columnInfo.columnDateColKey, objKey, realmGet$columnDate.getTime(), false);
         }
+
+        RealmAny columnRealmAnyRealmAny = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAny();
+        columnRealmAnyRealmAny = ProxyUtils.insert(columnRealmAnyRealmAny, realm, cache);
+        Table.nativeSetRealmAny(tableNativePtr, columnInfo.columnRealmAnyColKey, objKey, columnRealmAnyRealmAny.getNativePtr(), false);
         byte[] realmGet$columnBinary = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinary();
         if (realmGet$columnBinary != null) {
             Table.nativeSetByteArray(tableNativePtr, columnInfo.columnBinaryColKey, objKey, realmGet$columnBinary, false);
@@ -1949,6 +2215,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         if (realmGet$columnMutableRealmInteger != null) {
             Table.nativeSetLong(tableNativePtr, columnInfo.columnMutableRealmIntegerColKey, objKey, realmGet$columnMutableRealmInteger.longValue(), false);
         }
+
         some.test.AllTypes columnObjectObj = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObject();
         if (columnObjectObj != null) {
             Long cachecolumnObject = cache.get(columnObjectObj);
@@ -2026,6 +2293,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<byte[]> columnBinaryListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinaryList();
         if (columnBinaryListList != null) {
             OsList columnBinaryListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnBinaryListColKey);
@@ -2037,6 +2305,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<java.lang.Boolean> columnBooleanListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBooleanList();
         if (columnBooleanListList != null) {
             OsList columnBooleanListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnBooleanListColKey);
@@ -2048,6 +2317,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<java.lang.Long> columnLongListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnLongList();
         if (columnLongListList != null) {
             OsList columnLongListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnLongListColKey);
@@ -2059,6 +2329,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<java.lang.Integer> columnIntegerListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnIntegerList();
         if (columnIntegerListList != null) {
             OsList columnIntegerListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnIntegerListColKey);
@@ -2070,6 +2341,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<java.lang.Short> columnShortListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnShortList();
         if (columnShortListList != null) {
             OsList columnShortListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnShortListColKey);
@@ -2081,6 +2353,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<java.lang.Byte> columnByteListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnByteList();
         if (columnByteListList != null) {
             OsList columnByteListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnByteListColKey);
@@ -2092,6 +2365,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<java.lang.Double> columnDoubleListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDoubleList();
         if (columnDoubleListList != null) {
             OsList columnDoubleListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDoubleListColKey);
@@ -2103,6 +2377,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<java.lang.Float> columnFloatListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnFloatList();
         if (columnFloatListList != null) {
             OsList columnFloatListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnFloatListColKey);
@@ -2114,6 +2389,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<java.util.Date> columnDateListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDateList();
         if (columnDateListList != null) {
             OsList columnDateListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDateListColKey);
@@ -2125,6 +2401,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<org.bson.types.Decimal128> columnDecimal128ListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDecimal128List();
         if (columnDecimal128ListList != null) {
             OsList columnDecimal128ListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDecimal128ListColKey);
@@ -2136,6 +2413,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
         RealmList<org.bson.types.ObjectId> columnObjectIdListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObjectIdList();
         if (columnObjectIdListList != null) {
             OsList columnObjectIdListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnObjectIdListColKey);
@@ -2159,8 +2437,19 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+        RealmList<RealmAny> columnRealmAnyListUnmanagedList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAnyList();
+        if (columnRealmAnyListUnmanagedList != null) {
+            OsList columnRealmAnyListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnRealmAnyListColKey);
+            for (int i = 0; i < columnRealmAnyListUnmanagedList.size(); i++) {
+                RealmAny realmAnyItem = columnRealmAnyListUnmanagedList.get(i);
+                realmAnyItem = ProxyUtils.insert(realmAnyItem, realm, cache);
+                columnRealmAnyListOsList.addRealmAny(realmAnyItem.getNativePtr());
+            }
+        }
         return objKey;
     }
+
     public static void insert(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.AllTypes.class);
         long tableNativePtr = table.getNativePtr();
@@ -2209,6 +2498,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             if (realmGet$columnDate != null) {
                 Table.nativeSetTimestamp(tableNativePtr, columnInfo.columnDateColKey, objKey, realmGet$columnDate.getTime(), false);
             }
+
+            RealmAny columnRealmAnyRealmAny = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAny();
+            columnRealmAnyRealmAny = ProxyUtils.insert(columnRealmAnyRealmAny, realm, cache);
+            Table.nativeSetRealmAny(tableNativePtr, columnInfo.columnRealmAnyColKey, objKey, columnRealmAnyRealmAny.getNativePtr(), false);
             byte[] realmGet$columnBinary = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinary();
             if (realmGet$columnBinary != null) {
                 Table.nativeSetByteArray(tableNativePtr, columnInfo.columnBinaryColKey, objKey, realmGet$columnBinary, false);
@@ -2217,6 +2510,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             if (realmGet$columnMutableRealmInteger != null) {
                 Table.nativeSetLong(tableNativePtr, columnInfo.columnMutableRealmIntegerColKey, objKey, realmGet$columnMutableRealmInteger.longValue(), false);
             }
+
             some.test.AllTypes columnObjectObj = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObject();
             if (columnObjectObj != null) {
                 Long cachecolumnObject = cache.get(columnObjectObj);
@@ -2294,6 +2588,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<byte[]> columnBinaryListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinaryList();
             if (columnBinaryListList != null) {
                 OsList columnBinaryListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnBinaryListColKey);
@@ -2305,6 +2600,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<java.lang.Boolean> columnBooleanListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBooleanList();
             if (columnBooleanListList != null) {
                 OsList columnBooleanListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnBooleanListColKey);
@@ -2316,6 +2612,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<java.lang.Long> columnLongListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnLongList();
             if (columnLongListList != null) {
                 OsList columnLongListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnLongListColKey);
@@ -2327,6 +2624,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<java.lang.Integer> columnIntegerListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnIntegerList();
             if (columnIntegerListList != null) {
                 OsList columnIntegerListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnIntegerListColKey);
@@ -2338,6 +2636,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<java.lang.Short> columnShortListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnShortList();
             if (columnShortListList != null) {
                 OsList columnShortListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnShortListColKey);
@@ -2349,6 +2648,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<java.lang.Byte> columnByteListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnByteList();
             if (columnByteListList != null) {
                 OsList columnByteListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnByteListColKey);
@@ -2360,6 +2660,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<java.lang.Double> columnDoubleListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDoubleList();
             if (columnDoubleListList != null) {
                 OsList columnDoubleListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDoubleListColKey);
@@ -2371,6 +2672,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<java.lang.Float> columnFloatListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnFloatList();
             if (columnFloatListList != null) {
                 OsList columnFloatListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnFloatListColKey);
@@ -2382,6 +2684,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<java.util.Date> columnDateListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDateList();
             if (columnDateListList != null) {
                 OsList columnDateListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDateListColKey);
@@ -2393,6 +2696,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<org.bson.types.Decimal128> columnDecimal128ListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDecimal128List();
             if (columnDecimal128ListList != null) {
                 OsList columnDecimal128ListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDecimal128ListColKey);
@@ -2404,6 +2708,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
             RealmList<org.bson.types.ObjectId> columnObjectIdListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObjectIdList();
             if (columnObjectIdListList != null) {
                 OsList columnObjectIdListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnObjectIdListColKey);
@@ -2427,8 +2732,19 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+            RealmList<RealmAny> columnRealmAnyListUnmanagedList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAnyList();
+            if (columnRealmAnyListUnmanagedList != null) {
+                OsList columnRealmAnyListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnRealmAnyListColKey);
+                for (int i = 0; i < columnRealmAnyListUnmanagedList.size(); i++) {
+                    RealmAny realmAnyItem = columnRealmAnyListUnmanagedList.get(i);
+                    realmAnyItem = ProxyUtils.insert(realmAnyItem, realm, cache);
+                    columnRealmAnyListOsList.addRealmAny(realmAnyItem.getNativePtr());
+                }
+            }
         }
     }
+
     public static long insertOrUpdate(Realm realm, some.test.AllTypes object, Map<RealmModel,Long> cache) {
         if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm() != null && ((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
             return ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm().getObjectKey();
@@ -2476,6 +2792,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.columnDateColKey, objKey, false);
         }
+        RealmAny columnRealmAnyRealmAny = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAny();
+        columnRealmAnyRealmAny = ProxyUtils.insertOrUpdate(columnRealmAnyRealmAny, realm, cache);
+        Table.nativeSetRealmAny(tableNativePtr, columnInfo.columnRealmAnyColKey, objKey, columnRealmAnyRealmAny.getNativePtr(), false);
         byte[] realmGet$columnBinary = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinary();
         if (realmGet$columnBinary != null) {
             Table.nativeSetByteArray(tableNativePtr, columnInfo.columnBinaryColKey, objKey, realmGet$columnBinary, false);
@@ -2488,6 +2807,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         } else {
             Table.nativeSetNull(tableNativePtr, columnInfo.columnMutableRealmIntegerColKey, objKey, false);
         }
+
         some.test.AllTypes columnObjectObj = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObject();
         if (columnObjectObj != null) {
             Long cachecolumnObject = cache.get(columnObjectObj);
@@ -2630,6 +2950,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnBinaryListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnBinaryListColKey);
         columnBinaryListOsList.removeAll();
         RealmList<byte[]> columnBinaryListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinaryList();
@@ -2642,6 +2964,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnBooleanListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnBooleanListColKey);
         columnBooleanListOsList.removeAll();
         RealmList<java.lang.Boolean> columnBooleanListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBooleanList();
@@ -2654,6 +2978,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnLongListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnLongListColKey);
         columnLongListOsList.removeAll();
         RealmList<java.lang.Long> columnLongListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnLongList();
@@ -2666,6 +2992,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnIntegerListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnIntegerListColKey);
         columnIntegerListOsList.removeAll();
         RealmList<java.lang.Integer> columnIntegerListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnIntegerList();
@@ -2678,6 +3006,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnShortListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnShortListColKey);
         columnShortListOsList.removeAll();
         RealmList<java.lang.Short> columnShortListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnShortList();
@@ -2690,6 +3020,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnByteListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnByteListColKey);
         columnByteListOsList.removeAll();
         RealmList<java.lang.Byte> columnByteListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnByteList();
@@ -2702,6 +3034,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnDoubleListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDoubleListColKey);
         columnDoubleListOsList.removeAll();
         RealmList<java.lang.Double> columnDoubleListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDoubleList();
@@ -2714,6 +3048,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnFloatListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnFloatListColKey);
         columnFloatListOsList.removeAll();
         RealmList<java.lang.Float> columnFloatListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnFloatList();
@@ -2726,6 +3062,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnDateListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDateListColKey);
         columnDateListOsList.removeAll();
         RealmList<java.util.Date> columnDateListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDateList();
@@ -2738,6 +3076,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnDecimal128ListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDecimal128ListColKey);
         columnDecimal128ListOsList.removeAll();
         RealmList<org.bson.types.Decimal128> columnDecimal128ListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDecimal128List();
@@ -2750,6 +3090,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
         }
+
+
         OsList columnObjectIdListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnObjectIdListColKey);
         columnObjectIdListOsList.removeAll();
         RealmList<org.bson.types.ObjectId> columnObjectIdListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObjectIdList();
@@ -2777,8 +3119,35 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             }
         }
 
+
+        OsList columnRealmAnyListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnRealmAnyListColKey);
+        RealmList<RealmAny> columnRealmAnyListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAnyList();
+        if (columnRealmAnyListList != null && columnRealmAnyListList.size() == columnRealmAnyListOsList.size()) {
+            // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
+            int objects = columnRealmAnyListList.size();
+            for (int i = 0; i < objects; i++) {
+                RealmAny columnRealmAnyListItem = columnRealmAnyListList.get(i);
+                Long cacheItemIndexcolumnRealmAnyList = cache.get(columnRealmAnyListItem);
+                if (cacheItemIndexcolumnRealmAnyList == null) {
+                    columnRealmAnyListItem = ProxyUtils.insertOrUpdate(columnRealmAnyListItem, realm, cache);
+                }
+                columnRealmAnyListOsList.setRealmAny(i, columnRealmAnyListItem.getNativePtr());
+            }
+        } else {
+            columnRealmAnyListOsList.removeAll();
+            if (columnRealmAnyListList != null) {
+                for (RealmAny columnRealmAnyListItem : columnRealmAnyListList) {
+                    Long cacheItemIndexcolumnRealmAnyList = cache.get(columnRealmAnyListItem);
+                    if (cacheItemIndexcolumnRealmAnyList == null) {
+                        columnRealmAnyListItem = ProxyUtils.insertOrUpdate(columnRealmAnyListItem, realm, cache);
+                    }
+                    columnRealmAnyListOsList.addRealmAny(columnRealmAnyListItem.getNativePtr());
+                }
+            }
+        }
         return objKey;
     }
+
     public static void insertOrUpdate(Realm realm, Iterator<? extends RealmModel> objects, Map<RealmModel,Long> cache) {
         Table table = realm.getTable(some.test.AllTypes.class);
         long tableNativePtr = table.getNativePtr();
@@ -2833,6 +3202,9 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             } else {
                 Table.nativeSetNull(tableNativePtr, columnInfo.columnDateColKey, objKey, false);
             }
+            RealmAny columnRealmAnyRealmAny = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAny();
+            columnRealmAnyRealmAny = ProxyUtils.insertOrUpdate(columnRealmAnyRealmAny, realm, cache);
+            Table.nativeSetRealmAny(tableNativePtr, columnInfo.columnRealmAnyColKey, objKey, columnRealmAnyRealmAny.getNativePtr(), false);
             byte[] realmGet$columnBinary = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinary();
             if (realmGet$columnBinary != null) {
                 Table.nativeSetByteArray(tableNativePtr, columnInfo.columnBinaryColKey, objKey, realmGet$columnBinary, false);
@@ -2845,6 +3217,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
             } else {
                 Table.nativeSetNull(tableNativePtr, columnInfo.columnMutableRealmIntegerColKey, objKey, false);
             }
+
             some.test.AllTypes columnObjectObj = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObject();
             if (columnObjectObj != null) {
                 Long cachecolumnObject = cache.get(columnObjectObj);
@@ -2987,6 +3360,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnBinaryListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnBinaryListColKey);
             columnBinaryListOsList.removeAll();
             RealmList<byte[]> columnBinaryListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBinaryList();
@@ -2999,6 +3374,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnBooleanListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnBooleanListColKey);
             columnBooleanListOsList.removeAll();
             RealmList<java.lang.Boolean> columnBooleanListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnBooleanList();
@@ -3011,6 +3388,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnLongListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnLongListColKey);
             columnLongListOsList.removeAll();
             RealmList<java.lang.Long> columnLongListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnLongList();
@@ -3023,6 +3402,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnIntegerListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnIntegerListColKey);
             columnIntegerListOsList.removeAll();
             RealmList<java.lang.Integer> columnIntegerListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnIntegerList();
@@ -3035,6 +3416,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnShortListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnShortListColKey);
             columnShortListOsList.removeAll();
             RealmList<java.lang.Short> columnShortListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnShortList();
@@ -3047,6 +3430,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnByteListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnByteListColKey);
             columnByteListOsList.removeAll();
             RealmList<java.lang.Byte> columnByteListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnByteList();
@@ -3059,6 +3444,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnDoubleListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDoubleListColKey);
             columnDoubleListOsList.removeAll();
             RealmList<java.lang.Double> columnDoubleListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDoubleList();
@@ -3071,6 +3458,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnFloatListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnFloatListColKey);
             columnFloatListOsList.removeAll();
             RealmList<java.lang.Float> columnFloatListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnFloatList();
@@ -3083,6 +3472,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnDateListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDateListColKey);
             columnDateListOsList.removeAll();
             RealmList<java.util.Date> columnDateListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDateList();
@@ -3095,6 +3486,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnDecimal128ListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnDecimal128ListColKey);
             columnDecimal128ListOsList.removeAll();
             RealmList<org.bson.types.Decimal128> columnDecimal128ListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnDecimal128List();
@@ -3107,6 +3500,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                     }
                 }
             }
+
+
             OsList columnObjectIdListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnObjectIdListColKey);
             columnObjectIdListOsList.removeAll();
             RealmList<org.bson.types.ObjectId> columnObjectIdListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnObjectIdList();
@@ -3134,8 +3529,35 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 }
             }
 
+
+            OsList columnRealmAnyListOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.columnRealmAnyListColKey);
+            RealmList<RealmAny> columnRealmAnyListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAnyList();
+            if (columnRealmAnyListList != null && columnRealmAnyListList.size() == columnRealmAnyListOsList.size()) {
+                // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
+                int objectCount = columnRealmAnyListList.size();
+                for (int i = 0; i < objectCount; i++) {
+                    RealmAny columnRealmAnyListItem = columnRealmAnyListList.get(i);
+                    Long cacheItemIndexcolumnRealmAnyList = cache.get(columnRealmAnyListItem);
+                    if (cacheItemIndexcolumnRealmAnyList == null) {
+                        columnRealmAnyListItem = ProxyUtils.insertOrUpdate(columnRealmAnyListItem, realm, cache);
+                    }
+                    columnRealmAnyListOsList.setRealmAny(i, columnRealmAnyListItem.getNativePtr());
+                }
+            } else {
+                columnRealmAnyListOsList.removeAll();
+                if (columnRealmAnyListList != null) {
+                    for (RealmAny columnRealmAnyListItem : columnRealmAnyListList) {
+                        Long cacheItemIndexcolumnRealmAnyList = cache.get(columnRealmAnyListItem);
+                        if (cacheItemIndexcolumnRealmAnyList == null) {
+                            columnRealmAnyListItem = ProxyUtils.insertOrUpdate(columnRealmAnyListItem, realm, cache);
+                        }
+                        columnRealmAnyListOsList.addRealmAny(columnRealmAnyListItem.getNativePtr());
+                    }
+                }
+            }
         }
     }
+
     public static some.test.AllTypes createDetachedCopy(some.test.AllTypes realmObject, int currentDepth, int maxDepth, Map<RealmModel, CacheData<RealmModel>> cache) {
         if (currentDepth > maxDepth || realmObject == null) {
             return null;
@@ -3155,6 +3577,7 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         }
         some_test_AllTypesRealmProxyInterface unmanagedCopy = (some_test_AllTypesRealmProxyInterface) unmanagedObject;
         some_test_AllTypesRealmProxyInterface realmSource = (some_test_AllTypesRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$columnString(realmSource.realmGet$columnString());
         unmanagedCopy.realmSet$columnLong(realmSource.realmGet$columnLong());
         unmanagedCopy.realmSet$columnFloat(realmSource.realmGet$columnFloat());
@@ -3164,8 +3587,12 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         unmanagedCopy.realmSet$columnObjectId(realmSource.realmGet$columnObjectId());
         unmanagedCopy.realmSet$columnUUID(realmSource.realmGet$columnUUID());
         unmanagedCopy.realmSet$columnDate(realmSource.realmGet$columnDate());
+
+        // Deep copy of columnRealmAny
+        unmanagedCopy.realmSet$columnRealmAny(ProxyUtils.createDetachedCopy(realmSource.realmGet$columnRealmAny(), objectRealm, currentDepth + 1, maxDepth, cache));
         unmanagedCopy.realmSet$columnBinary(realmSource.realmGet$columnBinary());
         unmanagedCopy.realmGet$columnMutableRealmInteger().set(realmSource.realmGet$columnMutableRealmInteger().get());
+
         // Deep copy of columnObject
         unmanagedCopy.realmSet$columnObject(some_test_AllTypesRealmProxy.createDetachedCopy(realmSource.realmGet$columnObject(), currentDepth + 1, maxDepth, cache));
 
@@ -3231,34 +3658,64 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
                 unmanagedcolumnRealmFinalListNoPkList.add(item);
             }
         }
+
         unmanagedCopy.realmSet$columnStringList(new RealmList<java.lang.String>());
         unmanagedCopy.realmGet$columnStringList().addAll(realmSource.realmGet$columnStringList());
+
         unmanagedCopy.realmSet$columnBinaryList(new RealmList<byte[]>());
         unmanagedCopy.realmGet$columnBinaryList().addAll(realmSource.realmGet$columnBinaryList());
+
         unmanagedCopy.realmSet$columnBooleanList(new RealmList<java.lang.Boolean>());
         unmanagedCopy.realmGet$columnBooleanList().addAll(realmSource.realmGet$columnBooleanList());
+
         unmanagedCopy.realmSet$columnLongList(new RealmList<java.lang.Long>());
         unmanagedCopy.realmGet$columnLongList().addAll(realmSource.realmGet$columnLongList());
+
         unmanagedCopy.realmSet$columnIntegerList(new RealmList<java.lang.Integer>());
         unmanagedCopy.realmGet$columnIntegerList().addAll(realmSource.realmGet$columnIntegerList());
+
         unmanagedCopy.realmSet$columnShortList(new RealmList<java.lang.Short>());
         unmanagedCopy.realmGet$columnShortList().addAll(realmSource.realmGet$columnShortList());
+
         unmanagedCopy.realmSet$columnByteList(new RealmList<java.lang.Byte>());
         unmanagedCopy.realmGet$columnByteList().addAll(realmSource.realmGet$columnByteList());
+
         unmanagedCopy.realmSet$columnDoubleList(new RealmList<java.lang.Double>());
         unmanagedCopy.realmGet$columnDoubleList().addAll(realmSource.realmGet$columnDoubleList());
+
         unmanagedCopy.realmSet$columnFloatList(new RealmList<java.lang.Float>());
         unmanagedCopy.realmGet$columnFloatList().addAll(realmSource.realmGet$columnFloatList());
+
         unmanagedCopy.realmSet$columnDateList(new RealmList<java.util.Date>());
         unmanagedCopy.realmGet$columnDateList().addAll(realmSource.realmGet$columnDateList());
+
         unmanagedCopy.realmSet$columnDecimal128List(new RealmList<org.bson.types.Decimal128>());
         unmanagedCopy.realmGet$columnDecimal128List().addAll(realmSource.realmGet$columnDecimal128List());
+
         unmanagedCopy.realmSet$columnObjectIdList(new RealmList<org.bson.types.ObjectId>());
         unmanagedCopy.realmGet$columnObjectIdList().addAll(realmSource.realmGet$columnObjectIdList());
+
         unmanagedCopy.realmSet$columnUUIDList(new RealmList<java.util.UUID>());
         unmanagedCopy.realmGet$columnUUIDList().addAll(realmSource.realmGet$columnUUIDList());
+
+        // Deep copy of columnRealmAnyList
+        if (currentDepth == maxDepth) {
+            unmanagedCopy.realmSet$columnRealmAnyList(null);
+        } else {
+            RealmList<RealmAny> managedcolumnRealmAnyListList = realmSource.realmGet$columnRealmAnyList();
+            RealmList<RealmAny> unmanagedcolumnRealmAnyListList = new RealmList<RealmAny>();
+            unmanagedCopy.realmSet$columnRealmAnyList(unmanagedcolumnRealmAnyListList);
+            int nextDepth = currentDepth + 1;
+            int size = managedcolumnRealmAnyListList.size();
+            for (int i = 0; i < size; i++) {
+                RealmAny item = ProxyUtils.createDetachedCopy(managedcolumnRealmAnyListList.get(i), objectRealm, nextDepth, maxDepth, cache);
+                unmanagedcolumnRealmAnyListList.add(item);
+            }
+        }
+
         return unmanagedObject;
     }
+
     static some.test.AllTypes update(Realm realm, AllTypesColumnInfo columnInfo, some.test.AllTypes realmObject, some.test.AllTypes newObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
         some_test_AllTypesRealmProxyInterface realmObjectTarget = (some_test_AllTypesRealmProxyInterface) realmObject;
         some_test_AllTypesRealmProxyInterface realmObjectSource = (some_test_AllTypesRealmProxyInterface) newObject;
@@ -3273,8 +3730,13 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addObjectId(columnInfo.columnObjectIdColKey, realmObjectSource.realmGet$columnObjectId());
         builder.addUUID(columnInfo.columnUUIDColKey, realmObjectSource.realmGet$columnUUID());
         builder.addDate(columnInfo.columnDateColKey, realmObjectSource.realmGet$columnDate());
+
+        RealmAny columnRealmAnyRealmAny = realmObjectSource.realmGet$columnRealmAny();
+        columnRealmAnyRealmAny = ProxyUtils.copyOrUpdate(columnRealmAnyRealmAny, realm, true, cache, flags);
+        builder.addRealmAny(columnInfo.columnRealmAnyColKey, columnRealmAnyRealmAny.getNativePtr());
         builder.addByteArray(columnInfo.columnBinaryColKey, realmObjectSource.realmGet$columnBinary());
         builder.addMutableRealmInteger(columnInfo.columnMutableRealmIntegerColKey, realmObjectSource.realmGet$columnMutableRealmInteger());
+
         some.test.AllTypes columnObjectObj = realmObjectSource.realmGet$columnObject();
         if (columnObjectObj == null) {
             builder.addNull(columnInfo.columnObjectColKey);
@@ -3380,9 +3842,23 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         builder.addObjectIdList(columnInfo.columnObjectIdListColKey, realmObjectSource.realmGet$columnObjectIdList());
         builder.addUUIDList(columnInfo.columnUUIDListColKey, realmObjectSource.realmGet$columnUUIDList());
 
+        RealmList<RealmAny> columnRealmAnyListUnmanagedList = realmObjectSource.realmGet$columnRealmAnyList();
+        if (columnRealmAnyListUnmanagedList != null) {
+            RealmList<RealmAny> columnRealmAnyListManagedCopy = new RealmList<RealmAny>();
+            for (int i = 0; i < columnRealmAnyListUnmanagedList.size(); i++) {
+                RealmAny realmAnyItem = columnRealmAnyListUnmanagedList.get(i);
+                realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, true, cache, flags);
+                columnRealmAnyListManagedCopy.add(realmAnyItem);
+            }
+            builder.addRealmAnyList(columnInfo.columnRealmAnyListColKey, columnRealmAnyListManagedCopy);
+        } else {
+            builder.addRealmAnyList(columnInfo.columnRealmAnyListColKey, new RealmList<RealmAny>());
+        }
+
         builder.updateExistingTopLevelObject();
         return realmObject;
     }
+
     @Override
     @SuppressWarnings("ArrayToString")
     public String toString() {
@@ -3424,6 +3900,10 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         stringBuilder.append(",");
         stringBuilder.append("{columnDate:");
         stringBuilder.append(realmGet$columnDate());
+        stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{columnRealmAny:");
+        stringBuilder.append((realmGet$columnRealmAny().isNull()) ? "null" : "realmGet$columnRealmAny()");
         stringBuilder.append("}");
         stringBuilder.append(",");
         stringBuilder.append("{columnBinary:");
@@ -3509,29 +3989,38 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         stringBuilder.append("{columnUUIDList:");
         stringBuilder.append("RealmList<UUID>[").append(realmGet$columnUUIDList().size()).append("]");
         stringBuilder.append("}");
+        stringBuilder.append(",");
+        stringBuilder.append("{columnRealmAnyList:");
+        stringBuilder.append("RealmList<RealmAny>[").append(realmGet$columnRealmAnyList().size()).append("]");
+        stringBuilder.append("}");
         stringBuilder.append("]");
         return stringBuilder.toString();
     }
+
     @Override
     public ProxyState<?> realmGet$proxyState() {
         return proxyState;
     }
+
     @Override
     public int hashCode() {
         String realmName = proxyState.getRealm$realm().getPath();
         String tableName = proxyState.getRow$realm().getTable().getName();
         long objKey = proxyState.getRow$realm().getObjectKey();
+
         int result = 17;
         result = 31 * result + ((realmName != null) ? realmName.hashCode() : 0);
         result = 31 * result + ((tableName != null) ? tableName.hashCode() : 0);
         result = 31 * result + (int) (objKey ^ (objKey >>> 32));
         return result;
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         some_test_AllTypesRealmProxy aAllTypes = (some_test_AllTypesRealmProxy)o;
+
         BaseRealm realm = proxyState.getRealm$realm();
         BaseRealm otherRealm = aAllTypes.proxyState.getRealm$realm();
         String path = realm.getPath();
@@ -3541,10 +4030,13 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         if (!realm.sharedRealm.getVersionID().equals(otherRealm.sharedRealm.getVersionID())) {
             return false;
         }
+
         String tableName = proxyState.getRow$realm().getTable().getName();
         String otherTableName = aAllTypes.proxyState.getRow$realm().getTable().getName();
         if (tableName != null ? !tableName.equals(otherTableName) : otherTableName != null) return false;
+
         if (proxyState.getRow$realm().getObjectKey() != aAllTypes.proxyState.getRow$realm().getObjectKey()) return false;
+
         return true;
     }
 }

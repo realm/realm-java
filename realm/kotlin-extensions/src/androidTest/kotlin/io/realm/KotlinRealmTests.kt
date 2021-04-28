@@ -5,7 +5,6 @@ import io.realm.entities.PrimaryKeyClass
 import io.realm.entities.SimpleClass
 import io.realm.kotlin.createObject
 import io.realm.kotlin.where
-import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule

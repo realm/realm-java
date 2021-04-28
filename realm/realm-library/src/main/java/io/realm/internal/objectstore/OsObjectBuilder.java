@@ -27,14 +27,18 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.ImportFlag;
+import io.realm.RealmAny;
+import io.realm.RealmAnyNativeFunctionsImpl;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmModel;
+import io.realm.internal.RealmAnyNativeFunctions;
 import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+
 
 /**
  * This class is a wrapper around building up object data for calling `Object::create()`
@@ -185,6 +189,15 @@ public class OsObjectBuilder implements Closeable {
         }
     };
 
+    private static ItemCallback<RealmAny> realmAnyItemCallback = new ItemCallback<RealmAny>() {
+        private final RealmAnyNativeFunctions realmAnyNativeFunctions = new RealmAnyNativeFunctionsImpl();
+
+        @Override
+        public void handleItem(long listPtr, RealmAny realmAny) {
+            realmAnyNativeFunctions.handleItem(listPtr, realmAny);
+        }
+    };
+
     // If true, fields will not be updated if the same value would be written to it.
     private final boolean ignoreFieldsWithSameValue;
 
@@ -205,7 +218,7 @@ public class OsObjectBuilder implements Closeable {
         } else {
             nativeAddInteger(builderPtr, columnKey, val);
         }
-                                                    }
+    }
 
     public void addInteger(long columnKey, @Nullable Short val) {
         if (val == null) {
@@ -223,7 +236,7 @@ public class OsObjectBuilder implements Closeable {
         }
     }
 
-    public void addInteger(long columnKey, @Nullable  Long val) {
+    public void addInteger(long columnKey, @Nullable Long val) {
         if (val == null) {
             nativeAddNull(builderPtr, columnKey);
         } else {
@@ -237,6 +250,10 @@ public class OsObjectBuilder implements Closeable {
         } else {
             nativeAddInteger(builderPtr, columnKey, val.get());
         }
+    }
+
+    public void addRealmAny(long columnKey, long realmAnyPtr) {
+        nativeAddRealmAny(builderPtr, columnKey, realmAnyPtr);
     }
 
     public void addString(long columnKey, @Nullable String val) {
@@ -421,6 +438,10 @@ public class OsObjectBuilder implements Closeable {
         addListItem(builderPtr, columnKey, list, uuidItemCallback);
     }
 
+    public void addRealmAnyList(long columnKey, RealmList<RealmAny> list) {
+        addListItem(builderPtr, columnKey, list, realmAnyItemCallback);
+    }
+
     private void addEmptyList(long columnKey) {
         long listPtr = nativeStartList(0);
         nativeStopList(builderPtr, columnKey, listPtr);
@@ -430,7 +451,7 @@ public class OsObjectBuilder implements Closeable {
      * Updates any existing object if it exists, otherwise creates a new one.
      * <p>
      * Updating an existing object requires that the primary key is defined as one of the fields.
-     * <P>
+     * <p>
      * The builder is automatically closed after calling this method.
      */
     public void updateExistingTopLevelObject() {
@@ -443,7 +464,7 @@ public class OsObjectBuilder implements Closeable {
 
     /**
      * Updates an existing embedded object.
-     *
+     * <p>
      * The builder is automatically closed after calling this method.
      */
     public void updateExistingEmbeddedObject(RealmObjectProxy embeddedObject) {
@@ -457,7 +478,7 @@ public class OsObjectBuilder implements Closeable {
 
     /**
      * Create a new object.
-     *
+     * <p>
      * The builder is automatically closed after calling this method.
      */
     public UncheckedRow createNewObject() {
@@ -486,53 +507,84 @@ public class OsObjectBuilder implements Closeable {
         nativeDestroyBuilder(builderPtr);
     }
 
-    private interface ItemCallback<T>  {
+    private interface ItemCallback<T> {
         void handleItem(long listPtr, T item);
     }
 
     private static native long nativeCreateBuilder();
+
     private static native void nativeDestroyBuilder(long builderPtr);
+
     private static native long nativeCreateOrUpdateTopLevelObject(long sharedRealmPtr,
-                                                    long tablePtr,
-                                                    long builderPtr,
-                                                    boolean updateExistingObject,
-                                                    boolean ignoreFieldsWithSameValue);
+            long tablePtr,
+            long builderPtr,
+            boolean updateExistingObject,
+            boolean ignoreFieldsWithSameValue);
 
     private static native long nativeUpdateEmbeddedObject(long sharedRealmPtr,
-                                                    long tablePtr,
-                                                    long builderPtr,
-                                                    long objKey,
-                                                    boolean ignoreFieldsWithSameValue);
+            long tablePtr,
+            long builderPtr,
+            long objKey,
+            boolean ignoreFieldsWithSameValue);
 
     // Add simple properties
     private static native void nativeAddNull(long builderPtr, long columnKey);
+
     private static native void nativeAddInteger(long builderPtr, long columnKey, long val);
+
     private static native void nativeAddString(long builderPtr, long columnKey, String val);
+
     private static native void nativeAddFloat(long builderPtr, long columnKey, float val);
+
     private static native void nativeAddDouble(long builderPtr, long columnKey, double val);
+
     private static native void nativeAddBoolean(long builderPtr, long columnKey, boolean val);
+
     private static native void nativeAddByteArray(long builderPtr, long columnKey, byte[] val);
+
     private static native void nativeAddDate(long builderPtr, long columnKey, long val);
+
     private static native void nativeAddObject(long builderPtr, long columnKey, long rowPtr);
+
     private static native void nativeAddDecimal128(long builderPtr, long columnKey, long low, long high);
+
     private static native void nativeAddObjectId(long builderPtr, long columnKey, String data);
+
     private static native void nativeAddUUID(long builderPtr, long columnKey, String data);
+
+    private static native void nativeAddRealmAny(long builderPtr, long columnKey, long realmAnyPtr);
 
     // Methods for adding lists
     // Lists sent across JNI one element at a time
     private static native long nativeStartList(long size);
+
     private static native void nativeStopList(long builderPtr, long columnKey, long listPtr);
+
     private static native void nativeAddNullListItem(long listPtr);
+
     private static native void nativeAddIntegerListItem(long listPtr, long value);
+
     private static native void nativeAddStringListItem(long listPtr, String val);
+
     private static native void nativeAddFloatListItem(long listPtr, float val);
+
     private static native void nativeAddDoubleListItem(long listPtr, double val);
+
     private static native void nativeAddBooleanListItem(long listPtr, boolean val);
+
     private static native void nativeAddByteArrayListItem(long listPtr, byte[] val);
+
     private static native void nativeAddDateListItem(long listPtr, long val);
+
     private static native void nativeAddDecimal128ListItem(long listPtr, long low, long high);
+
     private static native void nativeAddObjectIdListItem(long listPtr, String data);
+
     private static native void nativeAddUUIDListItem(long listPtr, String data);
+
+    public static native void nativeAddRealmAnyListItem(long listPtr, long realmAnyPtr);
+
     private static native void nativeAddObjectListItem(long listPtr, long rowPtr);
+
     private static native void nativeAddObjectList(long builderPtr, long columnKey, long[] rowPtrs);
 }

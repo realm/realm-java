@@ -32,7 +32,6 @@ import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

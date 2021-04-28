@@ -35,7 +35,6 @@ import io.realm.entities.PrimaryKeyAsObjectId;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyAsUUID;
 import io.realm.objectid.NullPrimaryKey;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -129,7 +128,7 @@ public class RealmJsonNullPrimaryKeyTests {
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
-            // PrimaryKeyAsObjectId
+            // PrimaryKeyAsUUID
         } else if (clazz.equals(PrimaryKeyAsUUID.class)) {
             RealmResults<PrimaryKeyAsUUID> results = realm.where(PrimaryKeyAsUUID.class).findAll();
             assertEquals(1, results.size());
@@ -161,7 +160,7 @@ public class RealmJsonNullPrimaryKeyTests {
             assertEquals(Long.valueOf(secondaryFieldValue).longValue(), results.first().getId());
             assertEquals(null, results.first().getName());
 
-            // PrimaryKeyAsObjectId
+            // PrimaryKeyAsUUID
         } else if (clazz.equals(PrimaryKeyAsUUID.class)) {
             RealmResults<PrimaryKeyAsUUID> results = realm.where(PrimaryKeyAsUUID.class).findAll();
             assertEquals(1, results.size());

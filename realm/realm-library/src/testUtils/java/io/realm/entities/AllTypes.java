@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -45,6 +46,7 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DECIMAL128 = "columnDecimal128";
     public static final String FIELD_OBJECT_ID = "columnObjectId";
     public static final String FIELD_UUID = "columnUUID";
+    public static final String FIELD_MIXED = "columnRealmAny";
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLINK = "columnRealmLink";
     public static final String FIELD_REALMBACKLINK = "columnRealmBackLink";
@@ -80,6 +82,8 @@ public class AllTypes extends RealmObject {
     @Required
     private UUID columnUUID = UUID.randomUUID();
 
+    private RealmAny columnRealmAny = RealmAny.nullValue();
+
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
 
     private Dog columnRealmObject;
@@ -100,6 +104,7 @@ public class AllTypes extends RealmObject {
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<ObjectId> columnObjectIdList;
     private RealmList<UUID> columnUUIDList;
+    private RealmList<RealmAny> columnRealmAnyList;
 
     public String getColumnString() {
         return columnString;
@@ -274,6 +279,14 @@ public class AllTypes extends RealmObject {
         this.columnUUID = columnUUID;
     }
 
+    public RealmAny getColumnRealmAny() {
+        return columnRealmAny;
+    }
+
+    public void setColumnRealmAny(RealmAny columnRealmAny) {
+        this.columnRealmAny = columnRealmAny;
+    }
+
     public RealmList<Decimal128> getColumnDecimal128List() {
         return columnDecimal128List;
     }
@@ -296,5 +309,13 @@ public class AllTypes extends RealmObject {
 
     public void setColumnUUIDList(RealmList<UUID> columnUUIDList) {
         this.columnUUIDList = columnUUIDList;
+    }
+
+    public RealmList<RealmAny> getColumnRealmAnyList() {
+        return columnRealmAnyList;
+    }
+
+    public void setColumnRealmAnyList(RealmList<RealmAny> columnRealmAnyList) {
+        this.columnRealmAnyList = columnRealmAnyList;
     }
 }

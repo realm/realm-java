@@ -20,7 +20,9 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;
@@ -40,6 +42,8 @@ public class AllTypesPrimaryKey extends RealmObject {
     private Boolean columnBoxedBoolean;
     private ObjectId columnObjectId;
     private Decimal128 columnDecimal128;
+    private UUID columnUUID;
+    private RealmAny columnRealmAny;
 
     private RealmList<String> columnStringList;
     private RealmList<byte[]> columnBinaryList;
@@ -50,6 +54,8 @@ public class AllTypesPrimaryKey extends RealmObject {
     private RealmList<Date> columnDateList;
     private RealmList<ObjectId> columnObjectIdList;
     private RealmList<Decimal128> columnDecimal128List;
+    private RealmList<UUID> columnUUIDList;
+    private RealmList<RealmAny> columnRealmAnyList;
 
     public String getColumnString() {
         return columnString;
@@ -147,6 +153,22 @@ public class AllTypesPrimaryKey extends RealmObject {
         this.columnDecimal128 = columnDecimal128;
     }
 
+    public UUID getColumnUUID() {
+        return columnUUID;
+    }
+
+    public void setColumnUUID(UUID columnUUID) {
+        this.columnUUID = columnUUID;
+    }
+
+    public RealmAny getColumnRealmAny() {
+        return columnRealmAny;
+    }
+
+    public void setColumnRealmAny(RealmAny columnRealmAny) {
+        this.columnRealmAny = columnRealmAny;
+    }
+
     public RealmList<String> getColumnStringList() {
         return columnStringList;
     }
@@ -217,5 +239,21 @@ public class AllTypesPrimaryKey extends RealmObject {
 
     public void setColumnDecimal128List(RealmList<Decimal128> columnDecimal128List) {
         this.columnDecimal128List = columnDecimal128List;
+    }
+
+    public RealmList<UUID> getColumnUUIDList() {
+        return columnUUIDList;
+    }
+
+    public void setColumnUUIDList(RealmList<UUID> columnUUIDList) {
+        this.columnUUIDList = columnUUIDList;
+    }
+
+    public RealmList<RealmAny> getColumnRealmAnyList() {
+        return columnRealmAnyList;
+    }
+
+    public void setColumnRealmAnyList(RealmList<RealmAny> columnRealmAnyList) {
+        this.columnRealmAnyList = columnRealmAnyList;
     }
 }

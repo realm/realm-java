@@ -1,8 +1,16 @@
 ## 11.0.0 (YYYY-MM-DD)
 
+### Breaking Changes
+* Queries no longer do nullability checks on non-nullable fields, so using `null` as an argument will not throw an `IllegalArgumentException`.
+* String query filters `contains`, `beginsWith`, `endsWith`, and `like`, now throw a null pointer exception on null values.
+* The query builder no longer throw `IllegalStateException` but `IllegalArgumentException`.
+* The `distinct` query filter on unsupported fields no longer throws an exception when applied through when querying across relationships.
+* The `distinct` query filter no longer throws an exception when applied on non-existent fields.
+
 ### Enhancements
 * Added support for `java.util.UUID` as supported field in model classes.
 * Added support for `java.util.UUID` as a primary key.
+* Added support for `RealmAny` as supported field in model classes. A `RealmAny` is used to represent a polymorphic Realm value or Realm Object, is indexable but cannot be used as a primary key. See [Javadoc for RealmAny](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmAny.html).
 * Allow UTF8 encoded characters in property names in string-based queries ([#4467](https://github.com/realm/realm-core/issues/4467))
 * The error message when the initial steps of opening a Realm file fails is now more descriptive.
 * Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. ([#4548](https://github.com/realm/realm-core/issues/4548))
@@ -11,6 +19,10 @@
   a backup, if a) an attempt is made to open a realm file with a "future" file format and b) a backup file exist
   that fits the current file format. ([#4166](https://github.com/realm/realm-core/pull/4166))
 * Remove type coercion on bool and ObjectId when doing queries.
+* Allow passing arguments into string-based query predicates.
+* Queries across relationships now support the `between` operator.
+* Queries on numerical fields (byte, short, int, long, float, double, decimal128) now accept any numerical value as an argument.
+* `isEmpty` query filter can now be applied on `RealmList` and `RealmObject` fields.
 
 ### Fixed
 * Fix assertion failures such as "!m_notifier_skip_version.version" or "m_notifier_sg->get_version() + 1 == new_version.version" when performing writes inside change notification callbacks. Previously refreshing the Realm by beginning a write transaction would skip delivering notifications, leaving things in an inconsistent state. Notifications are now delivered recursively when needed instead. ([Cocoa #7165](https://github.com/realm/realm-cocoa/issues/7165)).

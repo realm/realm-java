@@ -33,7 +33,6 @@ import io.realm.entities.Cat;
 import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -171,6 +170,9 @@ public class LinkingObjectsDynamicTests {
         dynamicRealm.commitTransaction();
 
         for (RealmFieldType fieldType : RealmFieldType.values()) {
+            if(fieldType == RealmFieldType.TYPED_LINK)
+                continue;
+
             try {
                 switch (fieldType) {
                     // skip valid types
@@ -210,6 +212,9 @@ public class LinkingObjectsDynamicTests {
                     case UUID:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID);
                         break;
+                    case MIXED:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED);
+                        break;
                     case INTEGER_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INTEGER_LIST);
                         break;
@@ -239,6 +244,9 @@ public class LinkingObjectsDynamicTests {
                         break;
                     case UUID_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case MIXED_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED_LIST);
                         break;
                     default:
                         fail("unknown type: " + fieldType);

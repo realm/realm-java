@@ -25,6 +25,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -73,8 +74,8 @@ public class UncheckedRow implements NativeObject, Row {
      * Gets the row object associated with a row key in a Table.
      *
      * @param context the Realm context.
-     * @param table the Table that holds the row.
-     * @param rowKey Row key.
+     * @param table   the Table that holds the row.
+     * @param rowKey  Row key.
      * @return an instance of Row for the table and row key specified.
      */
     static UncheckedRow getByRowKey(NativeContext context, Table table, long rowKey) {
@@ -85,8 +86,8 @@ public class UncheckedRow implements NativeObject, Row {
     /**
      * Gets the row object from a row pointer.
      *
-     * @param context the Realm context.
-     * @param table the Table that holds the row.
+     * @param context          the Realm context.
+     * @param table            the Table that holds the row.
      * @param nativeRowPointer pointer of a row.
      * @return an instance of Row for the table and row specified.
      */
@@ -186,6 +187,11 @@ public class UncheckedRow implements NativeObject, Row {
     }
 
     @Override
+    public NativeRealmAny getNativeRealmAny(long columnKey) {
+        return new NativeRealmAny(nativeGetRealmAny(nativePtr, columnKey));
+    }
+
+    @Override
     public long getLink(long columnKey) {
         return nativeGetLink(nativePtr, columnKey);
     }
@@ -242,11 +248,17 @@ public class UncheckedRow implements NativeObject, Row {
         nativeSetTimestamp(nativePtr, columnKey, timestamp);
     }
 
+    @Override
+    public void setRealmAny(long columnKey, long realmAnyNativePtr) {
+        parent.checkImmutable();
+        nativeSetRealmAny(nativePtr, columnKey, realmAnyNativePtr);
+    }
+
     /**
      * Sets a string value to a row pointer.
      *
      * @param columnKey column key.
-     * @param value the value to to a row
+     * @param value     the value to to a row
      */
     @Override
     public void setString(long columnKey, @Nullable String value) {
@@ -407,6 +419,8 @@ public class UncheckedRow implements NativeObject, Row {
 
     protected native String nativeGetUUID(long nativePtr, long columnKey);
 
+    protected native long nativeGetRealmAny(long nativePtr, long columnKey);
+
     protected native void nativeSetLong(long nativeRowPtr, long columnKey, long value);
 
     protected native void nativeSetBoolean(long nativeRowPtr, long columnKey, boolean value);
@@ -428,6 +442,8 @@ public class UncheckedRow implements NativeObject, Row {
     protected native void nativeSetObjectId(long nativePtr, long columnKey, String value);
 
     protected native void nativeSetUUID(long nativePtr, long columnKey, String value);
+
+    protected native void nativeSetRealmAny(long nativeRowPtr, long columnKey, long nativePtr);
 
     protected native void nativeSetLink(long nativeRowPtr, long columnKey, long value);
 

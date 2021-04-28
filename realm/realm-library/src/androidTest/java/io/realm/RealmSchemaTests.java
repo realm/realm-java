@@ -41,7 +41,6 @@ import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.internal.Table;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

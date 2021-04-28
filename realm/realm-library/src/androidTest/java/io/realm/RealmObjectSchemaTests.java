@@ -38,7 +38,6 @@ import io.realm.entities.CyclicType;
 import io.realm.entities.Dog;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.internal.Table;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -127,7 +126,8 @@ public class RealmObjectSchemaTests {
         OBJECT_ID(ObjectId.class, true),
         DECIMAL128(Decimal128.class, true),
         UUID(UUID.class, true),
-        OBJECT(RealmObject.class, false);
+        OBJECT(RealmObject.class, false),
+        MIXED(RealmAny.class, true);
 
         final Class<?> clazz;
         final boolean defaultNullable;
@@ -161,6 +161,7 @@ public class RealmObjectSchemaTests {
         OBJECT_ID_LIST(ObjectId.class, true),
         DECIMAL128_LIST(Decimal128.class, true),
         UUID_LIST(UUID.class, true),
+        MIXED_LIST(RealmAny.class, true),
         LIST(RealmList.class, false); // List of Realm Objects
 
         final Class<?> clazz;
@@ -187,6 +188,9 @@ public class RealmObjectSchemaTests {
         LONG(Long.class, true), PRIMITIVE_LONG(long.class, false),
         BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false),
         BOOLEAN(Boolean.class, true), PRIMITIVE_BOOLEAN(boolean.class, false),
+        OBJECT_ID(ObjectId.class, true),
+        UUID(UUID.class, true),
+        MIXED(RealmAny.class, true),
         DATE(Date.class, true);
 
         private final Class<?> clazz;
@@ -230,7 +234,9 @@ public class RealmObjectSchemaTests {
         SHORT(Short.class, true), PRIMITIVE_SHORT(short.class, false),
         INT(Integer.class, true), PRIMITIVE_INT(int.class, false),
         LONG(Long.class, true), PRIMITIVE_LONG(long.class, false),
-        BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false);
+        BYTE(Byte.class, true), PRIMITIVE_BYTE(byte.class, false),
+        OBJECT_ID(ObjectId.class, true),
+        UUID(UUID.class, true);
 
         private final Class<?> clazz;
         private final boolean nullable;
@@ -255,6 +261,8 @@ public class RealmObjectSchemaTests {
         DOUBLE(Double.class), PRIMITIVE_DOUBLE(double.class),
         BLOB(byte[].class),
         DATE(Date.class),
+        DECIMAL128(Decimal128.class),
+        MIXED(RealmAny.class),
         OBJECT(RealmObject.class),
         LIST(RealmList.class);
 
@@ -421,7 +429,9 @@ public class RealmObjectSchemaTests {
         String fieldName = "foo";
         for (FieldType fieldType : FieldType.values()) {
             switch (fieldType) {
-                case OBJECT: continue; // Not possible.
+                case OBJECT:
+                case MIXED:
+                    continue; // Not possible.
                 default:
                     // All simple types
                     schema.addField(fieldName, fieldType.getType(), FieldAttribute.REQUIRED);
@@ -432,6 +442,7 @@ public class RealmObjectSchemaTests {
         for (FieldListType fieldType : FieldListType.values()) {
             switch(fieldType) {
                 case LIST:
+                case MIXED_LIST:
                     continue; // Not possible.
                 default:
                     // All simple list types
@@ -498,6 +509,8 @@ public class RealmObjectSchemaTests {
                 case SHORT:
                 case INT:
                 case LONG:
+                case OBJECT_ID:
+                case UUID:
                 case STRING:
                     assertTrue(schema.isNullable(fieldName));
                     break;
@@ -648,6 +661,7 @@ public class RealmObjectSchemaTests {
         for (FieldType fieldType : FieldType.values()) {
             switch (fieldType) {
                 case OBJECT:
+                case MIXED:
                     // Objects are always nullable and cannot be changed.
                     schema.addRealmObjectField(fieldName, schema);
                     assertTrue(schema.isNullable(fieldName));
@@ -669,6 +683,7 @@ public class RealmObjectSchemaTests {
         for (FieldListType fieldType : FieldListType.values()) {
             switch (fieldType) {
                 case LIST:
+                case MIXED_LIST:
                     // Lists are not nullable and cannot be configured to be so.
                     schema.addRealmListField(fieldName, schema);
                     assertFalse(schema.isNullable(fieldName));
@@ -700,6 +715,7 @@ public class RealmObjectSchemaTests {
         for (FieldType fieldType : FieldType.values()) {
             switch (fieldType) {
                 case OBJECT:
+                case MIXED:
                     // Objects are always nullable and cannot be configured otherwise.
                     schema.addRealmObjectField(fieldName, schema);
                     assertFalse(schema.isRequired((fieldName)));
@@ -721,6 +737,7 @@ public class RealmObjectSchemaTests {
         for (FieldListType fieldType : FieldListType.values()) {
             switch (fieldType) {
                 case LIST:
+                case MIXED_LIST:
                     // Lists are always non-nullable and cannot be configured otherwise.
                     schema.addRealmListField(fieldName, schema);
                     assertTrue(schema.isRequired((fieldName)));
@@ -752,6 +769,7 @@ public class RealmObjectSchemaTests {
             String fieldName = fieldType.name();
             switch (fieldType) {
                 case OBJECT:
+                case MIXED:
                     // Skip always nullable fields
                     break;
                 default:
@@ -839,6 +857,7 @@ public class RealmObjectSchemaTests {
                 case PRIMITIVE_FLOAT_LIST:
                 case PRIMITIVE_DOUBLE_LIST:
                 case PRIMITIVE_SHORT_LIST:
+                case MIXED_LIST:
                     // Skip not-nullable fields
                     break;
                 default:
@@ -949,8 +968,18 @@ public class RealmObjectSchemaTests {
             } else {
                 schema.addField(fieldName, fieldType.getType(), FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED);
             }
-            ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
-            ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
+
+            if(fieldType == PrimaryKeyFieldType.OBJECT_ID){
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateObjectIdHexString(1));
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateObjectIdHexString(2));
+            } else if(fieldType == PrimaryKeyFieldType.UUID){
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateUUIDString(1));
+                ((DynamicRealm)realm).createObject(schema.getClassName(), TestHelper.generateUUIDString(2));
+            } else {
+                ((DynamicRealm)realm).createObject(schema.getClassName(), "1");
+                ((DynamicRealm)realm).createObject(schema.getClassName(), "2");
+            }
+
             assertTrue(schema.hasPrimaryKey());
             assertFalse(schema.hasIndex(fieldName));
 
@@ -963,6 +992,12 @@ public class RealmObjectSchemaTests {
             if (fieldType == PrimaryKeyFieldType.STRING) {
                 assertEquals("1", results.get(0).getString(fieldName));
                 assertEquals("2", results.get(1).getString(fieldName));
+            } else if (fieldType == PrimaryKeyFieldType.OBJECT_ID) {
+                assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(1)), results.get(0).getObjectId(fieldName));
+                assertEquals(new ObjectId(TestHelper.generateObjectIdHexString(2)), results.get(1).getObjectId(fieldName));
+            } else if (fieldType == PrimaryKeyFieldType.UUID) {
+                assertEquals(UUID.fromString(TestHelper.generateUUIDString(1)), results.get(0).getUUID(fieldName));
+                assertEquals(UUID.fromString(TestHelper.generateUUIDString(2)), results.get(1).getUUID(fieldName));
             } else {
                 assertEquals(1, results.get(0).getLong(fieldName));
                 assertEquals(2, results.get(1).getLong(fieldName));
@@ -990,7 +1025,7 @@ public class RealmObjectSchemaTests {
     private void setRequired_onIndexedField(boolean toRequired) {
         String fieldName = "IndexedField";
         for (IndexFieldType fieldType : IndexFieldType.values()) {
-            if (!fieldType.isNullable()) {
+            if (!fieldType.isNullable() || (fieldType == IndexFieldType.MIXED)) {
                 continue;
             }
             if (toRequired) {
@@ -1326,6 +1361,7 @@ public class RealmObjectSchemaTests {
         assertEquals(RealmFieldType.OBJECT_ID, schema.getFieldType(AllJavaTypes.FIELD_OBJECT_ID));
         assertEquals(RealmFieldType.DECIMAL128, schema.getFieldType(AllJavaTypes.FIELD_DECIMAL128));
         assertEquals(RealmFieldType.UUID, schema.getFieldType(AllJavaTypes.FIELD_UUID));
+        assertEquals(RealmFieldType.MIXED, schema.getFieldType(AllJavaTypes.FIELD_MIXED));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -1421,7 +1457,17 @@ public class RealmObjectSchemaTests {
 
             // Hackish way to add sample data, only treat string differently
             for (int i = 0; i < 5; i++) {
-                Object primaryKeyValue = (fieldType.getType() == String.class) ? Integer.toString(i) : i;
+                Object primaryKeyValue;
+                if (fieldType == PrimaryKeyFieldType.STRING) {
+                    primaryKeyValue = Integer.toString(i);
+                } else if (fieldType == PrimaryKeyFieldType.OBJECT_ID) {
+                    primaryKeyValue = new ObjectId(TestHelper.generateObjectIdHexString(i));
+                } else if (fieldType == PrimaryKeyFieldType.UUID) {
+                    primaryKeyValue = UUID.fromString(TestHelper.generateUUIDString(i));
+                } else {
+                    primaryKeyValue = i;
+                }
+
                 dynRealm.createObject(className, primaryKeyValue);
             }
 

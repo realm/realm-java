@@ -22,6 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.annotations.Ignore;
@@ -45,6 +46,8 @@ public class DefaultValueOfField extends RealmObject {
     public static final String FIELD_DATE = "fieldDate";
     public static final String FIELD_OBJECT_ID = "fieldObjectId";
     public static final String FIELD_DECIMAL128 = "fieldDecimal128";
+    public static final String FIELD_UUID = "fieldUUID";
+    public static final String FIELD_MIXED = "fieldRealmAny";
     public static final String FIELD_BINARY = "fieldBinary";
     public static final String FIELD_OBJECT = "fieldObject";
     public static final String FIELD_LIST = "fieldList";
@@ -64,6 +67,8 @@ public class DefaultValueOfField extends RealmObject {
     public static final byte[] FIELD_BINARY_DEFAULT_VALUE = new byte[] {123, -100, 0, 2};
     public static final ObjectId FIELD_OBJECT_ID_DEFAULT_VALUE = new ObjectId(new Date(10));
     public static final Decimal128 FIELD_DECIMAL128_DEFAULT_VALUE = new Decimal128(10);
+    public static final UUID FIELD_UUID_DEFAULT_VALUE = UUID.randomUUID();
+    public static final RealmAny FIELD_MIXED_DEFAULT_VALUE = RealmAny.valueOf((float) 10);
     public static final RandomPrimaryKey FIELD_OBJECT_DEFAULT_VALUE;
     public static final RealmList<RandomPrimaryKey> FIELD_LIST_DEFAULT_VALUE;
     public static final RealmList<String> FIELD_STRING_LIST_DEFAULT_VALUE;
@@ -78,6 +83,8 @@ public class DefaultValueOfField extends RealmObject {
     public static final RealmList<Date> FIELD_DATE_LIST_DEFAULT_VALUE;
     public static final RealmList<ObjectId> FIELD_OBJECT_ID_LIST_DEFAULT_VALUE;
     public static final RealmList<Decimal128> FIELD_DECIMAL128_LIST_DEFAULT_VALUE;
+    public static final RealmList<UUID> FIELD_UUID_LIST_DEFAULT_VALUE;
+    public static final RealmList<RealmAny> FIELD_MIXED_LIST_DEFAULT_VALUE;
 
     static {
         FIELD_OBJECT_DEFAULT_VALUE = new RandomPrimaryKey();
@@ -96,6 +103,8 @@ public class DefaultValueOfField extends RealmObject {
         FIELD_DATE_LIST_DEFAULT_VALUE = new RealmList<>(new Date(1));
         FIELD_OBJECT_ID_LIST_DEFAULT_VALUE = new RealmList<>(new ObjectId(new Date(10)));
         FIELD_DECIMAL128_LIST_DEFAULT_VALUE = new RealmList<>(new Decimal128(10));
+        FIELD_UUID_LIST_DEFAULT_VALUE = new RealmList<>(UUID.randomUUID());
+        FIELD_MIXED_LIST_DEFAULT_VALUE = new RealmList<>(RealmAny.valueOf((float) 10));
     }
 
     public static String lastRandomStringValue;
@@ -118,6 +127,8 @@ public class DefaultValueOfField extends RealmObject {
     private RandomPrimaryKey fieldObject = FIELD_OBJECT_DEFAULT_VALUE;
     private ObjectId fieldObjectId = FIELD_OBJECT_ID_DEFAULT_VALUE;
     private Decimal128 fieldDecimal128 = FIELD_DECIMAL128_DEFAULT_VALUE;
+    private UUID fieldUUID = FIELD_UUID_DEFAULT_VALUE;
+    private RealmAny fieldRealmAny = FIELD_MIXED_DEFAULT_VALUE;
 
     private RealmList<RandomPrimaryKey> fieldList = FIELD_LIST_DEFAULT_VALUE;
     private RealmList<String> fieldStringList = FIELD_STRING_LIST_DEFAULT_VALUE;
@@ -132,6 +143,8 @@ public class DefaultValueOfField extends RealmObject {
     private RealmList<Date> fieldDateList = FIELD_DATE_LIST_DEFAULT_VALUE;
     private RealmList<ObjectId> fieldObjectIdList = FIELD_OBJECT_ID_LIST_DEFAULT_VALUE;
     private RealmList<Decimal128> fieldDecimal128List = FIELD_DECIMAL128_LIST_DEFAULT_VALUE;
+    private RealmList<UUID> fieldUUIDList = FIELD_UUID_LIST_DEFAULT_VALUE;
+    private RealmList<RealmAny> fieldRealmAnyList = FIELD_MIXED_LIST_DEFAULT_VALUE;
 
     public DefaultValueOfField() {
     }
@@ -268,6 +281,22 @@ public class DefaultValueOfField extends RealmObject {
         this.fieldDecimal128 = fieldDecimal128;
     }
 
+    public UUID getFieldUUID() {
+        return fieldUUID;
+    }
+
+    public void setFieldUUID(UUID fieldUUID) {
+        this.fieldUUID = fieldUUID;
+    }
+
+    public RealmAny getFieldRealmAny() {
+        return fieldRealmAny;
+    }
+
+    public void setFieldRealmAny(RealmAny fieldRealmAny) {
+        this.fieldRealmAny = fieldRealmAny;
+    }
+
     public RealmList<RandomPrimaryKey> getFieldList() {
         return fieldList;
     }
@@ -370,5 +399,21 @@ public class DefaultValueOfField extends RealmObject {
 
     public void setFieldDecimal128List(RealmList<Decimal128> fieldDecimal128List) {
         this.fieldDecimal128List = fieldDecimal128List;
+    }
+
+    public RealmList<UUID> getFieldUUIDList() {
+        return fieldUUIDList;
+    }
+
+    public void setFieldUUIDList(RealmList<UUID> fieldUUIDList) {
+        this.fieldUUIDList = fieldUUIDList;
+    }
+
+    public RealmList<RealmAny> getFieldRealmAnyList() {
+        return fieldRealmAnyList;
+    }
+
+    public void setFieldRealmAnyList(RealmList<RealmAny> fieldRealmAnyList) {
+        this.fieldRealmAnyList = fieldRealmAnyList;
     }
 }

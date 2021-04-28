@@ -208,41 +208,35 @@ public class LinkingObjectsQueryTests extends QueryTests {
 
     @Test
     public void isNull_unsupported() {
-        long result;
-
         // Tests for other unsupported null types are in RealmQueryTests
-
         try {
-            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_OBJECT).count();
+            realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_OBJECT);
             fail("isNull should throw on type LINKING_OBJECT(14) targeting an OBJECT");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: LinkingObject from field fieldObjectNull is not nullable.", expected.getMessage());
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.NullTypes.fieldObjectNull')"));
         }
         try {
-            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_LIST).count();
+            realm.where(NullTypes.class).isNull(NullTypes.FIELD_LO_LIST);
             fail("isNull should throw on type LINKING_OBJECT(14) targeting a LIST");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: LinkingObject from field fieldListNull is not nullable.", expected.getMessage());
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.NullTypes.fieldListNull')"));
         }
     }
 
     @Test
     public void isNull_unsupportedLinkedTypes() {
-        RealmQuery<NullTypes> result;
-
         // Tests for other unsupported null types are in RealmQueryTests
-
         try {
-            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT);
+            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT);
             fail("isNull should throw on nested linked fields (LINKING_OBJECT => OBJECT)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: LinkingObject from field fieldObjectNull is not nullable.", expected.getMessage());
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.NullTypes.fieldObjectNull') with NULL"));
         }
         try {
-            result = realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST);
+            realm.where(NullTypes.class).isNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST);
             fail("isNull should throw on nested linked fields (LINKING_OBJECT => LIST)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: LinkingObject from field fieldListNull is not nullable.", expected.getMessage());
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.NullTypes.fieldListNull') with NULL"));
         }
     }
 
@@ -335,41 +329,36 @@ public class LinkingObjectsQueryTests extends QueryTests {
 
     @Test
     public void isNotNull_unsupported() {
-        long result;
-
         // Tests for other unsupported not null types are in RealmQueryTests
 
         try {
-            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_OBJECT).count();
+            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_OBJECT);
             fail("isNotNull should throw on type LINKING_OBJECT(14) targeting an OBJECT");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: LinkingObject from field fieldObjectNull is not nullable.", expected.getMessage());
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.NullTypes.fieldObjectNull')"));
         }
         try {
-            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_LIST).count();
+            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_LO_LIST);
             fail("isNotNull should throw on type LINKING_OBJECT(14) targeting a LIST");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: LinkingObject from field fieldListNull is not nullable.", expected.getMessage());
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('@links.NullTypes.fieldListNull')"));
         }
     }
 
     @Test
     public void isNotNull_unsupportedLinkedTypes() {
-        RealmQuery<NullTypes> result;
-
         // Tests for other unsupported not null types are in RealmQueryTests
-
         try {
-            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT);
+            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_OBJECT);
             fail("isNotNull should throw on nested linked fields (LINKING_OBJECT => OBJECT)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: LinkingObject from field fieldObjectNull is not nullable.", expected.getMessage());
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.NullTypes.fieldObjectNull')"));
         }
         try {
-            result = realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST);
+            realm.where(NullTypes.class).isNotNull(NullTypes.FIELD_OBJECT_NULL + "." + NullTypes.FIELD_LO_LIST);
             fail("isNotNull should throw on nested linked fields (LINKING_OBJECT => LIST)");
         } catch (IllegalArgumentException expected) {
-            assertEquals("Illegal Argument: LinkingObject from field fieldListNull is not nullable.", expected.getMessage());
+            assertTrue(expected.getMessage().contains("Illegal Argument: Cannot compare linklist ('fieldObjectNull.@links.NullTypes.fieldListNull'"));
         }
     }
 
@@ -447,6 +436,42 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_OBJECT).count());
                     assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
+                case OBJECT:
+                    assertEquals(1, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_OBJECT).count());
+                    break;
+                case INTEGER_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_INTEGER_LIST).count());
+                    break;
+                case BOOLEAN_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN_LIST).count());
+                    break;
+                case STRING_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_STRING_LIST).count());
+                    break;
+                case BINARY_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BINARY_LIST).count());
+                    break;
+                case DATE_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DATE_LIST).count());
+                    break;
+                case FLOAT_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_FLOAT_LIST).count());
+                    break;
+                case DOUBLE_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DOUBLE_LIST).count());
+                    break;
+                case DECIMAL128_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DECIMAL128_LIST).count());
+                    break;
+                case OBJECT_ID_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_OBJECT_ID_LIST).count());
+                    break;
+                case UUID_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_UUID_LIST).count());
+                    break;
+                case MIXED_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -483,6 +508,42 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     // Step 2: now checking Row 2
                     // Row 0 included: goes to Row 1 where FIELD_LO_LIST.count() == 0
                     assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_LIST).count());
+                    break;
+                case OBJECT:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_OBJECT).count());
+                    break;
+                case INTEGER_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_INTEGER_LIST).count());
+                    break;
+                case BOOLEAN_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BOOLEAN_LIST).count());
+                    break;
+                case STRING_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING_LIST).count());
+                    break;
+                case BINARY_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY_LIST).count());
+                    break;
+                case DATE_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DATE_LIST).count());
+                    break;
+                case FLOAT_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_FLOAT_LIST).count());
+                    break;
+                case DOUBLE_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DOUBLE_LIST).count());
+                    break;
+                case DECIMAL128_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DECIMAL128_LIST).count());
+                    break;
+                case OBJECT_ID_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_OBJECT_ID_LIST).count());
+                    break;
+                case UUID_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_UUID_LIST).count());
+                    break;
+                case MIXED_LIST:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -548,6 +609,42 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     // Row 2: No backlink; not empty
                     assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_LO_LIST).count());
                     break;
+                case OBJECT:
+                    assertEquals(2, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_OBJECT).count());
+                    break;
+                case INTEGER_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_INTEGER_LIST).count());
+                    break;
+                case BOOLEAN_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BOOLEAN_LIST).count());
+                    break;
+                case STRING_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_STRING_LIST).count());
+                    break;
+                case BINARY_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_BINARY_LIST).count());
+                    break;
+                case DATE_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DATE_LIST).count());
+                    break;
+                case FLOAT_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_FLOAT_LIST).count());
+                    break;
+                case DOUBLE_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DOUBLE_LIST).count());
+                    break;
+                case DECIMAL128_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_DECIMAL128_LIST).count());
+                    break;
+                case OBJECT_ID_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_OBJECT_ID_LIST).count());
+                    break;
+                case UUID_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_UUID_LIST).count());
+                    break;
+                case MIXED_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_OBJECT + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
+                    break;
                 default:
                     fail("Unknown type: " + type);
             }
@@ -582,6 +679,42 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     // Row 1: Backlink list to row 2, empty backlink list; not included
                     // Row 2: Empty backlink list; not included
                     assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_LO_LIST).count());
+                    break;
+                case OBJECT:
+                    assertEquals(1, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_OBJECT).count());
+                    break;
+                case INTEGER_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_INTEGER_LIST).count());
+                    break;
+                case BOOLEAN_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BOOLEAN_LIST).count());
+                    break;
+                case STRING_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_STRING_LIST).count());
+                    break;
+                case BINARY_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_BINARY_LIST).count());
+                    break;
+                case DATE_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DATE_LIST).count());
+                    break;
+                case FLOAT_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_FLOAT_LIST).count());
+                    break;
+                case DOUBLE_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DOUBLE_LIST).count());
+                    break;
+                case DECIMAL128_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_DECIMAL128_LIST).count());
+                    break;
+                case OBJECT_ID_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_OBJECT_ID_LIST).count());
+                    break;
+                case UUID_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_UUID_LIST).count());
+                    break;
+                case MIXED_LIST:
+                    assertEquals(0, realm.where(AllJavaTypes.class).isNotEmpty(AllJavaTypes.FIELD_LO_LIST + "." + AllJavaTypes.FIELD_MIXED_LIST).count());
                     break;
                 default:
                     fail("Unknown type: " + type);

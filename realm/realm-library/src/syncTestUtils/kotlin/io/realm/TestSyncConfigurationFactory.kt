@@ -23,7 +23,6 @@ import io.realm.mongodb.sync.SyncConfigurationExt
 import org.bson.BsonValue;
 
 import io.realm.mongodb.sync.testSessionStopPolicy
-import io.realm.rule.TestRealmConfigurationFactory
 
 /**
  * Test rule used for creating SyncConfigurations. Will ensure that any Realm files are deleted when the

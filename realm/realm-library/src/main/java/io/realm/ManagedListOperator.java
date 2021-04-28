@@ -34,6 +34,8 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
+import io.realm.internal.core.NativeRealmAny;
+
 
 /**
  * This class provides facade for against {@link OsList}. {@link OsList} is used for both {@link RealmModel}s
@@ -81,6 +83,13 @@ abstract class ManagedListOperator<T> {
 
     protected abstract void checkValidValue(@Nullable Object value);
 
+    protected void checkInsertIndex(int index) {
+        final int size = size();
+        if (index < 0 || size < index) {
+            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
+        }
+    }
+
     @Nullable
     public abstract T get(int index);
 
@@ -100,7 +109,7 @@ abstract class ManagedListOperator<T> {
 
     protected abstract void appendValue(Object value);
 
-    public final void insert(int index, @Nullable Object value) {
+    public final void insert(int index, @Nullable T value) {
         checkValidValue(value);
 
         if (value == null) {
@@ -197,13 +206,6 @@ final class RealmModelListOperator<T> extends ManagedListOperator<T> {
                     String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
                             "java.lang.String",
                             value.getClass().getName()));
-        }
-    }
-
-    private void checkInsertIndex(int index) {
-        final int size = size();
-        if (index < 0 || size < index) {
-            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
         }
     }
 
@@ -856,5 +858,117 @@ final class UUIDListOperator extends ManagedListOperator<UUID> {
     @Override
     protected void setValue(int index, Object value) {
         osList.setUUID(index, (UUID) value);
+    }
+}
+
+/**
+ * A subclass of {@link ManagedListOperator} that deal with {@link RealmAny} list field.
+ */
+final class RealmAnyListOperator extends ManagedListOperator<RealmAny> {
+
+    RealmAnyListOperator(BaseRealm realm, OsList osList, Class<RealmAny> clazz) {
+        super(realm, osList, clazz);
+    }
+
+    @Override
+    public boolean forRealmModel() {
+        return false;
+    }
+
+    @Override
+    public RealmAny get(int index) {
+        NativeRealmAny nativeRealmAny = (NativeRealmAny) osList.getValue(index);
+        nativeRealmAny = (nativeRealmAny == null) ? new NativeRealmAny() : nativeRealmAny;
+        return new RealmAny(RealmAnyOperator.fromNativeRealmAny(realm, nativeRealmAny));
+    }
+
+    @Override
+    protected void checkValidValue(@Nullable Object value) {
+        if (value == null) {
+            // null is always valid (but schema may reject null on insertion).
+            return;
+        }
+        if (!(value instanceof RealmAny)) {
+            throw new IllegalArgumentException(
+                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
+                            "java.util.RealmAny",
+                            value.getClass().getName()));
+        }
+    }
+
+    @Override
+    public void appendValue(Object value) {
+        RealmAny realmAny = (RealmAny) value;
+        realmAny = copyToRealmIfNeeded(realmAny);
+        osList.addRealmAny(realmAny.getNativePtr());
+    }
+
+    @Override
+    public void insertValue(int index, Object value) {
+        checkInsertIndex(index);
+
+        RealmAny realmAny = (RealmAny) value;
+        realmAny = copyToRealmIfNeeded(realmAny);
+        osList.insertRealmAny(index, realmAny.getNativePtr());
+    }
+
+    @Override
+    protected void setValue(int index, Object value) {
+        RealmAny realmAny = (RealmAny) value;
+
+        realmAny = copyToRealmIfNeeded(realmAny);
+        osList.setRealmAny(index, realmAny.getNativePtr());
+    }
+
+    @SuppressWarnings("unchecked")
+    private RealmAny copyToRealmIfNeeded(RealmAny realmAny) {
+        if (realmAny.getType() == RealmAny.Type.OBJECT) {
+            Class<? extends RealmModel> objectClass = (Class<? extends RealmModel>) realmAny.getValueClass();
+            RealmModel object = realmAny.asRealmModel(objectClass);
+
+            if (object instanceof RealmObjectProxy) {
+                RealmObjectProxy proxy = (RealmObjectProxy) object;
+                if (proxy instanceof DynamicRealmObject) {
+                    if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
+                        return realmAny;
+                    } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
+                        // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
+                        // you have to run a full schema validation for each object.
+                        // And copying from another Realm instance pointed to the same Realm file is not supported as well.
+                        throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
+                    } else {
+                        throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
+                    }
+                } else {
+                    if (realm.getSchema().getSchemaForClass(objectClass).isEmbedded()) {
+                        throw new IllegalArgumentException("Embedded objects are not supported by RealmAny.");
+                    }
+
+                    // Object is already in this realm
+                    if ((proxy.realmGet$proxyState().getRow$realm() != null) && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
+                        if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
+                            throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+                        }
+                        return realmAny;
+                    }
+                }
+            }
+
+            return RealmAny.valueOf(copyToRealm(object));
+        }
+
+        return realmAny;
+    }
+
+    // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
+    private <E extends RealmModel> E copyToRealm(E object) {
+        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
+        Realm realm = (Realm) this.realm;
+        if (OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(),
+                realm.getConfiguration().getSchemaMediator().getSimpleClassName(object.getClass())) != null) {
+            return realm.copyToRealmOrUpdate(object);
+        } else {
+            return realm.copyToRealm(object);
+        }
     }
 }

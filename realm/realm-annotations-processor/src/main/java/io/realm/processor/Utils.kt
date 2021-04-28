@@ -36,6 +36,7 @@ object Utils {
     private lateinit var typeUtils: Types
     private lateinit var messager: Messager
     private lateinit var realmInteger: TypeMirror
+    private lateinit var realmAny: TypeMirror
     private lateinit var realmList: DeclaredType
     private lateinit var realmResults: DeclaredType
     private lateinit var markerInterface: DeclaredType
@@ -46,6 +47,7 @@ object Utils {
         typeUtils = env.typeUtils
         messager = env.messager
         realmInteger = elementUtils.getTypeElement("io.realm.MutableRealmInteger").asType()
+        realmAny = elementUtils.getTypeElement("io.realm.RealmAny").asType()
         realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null))
         realmResults = typeUtils.getDeclaredType(env.elementUtils.getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null))
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
@@ -193,6 +195,13 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmAny`, `false` otherwise.
+     */
+    fun isRealmAny(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), realmAny)
+    }
+
+    /**
      * @return `true` if a given field type is `RealmList`, `false` otherwise.
      */
     fun isRealmList(field: VariableElement): Boolean {
@@ -218,12 +227,21 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmList` and its element type is `RealmAny`,
+     * `false` otherwise.
+     */
+    fun isRealmAnyList(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field) ?: return false
+        return isRealmAny(elementTypeMirror)
+    }
+
+    /**
      * @return `true` if a given field type is `RealmList` and its element type is value type,
      * `false` otherwise.
      */
     fun isRealmValueList(field: VariableElement): Boolean {
         val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field) ?: return false
-        return !isRealmModel(elementTypeMirror)
+        return !isRealmModel(elementTypeMirror) && !isRealmAny(elementTypeMirror)
     }
 
     /**
@@ -258,6 +276,11 @@ object Utils {
         //        }
         //        return false;
     }
+
+    /**
+     * @return `true` if a given type is `RealmAny`, `false` otherwise.
+     */
+    fun isRealmAny(type: TypeMirror?) = typeUtils.isAssignable(type, realmAny)
 
     fun isRealmResults(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmResults)

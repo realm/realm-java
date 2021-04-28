@@ -9,6 +9,7 @@ import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.NativeContext;
 import io.realm.internal.OsList;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
@@ -18,6 +19,7 @@ import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -25,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -712,6 +715,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
         }
         some_test_EmbeddedClassSimpleParentRealmProxyInterface unmanagedCopy = (some_test_EmbeddedClassSimpleParentRealmProxyInterface) unmanagedObject;
         some_test_EmbeddedClassSimpleParentRealmProxyInterface realmSource = (some_test_EmbeddedClassSimpleParentRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$id(realmSource.realmGet$id());
 
         // Deep copy of child

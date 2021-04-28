@@ -41,7 +41,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.Assert.assertArrayEquals;

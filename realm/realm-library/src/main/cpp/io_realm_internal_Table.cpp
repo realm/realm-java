@@ -21,6 +21,7 @@
 #include "io_realm_internal_Table.h"
 
 #include "java_accessor.hpp"
+#include "java_object_accessor.hpp"
 #include "java_exception_def.hpp"
 #include <realm/object-store/shared_realm.hpp>
 #include "jni_util/java_exception_thrower.hpp"
@@ -46,12 +47,13 @@ inline static bool is_allowed_to_index(JNIEnv* env, DataType column_type)
            || column_type == type_Timestamp
            || column_type == type_OldDateTime
            || column_type == type_ObjectId
-           || column_type == type_UUID) {
+           || column_type == type_UUID
+           || column_type == type_Mixed) {
         return true;
     }
 
     ThrowException(env, IllegalArgument, "This field cannot be indexed - "
-                                         "Only String/byte/short/int/long/boolean/Date/ObjectId fields are supported.");
+                                         "Only String/byte/short/int/long/boolean/Date/ObjectId/UUID/Mixed fields are supported.");
     return false;
 }
 
@@ -439,7 +441,20 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsNull(JNIEnv*, jo
     return to_jbool(table->get_object(ObjKey(rowKey)).is_null(ColKey(columnKey))); // noexcept
 }
 
-// ----------------- Set cell
+JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetRealmAny(JNIEnv* env, jclass, jlong nativeTableRefPtr,
+                                                                  jlong columnKey, jlong rowKey, jlong nativePtr,
+                                                                  jboolean isDefault)
+{
+    TableRef table = TBL_REF(nativeTableRefPtr);
+    if (!TYPE_VALID(env, table, columnKey, col_type_Mixed)) {
+        return;
+    }
+    try {
+        auto java_value = *reinterpret_cast<JavaValue *>(nativePtr);
+        table->get_object(ObjKey(rowKey)).set<Mixed>(ColKey(columnKey), java_value.to_mixed(), B(isDefault));
+    }
+    CATCH_STD()
+}
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetLink(JNIEnv* env, jclass, jlong nativeTableRefPtr,
                                                                   jlong columnKey, jlong rowKey,
@@ -586,8 +601,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetByteArray(JNIEnv* e
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_Table_nativeSetDecimal128(JNIEnv* env, jclass, jlong nativeTableRefPtr,
-                                                                    jlong columnKey, jlong rowKey, jlong low,
-                                                                    jlong high, jboolean isDefault)
+                                                                        jlong columnKey, jlong rowKey, jlong low,
+                                                                        jlong high, jboolean isDefault)
 {
     TableRef table = TBL_REF(nativeTableRefPtr);
     if (!TYPE_VALID(env, table, columnKey, col_type_Decimal)) {
@@ -791,6 +806,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeWhere(JNIEnv* env, jo
     try {
         TableRef table = TBL_REF(nativeTableRefPtr);
         Query* queryPtr = new Query(table->where());
+        queryPtr->set_ordering(std::make_unique<DescriptorOrdering>());
         return reinterpret_cast<jlong>(queryPtr);
     }
     CATCH_STD()

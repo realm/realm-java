@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmError;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;

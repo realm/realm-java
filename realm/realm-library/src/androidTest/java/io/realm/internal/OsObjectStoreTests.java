@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import io.realm.RealmConfiguration;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

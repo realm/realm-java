@@ -49,6 +49,7 @@ object RealmJsonTypeHelper {
         m[QualifiedClassName("org.bson.types.Decimal128")] = Decimal128TypeConverter()
         m[QualifiedClassName("org.bson.types.ObjectId")] = ObjectIdTypeConverter()
         m[QualifiedClassName("java.util.UUID")] = UUIDTypeConverter()
+        m[QualifiedClassName("io.realm.RealmAny")] = RealmAnyTypeConverter()
         m[QualifiedClassName("io.realm.MutableRealmInteger")] = MutableRealmIntegerTypeConverter()
         JAVA_TO_JSON_TYPES = Collections.unmodifiableMap(m)
     }
@@ -471,6 +472,66 @@ object RealmJsonTypeHelper {
         }
     }
 
+    private class RealmAnyTypeConverter() : JsonToRealmFieldTypeConverter {
+        @Throws(IOException::class)
+        override fun emitTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter) {
+            writer.apply {
+                beginControlFlow("if (json.has(\"${fieldName}\"))")
+                    beginControlFlow("if (json.isNull(\"${fieldName}\"))")
+                        emitStatement("${varName}.${accessor}(null)")
+                    nextControlFlow("else")
+                        emitStatement("Object value = json.get(\"${fieldName}\")")
+
+                        emitStatement("RealmAny realmAny")
+
+                        beginControlFlow("if (value instanceof String)")
+                            emitStatement("realmAny = RealmAny.valueOf((String) value)")
+                        nextControlFlow("else if (value instanceof Integer)")
+                            emitStatement("realmAny = RealmAny.valueOf((Integer) value)")
+                        nextControlFlow("else if (value instanceof Long)")
+                            emitStatement("realmAny = RealmAny.valueOf((Long) value)")
+                        nextControlFlow("else if (value instanceof Double)")
+                            emitStatement("realmAny = RealmAny.valueOf((Double) value)")
+                        nextControlFlow("else if (value instanceof Boolean)")
+                            emitStatement("realmAny = RealmAny.valueOf((Boolean) value)")
+                        nextControlFlow("else if (value instanceof RealmAny)")
+                            emitStatement("realmAny = (io.realm.RealmAny) value")
+                            emitStatement("realmAny = ProxyUtils.copyOrUpdate(realmAny, realm, update, new HashMap<>(), new HashSet<>())")
+                        nextControlFlow("else")
+                            emitStatement("throw new IllegalArgumentException(String.format(\"Unsupported JSON type: %%s\", value.getClass().getSimpleName()))")
+                        endControlFlow()
+                        emitStatement("${varName}.${accessor}(realmAny)")
+                    endControlFlow()
+                endControlFlow()
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun emitStreamTypeConversion(varName: String, accessor: String, fieldName: String, fieldType: QualifiedClassName, writer: JavaWriter, isPrimaryKey: Boolean) {
+            writer.apply {
+                beginControlFlow("if (reader.peek() == JsonToken.NULL)")
+                    emitStatement("reader.skipValue()")
+                    emitStatement("${varName}.${accessor}(RealmAny.nullValue())")
+                nextControlFlow("else if (reader.peek() == JsonToken.STRING)")
+                    emitStatement("${varName}.${accessor}(RealmAny.valueOf(reader.nextString()))")
+                nextControlFlow("else if (reader.peek() == JsonToken.NUMBER)")
+                    emitStatement("String value = reader.nextString()")
+                    beginControlFlow("if (value.contains(\".\"))")
+                        emitStatement("${varName}.${accessor}(RealmAny.valueOf(Double.parseDouble(value)))")
+                    nextControlFlow("else")
+                        emitStatement("${varName}.${accessor}(RealmAny.valueOf(Long.parseLong(value)))")
+                    endControlFlow()
+                nextControlFlow("else if (reader.peek() == JsonToken.BOOLEAN)")
+                    emitStatement("${varName}.${accessor}(RealmAny.valueOf(reader.nextBoolean()))")
+                endControlFlow()
+            }
+        }
+
+        @Throws(IOException::class)
+        override fun emitGetObjectWithPrimaryKeyValue(realmObjectClass: QualifiedClassName, realmObjectProxyClass: QualifiedClassName, fieldName: String, writer: JavaWriter) {
+            throw IllegalArgumentException("'RealmAny' is not allowed as a primary key value.")
+        }
+    }
 
     private class MutableRealmIntegerTypeConverter : JsonToRealmFieldTypeConverter {
         @Throws(IOException::class)

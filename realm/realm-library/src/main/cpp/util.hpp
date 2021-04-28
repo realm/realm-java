@@ -91,6 +91,7 @@ enum ExceptionKind {
     // crash hard in native code and fix it.
     ClassNotFound = 0,
     IllegalArgument,
+    IllegalFormatException,
     IndexOutOfBounds,
     UnsupportedOperation,
     OutOfMemory,

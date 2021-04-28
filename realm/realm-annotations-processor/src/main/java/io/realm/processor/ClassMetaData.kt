@@ -81,7 +81,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.DATE_MIRROR,
             typeMirrors.DECIMAL128_MIRROR,
             typeMirrors.OBJECT_ID_MIRROR,
-            typeMirrors.UUID_MIRROR
+            typeMirrors.UUID_MIRROR,
+            typeMirrors.MIXED_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
 
@@ -519,10 +520,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             val hasRequiredAnnotation = hasRequiredAnnotation(field)
             val listGenericType = (field.asType() as DeclaredType).typeArguments
             val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
+            val containsRealmAny = (listGenericType.isNotEmpty() && Utils.isRealmAny(listGenericType[0]))
 
             // @Required not allowed if the list contains Realm model classes
-            if (hasRequiredAnnotation && containsRealmModelClasses) {
-                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes.")
+            if (hasRequiredAnnotation && (containsRealmModelClasses || containsRealmAny)) {
+                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes or RealmAny.")
                 return false
             }
 
@@ -568,7 +570,7 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field)
-        if (Utils.isRealmModel(field) || Utils.isRealmModelList(field)) {
+        if (Utils.isRealmModel(field) || Utils.isRealmModelList(field) || Utils.isRealmAnyList(field) || Utils.isRealmAny(field)) {
             _objectReferenceFields.add(field)
         } else {
             basicTypeFields.add(field)
@@ -633,11 +635,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     // The field has the @Index annotation. It's only valid for column types:
-    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger, OBJECT_ID and UUID
+    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger, OBJECT_ID, UUID and MIXED
     private fun categorizeIndexField(element: Element, fieldElement: RealmFieldElement): Boolean {
         var indexable = false
 
-        if (Utils.isMutableRealmInteger(fieldElement)) {
+        if (Utils.isMutableRealmInteger(fieldElement) || Utils.isRealmAny(fieldElement)) {
             indexable = true
         } else {
             when (Constants.JAVA_TO_REALM_TYPES[fieldElement.asType().toString()]) {
@@ -678,6 +680,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                         "Field \"%s\" with type \"%s\" cannot be @Required or @NotNull.", field, field.asType()))
                 return false
             }
+        }
+
+        if (Utils.isRealmAny(field)) {
+            Utils.error(String.format(Locale.US, "RealmAny field \"${field}\" cannot be @Required or @NotNull."))
+            return false
         }
 
         // Should never get here - user should remove @Required

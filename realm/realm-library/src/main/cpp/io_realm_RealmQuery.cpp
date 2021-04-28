@@ -24,21 +24,13 @@
 
 using namespace realm;
 
-JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* env, jclass, jlong table_query_ptr, jlong descriptor_ptr)
+JNIEXPORT jstring JNICALL Java_io_realm_RealmQuery_nativeSerializeQuery(JNIEnv* env, jclass, jlong table_query_ptr)
 {
     try {
         auto query = reinterpret_cast<Query*>(table_query_ptr);
-        auto descriptor = reinterpret_cast<DescriptorOrdering*>(descriptor_ptr);
         std::string serialized_query = query->get_description();
 
-
-        std::string serialized_descriptor = descriptor->get_description(query->get_table());
-        if (serialized_descriptor.empty()) {
-            return to_jstring(env, serialized_query);
-        } else {
-            std::string result = serialized_query + " " + serialized_descriptor;
-            return to_jstring(env, result);
-        }
+        return to_jstring(env, serialized_query);
     }
     CATCH_STD()
     return to_jstring(env, "");

@@ -22,6 +22,7 @@ import org.bson.types.ObjectId;
 import java.util.Date;
 import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.RealmObject;
 
 public class NullablePrimitiveFields extends RealmObject {
@@ -38,6 +39,7 @@ public class NullablePrimitiveFields extends RealmObject {
     public static final String FIELD_OBJECT_ID = "fieldObjectId";
     public static final String FIELD_DECIMAL128 = "fieldDecimal128";
     public static final String FIELD_UUID = "fieldUUID";
+    public static final String FIELD_MIXED = "fieldRealmAny";
 
     private Boolean fieldBoolean;
     private Integer fieldInt;
@@ -49,6 +51,7 @@ public class NullablePrimitiveFields extends RealmObject {
     private ObjectId fieldObjectId;
     private Decimal128 fieldDecimal128;
     private UUID fieldUUID;
+    private RealmAny fieldRealmAny;
 
     public Integer getFieldInt() {
         return fieldInt;
@@ -128,5 +131,13 @@ public class NullablePrimitiveFields extends RealmObject {
 
     public void setFieldUUID(UUID fieldUUID) {
         this.fieldUUID = fieldUUID;
+    }
+
+    public RealmAny getFieldRealmAny() {
+        return fieldRealmAny;
+    }
+
+    public void setFieldRealmAny(RealmAny fieldRealmAny) {
+        this.fieldRealmAny = fieldRealmAny;
     }
 }

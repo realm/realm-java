@@ -39,7 +39,6 @@ import io.realm.entities.PrimaryKeyAsBoxedShort;
 import io.realm.entities.PrimaryKeyAsObjectId;
 import io.realm.entities.PrimaryKeyAsString;
 import io.realm.entities.PrimaryKeyAsUUID;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.Assume.assumeThat;

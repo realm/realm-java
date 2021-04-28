@@ -25,7 +25,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import io.realm.entities.StringOnly;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 @RunWith(AndroidJUnit4.class)
 public class UTFStringsTests {

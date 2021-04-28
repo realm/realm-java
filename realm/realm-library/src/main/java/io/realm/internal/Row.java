@@ -25,6 +25,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -89,6 +90,8 @@ public interface Row {
 
     UUID getUUID(long columnKey);
 
+    NativeRealmAny getNativeRealmAny(long realmAnyColKey);
+
     long getLink(long columnKey);
 
     boolean isNullLink(long columnKey);
@@ -124,6 +127,8 @@ public interface Row {
     void setObjectId(long columnKey, ObjectId value);
 
     void setUUID(long columnKey, UUID value);
+
+    void setRealmAny(long columnKey, long value);
 
     // Creates a new Embedded object in the given property.
     // This will replace any existing object which will be
