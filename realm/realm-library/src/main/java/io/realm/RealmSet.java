@@ -370,15 +370,6 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         setStrategy.removeAllChangeListeners();
     }
 
-    /**
-     * Indicates whether a set has any listeners attached to it.
-     *
-     * @return {@code true} if any listeners have been added, {@code false} otherwise.
-     */
-    public boolean hasListeners() {
-        return setStrategy.hasListeners();
-    }
-
     // ------------------------------------------
     // RealmCollection API
     // ------------------------------------------
@@ -477,6 +468,10 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
 
     OsSet getOsSet() {
         return setStrategy.getOsSet();
+    }
+
+    boolean hasListeners() {
+        return setStrategy.hasListeners();
     }
 
     @SuppressWarnings("unchecked")
