@@ -99,7 +99,7 @@ public class RealmNameTest {
     // Check that trying to compile two modules with different policies using a mix of `allClasses`
     // and `classes = { ... }` will fail.
     @Test
-    public void compileModulesWithConflictingPoliciesAndRealmAnyClassDefinitionsFails() {
+    public void compileModulesWithConflictingPoliciesAndMixedClassDefinitionsFails() {
         assertAbout(javaSources())
                 .that(Arrays.asList(
                         JavaFileObjects.forResource("some/test/NamePolicyConflictingModuleDefinitionsForMixedDefinitions.java"),

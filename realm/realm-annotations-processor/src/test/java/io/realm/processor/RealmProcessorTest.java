@@ -193,7 +193,7 @@ public class RealmProcessorTest {
     }
 
     @Test
-    public void compileAppModuleRealmAnyParametersFail() {
+    public void compileAppModuleMixedParametersFail() {
         assertAbout(javaSources())
                 .that(Arrays.asList(allTypesModel, JavaFileObjects.forResource(
                         "some/test/InvalidAllTypesModuleMixedParameters.java")))

@@ -3401,8 +3401,6 @@ public class RealmQueryTests extends QueryTests {
             String field = prefix + fieldName;
             RealmFieldType type = schema.getFieldType(fieldName);
 
-            Log.e("---", "---> type: " + type.toString());
-
             if (supportDistinct(type)) {
                 // Actual query
                 RealmResults<AllTypes> distinct = realm.where(AllTypes.class)
