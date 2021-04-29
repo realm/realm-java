@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
 
@@ -548,6 +549,7 @@ public class RealmAny {
     void checkValidObject(BaseRealm realm) {
         operator.checkValidObject(realm);
     }
+
     /**
      * Enum describing all the types supported by RealmAny.
      */
@@ -565,7 +567,7 @@ public class RealmAny {
         UUID(RealmFieldType.UUID, java.util.UUID.class),
         NULL(null, null);
 
-        private static final Type[] realmFieldToRealmAnyTypeMap = new Type[MAX_CORE_TYPE_VALUE + 1];
+        private static final Type[] realmFieldToRealmAnyTypeMap = new Type[MAX_CORE_TYPE_VALUE + 2];
 
         static {
             for (Type realmAnyType : values()) {
@@ -574,6 +576,9 @@ public class RealmAny {
                 final int nativeValue = realmAnyType.realmFieldType.getNativeValue();
                 realmFieldToRealmAnyTypeMap[nativeValue] = realmAnyType;
             }
+            // TODO: only used for testing purposes, see https://github.com/realm/realm-java/issues/7385
+            // Links Object field type to RealmAny object.
+            realmFieldToRealmAnyTypeMap[RealmFieldType.OBJECT.getNativeValue()] = OBJECT;
         }
 
         public static Type fromNativeValue(int realmFieldType) {

@@ -306,7 +306,7 @@ class RealmAnyCollectionTests {
 
     @Test
     fun validateRealmModel() {
-        var collection = mutableListOf<PrimaryKeyAsString?>()
+        val collection = mutableListOf<PrimaryKeyAsString?>()
 
         realm.executeTransaction {
             val managedObjects = it.copyToRealmOrUpdate(listOf(
