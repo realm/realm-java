@@ -50,6 +50,7 @@ public abstract class RealmObjectSchema {
 
     static final Map<Class<?>, FieldMetaData> SUPPORTED_LIST_SIMPLE_FIELDS;
     static final Map<Class<?>, FieldMetaData> SUPPORTED_DICTIONARY_SIMPLE_FIELDS;
+    static final Map<Class<?>, FieldMetaData> SUPPORTED_SET_SIMPLE_FIELDS;
 
     static {
         Map<Class<?>, FieldMetaData> listMap = new HashMap<>();
@@ -99,6 +100,30 @@ public abstract class RealmObjectSchema {
         dictionaryMap.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.STRING_TO_UUID_MAP, true));
         dictionaryMap.put(RealmAny.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.STRING_TO_MIXED_MAP, true));
         SUPPORTED_DICTIONARY_SIMPLE_FIELDS = Collections.unmodifiableMap(dictionaryMap);
+
+        Map<Class<?>, FieldMetaData> setMap = new HashMap<>();
+        setMap.put(String.class, new FieldMetaData(RealmFieldType.STRING, RealmFieldType.STRING_SET, true));
+        setMap.put(short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_SET, false));
+        setMap.put(Short.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_SET, true));
+        setMap.put(int.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_SET, false));
+        setMap.put(Integer.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_SET, true));
+        setMap.put(long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_SET, false));
+        setMap.put(Long.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_SET, true));
+        setMap.put(float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_SET, false));
+        setMap.put(Float.class, new FieldMetaData(RealmFieldType.FLOAT, RealmFieldType.FLOAT_SET, true));
+        setMap.put(double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_SET, false));
+        setMap.put(Double.class, new FieldMetaData(RealmFieldType.DOUBLE, RealmFieldType.DOUBLE_SET, true));
+        setMap.put(boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_SET, false));
+        setMap.put(Boolean.class, new FieldMetaData(RealmFieldType.BOOLEAN, RealmFieldType.BOOLEAN_SET, true));
+        setMap.put(byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_SET, false));
+        setMap.put(Byte.class, new FieldMetaData(RealmFieldType.INTEGER, RealmFieldType.INTEGER_SET, true));
+        setMap.put(byte[].class, new FieldMetaData(RealmFieldType.BINARY, RealmFieldType.BINARY_SET, true));
+        setMap.put(Date.class, new FieldMetaData(RealmFieldType.DATE, RealmFieldType.DATE_SET, true));
+        setMap.put(ObjectId.class, new FieldMetaData(RealmFieldType.OBJECT_ID, RealmFieldType.OBJECT_ID_SET, true));
+        setMap.put(Decimal128.class, new FieldMetaData(RealmFieldType.DECIMAL128, RealmFieldType.DECIMAL128_SET, true));
+        setMap.put(UUID.class, new FieldMetaData(RealmFieldType.UUID, RealmFieldType.UUID_SET, true));
+        setMap.put(RealmAny.class, new FieldMetaData(RealmFieldType.MIXED, RealmFieldType.MIXED_SET, true));
+        SUPPORTED_SET_SIMPLE_FIELDS = Collections.unmodifiableMap(setMap);
     }
 
     static final Map<Class<?>, FieldMetaData> SUPPORTED_LINKED_FIELDS;
@@ -108,6 +133,7 @@ public abstract class RealmObjectSchema {
         m.put(RealmObject.class, new FieldMetaData(RealmFieldType.OBJECT, null, false));
         m.put(RealmList.class, new FieldMetaData(RealmFieldType.LIST, null, false));
         m.put(RealmDictionary.class, new FieldMetaData(RealmFieldType.STRING_TO_LINK_MAP, null, false));
+        m.put(RealmSet.class, new FieldMetaData(RealmFieldType.LINK_SET, null, false));
         SUPPORTED_LINKED_FIELDS = Collections.unmodifiableMap(m);
     }
 
@@ -251,14 +277,14 @@ public abstract class RealmObjectSchema {
      * Example:
      * <pre>
      * {@code
-     * // Defines the list of Strings as being non null.
+     * // Defines the dictionary of Strings as being non null.
      * RealmObjectSchema schema = schema.create("Person")
-     *     .addRealmListField("children", String.class)
-     *     .setRequired("children", true)
+     *     .addRealmDictionaryField("parentAndChild", String.class)
+     *     .setRequired("parentAndChild", true)
      * }
      * </pre>
      * If the list contains references to other Realm classes, use
-     * {@link #addRealmListField(String, RealmObjectSchema)} instead.
+     * {@link #addRealmDictionaryField(String, RealmObjectSchema)} instead.
      *
      * @param fieldName name of the field to add.
      * @param primitiveType simple type of elements in the array.
@@ -268,6 +294,47 @@ public abstract class RealmObjectSchema {
      * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
      */
     public abstract RealmObjectSchema addRealmDictionaryField(String fieldName, Class<?> primitiveType);
+
+    /**
+     * Adds a new field that contains a {@link RealmSet} with references to other Realm model classes.
+     * <p>
+     * If the set contains primitive types, use {@link #addRealmSetField(String, Class)} instead.
+     *
+     * @param fieldName name of the field to add.
+     * @param objectSchema schema for the Realm type being referenced.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if the field name is illegal or a field with that name already exists.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     */
+    public abstract RealmObjectSchema addRealmSetField(String fieldName, RealmObjectSchema objectSchema);
+
+    /**
+     * Adds a new field that references a {@link RealmSet} with primitive values. See {@link RealmObject} for the
+     * list of supported types.
+     * <p>
+     * Nullability of elements are defined by using the correct class e.g., {@code Integer.class} instead of
+     * {@code int.class}. Alternatively {@link #setRequired(String, boolean)} can be used.
+     * <p>
+     * Example:
+     * <pre>
+     * {@code
+     * // Defines the set of Strings as being non null.
+     * RealmObjectSchema schema = schema.create("Person")
+     *     .addRealmSetField("children", String.class)
+     *     .setRequired("children", true)
+     * }
+     * </pre>
+     * If the list contains references to other Realm classes, use
+     * {@link #addRealmSetField(String, RealmObjectSchema)} instead.
+     *
+     * @param fieldName name of the field to add.
+     * @param primitiveType simple type of elements in the array.
+     * @return the updated schema.
+     * @throws IllegalArgumentException if the field name is illegal, a field with that name already exists or
+     * the element type isn't supported.
+     * @throws UnsupportedOperationException if this {@link RealmObjectSchema} is immutable.
+     */
+    public abstract RealmObjectSchema addRealmSetField(String fieldName, Class<?> primitiveType);
 
     /**
      * Removes a field from the class.

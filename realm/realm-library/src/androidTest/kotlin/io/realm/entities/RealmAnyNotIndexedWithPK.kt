@@ -22,7 +22,7 @@ import io.realm.annotations.PrimaryKey
 
 open class RealmAnyNotIndexedWithPK(@PrimaryKey var pk: Long) : RealmObject() {
     companion object {
-        const val FIELD_MIXED = "realmAny"
+        const val FIELD_REALM_ANY = "realmAny"
     }
 
     constructor(): this(0)

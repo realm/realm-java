@@ -39,8 +39,8 @@ public class AllTypesRealmModel implements RealmModel {
     public static final String FIELD_STRING = "columnString";
     public static final String FIELD_BINARY = "columnBinary";
     public static final String FIELD_BOOLEAN = "columnBoolean";
-    public static final String FIELD_MIXED = "columnRealmAny";
-    public static final String FIELD_MIXED_LIST = "columnRealmAnyRealmList";
+    public static final String FIELD_REALM_ANY = "columnRealmAny";
+    public static final String FIELD_REALM_ANY_LIST = "columnRealmAnyRealmList";
 
     @Index
     public String columnString;

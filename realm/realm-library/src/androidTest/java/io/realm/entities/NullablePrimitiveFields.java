@@ -39,7 +39,7 @@ public class NullablePrimitiveFields extends RealmObject {
     public static final String FIELD_OBJECT_ID = "fieldObjectId";
     public static final String FIELD_DECIMAL128 = "fieldDecimal128";
     public static final String FIELD_UUID = "fieldUUID";
-    public static final String FIELD_MIXED = "fieldRealmAny";
+    public static final String FIELD_REALM_ANY = "fieldRealmAny";
 
     private Boolean fieldBoolean;
     private Integer fieldInt;

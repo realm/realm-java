@@ -146,6 +146,22 @@ public class Table implements NativeObject {
                         name,
                         isNullable);
 
+            case INTEGER_SET:
+            case BOOLEAN_SET:
+            case STRING_SET:
+            case BINARY_SET:
+            case DATE_SET:
+            case FLOAT_SET:
+            case DOUBLE_SET:
+            case DECIMAL128_SET:
+            case OBJECT_ID_SET:
+            case UUID_SET:
+            case MIXED_SET:
+                return nativeAddPrimitiveSetColumn(nativeTableRefPtr,
+                        type.getNativeValue() - Property.TYPE_SET,
+                        name,
+                        isNullable);
+
             default:
                 throw new IllegalArgumentException("Unsupported type: " + type);
         }
@@ -173,6 +189,11 @@ public class Table implements NativeObject {
     public long addColumnDictionaryLink(RealmFieldType type, String name, Table table) {
         verifyColumnName(name);
         return nativeAddColumnDictionaryLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
+    }
+
+    public long addColumnSetLink(RealmFieldType type, String name, Table table) {
+        verifyColumnName(name);
+        return nativeAddColumnSetLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
     }
 
     /**
@@ -798,9 +819,13 @@ public class Table implements NativeObject {
 
     private native long nativeAddPrimitiveDictionaryColumn(long nativeTableRefPtr, int type, String name, boolean isNullable);
 
+    private native long nativeAddPrimitiveSetColumn(long nativeTableRefPtr, int type, String name, boolean isNullable);
+
     private native long nativeAddColumnLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
 
     private native long nativeAddColumnDictionaryLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
+
+    private native long nativeAddColumnSetLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
 
     private native void nativeRenameColumn(long nativeTableRefPtr, long columnKey, String name);
 

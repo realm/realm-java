@@ -46,7 +46,7 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DECIMAL128 = "columnDecimal128";
     public static final String FIELD_OBJECT_ID = "columnObjectId";
     public static final String FIELD_UUID = "columnUUID";
-    public static final String FIELD_MIXED = "columnRealmAny";
+    public static final String FIELD_REALM_ANY = "columnRealmAny";
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLINK = "columnRealmLink";
     public static final String FIELD_REALMBACKLINK = "columnRealmBackLink";

@@ -18,6 +18,7 @@ package io.realm
 
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DogPrimaryKey
+import io.realm.entities.Owner
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
@@ -30,7 +31,7 @@ import org.junit.runners.Parameterized
 import java.util.*
 
 /**
- * Dictionary tests. It uses [Parameterized] tests for all possible combinations of
+ * [RealmDictionary] tests. It uses [Parameterized] tests for all possible combinations of
  * [RealmDictionary] types (i.e. all primitive Realm types (see [DictionarySupportedType]) plus
  * [RealmModel] and [RealmAny] (and in turn all possible types supported by RealmAny) in both `managed`
  * and `unmanaged` modes.
@@ -54,8 +55,8 @@ class ParameterizedDictionaryTests(
         fun testTypes(): List<DictionaryTester> {
             return DictionaryMode.values().map { type ->
                 when (type) {
-                    DictionaryMode.UNMANAGED -> unmanagedFactory()
-                    DictionaryMode.MANAGED -> managedFactory()
+                    DictionaryMode.UNMANAGED -> unmanagedDictionaryFactory()
+                    DictionaryMode.MANAGED -> managedDictionaryFactory()
                 }
             }.flatten()
         }
@@ -307,9 +308,25 @@ internal val VALUE_UUID_HELLO = UUID.nameUUIDFromBytes(VALUE_BINARY_HELLO)
 internal val VALUE_UUID_BYE = UUID.nameUUIDFromBytes(VALUE_BINARY_BYE)
 internal val VALUE_UUID_NOT_PRESENT = UUID.nameUUIDFromBytes(VALUE_BINARY_NOT_PRESENT)
 
-internal val VALUE_LINK_HELLO = DogPrimaryKey(42, VALUE_STRING_HELLO)
-internal val VALUE_LINK_BYE = DogPrimaryKey(43, VALUE_STRING_BYE)
+internal const val VALUE_AGE_HELLO = 10.toLong()
+internal val VALUE_BIRTHDAY_HELLO = Date(0)
+
+internal const val VALUE_AGE_BYE = 20.toLong()
+internal val VALUE_BIRTHDAY_BYE = Date(10)
+
+internal val VALUE_LINK_HELLO = DogPrimaryKey(42, VALUE_STRING_HELLO).apply {
+    age = VALUE_AGE_HELLO
+    birthday = VALUE_BIRTHDAY_HELLO
+}
+internal val VALUE_LINK_BYE = DogPrimaryKey(43, VALUE_STRING_BYE).apply {
+    age = VALUE_AGE_BYE
+    birthday = VALUE_BIRTHDAY_BYE
+}
 internal val VALUE_LINK_NOT_PRESENT = DogPrimaryKey(44, VALUE_STRING_NOT_PRESENT)
+
+internal val VALUE_LINK_NO_PK_HELLO = Owner().apply { name = VALUE_STRING_HELLO }
+internal val VALUE_LINK_NO_PK_BYE = Owner().apply { name = VALUE_STRING_BYE }
+internal val VALUE_LINK_NO_PK_NOT_PRESENT = Owner().apply { name = VALUE_STRING_NOT_PRESENT }
 
 internal val VALUE_MIXED_INTEGER_HELLO = RealmAny.valueOf(VALUE_NUMERIC_HELLO)
 internal val VALUE_MIXED_INTEGER_BYE = RealmAny.valueOf(VALUE_NUMERIC_BYE)

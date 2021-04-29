@@ -57,8 +57,8 @@ class ManagedDictionaryTester<T : Any>(
     private lateinit var realm: Realm
 
     override fun toString(): String = when (realmAnyType) {
-        null -> "Managed-$testerClass"
-        else -> "Managed-$testerClass" + realmAnyType.name.let { "-$it" }
+        null -> "ManagedDictionary-$testerClass"
+        else -> "ManagedDictionary-$testerClass" + realmAnyType.name.let { "-$it" }
     }
 
     override fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread) {
@@ -189,7 +189,7 @@ class ManagedDictionaryTester<T : Any>(
     override fun putRequired() {
         // RealmModel and RealmAny dictionaries are ignored since they cannot be marked with "@Required"
         if (requiredDictionaryGetter != null) {
-            val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+            val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
             assertNotNull(allTypesObject)
             val dictionary = requiredDictionaryGetter.call(allTypesObject)
 
@@ -314,7 +314,7 @@ class ManagedDictionaryTester<T : Any>(
     }
 
     override fun entrySet() {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+        val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)
         val dictionary = dictionaryGetter.call(allTypesObject)
 
@@ -469,7 +469,7 @@ class ManagedDictionaryTester<T : Any>(
     }
 
     override fun copyFromRealm() {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm)
+        val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)
         val dictionary = dictionaryGetter.call(allTypesObject)
 
@@ -648,30 +648,16 @@ class ManagedDictionaryTester<T : Any>(
             realm: Realm = this.realm,
             id: String? = null
     ): RealmDictionary<T> {
-        val allTypesObject = createAllTypesManagedContainerAndAssert(realm, id)
+        val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm, id)
         assertNotNull(allTypesObject)
         return dictionaryGetter.call(allTypesObject)
-    }
-
-    private fun createAllTypesManagedContainerAndAssert(
-            realm: Realm,
-            id: String? = null
-    ): DictionaryAllTypes {
-        realm.executeTransaction { transactionRealm ->
-            transactionRealm.createObject<DictionaryAllTypes>(id)
-        }
-        val allTypesObject = realm.where<DictionaryAllTypes>()
-                .equalTo("id", id)
-                .findFirst()
-        assertNotNull(allTypesObject)
-        return allTypesObject
     }
 
     private fun putInternal(
             initialized: RealmDictionary<T>,
             alternative: RealmDictionary<T>
     ) {
-        val dictionary = initAndAssert(id = "anotherDictionary")
+        val dictionary = initAndAssert(id = "internal")
 
         realm.executeTransaction {
             // Check we get null since previous values are not present
@@ -715,7 +701,7 @@ enum class ChangeListenerOperation {
  * respectively enables agnostic field processing, making it possible to cover all supported types
  * with just one tester class.
  */
-fun managedFactory(): List<DictionaryTester> {
+fun managedDictionaryFactory(): List<DictionaryTester> {
     val primitiveTesters = listOf<DictionaryTester>(
             ManagedDictionaryTester(
                     testerClass = "Long",
@@ -968,7 +954,7 @@ open class TypeAsserter<T> {
         otherConfig: RealmConfiguration
     ) {
         realm.executeTransaction { transactionRealm ->
-            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>("PRIMARY_KEY")
+            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>()
             dictionarySetter.call(anotherContainer, initializedDictionary)
             val dictionary = dictionaryGetter.call(anotherContainer)
             assertNotNull(dictionary)
@@ -1161,7 +1147,7 @@ class RealmModelAsserter : TypeAsserter<DogPrimaryKey>() {
             // Setter fails when calling with a dictionary that contains unmanaged objects
             // The throwable is an IllegalArgumentException wrapped inside an InvocationTargetException
             // due to calling 'call' on the KFunction2
-            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>("A_PK")
+            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>()
             assertFailsWith<InvocationTargetException> {
                 dictionarySetter.call(anotherContainer, initializedDictionary)
             }.let { e ->
@@ -1175,13 +1161,13 @@ class RealmModelAsserter : TypeAsserter<DogPrimaryKey>() {
         var otherRealmDictionary: RealmDictionary<DogPrimaryKey>? = null
         val otherRealm = Realm.getInstance(otherConfig)
         otherRealm.executeTransaction { transactionRealm ->
-            val otherRealmContainer = transactionRealm.createObject<DictionaryAllTypes>("ANOTHER_PK")
+            val otherRealmContainer = transactionRealm.createObject<DictionaryAllTypes>()
             otherRealmDictionary = dictionaryGetter.call(otherRealmContainer)
                 .apply { this.putAll(initializedDictionary) }
         }
 
         realm.executeTransaction { transactionRealm ->
-            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>("YET_ANOTHER_PK")
+            val anotherContainer = transactionRealm.createObject<DictionaryAllTypes>()
 
             // The throwable is an IllegalArgumentException wrapped inside an InvocationTargetException
             // due to calling 'call' on the KFunction2

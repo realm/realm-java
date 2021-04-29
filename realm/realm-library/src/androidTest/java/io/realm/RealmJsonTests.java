@@ -654,7 +654,7 @@ public class RealmJsonTests {
         assertEquals(DefaultValueOfField.FIELD_OBJECT_ID_DEFAULT_VALUE, managedObj.getFieldObjectId());
         assertEquals(DefaultValueOfField.FIELD_DECIMAL128_DEFAULT_VALUE, managedObj.getFieldDecimal128());
         assertEquals(DefaultValueOfField.FIELD_UUID_DEFAULT_VALUE, managedObj.getFieldUUID());
-        assertEquals(DefaultValueOfField.FIELD_MIXED_DEFAULT_VALUE, managedObj.getFieldRealmAny());
+        assertEquals(DefaultValueOfField.FIELD_REALM_ANY_DEFAULT_VALUE, managedObj.getFieldRealmAny());
         assertArrayEquals(DefaultValueOfField.FIELD_BINARY_DEFAULT_VALUE, managedObj.getFieldBinary());
         assertArrayEquals(DefaultValueOfField.FIELD_BYTE_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldByteList().toArray());
         assertArrayEquals(DefaultValueOfField.FIELD_SHORT_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldShortList().toArray());
@@ -667,7 +667,7 @@ public class RealmJsonTests {
         assertArrayEquals(DefaultValueOfField.FIELD_OBJECT_ID_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldObjectIdList().toArray());
         assertArrayEquals(DefaultValueOfField.FIELD_DECIMAL128_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldDecimal128List().toArray());
         assertArrayEquals(DefaultValueOfField.FIELD_UUID_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldUUIDList().toArray());
-        assertArrayEquals(DefaultValueOfField.FIELD_MIXED_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldRealmAnyList().toArray());
+        assertArrayEquals(DefaultValueOfField.FIELD_REALM_ANY_LIST_DEFAULT_VALUE.toArray(), managedObj.getFieldRealmAnyList().toArray());
         assertEquals(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldObject().getFieldInt());
         assertEquals(1, managedObj.getFieldList().size());
         assertEquals(RandomPrimaryKey.FIELD_INT_DEFAULT_VALUE, managedObj.getFieldList().first().getFieldInt());
@@ -716,7 +716,7 @@ public class RealmJsonTests {
         json.put(DefaultValueOfField.FIELD_OBJECT_ID, fieldObjectIdValue);
         json.put(DefaultValueOfField.FIELD_DECIMAL128, fieldDecimal128Value);
         json.put(DefaultValueOfField.FIELD_UUID, fieldUUIDValue);
-        json.put(DefaultValueOfField.FIELD_MIXED, fieldRealmAnyValue);
+        json.put(DefaultValueOfField.FIELD_REALM_ANY, fieldRealmAnyValue);
         json.put(DefaultValueOfField.FIELD_BINARY, Base64.encodeToString(fieldBinaryValue, Base64.DEFAULT));
         // Value for 'fieldObject'
         final JSONObject fieldObjectJson = new JSONObject();
@@ -2306,7 +2306,7 @@ public class RealmJsonTests {
                 new String[] {"027ba5ca-aa12-4afa-9219-e20cc3018599", null, "027ba5ca-aa12-4afa-9219-e20cc3018590"},
                 new UUID[] {UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018599"), null, UUID.fromString("027ba5ca-aa12-4afa-9219-e20cc3018590")});
 
-        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_MIXED_LIST,
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_REALM_ANY_LIST,
                 new Object[] {0, null, "hello world"},
                 new RealmAny[] {RealmAny.valueOf(0), RealmAny.nullValue(), RealmAny.valueOf("hello world")});
     }
@@ -2326,7 +2326,7 @@ public class RealmJsonTests {
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_OBJECT_ID_LIST, null, new Date[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DECIMAL128_LIST, null, new Date[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_UUID_LIST, null, new Date[0]);
-        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_MIXED_LIST, null, new Date[0]);
+        testPrimitiveListWithValues(PrimitiveListTypes.FIELD_REALM_ANY_LIST, null, new Date[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_OBJECT_ID_LIST, null, new ObjectId[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_DECIMAL128_LIST, null, new Decimal128[0]);
         testPrimitiveListWithValues(PrimitiveListTypes.FIELD_BYTE_LIST, null, new byte[0][]);
@@ -2410,6 +2410,6 @@ public class RealmJsonTests {
         testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_OBJECT_ID_LIST);
         testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_DECIMAL128_LIST);
         testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_UUID_LIST);
-        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_MIXED_LIST);
+        testOptionalPrimitiveListWithNullValue(PrimitiveListTypes.FIELD_REALM_ANY_LIST);
     }
 }

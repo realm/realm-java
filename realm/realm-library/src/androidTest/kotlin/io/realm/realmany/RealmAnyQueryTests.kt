@@ -78,7 +78,7 @@ class RealmAnyQueryTests {
     @Test
     fun isNull() {
         initializeTestData()
-        val results = realm.where<RealmAnyNotIndexed>().isNull(RealmAnyNotIndexed.FIELD_MIXED).findAll()
+        val results = realm.where<RealmAnyNotIndexed>().isNull(RealmAnyNotIndexed.FIELD_REALM_ANY).findAll()
         assertEquals(9, results.size)
         for (result in results) {
             assertTrue(result.realmAny!!.isNull)
@@ -88,7 +88,7 @@ class RealmAnyQueryTests {
     @Test
     fun isNotNull() {
         initializeTestData()
-        val results = realm.where<RealmAnyNotIndexed>().isNotNull(RealmAnyNotIndexed.FIELD_MIXED).findAll()
+        val results = realm.where<RealmAnyNotIndexed>().isNotNull(RealmAnyNotIndexed.FIELD_REALM_ANY).findAll()
         assertEquals(103, results.size)
         for (result in results) {
             assertFalse(result.realmAny!!.isNull)
@@ -100,7 +100,7 @@ class RealmAnyQueryTests {
         initializeTestData()
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
         assertFailsWith<IllegalArgumentException> {
-            query.isEmpty(RealmAnyNotIndexed.FIELD_MIXED)
+            query.isEmpty(RealmAnyNotIndexed.FIELD_REALM_ANY)
         }
     }
 
@@ -109,7 +109,7 @@ class RealmAnyQueryTests {
         initializeTestData()
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
         assertFailsWith<IllegalArgumentException> {
-            query.isEmpty(RealmAnyNotIndexed.FIELD_MIXED)
+            query.isEmpty(RealmAnyNotIndexed.FIELD_REALM_ANY)
         }
     }
 
@@ -123,21 +123,21 @@ class RealmAnyQueryTests {
     @Test
     fun average() {
         initializeTestData()
-        val value = realm.where<RealmAnyNotIndexed>().averageRealmAny(RealmAnyNotIndexed.FIELD_MIXED)
+        val value = realm.where<RealmAnyNotIndexed>().averageRealmAny(RealmAnyNotIndexed.FIELD_REALM_ANY)
         assertEquals(Decimal128.parse("4.292307692307692307692307692307692"), value)
     }
 
     @Test
     fun sum() {
         initializeTestData()
-        val value = realm.where<RealmAnyNotIndexed>().sum(RealmAnyNotIndexed.FIELD_MIXED)
+        val value = realm.where<RealmAnyNotIndexed>().sum(RealmAnyNotIndexed.FIELD_REALM_ANY)
         assertEquals(Decimal128.parse("279.0"), value)
     }
 
     @Test
     fun min() {
         initializeTestData()
-        val value = realm.where<RealmAnyNotIndexed>().minRealmAny(RealmAnyNotIndexed.FIELD_MIXED)
+        val value = realm.where<RealmAnyNotIndexed>().minRealmAny(RealmAnyNotIndexed.FIELD_REALM_ANY)
 
         assertFalse(value.isNull)
         assertEquals(RealmAny.Type.BOOLEAN, value.type)
@@ -147,14 +147,14 @@ class RealmAnyQueryTests {
     @Test
     fun max() {
         initializeTestData()
-        val value = realm.where<RealmAnyNotIndexed>().maxRealmAny(RealmAnyNotIndexed.FIELD_MIXED)
+        val value = realm.where<RealmAnyNotIndexed>().maxRealmAny(RealmAnyNotIndexed.FIELD_REALM_ANY)
         assertEquals(RealmAny.valueOf(UUID.fromString("00000004-aa12-4afa-9219-e20cc3018599")), value)
     }
 
     @Test
     fun sort() {
         initializeTestData()
-        val results = realm.where<RealmAnyNotIndexed>().sort(RealmAnyNotIndexed.FIELD_MIXED).findAll()
+        val results = realm.where<RealmAnyNotIndexed>().sort(RealmAnyNotIndexed.FIELD_REALM_ANY).findAll()
         assertEquals(112, results.size)
         assertTrue(results.first()!!.realmAny!!.isNull)
         assertEquals(RealmAny.Type.UUID, results.last()!!.realmAny!!.type)
@@ -163,7 +163,7 @@ class RealmAnyQueryTests {
     @Test
     fun distinct() {
         initializeTestData()
-        val results = realm.where<RealmAnyNotIndexed>().distinct(RealmAnyNotIndexed.FIELD_MIXED).findAll()
+        val results = realm.where<RealmAnyNotIndexed>().distinct(RealmAnyNotIndexed.FIELD_REALM_ANY).findAll()
 
         val hashSet = HashSet<RealmAny>()
         for (result in results) {

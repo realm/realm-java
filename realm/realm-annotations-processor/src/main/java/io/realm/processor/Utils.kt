@@ -16,6 +16,10 @@
  
 package io.realm.processor
 
+import com.sun.tools.javac.code.Attribute
+import com.sun.tools.javac.code.Symbol
+import com.sun.tools.javac.code.Type
+import com.sun.tools.javac.util.Pair
 import io.realm.annotations.RealmNamingPolicy
 import io.realm.processor.nameconverter.*
 import javax.annotation.processing.Messager
@@ -42,6 +46,7 @@ object Utils {
     private lateinit var markerInterface: DeclaredType
     private lateinit var realmModel: TypeMirror
     private lateinit var realmDictionary: DeclaredType
+    private lateinit var realmSet: DeclaredType
 
     fun initialize(env: ProcessingEnvironment) {
         val elementUtils = env.elementUtils
@@ -54,6 +59,7 @@ object Utils {
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
         markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"))
         realmDictionary = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmDictionary"), typeUtils.getWildcardType(null, null))
+        realmSet = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmSet"), typeUtils.getWildcardType(null, null))
     }
 
     /**
@@ -81,6 +87,14 @@ object Utils {
         }
     }
 
+    fun getSetGenericProxyClassSimpleName(field: VariableElement): SimpleClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmSet)) {
+            getProxyClassName(getGenericTypeQualifiedName(field)!!)
+        } else {
+            getProxyClassName(getFieldTypeQualifiedName(field))
+        }
+    }
+
     fun getModelClassQualifiedName(field: VariableElement): QualifiedClassName {
         return if (typeUtils.isAssignable(field.asType(), realmList)) {
             getGenericTypeQualifiedName(field)!!
@@ -91,6 +105,14 @@ object Utils {
 
     fun getDictionaryGenericModelClassQualifiedName(field: VariableElement): QualifiedClassName {
         return if (typeUtils.isAssignable(field.asType(), realmDictionary)) {
+            getGenericTypeQualifiedName(field)!!
+        } else {
+            getFieldTypeQualifiedName(field)
+        }
+    }
+
+    fun getSetGenericModelClassQualifiedName(field: VariableElement): QualifiedClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmSet)) {
             getGenericTypeQualifiedName(field)!!
         } else {
             getFieldTypeQualifiedName(field)
@@ -260,6 +282,38 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmSet`, `false` otherwise.
+     */
+    fun isRealmSet(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), realmSet)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet<RealmModel>`, `false` otherwise.
+     */
+    fun isRealmModelSet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return isRealmModel(elementTypeMirror)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet` and its element type is value type,
+     * `false` otherwise.
+     */
+    fun isRealmValueSet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return !isRealmModel(elementTypeMirror) && !isRealmAny(elementTypeMirror)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet<RealmAny>`, `false` otherwise.
+     */
+    fun isRealmAnySet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return isRealmAny(elementTypeMirror)
+    }
+
+    /**
      * @param field [VariableElement] of a value list field.
      * @return element type of the list field.
      */
@@ -276,6 +330,16 @@ object Utils {
     fun getValueDictionaryFieldType(field: VariableElement): Constants.RealmFieldType {
         val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
         return Constants.DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
+                ?: throw IllegalArgumentException("Invalid type mirror '$elementTypeMirror' for field '$field'")
+    }
+
+    /**
+     * @param field [VariableElement] of a value set field.
+     * @return element type of the set field.
+     */
+    fun getValueSetFieldType(field: VariableElement): Constants.RealmFieldType {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field)
+        return Constants.SET_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
                 ?: throw IllegalArgumentException("Invalid type mirror '$elementTypeMirror' for field '$field'")
     }
 
@@ -374,6 +438,14 @@ object Utils {
         return QualifiedClassName(type.toString())
     }
 
+    fun getSetType(field: VariableElement): QualifiedClassName? {
+        if (!isRealmSet(field)) {
+            return null
+        }
+        val type = getGenericTypeForContainer(field) ?: return null
+        return QualifiedClassName(type.toString())
+    }
+
     // Note that, because subclassing subclasses of RealmObject is forbidden,
     // there is no need to deal with constructs like:  <code>RealmResults&lt;? extends Foos&lt;</code>.
     fun getGenericTypeForContainer(field: VariableElement): ReferenceType? {
@@ -418,6 +490,14 @@ object Utils {
      * Note: it applies to same types as RealmList.
      */
     fun getDictionaryValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
+        return getGenericTypeQualifiedName(field)
+    }
+
+    /**
+     * @return the generic type for Sets of the form `RealmSet<type>`
+     * Note: it applies to same types as RealmList.
+     */
+    fun getSetValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
         return getGenericTypeQualifiedName(field)
     }
 
@@ -553,5 +633,38 @@ object Utils {
     fun getSimpleColumnInfoClassName(className: QualifiedClassName): String {
         val simpleModelClassName = className.getSimpleName()
         return "${getProxyClassName(className)}.${simpleModelClassName}ColumnInfo"
+    }
+
+    // Returns whether a type of a Realm field is embedded or not.
+    // For types which are part of this processing round we can look it up immediately from
+    // the metadata in the `classCollection`. For types defined in other modules we will
+    // have to use the slower approach of inspecting the `embedded` property of the
+    // RealmClass annotation using the compiler tool api.
+    fun isFieldTypeEmbedded(type: TypeMirror, classCollection: ClassCollection) : Boolean  {
+        val fieldType = QualifiedClassName(type)
+        val fieldTypeMetaData: ClassMetaData? = classCollection.getClassFromQualifiedNameOrNull(fieldType)
+        return fieldTypeMetaData?.embedded ?: type.isEmbedded()
+    }
+
+    private fun TypeMirror.isEmbedded() : Boolean {
+        var isEmbedded = false
+
+        if (this is Type.ClassType) {
+            val declarationAttributes: com.sun.tools.javac.util.List<Attribute.Compound>? = tsym.metadata?.declarationAttributes
+            if (declarationAttributes != null) {
+                loop@for (attribute: Attribute.Compound in declarationAttributes) {
+                    if (attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.RealmClass") {
+                        for (pair: Pair<Symbol.MethodSymbol, Attribute> in attribute.values) {
+                            if (pair.fst.name.toString() == "embedded") {
+                                isEmbedded = pair.snd.value as Boolean
+                                break@loop
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return isEmbedded
     }
 }

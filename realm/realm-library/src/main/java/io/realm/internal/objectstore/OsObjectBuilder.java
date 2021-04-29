@@ -34,13 +34,13 @@ import io.realm.MutableRealmInteger;
 import io.realm.RealmDictionary;
 import io.realm.RealmList;
 import io.realm.RealmModel;
+import io.realm.RealmSet;
 import io.realm.internal.RealmAnyNativeFunctions;
 import io.realm.internal.NativeContext;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-import io.realm.internal.android.TypeUtils;
 
 
 /**
@@ -656,6 +656,240 @@ public class OsObjectBuilder implements Closeable {
     private void addEmptyDictionary(long columnKey) {
         nativeStopDictionary(builderPtr, columnKey, nativeStartDictionary());
     }
+
+    // -----------------------------------------------
+    // SET
+    // -----------------------------------------------
+
+    private static ItemCallback<String> stringSetItemCallback = new ItemCallback<String>() {
+        @Override
+        public void handleItem(long containerPtr, String item) {
+            nativeAddStringSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Boolean> booleanSetItemCallback = new ItemCallback<Boolean>() {
+        @Override
+        public void handleItem(long containerPtr, Boolean item) {
+            nativeAddBooleanSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Integer> integerSetItemCallback = new ItemCallback<Integer>() {
+        @Override
+        public void handleItem(long containerPtr, Integer item) {
+            nativeAddIntegerSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Long> longSetItemCallback = new ItemCallback<Long>() {
+        @Override
+        public void handleItem(long containerPtr, Long item) {
+            nativeAddIntegerSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Short> shortSetItemCallback = new ItemCallback<Short>() {
+        @Override
+        public void handleItem(long containerPtr, Short item) {
+            nativeAddIntegerSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Byte> byteSetItemCallback = new ItemCallback<Byte>() {
+        @Override
+        public void handleItem(long containerPtr, Byte item) {
+            nativeAddIntegerSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Float> floatSetItemCallback = new ItemCallback<Float>() {
+        @Override
+        public void handleItem(long containerPtr, Float item) {
+            nativeAddFloatSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Double> doubleSetItemCallback = new ItemCallback<Double>() {
+        @Override
+        public void handleItem(long containerPtr, Double item) {
+            nativeAddDoubleSetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<byte[]> binarySetItemCallback = new ItemCallback<byte[]>() {
+        @Override
+        public void handleItem(long containerPtr, byte[] item) {
+            nativeAddByteArraySetItem(containerPtr, item);
+        }
+    };
+
+    private static ItemCallback<Date> dateSetItemCallback = new ItemCallback<Date>() {
+        @Override
+        public void handleItem(long containerPtr, Date item) {
+            nativeAddDateSetItem(containerPtr, item.getTime());
+        }
+    };
+
+    private static ItemCallback<Decimal128> decimal128SetItemCallback = new ItemCallback<Decimal128>() {
+        @Override
+        public void handleItem(long containerPtr, Decimal128 item) {
+            nativeAddDecimal128SetItem(containerPtr, item.getLow(), item.getHigh());
+        }
+    };
+
+    private static ItemCallback<ObjectId> objectIdSetItemCallback = new ItemCallback<ObjectId>() {
+        @Override
+        public void handleItem(long containerPtr, ObjectId item) {
+            nativeAddObjectIdSetItem(containerPtr, item.toString());
+        }
+    };
+
+    private static ItemCallback<UUID> uuidSetItemCallback = new ItemCallback<UUID>() {
+        @Override
+        public void handleItem(long containerPtr, UUID item) {
+            nativeAddUUIDSetItem(containerPtr, item.toString());
+        }
+    };
+
+    private static ItemCallback<RealmAny> realmAnySetItemCallback = new ItemCallback<RealmAny>() {
+        private final RealmAnyNativeFunctions realmAnyNativeFunctions = new RealmAnyNativeFunctionsImpl();
+
+        @Override
+        public void handleItem(long containerPtr, RealmAny item) {
+            realmAnyNativeFunctions.handleItem(containerPtr, item);
+        }
+    };
+
+    private static native long nativeStartSet(long size);
+
+    private static native void nativeStopSet(long builderPtr, long columnKey, long setPtr);
+
+    private static native void nativeAddNullSetItem(long setPtr);
+
+    private static native void nativeAddStringSetItem(long setPtr, String val);
+
+    private static native void nativeAddBooleanSetItem(long setPtr, boolean val);
+
+    private static native void nativeAddIntegerSetItem(long setPtr, long val);
+
+    private static native void nativeAddFloatSetItem(long setPtr, float val);
+
+    private static native void nativeAddDoubleSetItem(long setPtr, double val);
+
+    private static native void nativeAddByteArraySetItem(long setPtr, byte[] val);
+
+    private static native void nativeAddDateSetItem(long setPtr, long val);
+
+    private static native void nativeAddDecimal128SetItem(long setPtr, long lowVal, long highVal);
+
+    private static native void nativeAddObjectIdSetItem(long setPtr, String val);
+
+    private static native void nativeAddUUIDSetItem(long setPtr, String val);
+
+    private void addEmptySet(long columnKey) {
+        nativeStopSet(builderPtr, columnKey, nativeStartSet(0));
+    }
+
+    public void addStringSet(long columnKey, RealmSet<String> set) {
+        addSetItem(builderPtr, columnKey, set, stringSetItemCallback);
+    }
+
+    public void addBooleanSet(long columnKey, RealmSet<Boolean> set) {
+        addSetItem(builderPtr, columnKey, set, booleanSetItemCallback);
+    }
+
+    public void addIntegerSet(long columnKey, RealmSet<Integer> set) {
+        addSetItem(builderPtr, columnKey, set, integerSetItemCallback);
+    }
+
+    public void addLongSet(long columnKey, RealmSet<Long> set) {
+        addSetItem(builderPtr, columnKey, set, longSetItemCallback);
+    }
+
+    public void addShortSet(long columnKey, RealmSet<Short> set) {
+        addSetItem(builderPtr, columnKey, set, shortSetItemCallback);
+    }
+
+    public void addByteSet(long columnKey, RealmSet<Byte> set) {
+        addSetItem(builderPtr, columnKey, set, byteSetItemCallback);
+    }
+
+    public void addFloatSet(long columnKey, RealmSet<Float> set) {
+        addSetItem(builderPtr, columnKey, set, floatSetItemCallback);
+    }
+
+    public void addDoubleSet(long columnKey, RealmSet<Double> set) {
+        addSetItem(builderPtr, columnKey, set, doubleSetItemCallback);
+    }
+
+    public void addBinarySet(long columnKey, RealmSet<byte[]> set) {
+        addSetItem(builderPtr, columnKey, set, binarySetItemCallback);
+    }
+
+    public void addDateSet(long columnKey, RealmSet<Date> set) {
+        addSetItem(builderPtr, columnKey, set, dateSetItemCallback);
+    }
+
+    public void addDecimal128Set(long columnKey, RealmSet<Decimal128> set) {
+        addSetItem(builderPtr, columnKey, set, decimal128SetItemCallback);
+    }
+
+    public void addObjectIdSet(long columnKey, RealmSet<ObjectId> set) {
+        addSetItem(builderPtr, columnKey, set, objectIdSetItemCallback);
+    }
+
+    public void addUUIDSet(long columnKey, RealmSet<UUID> set) {
+        addSetItem(builderPtr, columnKey, set, uuidSetItemCallback);
+    }
+
+    public void addRealmAnySet(long columnKey, RealmSet<RealmAny> set) {
+        addSetItem(builderPtr, columnKey, set, realmAnySetItemCallback);
+    }
+
+    public <T extends RealmModel> void addObjectSet(long columnKey, @Nullable RealmSet<T> set) {
+        if (set != null) {
+            long setPtr = nativeStartSet(set.size());
+            for (T entry : set) {
+                if (entry == null) {
+                    throw new IllegalArgumentException("This 'RealmSet' is not nullable. A non-null value is expected.");
+                } else {
+                    RealmObjectProxy realmObjectProxy = (RealmObjectProxy) entry;
+                    long objectPtr = ((UncheckedRow) realmObjectProxy.realmGet$proxyState().getRow$realm()).getNativePtr();
+                    nativeAddObjectListItem(setPtr, objectPtr);
+                }
+            }
+            nativeStopSet(builderPtr, columnKey, setPtr);
+        } else {
+            addEmptySet(columnKey);
+        }
+    }
+
+    private <T> void addSetItem(long builderPtr,
+                                long columnKey,
+                                @Nullable Set<T> set,
+                                ItemCallback<T> itemCallback) {
+        if (set != null) {
+            long setPtr = nativeStartSet(set.size());
+            boolean isNullable = (columnKey == 0) || table.isColumnNullable(columnKey);
+            for (T item : set) {
+                if (item == null) {
+                    if (!isNullable) {
+                        throw new IllegalArgumentException("This 'RealmSet' is not nullable. A non-null value is expected.");
+                    }
+                    nativeAddNullSetItem(setPtr);
+                } else {
+                    itemCallback.handleItem(setPtr, item);
+                }
+            }
+            nativeStopSet(builderPtr, columnKey, setPtr);
+        } else {
+            addEmptySet(columnKey);
+        }
+    }
+
+    //--------------------------------------------------
+    //--------------------------------------------------
 
     /**
      * Updates any existing object if it exists, otherwise creates a new one.

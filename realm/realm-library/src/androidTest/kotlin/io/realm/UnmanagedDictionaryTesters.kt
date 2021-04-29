@@ -19,7 +19,6 @@ package io.realm
 import io.realm.rule.BlockingLooperThread
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import java.lang.NullPointerException
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -29,7 +28,7 @@ import kotlin.test.assertTrue
 /**
  * Generic tester for all types of unmanaged dictionaries.
  */
-class UnmanagedGenericTester<T : Any>(
+class UnmanagedDictionaryTester<T : Any>(
         private val testerName: String,
         private val keyValuePairs: List<Pair<String, T?>>,
         private val notPresentKey: String,
@@ -239,117 +238,117 @@ class UnmanagedGenericTester<T : Any>(
  * Creates testers for all [DictionarySupportedType]s and initializes them for testing. There are as
  * many RealmAny testers as [RealmAny.Type]s.
  */
-fun unmanagedFactory(): List<DictionaryTester> {
+fun unmanagedDictionaryFactory(): List<DictionaryTester> {
     // Create primitive testers first
     val primitiveTesters: List<DictionaryTester> = DictionarySupportedType.values().mapNotNull { supportedType ->
         when (supportedType) {
             DictionarySupportedType.LONG ->
-                UnmanagedGenericTester<Long>(
+                UnmanagedDictionaryTester<Long>(
                         testerName = "UnmanagedLong",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toLong(), KEY_BYE to VALUE_NUMERIC_BYE.toLong(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toLong()
                 )
             DictionarySupportedType.INTEGER ->
-                UnmanagedGenericTester<Int>(
+                UnmanagedDictionaryTester<Int>(
                         testerName = "UnmanagedInteger",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO, KEY_BYE to VALUE_NUMERIC_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT
                 )
             DictionarySupportedType.SHORT ->
-                UnmanagedGenericTester<Short>(
+                UnmanagedDictionaryTester<Short>(
                         testerName = "UnmanagedShort",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toShort(), KEY_BYE to VALUE_NUMERIC_BYE.toShort(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toShort()
                 )
             DictionarySupportedType.BYTE ->
-                UnmanagedGenericTester<Byte>(
+                UnmanagedDictionaryTester<Byte>(
                         testerName = "UnmanagedByte",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toByte(), KEY_BYE to VALUE_NUMERIC_BYE.toByte(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toByte()
                 )
             DictionarySupportedType.FLOAT ->
-                UnmanagedGenericTester<Float>(
+                UnmanagedDictionaryTester<Float>(
                         testerName = "UnmanagedFloat",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toFloat(), KEY_BYE to VALUE_NUMERIC_BYE.toFloat(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toFloat()
                 )
             DictionarySupportedType.DOUBLE ->
-                UnmanagedGenericTester<Double>(
+                UnmanagedDictionaryTester<Double>(
                         testerName = "UnmanagedDouble",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_NUMERIC_HELLO.toDouble(), KEY_BYE to VALUE_NUMERIC_BYE.toDouble(), KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_NUMERIC_NOT_PRESENT.toDouble()
                 )
             DictionarySupportedType.STRING ->
-                UnmanagedGenericTester<String>(
+                UnmanagedDictionaryTester<String>(
                         testerName = "UnmanagedString",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_STRING_HELLO, KEY_BYE to VALUE_STRING_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_STRING_NOT_PRESENT
                 )
             DictionarySupportedType.BOOLEAN ->
-                UnmanagedGenericTester<Boolean>(
+                UnmanagedDictionaryTester<Boolean>(
                         testerName = "UnmanagedBoolean",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_BOOLEAN_HELLO, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_BOOLEAN_NOT_PRESENT
                 )
             DictionarySupportedType.DATE ->
-                UnmanagedGenericTester<Date>(
+                UnmanagedDictionaryTester<Date>(
                         testerName = "UnmanagedDate",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_DATE_HELLO, KEY_BYE to VALUE_DATE_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_DATE_NOT_PRESENT
                 )
             DictionarySupportedType.DECIMAL128 ->
-                UnmanagedGenericTester<Decimal128>(
+                UnmanagedDictionaryTester<Decimal128>(
                         testerName = "UnmanagedDecimal128",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_DECIMAL128_HELLO, KEY_BYE to VALUE_DECIMAL128_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_DECIMAL128_NOT_PRESENT
                 )
             DictionarySupportedType.BINARY ->
-                UnmanagedGenericTester<ByteArray>(
+                UnmanagedDictionaryTester<ByteArray>(
                         testerName = "UnmanagedBinary",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_BINARY_HELLO, KEY_BYE to VALUE_BINARY_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_BINARY_NOT_PRESENT
                 )
             DictionarySupportedType.OBJECT_ID ->
-                UnmanagedGenericTester<ObjectId>(
+                UnmanagedDictionaryTester<ObjectId>(
                         testerName = "UnmanagedObjectId",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_OBJECT_ID_HELLO, KEY_BYE to VALUE_OBJECT_ID_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_OBJECT_ID_NOT_PRESENT
                 )
             DictionarySupportedType.UUID ->
-                UnmanagedGenericTester<UUID>(
+                UnmanagedDictionaryTester<UUID>(
                         testerName = "UnmanagedUUID",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_UUID_HELLO, KEY_BYE to VALUE_UUID_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_UUID_NOT_PRESENT
                 )
             DictionarySupportedType.LINK ->
-                UnmanagedGenericTester<RealmModel>(
+                UnmanagedDictionaryTester<RealmModel>(
                         testerName = "UnmanagedRealmModel",
                         keyValuePairs = listOf(KEY_HELLO to VALUE_LINK_HELLO, KEY_BYE to VALUE_LINK_BYE, KEY_NULL to null),
                         notPresentKey = KEY_NOT_PRESENT,
                         notPresentValue = VALUE_LINK_NOT_PRESENT
                 )
-            // Ignore RealmAny in this switch
-            else -> null
+            DictionarySupportedType.MIXED -> null      // Ignore RealmAny in this switch
+            else -> throw IllegalArgumentException("Unknown data type for Dictionaries")
         }
     }
 
     // Create RealmAny testers now
     val realmAnyTesters = RealmAny.Type.values().map { realmAnyType ->
-        UnmanagedGenericTester<RealmAny>(
-                "UnmanagedRealmAny-${realmAnyType.name}",
+        UnmanagedDictionaryTester<RealmAny>(
+                "UnmanagedDictionaryRealmAny-${realmAnyType.name}",
                 getRealmAnyKeyValuePairs(realmAnyType),
                 KEY_NOT_PRESENT,
                 VALUE_MIXED_NOT_PRESENT

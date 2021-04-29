@@ -58,8 +58,7 @@ open class SyncAllTypes : RealmObject() {
     var columnString = ""
     var columnLong: Long = 0
 
-    // FIXME Float ruins initial upload of scheme, works if added to schema later
-//    var columnFloat = 0f
+    var columnFloat = 0f
 
     var columnDouble = 0.0
     var isColumnBoolean = false
@@ -96,11 +95,8 @@ open class SyncAllTypes : RealmObject() {
     var columnLongList: RealmList<Long> = RealmList()
     @Required
     var columnDoubleList: RealmList<Double> = RealmList()
-
-    // FIXME Float ruins initial upload of scheme, works if added to schema later
-//    @Required
-//    var columnFloatList: RealmList<Float>? = null
-
+    @Required
+    var columnFloatList: RealmList<Float>? = null
     @Required
     var columnDateList: RealmList<Date> = RealmList()
     @Required
@@ -121,11 +117,8 @@ open class SyncAllTypes : RealmObject() {
     var columnStringDictionary: RealmDictionary<String> = RealmDictionary()
     @Required // Cloud only supports non-null values for this type
     var columnIntegerDictionary: RealmDictionary<Int> = RealmDictionary()
-
-    // FIXME Float ruins initial upload of scheme, works if added to schema later
-//    @Required // Cloud only supports non-null values for this type
-//    var columnFloatDictionary: RealmDictionary<Float> = RealmDictionary()
-
+    @Required // Cloud only supports non-null values for this type
+    var columnFloatDictionary: RealmDictionary<Float> = RealmDictionary()
     @Required // Cloud only supports non-null values for this type
     var columnLongDictionary: RealmDictionary<Long> = RealmDictionary()
     @Required // Cloud only supports non-null values for this type
@@ -145,6 +138,35 @@ open class SyncAllTypes : RealmObject() {
     @Required // Cloud only supports non-null values for this type
     var columnDecimal128Dictionary: RealmDictionary<Decimal128> = RealmDictionary()
     var columnRealmAnyDictionary: RealmDictionary<RealmAny> = RealmDictionary()
+
+    var columnRealmSet: RealmSet<SyncDog> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnBooleanSet: RealmSet<Boolean> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnStringSet: RealmSet<String> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnIntegerSet: RealmSet<Int> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnFloatSet: RealmSet<Float> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnLongSet: RealmSet<Long> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnShortSet: RealmSet<Short> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnDoubleSet: RealmSet<Double> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnByteSet: RealmSet<Byte> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnBinarySet: RealmSet<ByteArray> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnDateSet: RealmSet<Date> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnObjectIdSet: RealmSet<ObjectId> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnUUIDSet: RealmSet<UUID> = RealmSet()
+    @Required // Cloud only supports non-null values for this type
+    var columnDecimal128Set: RealmSet<Decimal128> = RealmSet()
+    var columnRealmAnySet: RealmSet<RealmAny> = RealmSet()
 
     fun setColumnMutableRealmInteger(value: Int) {
         columnRealmInteger.set(value.toLong())

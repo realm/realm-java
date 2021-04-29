@@ -160,7 +160,7 @@ public class RealmTests {
         add(AllTypes.FIELD_STRING);
         add(AllTypes.FIELD_BINARY);
         add(AllTypes.FIELD_UUID);
-        add(AllTypes.FIELD_MIXED);
+        add(AllTypes.FIELD_REALM_ANY);
     }};
     private RealmConfiguration realmConfig;
 

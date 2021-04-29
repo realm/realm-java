@@ -20,24 +20,51 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
 
+
 public class CollectionUtils {
+    public static final String LIST_TYPE = "list";
+    public static final String DICTIONARY_TYPE = "dictionary";
+    public static final String SET_TYPE = "set";
+
+    static boolean isClassForRealmModel(Class<?> clazz) {
+        return RealmModel.class.isAssignableFrom(clazz);
+    }
+
+    /**
+     * Called by both list operators to determine whether a RealmModel is an embedded object
+     *
+     * @param realm  the Realm instance to check against.
+     * @param object the object to check.
+     * @return true if the object can be copied, false otherwise
+     */
+    static boolean isEmbedded(BaseRealm realm, RealmModel object) {
+        if (realm instanceof Realm) {
+            return realm.getSchema().getSchemaForClass(object.getClass()).isEmbedded();
+        } else {
+            String objectType = ((DynamicRealmObject) object).getType();
+            return realm.getSchema().getSchemaForClass(objectType).isEmbedded();
+        }
+    }
 
     /**
      * Called by both list and dictionary operators to determine whether a RealmModel can be copied
      * to a Realm.
      *
-     * @param realm     the Realm instance to check against.
-     * @param object    the object to copy.
-     * @param className the object class.
+     * @param realm          the Realm instance to check against.
+     * @param object         the object to copy.
+     * @param className      the object class.
+     * @param collectionType the type of the calling collection.
      * @return true if the object can be copied, false otherwise
      */
-    static boolean checkCanObjectBeCopied(BaseRealm realm, RealmModel object, String className) {
+    static boolean checkCanObjectBeCopied(BaseRealm realm, RealmModel object, String className, String collectionType) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
 
@@ -50,22 +77,22 @@ public class CollectionUtils {
                     } else {
                         // Different target table
                         throw new IllegalArgumentException(String.format(Locale.US,
-                                "The object has a different type from list's." +
-                                        " Type of the list is '%s', type of object is '%s'.", className, objectClassName));
+                                "The object has a different type from %s's." +
+                                        " Type of the %s is '%s', type of object is '%s'.", collectionType, collectionType, className, objectClassName));
                     }
                 } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
                     // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
                     // you have to run a full schema validation for each object.
                     // And copying from another Realm instance pointed to the same Realm file is not supported as well.
-                    throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
+                    throw new IllegalArgumentException("Cannot pass DynamicRealmObject between Realm instances.");
                 } else {
-                    throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
+                    throw new IllegalStateException("Cannot pass an object to a Realm instance created in another thread.");
                 }
             } else {
                 // Object is already in this realm
                 if (proxy.realmGet$proxyState().getRow$realm() != null && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
                     if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
-                        throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
+                        throw new IllegalArgumentException("Cannot pass an object from another Realm instance.");
                     }
                     return false;
                 }
@@ -142,6 +169,20 @@ public class CollectionUtils {
         } else {
             return realm.copyToRealm(object);
         }
+    }
+
+    /**
+     * Checks whether it is possible to add or remove a provided listener.
+     *
+     * @param listener      The listener to be checked.
+     * @param checkListener whether the check should be performed.
+     */
+    public static void checkForAddRemoveListener(BaseRealm baseRealm, @Nullable Object listener, boolean checkListener) {
+        if (checkListener && listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        baseRealm.checkIfValid();
+        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     /**

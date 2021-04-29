@@ -1564,12 +1564,12 @@ public class DynamicRealmObjectTests {
                 AllJavaTypes.FIELD_SHORT, AllJavaTypes.FIELD_INT, AllJavaTypes.FIELD_BYTE, AllJavaTypes.FIELD_FLOAT,
                 AllJavaTypes.FIELD_DOUBLE, AllJavaTypes.FIELD_BOOLEAN, AllJavaTypes.FIELD_DATE,
                 AllJavaTypes.FIELD_BINARY, AllJavaTypes.FIELD_DECIMAL128, AllJavaTypes.FIELD_OBJECT_ID, AllJavaTypes.FIELD_UUID,
-                AllJavaTypes.FIELD_MIXED, AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST,
+                AllJavaTypes.FIELD_REALM_ANY, AllJavaTypes.FIELD_OBJECT, AllJavaTypes.FIELD_LIST,
                 AllJavaTypes.FIELD_STRING_LIST, AllJavaTypes.FIELD_BINARY_LIST, AllJavaTypes.FIELD_BOOLEAN_LIST,
                 AllJavaTypes.FIELD_LONG_LIST, AllJavaTypes.FIELD_INTEGER_LIST, AllJavaTypes.FIELD_SHORT_LIST,
                 AllJavaTypes.FIELD_BYTE_LIST, AllJavaTypes.FIELD_DOUBLE_LIST, AllJavaTypes.FIELD_FLOAT_LIST,
                 AllJavaTypes.FIELD_DATE_LIST, AllJavaTypes.FIELD_DECIMAL128_LIST, AllJavaTypes.FIELD_OBJECT_ID_LIST,
-                AllJavaTypes.FIELD_UUID_LIST, AllJavaTypes.FIELD_MIXED_LIST};
+                AllJavaTypes.FIELD_UUID_LIST, AllJavaTypes.FIELD_REALM_ANY_LIST};
         String[] keys = dObjTyped.getFieldNames();
         // After the stable ID support, primary key field will be inserted first before others. So even FIELD_STRING is
         // the first defined field in the class, it will be inserted after FIELD_ID.
@@ -1871,7 +1871,7 @@ public class DynamicRealmObjectTests {
                     assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_UUID));
                     break;
                 case MIXED:
-                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_MIXED));
+                    assertNull(primitiveNullables.get(NullablePrimitiveFields.FIELD_REALM_ANY));
                     break;
                 case INTEGER_LIST:
                     assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_INTEGER_LIST, Integer.class).get(0));
@@ -1904,7 +1904,7 @@ public class DynamicRealmObjectTests {
                     assertNull(allJavaTypes.getList(AllJavaTypes.FIELD_UUID_LIST, UUID.class).get(0));
                     break;
                 case MIXED_LIST:
-                    assertTrue(allJavaTypes.getList(AllJavaTypes.FIELD_MIXED_LIST, RealmAny.class).get(0).isNull());
+                    assertTrue(allJavaTypes.getList(AllJavaTypes.FIELD_REALM_ANY_LIST, RealmAny.class).get(0).isNull());
                     break;
                 case TYPED_LINK:
                 case LIST:
@@ -1923,6 +1923,18 @@ public class DynamicRealmObjectTests {
                 case STRING_TO_UUID_MAP:
                 case STRING_TO_DECIMAL128_MAP:
                 case STRING_TO_LINK_MAP:
+                case BOOLEAN_SET:
+                case STRING_SET:
+                case INTEGER_SET:
+                case FLOAT_SET:
+                case DOUBLE_SET:
+                case BINARY_SET:
+                case DATE_SET:
+                case DECIMAL128_SET:
+                case OBJECT_ID_SET:
+                case UUID_SET:
+                case LINK_SET:
+                case MIXED_SET:
                     // TODO: fix this when adding dynamic support for dictionaries
                     break;
                 default:

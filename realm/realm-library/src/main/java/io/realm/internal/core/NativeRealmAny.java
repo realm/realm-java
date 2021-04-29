@@ -112,7 +112,7 @@ public class NativeRealmAny implements NativeObject {
     }
 
     public RealmAny.Type getType() {
-        return RealmAny.Type.fromNativeValue(nativeGetRealmAnyType(nativePtr));
+        return RealmAny.Type.fromNativeValue(nativeGetType(nativePtr));
     }
 
     public boolean asBoolean() {
@@ -217,7 +217,7 @@ public class NativeRealmAny implements NativeObject {
 
     private static native long nativeCreateLink(long targetTablePtr, long targetObjectKey);
 
-    private static native int nativeGetRealmAnyType(long nativePtr);
+    private static native int nativeGetType(long nativePtr);
 
     private static native String nativeGetRealmModelTableName(long nativePtr, long sharedRealmPtr);
 

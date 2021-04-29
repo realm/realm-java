@@ -87,6 +87,23 @@ object Constants {
             "io.realm.RealmAny" to RealmFieldType.STRING_TO_MIXED_MAP
     )
 
+    val SET_ELEMENT_TYPE_TO_REALM_TYPES = mapOf(
+            "java.lang.Byte" to RealmFieldType.INTEGER_SET,
+            "java.lang.Short" to RealmFieldType.INTEGER_SET,
+            "java.lang.Integer" to RealmFieldType.INTEGER_SET,
+            "java.lang.Long" to RealmFieldType.INTEGER_SET,
+            "java.lang.Float" to RealmFieldType.FLOAT_SET,
+            "java.lang.Double" to RealmFieldType.DOUBLE_SET,
+            "java.lang.Boolean" to RealmFieldType.BOOLEAN_SET,
+            "java.lang.String" to RealmFieldType.STRING_SET,
+            "java.util.Date" to RealmFieldType.DATE_SET,
+            "byte[]" to RealmFieldType.BINARY_SET,
+            "org.bson.types.Decimal128" to RealmFieldType.DECIMAL128_SET,
+            "org.bson.types.ObjectId" to RealmFieldType.OBJECT_ID_SET,
+            "java.util.UUID" to RealmFieldType.UUID_SET,
+            "io.realm.RealmAny" to RealmFieldType.MIXED_SET
+    )
+
     /**
      * Realm types and their corresponding Java types.
      *
@@ -135,8 +152,20 @@ object Constants {
         STRING_TO_DECIMAL128_MAP("STRING_TO_DECIMAL128_MAP", "Map"),
         STRING_TO_OBJECT_ID_MAP("STRING_TO_OBJECT_ID_MAP", "Map"),
         STRING_TO_UUID_MAP("STRING_TO_UUID_MAP", "Map"),
-        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map");
+        STRING_TO_MIXED_MAP("STRING_TO_MIXED_MAP", "Map"),
 
+        INTEGER_SET("INTEGER_SET", "Set"),
+        BOOLEAN_SET("BOOLEAN_SET", "Set"),
+        STRING_SET("STRING_SET", "Set"),
+        BINARY_SET("BINARY_SET", "Set"),
+        DATE_SET("DATE_SET", "Set"),
+        FLOAT_SET("FLOAT_SET", "Set"),
+        DOUBLE_SET("DOUBLE_SET", "Set"),
+        DECIMAL128_SET("DECIMAL128_SET", "Set"),
+        OBJECT_ID_SET("OBJECT_ID_SET", "Set"),
+        UUID_SET("UUID_SET", "Set"),
+        LINK_SET("LINK_SET", "Set"),
+        MIXED_SET("MIXED_SET", "Set");
 
         /**
          * The name of the enum, used in the Java bindings, used to represent the corresponding type.

@@ -213,7 +213,7 @@ public class LinkingObjectsDynamicTests {
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID);
                         break;
                     case MIXED:
-                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED);
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_REALM_ANY);
                         break;
                     case INTEGER_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INTEGER_LIST);
@@ -246,7 +246,7 @@ public class LinkingObjectsDynamicTests {
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
                         break;
                     case MIXED_LIST:
-                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_MIXED_LIST);
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_REALM_ANY_LIST);
                         break;
                     case STRING_TO_MIXED_MAP:
                     case STRING_TO_BOOLEAN_MAP:
@@ -260,7 +260,20 @@ public class LinkingObjectsDynamicTests {
                     case STRING_TO_UUID_MAP:
                     case STRING_TO_DECIMAL128_MAP:
                     case STRING_TO_LINK_MAP:
-                        // TODO: fix this when adding support for dictionary in AllJavaTypes
+                    case BOOLEAN_SET:
+                    case STRING_SET:
+                    case INTEGER_SET:
+                    case FLOAT_SET:
+                    case DOUBLE_SET:
+                    case BINARY_SET:
+                    case DATE_SET:
+                    case DECIMAL128_SET:
+                    case OBJECT_ID_SET:
+                    case UUID_SET:
+                    case LINK_SET:
+                    case MIXED_SET:
+                        // TODO: https://github.com/realm/realm-java/issues/7382
+                        // TODO: https://github.com/realm/realm-java/issues/7383
                         throw new IllegalArgumentException("Unexpected field type");
                     default:
                         fail("unknown type: " + fieldType);

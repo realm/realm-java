@@ -1538,7 +1538,7 @@ public class RealmMigrationTests {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.create(RealmAnyNotIndexed.CLASS_NAME)
-                        .addField(RealmAnyNotIndexed.FIELD_MIXED, RealmAny.class);
+                        .addField(RealmAnyNotIndexed.FIELD_REALM_ANY, RealmAny.class);
             }
         };
 
@@ -1552,8 +1552,8 @@ public class RealmMigrationTests {
 
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema objectSchema = realm.getSchema().get(RealmAnyNotIndexed.CLASS_NAME);
-        assertTrue(objectSchema.hasField(RealmAnyNotIndexed.FIELD_MIXED));
-        assertFalse(objectSchema.hasIndex(RealmAnyNotIndexed.FIELD_MIXED));
+        assertTrue(objectSchema.hasField(RealmAnyNotIndexed.FIELD_REALM_ANY));
+        assertFalse(objectSchema.hasIndex(RealmAnyNotIndexed.FIELD_REALM_ANY));
         realm.close();
     }
 
@@ -1618,7 +1618,7 @@ public class RealmMigrationTests {
             public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                 RealmSchema schema = realm.getSchema();
                 schema.create(RealmAnyIndexed.CLASS_NAME)
-                        .addField(RealmAnyIndexed.FIELD_MIXED, RealmAny.class, FieldAttribute.INDEXED);
+                        .addField(RealmAnyIndexed.FIELD_REALM_ANY, RealmAny.class, FieldAttribute.INDEXED);
             }
         };
 
@@ -1633,8 +1633,8 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema objectSchema = realm.getSchema().get(RealmAnyIndexed.CLASS_NAME);
 
-        assertTrue(objectSchema.hasField(RealmAnyIndexed.FIELD_MIXED));
-        assertTrue(objectSchema.hasIndex(RealmAnyIndexed.FIELD_MIXED));
+        assertTrue(objectSchema.hasField(RealmAnyIndexed.FIELD_REALM_ANY));
+        assertTrue(objectSchema.hasIndex(RealmAnyIndexed.FIELD_REALM_ANY));
 
         realm.close();
     }
@@ -1654,7 +1654,7 @@ public class RealmMigrationTests {
                 RealmSchema schema = realm.getSchema();
                 schema.create(RealmAnyRealmListWithPK.CLASS_NAME)
                         .addField(RealmAnyRealmListWithPK.PK, long.class, FieldAttribute.PRIMARY_KEY)
-                        .addRealmListField(RealmAnyRealmListWithPK.FIELD_MIXED, RealmAny.class);
+                        .addRealmListField(RealmAnyRealmListWithPK.FIELD_REALM_ANY, RealmAny.class);
             }
         };
 
@@ -1668,8 +1668,8 @@ public class RealmMigrationTests {
 
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema objectSchema = realm.getSchema().get(RealmAnyRealmListWithPK.CLASS_NAME);
-        assertTrue(objectSchema.hasField(RealmAnyRealmListWithPK.FIELD_MIXED));
-        assertEquals(RealmFieldType.MIXED_LIST, objectSchema.getFieldType(RealmAnyRealmListWithPK.FIELD_MIXED));
+        assertTrue(objectSchema.hasField(RealmAnyRealmListWithPK.FIELD_REALM_ANY));
+        assertEquals(RealmFieldType.MIXED_LIST, objectSchema.getFieldType(RealmAnyRealmListWithPK.FIELD_REALM_ANY));
         assertTrue(objectSchema.hasPrimaryKey());
         realm.close();
     }

@@ -194,7 +194,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, privat
                     changeSet!!
                     looperThread.postRunnable(Runnable {
                         assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_REALM_ANY))
                         looperThread.testComplete()
                     })
                 }
@@ -232,7 +232,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, privat
                     changeSet!!
                     looperThread.postRunnable(Runnable {
                         assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_REALM_ANY))
                         looperThread.testComplete()
                     })
                 }
@@ -270,7 +270,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, privat
                     changeSet!!
                     looperThread.postRunnable(Runnable {
                         assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_REALM_ANY))
                         looperThread.testComplete()
                     })
                 }
@@ -311,7 +311,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, privat
                     changeSet!!
                     looperThread.postRunnable(Runnable {
                         assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_REALM_ANY))
                         looperThread.testComplete()
                     })
                 }
@@ -349,7 +349,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, privat
                     changeSet!!
                     looperThread.postRunnable(Runnable {
                         assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_REALM_ANY))
                         looperThread.testComplete()
                     })
                 }
@@ -389,7 +389,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, privat
                     changeSet!!
                     looperThread.postRunnable(Runnable {
                         assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_REALM_ANY))
                         looperThread.testComplete()
                     })
                 }
@@ -427,7 +427,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, privat
                     changeSet!!
                     looperThread.postRunnable(Runnable {
                         assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_REALM_ANY))
                         looperThread.testComplete()
                     })
                 }
@@ -462,7 +462,7 @@ class RealmAnyChangeListenerTests(private val testingType: RealmAny.Type, privat
                     changeSet!!
                     looperThread.postRunnable(Runnable {
                         assertFalse(changeSet.isFieldChanged(AllJavaTypes.FIELD_STRING))
-                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_MIXED))
+                        assertTrue(changeSet.isFieldChanged(AllJavaTypes.FIELD_REALM_ANY))
                         looperThread.testComplete()
                     })
                 }

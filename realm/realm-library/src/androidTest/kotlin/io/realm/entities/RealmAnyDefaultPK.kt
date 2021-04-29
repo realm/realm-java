@@ -21,7 +21,7 @@ import io.realm.RealmObject
 
 open class RealmAnyDefaultPK : RealmObject() {
     companion object {
-        const val FIELD_MIXED = "realmAny"
+        const val FIELD_REALM_ANY = "realmAny"
         const val NAME = "hello world"
     }
 

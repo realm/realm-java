@@ -35,7 +35,6 @@ import java.util.*
 import kotlin.test.*
 
 
-// FIXME: MIXED PARAMETRIZED TESTS FOR INDEXED AND UNINDEXED
 @RunWith(AndroidJUnit4::class)
 class RealmAnyTests {
     private lateinit var realmConfiguration: RealmConfiguration
@@ -841,7 +840,7 @@ class RealmAnyTests {
 
         assertFailsWith<IllegalArgumentException>("Cannot copy DynamicRealmObject between Realm instances.") {
             dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 0)
-                    .getList(AllJavaTypes.FIELD_MIXED_LIST, RealmAny::class.java)
+                    .getList(AllJavaTypes.FIELD_REALM_ANY_LIST, RealmAny::class.java)
                     .add(RealmAny.valueOf(dynDog))
         }
 
@@ -865,7 +864,7 @@ class RealmAnyTests {
 
             assertFailsWith<IllegalStateException>("Cannot copy an object to a Realm instance created in another thread.") {
                 dynamicRealm.createObject(AllJavaTypes.CLASS_NAME, 0)
-                        .getList(AllJavaTypes.FIELD_MIXED_LIST, RealmAny::class.java)
+                        .getList(AllJavaTypes.FIELD_REALM_ANY_LIST, RealmAny::class.java)
                         .add(RealmAny.valueOf(dynDog))
             }
 
@@ -943,7 +942,7 @@ class RealmAnyTests {
                     set(fieldName, expectedValue)
                 }
                 transactionRealm.createObject(RealmAnyNotIndexed.CLASS_NAME).apply {
-                    set(RealmAnyNotIndexed.FIELD_MIXED, RealmAny.valueOf(missingClassObject))
+                    set(RealmAnyNotIndexed.FIELD_REALM_ANY, RealmAny.valueOf(missingClassObject))
                 }
             }
         }

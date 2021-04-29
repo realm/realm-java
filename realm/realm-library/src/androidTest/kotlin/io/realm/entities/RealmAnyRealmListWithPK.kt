@@ -24,7 +24,7 @@ import io.realm.annotations.PrimaryKey
 open class RealmAnyRealmListWithPK(@PrimaryKey var pk: Long) : RealmObject() {
     companion object {
         const val CLASS_NAME = "RealmAnyRealmListWithPK"
-        const val FIELD_MIXED = "realmAnyList"
+        const val FIELD_REALM_ANY = "realmAnyList"
         const val PK = "pk"
     }
 

@@ -25,6 +25,8 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
 
 
@@ -526,14 +528,15 @@ public class RealmAny {
      * @return true if the target has the same value
      */
     @Override
-    public final boolean equals(Object other) {
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    public final boolean equals(@Nullable Object other) {
         if (other == this) { return true; }
         if (!(other instanceof RealmAny)) { return false; }
         RealmAny otherRealmAny = ((RealmAny) other);
         return this.operator.equals(otherRealmAny.operator);
     }
 
-    public final boolean coercedEquals(RealmAny other) {
+    public final boolean coercedEquals(@Nullable RealmAny other) {
         if (other == null) { return false; }
         return this.operator.coercedEquals(other.operator);
     }
@@ -541,6 +544,10 @@ public class RealmAny {
     @Override
     public String toString() {
         return this.operator.toString();
+    }
+
+    void checkValidObject(BaseRealm realm) {
+        operator.checkValidObject(realm);
     }
 
     /**
@@ -560,7 +567,7 @@ public class RealmAny {
         UUID(RealmFieldType.UUID, java.util.UUID.class),
         NULL(null, null);
 
-        private static final Type[] realmFieldToRealmAnyTypeMap = new Type[MAX_CORE_TYPE_VALUE + 1];
+        private static final Type[] realmFieldToRealmAnyTypeMap = new Type[MAX_CORE_TYPE_VALUE + 2];
 
         static {
             for (Type realmAnyType : values()) {
@@ -569,6 +576,9 @@ public class RealmAny {
                 final int nativeValue = realmAnyType.realmFieldType.getNativeValue();
                 realmFieldToRealmAnyTypeMap[nativeValue] = realmAnyType;
             }
+            // TODO: only used for testing purposes, see https://github.com/realm/realm-java/issues/7385
+            // Links Object field type to RealmAny object.
+            realmFieldToRealmAnyTypeMap[RealmFieldType.OBJECT.getNativeValue()] = OBJECT;
         }
 
         public static Type fromNativeValue(int realmFieldType) {

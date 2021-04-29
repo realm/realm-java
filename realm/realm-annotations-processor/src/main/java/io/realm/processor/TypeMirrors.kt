@@ -89,8 +89,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
             if (!Utils.isRealmList(field)) {
                 return null
             }
-            val typeArguments = (field.asType() as DeclaredType).typeArguments
-            return if (typeArguments.isNotEmpty()) typeArguments[0] else null
+            return getTypeArgument(field)
         }
 
         /**
@@ -101,9 +100,23 @@ class TypeMirrors(env: ProcessingEnvironment) {
             if (!Utils.isRealmDictionary(field)) {
                 return null
             }
+            return getTypeArgument(field)
+        }
+
+        /**
+         * @return the [TypeMirror] of the elements in `RealmSet`.
+         */
+        @JvmStatic
+        fun getRealmSetElementTypeMirror(field: VariableElement): TypeMirror? {
+            if (!Utils.isRealmSet(field)) {
+                return null
+            }
+            return getTypeArgument(field)
+        }
+
+        private fun getTypeArgument(field: VariableElement): TypeMirror? {
             val typeArguments = (field.asType() as DeclaredType).typeArguments
             return if (typeArguments.isNotEmpty()) typeArguments[0] else null
         }
-
     }
 }

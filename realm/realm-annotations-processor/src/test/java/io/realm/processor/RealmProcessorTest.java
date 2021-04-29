@@ -64,6 +64,10 @@ public class RealmProcessorTest {
     private final JavaFileObject realmDictionaryModelWrongType = JavaFileObjects.forResource("some/test/RealmDictionaryModelWrongType.java");
     private final JavaFileObject realmDictionaryModelRealmAnyRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelRealmAnyRequired.java");
     private final JavaFileObject realmDictionaryModelRealmModelRequired = JavaFileObjects.forResource("some/test/RealmDictionaryModelRealmModelRequired.java");
+    private final JavaFileObject realmSetModel = JavaFileObjects.forResource("some/test/RealmSetModel.java");
+    private final JavaFileObject realmSetModelWrongType = JavaFileObjects.forResource("some/test/RealmSetModelWrongType.java");
+    private final JavaFileObject realmSetMissingGenericsModel = JavaFileObjects.forResource("some/test/RealmSetMissingGenerics.java");
+    private final JavaFileObject embeddedObject = JavaFileObjects.forResource("some/test/EmbeddedObject.java");
 
     @Test
     public void compileSimpleFile() {
@@ -360,7 +364,8 @@ public class RealmProcessorTest {
     @Test
     public void compileInvalidRequiredTypes() throws IOException {
         final String[] invalidRequiredAnnotationFieldTypes = {"byte", "short", "int", "long", "float", "double",
-                "boolean", "RealmList<Simple>", "Simple", "RealmAny", "RealmList<RealmAny>"};
+                "boolean", "RealmList<Simple>", "Simple", "RealmAny", "RealmList<RealmAny>", "RealmDictionary<Simple>",
+                "RealmDictionary<RealmAny>", "RealmSet<Simple>", "RealmSet<RealmAny>"};
 
         for (String fieldType : invalidRequiredAnnotationFieldTypes) {
             RealmSyntheticTestClass javaFileObject = new RealmSyntheticTestClass.Builder()
@@ -372,6 +377,21 @@ public class RealmProcessorTest {
                     .processedWith(new RealmProcessor())
                     .failsToCompile();
         }
+    }
+
+    @Test
+    public void compileSetWithEmbeddedObjectNotSupported() throws IOException {
+        RealmSyntheticTestClass.Builder builder = new RealmSyntheticTestClass.Builder()
+                .name("InvalidRequiredType");
+
+        builder.field()
+                .name("embeddedSet")
+                .type("RealmSet<EmbeddedObject>");
+
+        assertAbout(javaSources())
+                .that(Arrays.asList(embeddedObject, builder.build()))
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
     }
 
     @Test
@@ -526,6 +546,30 @@ public class RealmProcessorTest {
     public void compileRealmDictionaryModelRealmModelRequiredFails() {
         assertAbout(javaSource())
                 .that(realmDictionaryModelRealmModelRequired)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmSetModel() {
+        assertAbout(javaSource())
+                .that(realmSetModel)
+                .processedWith(new RealmProcessor())
+                .compilesWithoutError();
+    }
+
+    @Test
+    public void compileRealmSetModelWrongType() {
+        assertAbout(javaSource())
+                .that(realmSetModelWrongType)
+                .processedWith(new RealmProcessor())
+                .failsToCompile();
+    }
+
+    @Test
+    public void compileRealmSetMissingGenerics() {
+        assertAbout(javaSource())
+                .that(realmSetMissingGenericsModel)
                 .processedWith(new RealmProcessor())
                 .failsToCompile();
     }

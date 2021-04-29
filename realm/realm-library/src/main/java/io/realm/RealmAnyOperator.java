@@ -111,9 +111,11 @@ public abstract class RealmAnyOperator {
         return type.getTypedClass();
     }
 
-    boolean coercedEquals(RealmAnyOperator realmAnyOperator){
+    boolean coercedEquals(RealmAnyOperator realmAnyOperator) {
         return getNativeRealmAny().coercedEquals(realmAnyOperator.getNativeRealmAny());
     }
+
+    public void checkValidObject(BaseRealm realm) { }
 }
 
 final class NullRealmAnyOperator extends RealmAnyOperator {
@@ -144,6 +146,7 @@ final class NullRealmAnyOperator extends RealmAnyOperator {
     public int hashCode() {
         return super.hashCode();
     }
+
     @Override
     public boolean equals(Object other) {
         return (other != null) && getClass().equals(other.getClass());
@@ -422,6 +425,16 @@ class RealmModelOperator extends RealmAnyOperator {
     @Override
     public String toString() {
         return this.value.toString();
+    }
+
+    @Override
+    public void checkValidObject(BaseRealm realm) {
+        if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
+            throw new IllegalArgumentException("Realm object is not a valid managed object.");
+        }
+        if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != realm) {
+            throw new IllegalArgumentException("Realm object belongs to a different Realm.");
+        }
     }
 }
 

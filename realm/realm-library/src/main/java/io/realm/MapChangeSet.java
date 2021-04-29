@@ -22,7 +22,7 @@ import io.realm.internal.OsMapChangeSet;
  * This interface describes the changes made to a map during the last update.
  * <p>
  * {@link MapChangeSet} is passed to the {@link MapChangeListener} which is registered
- * by {@link RealmMap#addChangeListener(MapChangeListener)} )}.
+ * by {@link RealmMap#addChangeListener(MapChangeListener)}.
  */
 public interface MapChangeSet<T> {
 

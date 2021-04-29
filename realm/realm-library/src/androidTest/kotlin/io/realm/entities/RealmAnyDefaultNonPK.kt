@@ -21,7 +21,7 @@ import io.realm.RealmObject
 
 open class RealmAnyDefaultNonPK : RealmObject() {
     companion object {
-        const val FIELD_MIXED = "realmAny"
+        const val FIELD_REALM_ANY = "realmAny"
     }
 
     var realmAny: RealmAny? = RealmAny.valueOf(RealmAnyNotIndexed())

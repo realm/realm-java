@@ -112,6 +112,24 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveDictionar
     return reinterpret_cast<jlong>(nullptr);
 }
 
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddPrimitiveSetColumn(JNIEnv* env,
+                                                                                 jobject,
+                                                                                 jlong native_table_ptr,
+                                                                                 jint j_col_type,
+                                                                                 jstring j_name,
+                                                                                 jboolean j_is_nullable)
+{
+    try {
+        JStringAccessor name(env, j_name); // throws
+        bool is_column_nullable = to_bool(j_is_nullable);
+        DataType data_type = DataType(j_col_type);
+        TableRef table = TBL_REF(native_table_ptr);
+        return (jlong)(table->add_column_set(data_type, name, is_column_nullable).value);
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv* env, jobject, jlong nativeTableRefPtr,
                                                                          jint colType, jstring name,
                                                                          jlong targetTableRefPtr)
@@ -156,6 +174,33 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnDictionaryLi
         // There is no entry in DataType::Type to identify Link Dictionaries, so use PropertyType instead
         if (colType == (int(PropertyType::Dictionary) + int(DataType::Type::Link))) {
             return static_cast<jlong>(table->add_column_dictionary(*targetTableRef, name_accessor).value);
+        } else {
+            throw LogicError(LogicError::illegal_type);
+        }
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnSetLink(JNIEnv* env,
+                                                                            jobject,
+                                                                            jlong nativeTableRefPtr,
+                                                                            jint colType,
+                                                                            jstring name,
+                                                                            jlong targetTableRefPtr)
+{
+    TableRef targetTableRef = TBL_REF(targetTableRefPtr);
+    if (!targetTableRef->is_group_level()) {
+        ThrowException(env, UnsupportedOperation, "Links can only be made to toplevel tables.");
+        return 0;
+    }
+    try {
+        JStringAccessor name_accessor(env, name); // throws
+        TableRef table = TBL_REF(nativeTableRefPtr);
+
+        // There is no entry in DataType::Type to identify Link Set, so use PropertyType instead
+        if (colType == (int(PropertyType::Set) + int(DataType::Type::Link))) {
+            return static_cast<jlong>(table->add_column_set(*targetTableRef, name_accessor).value);
         } else {
             throw LogicError(LogicError::illegal_type);
         }
@@ -314,6 +359,8 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_Table_nativeGetColumnType(JNIEnv*,
     if (column_type != type_LinkList &&  table->is_list(column_key)) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
         return int(column_type) + int(PropertyType::Array);
+    } else if (column_key.is_set()) {
+        return int(column_type) + int(PropertyType::Set);
     } else if (column_key.is_dictionary()) {
         return int(column_type) + int(PropertyType::Dictionary);
     }

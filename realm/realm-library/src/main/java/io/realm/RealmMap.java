@@ -345,7 +345,7 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         // ------------------------------------------
 
         @Override
-        public V put(K key, @Nullable V value) {
+        public V put(K key, V value) {
             checkValidKey(key);
             return putInternal(key, value);
         }

@@ -29,10 +29,8 @@ import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.Required;
 
 public class DictionaryAllTypes extends RealmObject {
-    public static final String FIELD_STRING_DICTIONARY = "columnStringDictionary";
 
-    @PrimaryKey
-    private String id = "";
+    public static final String FIELD_STRING_DICTIONARY = "columnStringDictionary";
 
     private RealmDictionary<DogPrimaryKey> columnRealmDictionary;
     private RealmDictionary<Boolean> columnBooleanDictionary;
@@ -49,6 +47,9 @@ public class DictionaryAllTypes extends RealmObject {
     private RealmDictionary<UUID> columnUUIDDictionary;
     private RealmDictionary<Decimal128> columnDecimal128Dictionary;
     private RealmDictionary<RealmAny> columnRealmAnyDictionary;
+
+    @Required
+    private String columnString = "";
 
     @Required
     private RealmDictionary<Boolean> columnRequiredBooleanDictionary;
@@ -77,12 +78,12 @@ public class DictionaryAllTypes extends RealmObject {
     @Required
     private RealmDictionary<Decimal128> columnRequiredDecimal128Dictionary;
 
-    public String getId() {
-        return id;
+    public String getColumnString() {
+        return columnString;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setColumnString(String columnString) {
+        this.columnString = columnString;
     }
 
     public RealmDictionary<DogPrimaryKey> getColumnRealmDictionary() {

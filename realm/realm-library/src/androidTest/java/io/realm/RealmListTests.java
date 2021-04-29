@@ -816,7 +816,7 @@ public class RealmListTests extends CollectionTests {
     public void add_set_objectFromOtherThread() {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
         final Dog dog = realm.where(Dog.class).findFirst();
-        final String expectedMsg = "Cannot copy an object from another Realm instance.";
+        final String expectedMsg = "Cannot pass an object from another Realm instance.";
 
         new Thread(new Runnable() {
             @Override
@@ -859,7 +859,7 @@ public class RealmListTests extends CollectionTests {
         final CountDownLatch finishedLatch = new CountDownLatch(1);
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());
         final DynamicRealmObject dynDog = dynamicRealm.where(Dog.CLASS_NAME).findFirst();
-        final String expectedMsg = "Cannot copy an object to a Realm instance created in another thread.";
+        final String expectedMsg = "Cannot pass an object to a Realm instance created in another thread.";
 
         final AtomicReference<Throwable> thrownErrorRef = new AtomicReference<>();
 
@@ -953,7 +953,7 @@ public class RealmListTests extends CollectionTests {
 
     @Test
     public void add_set_dynamicObjectCreatedFromTypedRealm() {
-        final String expectedMsg = "Cannot copy DynamicRealmObject between Realm instances.";
+        final String expectedMsg = "Cannot pass DynamicRealmObject between Realm instances.";
         //noinspection ConstantConditions
         DynamicRealmObject dynDog = new DynamicRealmObject(realm.where(Dog.class).findFirst());
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realm.getConfiguration());

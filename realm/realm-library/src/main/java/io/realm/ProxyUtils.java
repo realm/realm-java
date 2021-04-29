@@ -409,7 +409,11 @@ class ProxyUtils {
     static <T extends RealmModel> RealmAny copyToRealmIfNeeded(ProxyState<T> proxyState, @Nullable RealmAny value) {
         final Realm realm = (Realm) proxyState.getRealm$realm();
 
-        if ((value != null) && (value.getType() == RealmAny.Type.OBJECT)) {
+        if (value == null) {
+            return RealmAny.nullValue();
+        }
+
+        if (value.getType() == RealmAny.Type.OBJECT) {
             RealmModel realmAnyRealmModel = value.asRealmModel(RealmModel.class);
 
             if (realm.getSchema().getSchemaForClass(realmAnyRealmModel.getClass()).isEmbedded()) {

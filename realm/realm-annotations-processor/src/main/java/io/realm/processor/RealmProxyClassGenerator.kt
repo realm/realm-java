@@ -17,10 +17,6 @@
 package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
-import com.sun.tools.javac.code.Attribute
-import com.sun.tools.javac.code.Symbol
-import com.sun.tools.javac.code.Type
-import com.sun.tools.javac.util.Pair
 import io.realm.processor.ext.beginMethod
 import io.realm.processor.ext.beginType
 import java.io.BufferedWriter
@@ -204,6 +200,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 } else if (Utils.isRealmDictionary(variableElement)) {
                     val valueType = Utils.getDictionaryValueTypeQualifiedName(variableElement)
                     emitField("RealmDictionary<$valueType>", "${variableElement.simpleName}RealmDictionary", EnumSet.of(Modifier.PRIVATE))
+                } else if (Utils.isRealmSet(variableElement)) {
+                    val valueType = Utils.getGenericTypeQualifiedName(variableElement)
+                    emitField("RealmSet<$valueType>", "${variableElement.simpleName}RealmSet", EnumSet.of(Modifier.PRIVATE))
                 }
             }
 
@@ -259,6 +258,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 Utils.isRealmDictionary(field) -> {
                     val valueTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
                     emitRealmDictionary(writer, field, fieldName, fieldTypeCanonicalName, requireNotNull(valueTypeMirror))
+                }
+                Utils.isRealmSet(field) -> {
+                    val valueTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field)
+                    emitRealmSet(writer, field, fieldName, fieldTypeCanonicalName, requireNotNull(valueTypeMirror))
                 }
                 else -> throw UnsupportedOperationException(String.format(Locale.US, "Field \"%s\" of type \"%s\" is not supported.", fieldName, fieldTypeCanonicalName))
             }
@@ -436,7 +439,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             // Getter - End
 
             // Setter - Start
-            val isEmbedded = isFieldTypeEmbedded(field.asType())
+            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
             val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
             val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
             emitAnnotation("Override")
@@ -623,6 +626,124 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         }
     }
 
+    @Throws(IOException::class)
+    private fun emitRealmSet(
+            writer: JavaWriter,
+            field: VariableElement,
+            fieldName: String,
+            fieldTypeCanonicalName: String,
+            valueTypeMirror: TypeMirror
+    ) {
+        val forRealmAny = Utils.isRealmAny(valueTypeMirror)
+        val forRealmModel = Utils.isRealmModel(valueTypeMirror)
+
+        with(writer) {
+            val genericType: QualifiedClassName? = Utils.getGenericTypeQualifiedName(field)
+
+            // Getter
+            emitAnnotation("Override")
+            beginMethod(fieldTypeCanonicalName, metadata.getInternalGetter(fieldName), EnumSet.of(Modifier.PUBLIC))
+                emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+                emitSingleLineComment("use the cached value if available")
+                beginControlFlow("if (${fieldName}RealmSet != null)")
+                    emitStatement("return ${fieldName}RealmSet")
+                nextControlFlow("else")
+
+                    if (forRealmAny) {
+                        emitStatement("OsSet osSet = proxyState.getRow\$realm().getRealmAnySet(%s)", fieldColKeyVariableReference(field))
+                    } else if (forRealmModel) {
+                        emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))
+                    } else {
+                        emitStatement("OsSet osSet = proxyState.getRow\$realm().getValueSet(%s, RealmFieldType.%s)", fieldColKeyVariableReference(field), Utils.getValueSetFieldType(field).name)
+                    }
+
+                    emitStatement("${fieldName}RealmSet = new RealmSet<%s>(proxyState.getRealm\$realm(), osSet, %s.class)", genericType, genericType)
+                    emitStatement("return ${fieldName}RealmSet")
+                endControlFlow()
+            endMethod()
+            emitEmptyLine()
+
+            // Setter
+            emitAnnotation("Override")
+            beginMethod("void", metadata.getInternalSetter(fieldName), EnumSet.of(Modifier.PUBLIC), fieldTypeCanonicalName, "value")
+
+            emitCodeForUnderConstruction(writer, metadata.isPrimaryKey(field)) emitter@{
+                // check excludeFields
+                beginControlFlow("if (proxyState.getExcludeFields\$realm().contains(\"%s\"))", field.simpleName.toString())
+                    emitStatement("return")
+                endControlFlow()
+
+                // Either realmAny, which may or may not contain RealmObjects inside...
+                if (forRealmAny) {
+                    emitSingleLineComment("if the set contains unmanaged RealmModel instances boxed in RealmAny objects, convert them to managed.")
+                    beginControlFlow("if (value != null && !value.isManaged())")
+                        emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
+                        emitStatement("final RealmSet<%s> original = value", genericType)
+                        emitStatement("value = new RealmSet<%s>()", genericType)
+                        beginControlFlow("for (%s item : original)", genericType)
+                            emitStatement("value.add(ProxyUtils.copyToRealmIfNeeded(proxyState, item))")
+                        endControlFlow()
+                    endControlFlow()
+                } else if (forRealmModel) {
+                    // ... Or Realm Models
+                    emitSingleLineComment("if the set contains unmanaged RealmModel instances, convert them to managed.")
+                    beginControlFlow("if (value != null && !value.isManaged())")
+                        emitStatement("final Realm realm = (Realm) proxyState.getRealm\$realm()")
+                        emitStatement("final RealmSet<%s> original = value", genericType)
+                        emitStatement("value = new RealmSet<%s>()", genericType)
+                        beginControlFlow("for (%s item : original)", genericType)
+                            beginControlFlow("if (item == null || RealmObject.isManaged(item))")
+                                emitStatement("value.add(item)")
+                            nextControlFlow("else")
+                                emitStatement("value.add(realm.copyToRealmOrUpdate(item))")
+                            endControlFlow()
+                        endControlFlow()
+                    endControlFlow()
+                }
+            }
+
+            emitStatement("proxyState.getRealm\$realm().checkIfValid()")
+
+            when {
+                forRealmAny -> {
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getRealmAnySet(${fieldColKeyVariableReference(field)})")
+                }
+                forRealmModel -> {
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getModelSet(%s)", fieldColKeyVariableReference(field))
+                }
+                else -> {
+                    emitStatement("OsSet osSet = proxyState.getRow\$realm().getValueSet(%s, RealmFieldType.%s)", fieldColKeyVariableReference(field), Utils.getValueSetFieldType(field).name)
+                }
+            }
+
+            beginControlFlow("if (value == null)")
+                emitStatement("return")
+            endControlFlow()
+            emitSingleLineComment("We need to create a copy of the set before clearing as the input and target sets might be the same.")
+            emitStatement("List<$genericType> unmanagedList = new ArrayList<>(value)")
+            emitStatement("osSet.clear()")
+            beginControlFlow("for (%s item : unmanagedList)", genericType)
+
+            when {
+                forRealmAny -> {
+                    emitStatement("osSet.addRealmAny(ProxyUtils.copyToRealmIfNeeded(proxyState, item).getNativePtr())")
+                }
+                forRealmModel -> {
+                    emitStatement("proxyState.checkValidObject(item)")
+                    emitStatement("Row row\$realm = ((RealmObjectProxy) item).realmGet\$proxyState().getRow\$realm()")
+                    emitStatement("osSet.addRow(row\$realm.getObjectKey())")
+                }
+                else -> {
+                    emitStatement("osSet.add(item)")
+                }
+            }
+
+            endControlFlow()
+
+            endMethod()
+        }
+    }
+
     /**
      * Emit Set/Get methods for Realm Model Lists and Lists of primitives.
      */
@@ -710,13 +831,13 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("proxyState.checkValidObject(linkedObject)")
                             emitStatement("osList.setRow(i, ((RealmObjectProxy) linkedObject).realmGet\$proxyState().getRow\$realm().getObjectKey())")
                         endControlFlow()
-                        nextControlFlow("else")
-                            emitStatement("osList.removeAll()")
-                            beginControlFlow("if (value == null)")
-                                emitStatement("return")
-                            endControlFlow()
-                            emitStatement("int objects = value.size()")
-                            beginControlFlow("for (int i = 0; i < objects; i++)")
+                    nextControlFlow("else")
+                        emitStatement("osList.removeAll()")
+                        beginControlFlow("if (value == null)")
+                            emitStatement("return")
+                        endControlFlow()
+                        emitStatement("int objects = value.size()")
+                        beginControlFlow("for (int i = 0; i < objects; i++)")
                             emitStatement("%s linkedObject = value.get(i)", genericType)
                             emitStatement("proxyState.checkValidObject(linkedObject)")
                             emitStatement("osList.addRow(((RealmObjectProxy) linkedObject).realmGet\$proxyState().getRow\$realm().getObjectKey())")
@@ -974,6 +1095,26 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field)
                             val internalClassName = Utils.getReferencedTypeInternalClassNameStatement(genericTypeQualifiedName, classCollection)
                             emitStatement("builder.addPersistedLinkProperty(%s, \"%s\", RealmFieldType.STRING_TO_LINK_MAP, %s)", publicFieldName, internalFieldName, internalClassName)
+                        }
+                        Constants.RealmFieldType.BOOLEAN_SET,
+                        Constants.RealmFieldType.STRING_SET,
+                        Constants.RealmFieldType.INTEGER_SET,
+                        Constants.RealmFieldType.FLOAT_SET,
+                        Constants.RealmFieldType.DOUBLE_SET,
+                        Constants.RealmFieldType.BINARY_SET,
+                        Constants.RealmFieldType.DATE_SET,
+                        Constants.RealmFieldType.DECIMAL128_SET,
+                        Constants.RealmFieldType.OBJECT_ID_SET,
+                        Constants.RealmFieldType.UUID_SET,
+                        Constants.RealmFieldType.MIXED_SET -> {
+                            val valueNullable = metadata.isSetValueNullable(field)
+                            val requiredFlag = if (valueNullable) "!Property.REQUIRED" else "Property.REQUIRED"
+                            emitStatement("builder.addPersistedSetProperty(%s, \"%s\", %s, %s)", publicFieldName, internalFieldName, fieldType.realmType, requiredFlag)
+                        }
+                        Constants.RealmFieldType.LINK_SET -> {
+                            val genericTypeQualifiedName = Utils.getGenericTypeQualifiedName(field)
+                            val internalClassName = Utils.getReferencedTypeInternalClassNameStatement(genericTypeQualifiedName, classCollection)
+                            emitStatement("builder.addPersistedLinkProperty(${publicFieldName}, \"${internalFieldName}\", RealmFieldType.LINK_SET, ${internalClassName})")
                         }
                     }
                 }
@@ -1313,6 +1454,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 return@apply
             }
 
+            // Throw if model contains a set field until we add support for it
+            if (containsSet(metadata.fields)) {
+                emitStatement("throw new UnsupportedOperationException(\"Calls to 'insert' with RealmModels containing RealmSet properties are not supported yet.\")")
+                endMethod()
+                emitEmptyLine()
+                return@apply
+            }
+
             // If object is already in the Realm there is nothing to update, unless it is an embedded
             // object. In which case we always update the underlying object.
             if (!metadata.embedded) {
@@ -1337,7 +1486,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                 when {
                     Utils.isRealmModel(field) -> {
-                        val isEmbedded = isFieldTypeEmbedded(field.asType())
+                        val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                         emitEmptyLine()
                         emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sObj != null)", fieldName)
@@ -1358,7 +1507,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     Utils.isRealmModelList(field) -> {
                         val genericType: TypeMirror = Utils.getGenericType(field)!!
-                        val isEmbedded = isFieldTypeEmbedded(genericType)
+                        val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
                         emitEmptyLine()
                         emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                         beginControlFlow("if (%sList != null)", fieldName)
@@ -1420,6 +1569,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         // TODO: dictionary
                         emitSingleLineComment("TODO: Dictionary")
                     }
+                    Utils.isRealmSet(field) -> {
+                        // TODO: sets
+                        emitSingleLineComment("TODO: Set")
+                    }
                     else -> {
                         if (metadata.primaryKey !== field) {
                             setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
@@ -1457,6 +1610,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     return@apply
                 }
 
+                // Throw if model contains a set field until we add support for it
+                if (containsSet(metadata.fields)) {
+                    emitStatement("throw new UnsupportedOperationException(\"Calls to 'insert' with RealmModels containing RealmSet properties are not supported yet.\")")
+                    endMethod()
+                    emitEmptyLine()
+                    return@apply
+                }
+
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
@@ -1483,7 +1644,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         val getter = metadata.getInternalGetter(fieldName)
 
                         if (Utils.isRealmModel(field)) {
-                            val isEmbedded = isFieldTypeEmbedded(field.asType())
+                            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
 
                             emitEmptyLine()
                             emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
@@ -1504,7 +1665,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         } else if (Utils.isRealmModelList(field)) {
                             val genericType: TypeMirror = Utils.getGenericType(field)!!
-                            val isEmbedded = isFieldTypeEmbedded(genericType)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
 
                             emitEmptyLine()
                             emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
@@ -1562,6 +1723,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         } else if (Utils.isRealmDictionary(field)) {
                             // TODO: diictionary
                             emitSingleLineComment("TODO: Dictionary")
+                        } else if (Utils.isRealmSet(field)) {
+                            // TODO: sets
+                            emitSingleLineComment("TODO: Set")
                         } else {
                             if (metadata.primaryKey !== field) {
                                 setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, false)
@@ -1597,6 +1761,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 return@apply
             }
 
+            // Throw if model contains a set field until we add support for it
+            if (containsSet(metadata.fields)) {
+                emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmSet properties are not supported yet.\")")
+                endMethod()
+                emitEmptyLine()
+                return@apply
+            }
+
             // If object is already in the Realm there is nothing to update
             beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
                 emitStatement("return ((RealmObjectProxy) object).realmGet\$proxyState().getRow\$realm().getObjectKey()")
@@ -1616,7 +1788,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 val getter = metadata.getInternalGetter(fieldName)
 
                 if (Utils.isRealmModel(field)) {
-                    val isEmbedded = isFieldTypeEmbedded(field.asType())
+                    val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                     emitEmptyLine()
                     emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                     beginControlFlow("if (%sObj != null)", fieldName)
@@ -1639,7 +1811,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     endControlFlow()
                 } else if (Utils.isRealmModelList(field)) {
                     val genericType: TypeMirror = Utils.getGenericType(field)!!
-                    val isEmbedded = isFieldTypeEmbedded(genericType)
+                    val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
 
                     emitEmptyLine()
                     emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
@@ -1734,6 +1906,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                 } else if (Utils.isRealmDictionary(field)) {
                     // TODO: dictionary
                     emitSingleLineComment("TODO: Dictionary")
+                } else if (Utils.isRealmSet(field)) {
+                    // TODO: sets
+                    emitSingleLineComment("TODO: Set")
                 } else {
                     if (metadata.primaryKey !== field) {
                         setTableValues(writer, fieldType.toString(), fieldName, interfaceName, getter, true)
@@ -1771,6 +1946,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     return@apply
                 }
 
+                // Throw if model contains a set field until we add support for it
+                if (containsSet(metadata.fields)) {
+                    emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmSet properties are not supported yet.\")")
+                    endMethod()
+                    emitEmptyLine()
+                    return@apply
+                }
+
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
@@ -1797,7 +1980,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                         when {
                             Utils.isRealmModel(field) -> {
-                                val isEmbedded = isFieldTypeEmbedded(field.asType())
+                                val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                                 emitEmptyLine()
                                 emitStatement("%s %sObj = ((%s) object).%s()", fieldType, fieldName, interfaceName, getter)
                                 beginControlFlow("if (%sObj != null)", fieldName)
@@ -1821,7 +2004,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             }
                             Utils.isRealmModelList(field) -> {
                                 val genericType: TypeMirror = Utils.getGenericType(field)!!
-                                val isEmbedded = isFieldTypeEmbedded(genericType)
+                                val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
                                 emitEmptyLine()
                                 emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                                 emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
@@ -1921,6 +2104,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             Utils.isRealmDictionary(field) -> {
                                 // TODO: Dictionary
                                 emitSingleLineComment("TODO: Dictionary")
+                            }
+                            Utils.isRealmSet(field) -> {
+                                // TODO: Set
+                                emitSingleLineComment("TODO: Set")
                             }
                             else -> {
                                 if (metadata.primaryKey !== field) {
@@ -2069,7 +2256,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                     when {
                         Utils.isRealmModel(field) -> {
-                            val isEmbedded = isFieldTypeEmbedded(field.asType())
+                            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                             val fieldColKey: String = fieldColKeyVariableReference(field)
                             val linkedQualifiedClassName: QualifiedClassName = Utils.getFieldTypeQualifiedName(field)
                             val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
@@ -2106,7 +2293,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val listElementType: TypeMirror = Utils.getGenericType(field)!!
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val linkedProxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
-                            val isEmbedded = isFieldTypeEmbedded(listElementType)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
 
                             emitStatement("RealmList<%s> %sUnmanagedList = unmanagedSource.%s()", genericType, fieldName, getter)
                             beginControlFlow("if (%sUnmanagedList != null)", fieldName)
@@ -2179,7 +2366,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isRealmDictionary(field) -> {
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val listElementType: TypeMirror = Utils.getGenericType(field)!!
-                            val isEmbedded = isFieldTypeEmbedded(listElementType)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
                             val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
 
                             emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = unmanagedSource.${getter}()")
@@ -2223,6 +2410,41 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     }
                                 endControlFlow()
                             endControlFlow()
+                        }
+                        Utils.isRealmAnySet(field) -> {
+                            emitStatement("RealmSet<RealmAny> ${fieldName}UnmanagedSet = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<RealmAny> ${fieldName}ManagedSet = managedCopy.${getter}()")
+                                emitStatement("${fieldName}ManagedSet.clear()")
+
+                                beginControlFlow("for (RealmAny realmAnyItem: ${fieldName}UnmanagedSet)")
+                                    emitStatement("realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, update, cache, flags)")
+                                    emitStatement("${fieldName}ManagedSet.add(realmAnyItem)")
+                                endControlFlow()
+                            endControlFlow()
+                            emitEmptyLine()
+                        }
+                        Utils.isRealmModelSet(field) -> {
+                            val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
+                            val linkedProxyClass: SimpleClassName = Utils.getSetGenericProxyClassSimpleName(field)
+
+                            emitStatement("RealmSet<${genericType}> ${fieldName}UnmanagedSet = unmanagedSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<${genericType}> ${fieldName}ManagedSet = managedCopy.${getter}()")
+                                // Clear is needed. See bug https://github.com/realm/realm-java/issues/4957
+                                emitStatement("${fieldName}ManagedSet.clear()")
+                                beginControlFlow("for ($genericType ${fieldName}UnmanagedItem: ${fieldName}UnmanagedSet)")
+                                    emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}UnmanagedItem)")
+
+                                    beginControlFlow("if (cache${fieldName} != null)")
+                                        emitStatement("${fieldName}ManagedSet.add(cache${fieldName})")
+                                    nextControlFlow("else")
+                                        emitStatement("${fieldName}ManagedSet.add(${linkedProxyClass}.copyOrUpdate(realm, (${columnInfoClassNameSetGeneric(field)}) realm.getSchema().getColumnInfo(${Utils.getGenericTypeQualifiedName(field)}.class), ${fieldName}UnmanagedItem, update, cache, flags))")
+                                    endControlFlow()
+
+                                endControlFlow()
+                            endControlFlow()
+                            emitEmptyLine()
                         }
                         else -> {
                             throw IllegalStateException("Unsupported field: $field")
@@ -2319,7 +2541,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         }
                         Utils.isRealmModelDictionary(field) -> {
                             val proxyClassSimpleName = Utils.getDictionaryGenericProxyClassSimpleName(field)
-                            val valueDictionaryFieldType = Utils.getDictionaryValueTypeQualifiedName(field)
                             val genericType = requireNotNull(Utils.getGenericTypeQualifiedName(field))
 
                             emitEmptyLine()
@@ -2361,6 +2582,16 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("RealmAny detachedValue = ProxyUtils.createDetachedCopy(entry.getValue(), objectRealm, nextDepth, maxDepth, cache)")
                                 emitStatement("unmanaged${fieldName}Dictionary.put(entry.getKey(), detachedValue)")
                                 endControlFlow()
+                            endControlFlow()
+                        }
+                        Utils.isRealmValueDictionary(field) -> {
+                            val genericType = requireNotNull(Utils.getGenericTypeQualifiedName(field))
+
+                            emitEmptyLine()
+                            emitStatement("unmanagedCopy.%1\$s(new RealmSet<%2\$s>())", setter, Utils.getSetValueTypeQualifiedName(field))
+                            emitStatement("RealmSet<${genericType}> managed${fieldName}Set = realmSource.${getter}()")
+                            beginControlFlow("for (${genericType} value : managed${fieldName}Set)")
+                                emitStatement("unmanagedCopy.${getter}().add(value)")
                             endControlFlow()
                         }
                         else -> {
@@ -2408,7 +2639,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("builder.addNull(%s)", fieldColKeyVariableReference(field))
                             nextControlFlow("else")
 
-                            val isEmbedded = isFieldTypeEmbedded(field.asType())
+                            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                             if (isEmbedded) {
                                 // Embedded objects are created in-place as we need to know the
                                 // parent object + the property containing it.
@@ -2442,7 +2673,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             val genericType: QualifiedClassName = Utils.getRealmListType(field)!!
                             val fieldTypeMetaData: TypeMirror = Utils.getGenericType(field)!!
 
-                            val isEmbedded = isFieldTypeEmbedded(fieldTypeMetaData)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(fieldTypeMetaData, classCollection)
                             val proxyClass: SimpleClassName = Utils.getProxyClassSimpleName(field)
 
                             emitEmptyLine()
@@ -2534,7 +2765,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
                             val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
                             val listElementType: TypeMirror = Utils.getGenericType(field)!!
-                            val isEmbedded = isFieldTypeEmbedded(listElementType)
+                            val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
                             val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
 
                             emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = realmObjectSource.${getter}()")
@@ -2581,6 +2812,48 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         }
                         Utils.isRealmValueDictionary(field) -> {
+                            emitStatement("builder.${OsObjectBuilderTypeHelper.getOsObjectBuilderName(field)}(${fieldColKey}, realmObjectSource.${getter}())")
+                        }
+                        Utils.isRealmAnySet(field) -> {
+                            emitEmptyLine()
+
+                            emitStatement("RealmSet<RealmAny> ${fieldName}UnmanagedSet = realmObjectSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<RealmAny> ${fieldName}ManagedCopy = new RealmSet<RealmAny>()")
+                                beginControlFlow("for (RealmAny realmAnyItem: ${fieldName}UnmanagedSet)")
+                                    emitStatement("realmAnyItem = ProxyUtils.copyOrUpdate(realmAnyItem, realm, true, cache, flags)")
+                                    emitStatement("${fieldName}ManagedCopy.add(realmAnyItem)")
+                                endControlFlow()
+
+                                emitStatement("builder.addRealmAnySet(${fieldColKey}, ${fieldName}ManagedCopy)")
+                            nextControlFlow("else")
+                                emitStatement("builder.addRealmAnySet(${fieldColKey}, new RealmSet<RealmAny>())")
+                            endControlFlow()
+                        }
+                        Utils.isRealmModelSet(field) -> {
+                            val genericType: QualifiedClassName = Utils.getSetType(field)!!
+                            val proxyClass: SimpleClassName = Utils.getSetGenericProxyClassSimpleName(field)
+
+                            emitEmptyLine()
+                            emitStatement("RealmSet<${genericType}> ${fieldName}UnmanagedSet = realmObjectSource.${getter}()")
+                            beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                                emitStatement("RealmSet<${genericType}> ${fieldName}ManagedCopy = new RealmSet<${genericType}>()")
+
+                                beginControlFlow("for (${genericType} ${fieldName}Item: ${fieldName}UnmanagedSet)")
+                                    emitStatement("$genericType cache${fieldName} = (${genericType}) cache.get(${fieldName}Item)")
+                                    beginControlFlow("if (cache${fieldName} != null)")
+                                        emitStatement("${fieldName}ManagedCopy.add(cache${fieldName})")
+                                    nextControlFlow("else")
+                                        emitStatement("${fieldName}ManagedCopy.add(${proxyClass}.copyOrUpdate(realm, (${columnInfoClassNameSetGeneric(field)}) realm.getSchema().getColumnInfo(${genericType}.class), ${fieldName}Item, true, cache, flags))")
+                                    endControlFlow()
+                                endControlFlow()
+                                emitStatement("builder.addObjectSet(${fieldColKey}, ${fieldName}ManagedCopy)")
+
+                            nextControlFlow("else")
+                                emitStatement("builder.addObjectSet(${fieldColKey}, new RealmSet<${genericType}>())")
+                            endControlFlow()
+                        }
+                        Utils.isRealmValueSet(field) -> {
                             emitStatement("builder.${OsObjectBuilderTypeHelper.getOsObjectBuilderName(field)}(${fieldColKey}, realmObjectSource.${getter}())")
                         }
                         else -> {
@@ -2664,6 +2937,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isRealmDictionary(field) -> {
                             val genericTypeSimpleName: SimpleClassName? = Utils.getDictionaryValueTypeQualifiedName(field)?.getSimpleName()
                             emitStatement("stringBuilder.append(\"RealmDictionary<%s>[\").append(%s().size()).append(\"]\")", genericTypeSimpleName, metadata.getInternalGetter(fieldName))
+                        }
+                        Utils.isRealmSet(field) -> {
+                            val genericTypeSimpleName: SimpleClassName? = Utils.getSetValueTypeQualifiedName(field)?.getSimpleName()
+                            emitStatement("stringBuilder.append(\"RealmSet<%s>[\").append(%s().size()).append(\"]\")", genericTypeSimpleName, metadata.getInternalGetter(fieldName))
                         }
                         else -> {
                             if (metadata.isNullable(field)) {
@@ -2768,6 +3045,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     return@apply
                 }
 
+                // Throw if model contains a set field until we add support for it
+                if (containsSet(metadata.fields)) {
+                    emitStatement("throw new UnsupportedOperationException(\"Creation of RealmModels from JSON containing RealmSet properties is not supported yet.\")")
+                    endMethod()
+                    emitEmptyLine()
+                    return@apply
+                }
+
                 val modelOrListCount = countModelOrListFields(metadata.fields)
                 if (modelOrListCount == 0) {
                     emitStatement("final List<String> excludeFields = Collections.<String> emptyList()")
@@ -2850,7 +3135,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     when {
                         Utils.isRealmModel(field) -> {
-                            val isEmbedded = isFieldTypeEmbedded(field.asType())
+                            val isEmbedded = Utils.isFieldTypeEmbedded(field.asType(), classCollection)
                             RealmJsonTypeHelper.emitFillRealmObjectWithJsonValue(
                                     "objProxy",
                                     metadata.getInternalSetter(fieldName),
@@ -2869,7 +3154,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                     fieldName,
                                     (field.asType() as DeclaredType).typeArguments[0].toString(),
                                     Utils.getProxyClassSimpleName(field),
-                                    isFieldTypeEmbedded(fieldType),
+                                    Utils.isFieldTypeEmbedded(fieldType, classCollection),
                                     writer)
                         }
                         Utils.isRealmValueList(field) || Utils.isRealmAnyList(field) -> emitStatement("ProxyUtils.setRealmListWithJsonObject(realm, objProxy.%1\$s(), json, \"%2\$s\", update)", metadata.getInternalGetter(fieldName), fieldName)
@@ -2882,6 +3167,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isRealmDictionary(field) -> {
                             // TODO: dictionary
                             emitSingleLineComment("TODO: Dictionary")
+                        }
+                        Utils.isRealmSet(field) -> {
+                            // TODO: sets
+                            emitSingleLineComment("TODO: Set")
                         }
                         else -> RealmJsonTypeHelper.emitFillJavaTypeWithJsonValue(
                                 "objProxy",
@@ -2923,6 +3212,14 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             // Throw if model contains a dictionary field until we add support for it
             if (containsDictionary(metadata.fields)) {
                 emitStatement("throw new UnsupportedOperationException(\"Creation of RealmModels from JSON containing RealmDictionary properties is not supported yet.\")")
+                endMethod()
+                emitEmptyLine()
+                return@apply
+            }
+
+            // Throw if model contains a set field until we add support for it
+            if (containsSet(metadata.fields)) {
+                emitStatement("throw new UnsupportedOperationException(\"Creation of RealmModels from JSON containing RealmSet properties is not supported yet.\")")
                 endMethod()
                 emitEmptyLine()
                 return@apply
@@ -2977,6 +3274,10 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         Utils.isRealmDictionary(field) -> {
                             // TODO: add support for dictionary
                             emitSingleLineComment("TODO: Dictionary")
+                        }
+                        Utils.isRealmSet(field) -> {
+                            // TODO: add support for sets
+                            emitSingleLineComment("TODO: Set")
                         }
                         else -> {
                             RealmJsonTypeHelper.emitFillJavaTypeFromStream(
@@ -3034,6 +3335,11 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         return Utils.getSimpleColumnInfoClassName(qualifiedModelClassName)
     }
 
+    private fun columnInfoClassNameSetGeneric(field: VariableElement): String {
+        val qualifiedModelClassName = Utils.getSetGenericModelClassQualifiedName(field)
+        return Utils.getSimpleColumnInfoClassName(qualifiedModelClassName)
+    }
+
     private fun columnKeyVarName(variableElement: VariableElement): String {
         return "${variableElement.simpleName}ColKey"
     }
@@ -3077,6 +3383,12 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
         if (Utils.isRealmDictionary(field)) {
             return Utils.getValueDictionaryFieldType(field)
         }
+        if (Utils.isRealmModelSet(field)) {
+            return Constants.RealmFieldType.LINK_SET
+        }
+        if (Utils.isRealmSet(field)) {
+            return Utils.getValueSetFieldType(field)
+        }
         return Constants.RealmFieldType.NOTYPE
     }
 
@@ -3106,6 +3418,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "io.realm.internal.NativeContext",
                     "io.realm.internal.OsList",
                     "io.realm.internal.OsMap",
+                    "io.realm.internal.OsSet",
                     "io.realm.internal.OsObject",
                     "io.realm.internal.OsSchemaInfo",
                     "io.realm.internal.OsObjectSchemaInfo",
@@ -3143,45 +3456,20 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             }
             return count
         }
-
-    }
-
-    // Returns whether a type of a Realm field is embedded or not.
-    // For types which are part of this processing round we can look it up immediately from 
-    // the metadata in the `classCollection`. For types defined in other modules we will 
-    // have to use the slower approach of inspecting the `embedded` property of the
-    // RealmClass annotation using the compiler tool api. 
-    private fun isFieldTypeEmbedded(type: TypeMirror) : Boolean  {
-        val fieldType = QualifiedClassName(type)
-        val fieldTypeMetaData: ClassMetaData? = classCollection.getClassFromQualifiedNameOrNull(fieldType)
-        return fieldTypeMetaData?.embedded ?: type.isEmbedded()
-    }
-
-    private fun TypeMirror.isEmbedded() : Boolean {
-        var isEmbedded = false
-
-        if (this is Type.ClassType) {
-            val declarationAttributes: com.sun.tools.javac.util.List<Attribute.Compound>? = tsym.metadata?.declarationAttributes
-            if (declarationAttributes != null) {
-                loop@for (attribute: Attribute.Compound in declarationAttributes) {
-                    if (attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.RealmClass") {
-                        for (pair: Pair<Symbol.MethodSymbol, Attribute> in attribute.values) {
-                            if (pair.fst.name.toString() == "embedded") {
-                                isEmbedded = pair.snd.value as Boolean
-                                break@loop
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return isEmbedded
     }
 
     private fun containsDictionary(fields: ArrayList<RealmFieldElement>): Boolean {
         for (field in fields) {
             if (Utils.isRealmDictionary(field)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun containsSet(fields: ArrayList<RealmFieldElement>): Boolean {
+        for (field in fields) {
+            if (Utils.isRealmSet(field)) {
                 return true
             }
         }

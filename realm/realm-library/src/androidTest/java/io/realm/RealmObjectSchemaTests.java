@@ -1408,7 +1408,7 @@ public class RealmObjectSchemaTests {
         assertEquals(RealmFieldType.OBJECT_ID, schema.getFieldType(AllJavaTypes.FIELD_OBJECT_ID));
         assertEquals(RealmFieldType.DECIMAL128, schema.getFieldType(AllJavaTypes.FIELD_DECIMAL128));
         assertEquals(RealmFieldType.UUID, schema.getFieldType(AllJavaTypes.FIELD_UUID));
-        assertEquals(RealmFieldType.MIXED, schema.getFieldType(AllJavaTypes.FIELD_MIXED));
+        assertEquals(RealmFieldType.MIXED, schema.getFieldType(AllJavaTypes.FIELD_REALM_ANY));
     }
 
     @Test(expected = IllegalArgumentException.class)

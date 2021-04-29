@@ -24,6 +24,6 @@ open class RealmAnyNotIndexed(
 ) : RealmObject() {
     companion object {
         const val CLASS_NAME = "RealmAnyNotIndexed"
-        const val FIELD_MIXED = "realmAny"
+        const val FIELD_REALM_ANY = "realmAny"
     }
 }

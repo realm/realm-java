@@ -16,7 +16,14 @@
 
 package io.realm
 
+import io.realm.entities.AllTypes
+import io.realm.entities.DictionaryAllTypes
+import io.realm.entities.SetAllTypes
+import io.realm.kotlin.createObject
+import io.realm.kotlin.where
 import io.realm.rule.BlockingLooperThread
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 /**
  * Generic tester for parameterized tests. Includes two types of `setUp` functions.
@@ -25,4 +32,66 @@ interface GenericTester {
     fun setUp(config: RealmConfiguration, looperThread: BlockingLooperThread)
     fun setUp(configFactory: TestRealmConfigurationFactory)
     fun tearDown()
+}
+
+/**
+ * TODO: rename SetContainerClass to "CollectionContainer" and add all possible RealmList, RealmSet
+ *  and RealmDictionary fields in that class and use it for Dictionary and Set tests. Use this new
+ *  container instead of "DictionaryAllTypes".
+ */
+fun createCollectionAllTypesManagedContainerAndAssert(
+    realm: Realm,
+    id: String? = null
+): DictionaryAllTypes {
+    var dictionaryAllTypesObject: DictionaryAllTypes? = null
+    realm.executeTransaction { transactionRealm ->
+        dictionaryAllTypesObject = transactionRealm.createObject()
+        assertNotNull(dictionaryAllTypesObject)
+
+        // Assign id if we have one
+        if (id != null) {
+            dictionaryAllTypesObject!!.columnString = id
+        }
+    }
+    val allTypesObjectFromRealm = if (id == null) {
+        realm.where<DictionaryAllTypes>().equalTo("columnString", "").findFirst()
+    } else {
+        realm.where<DictionaryAllTypes>().equalTo("columnString", id).findFirst()
+    }
+    assertEquals(dictionaryAllTypesObject, allTypesObjectFromRealm)
+    return dictionaryAllTypesObject!!
+}
+
+/**
+ * TODO: migrate set fields from AllTypes to a "CollectionContainer" class and remove this
+ *  method once sets are done.
+ */
+fun createAllTypesManagedContainerAndAssert(
+    realm: Realm,
+    id: String? = null,
+    inTransaction: Boolean = false
+): SetAllTypes {
+    if (!inTransaction) {
+        realm.beginTransaction()
+    }
+
+    val allTypesObject: SetAllTypes = realm.createObject()
+    assertNotNull(allTypesObject)
+
+    // Assign id if we have one
+    if (id != null) {
+        allTypesObject.columnString = id
+    }
+
+    if (!inTransaction) {
+        realm.commitTransaction()
+    }
+
+    val allTypesObjectFromRealm = if (id == null) {
+        realm.where<SetAllTypes>().equalTo(AllTypes.FIELD_STRING, "").findFirst()
+    } else {
+        realm.where<SetAllTypes>().equalTo(AllTypes.FIELD_STRING, id).findFirst()
+    }
+    assertEquals(allTypesObject, allTypesObjectFromRealm)
+    return allTypesObject
 }

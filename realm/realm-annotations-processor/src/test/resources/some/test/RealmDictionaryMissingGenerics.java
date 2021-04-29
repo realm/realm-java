@@ -16,6 +16,7 @@
 
 package some.test;
 
+import io.realm.RealmDictionary;
 import io.realm.RealmObject;
 
 /**

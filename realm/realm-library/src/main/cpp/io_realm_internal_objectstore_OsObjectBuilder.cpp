@@ -679,3 +679,172 @@ Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddRealmAnyDictionaryEn
     }
     CATCH_STD()
 }
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartSet(JNIEnv* env,
+                                                                  jclass,
+                                                                  jlong j_size) {
+    try {
+        auto set_as_list = new std::vector<JavaValue>();
+        set_as_list->reserve(j_size);
+        return reinterpret_cast<jlong>(set_as_list);
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStopSet(JNIEnv* env,
+                                                                 jclass,
+                                                                 jlong data_ptr,
+                                                                 jlong column_key,
+                                                                 jlong set_ptr) {
+    try {
+        auto set_as_list = reinterpret_cast<std::vector<JavaValue>*>(set_ptr);
+        const JavaValue value((*set_as_list));
+        add_property(data_ptr, column_key, value);
+        delete set_as_list;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddNullSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr) {
+    try {
+        const JavaValue value = JavaValue();
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddStringSetItem(JNIEnv* env,
+                                                                          jclass,
+                                                                          jlong set_ptr,
+                                                                          jstring j_value) {
+    try {
+        JStringAccessor value(env, j_value);
+        std::string string_value(value);
+        const JavaValue wrapped_value(string_value);
+        add_list_element(set_ptr, wrapped_value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBooleanSetItem(JNIEnv* env,
+                                                                           jclass,
+                                                                           jlong set_ptr,
+                                                                           jboolean j_value) {
+    try {
+        const JavaValue wrapped_value(j_value);
+        add_list_element(set_ptr, wrapped_value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerSetItem(JNIEnv* env,
+                                                                           jclass,
+                                                                           jlong set_ptr,
+                                                                           jlong j_value) {
+    try {
+        const JavaValue value(j_value);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddFloatSetItem(JNIEnv* env,
+                                                                         jclass,
+                                                                         jlong set_ptr,
+                                                                         jfloat j_value) {
+    try {
+        const JavaValue value(j_value);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDoubleSetItem(JNIEnv* env,
+                                                                          jclass,
+                                                                          jlong set_ptr,
+                                                                          jdouble j_value) {
+    try {
+        const JavaValue value(j_value);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArraySetItem(JNIEnv* env,
+                                                                             jclass,
+                                                                             jlong set_ptr,
+                                                                             jbyteArray j_value) {
+    try {
+        auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+        const JavaValue value(data);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDateSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr,
+                                                                        jlong j_value) {
+    try {
+        const JavaValue value(from_milliseconds(j_value));
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128SetItem(JNIEnv* env,
+                                                                              jclass,
+                                                                              jlong set_ptr,
+                                                                              jlong j_low_value,
+                                                                              jlong j_high_value) {
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        Decimal128 decimal128 = Decimal128(raw);
+        const JavaValue value(decimal128);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdSetItem(JNIEnv* env,
+                                                                            jclass,
+                                                                            jlong set_ptr,
+                                                                            jstring j_value) {
+    try {
+        JStringAccessor data(env, j_value);
+        ObjectId objectId = ObjectId(StringData(data).data());
+        const JavaValue value(objectId);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr,
+                                                                        jstring j_value) {
+    try {
+        JStringAccessor data(env, j_value);
+        UUID uuid = UUID(StringData(data).data());
+        const JavaValue value(uuid);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}

@@ -783,20 +783,20 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is Boolean -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Byte -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Short -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Int -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Long -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Float -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Double -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is String -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is ByteArray -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Decimal128 -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is ObjectId -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is UUID -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Date -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is Boolean -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Byte -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Short -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Int -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Long -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Float -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Double -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is String -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is ByteArray -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Decimal128 -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is ObjectId -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is UUID -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Date -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             is RealmModel -> return
             else -> throw IllegalStateException("EqualTo for type ${value::class.qualifiedName} not implemented")
         }
@@ -808,20 +808,20 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is Boolean -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Byte -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Short -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Int -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Long -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Float -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Double -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is String -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is ByteArray -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Decimal128 -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is ObjectId -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is UUID -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Date -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is Boolean -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Byte -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Short -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Int -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Long -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Float -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Double -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is String -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is ByteArray -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Decimal128 -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is ObjectId -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is UUID -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Date -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             is RealmModel -> return
             else -> throw IllegalStateException("NotEqualTo for type ${value::class.qualifiedName} not implemented")
         }
@@ -833,8 +833,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-            is RealmAny -> query.equalTo(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is String -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
+            is RealmAny -> query.equalTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("EqualTo[c] for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -845,8 +845,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-            is RealmAny -> query.notEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is String -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
+            is RealmAny -> query.notEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("NotEqualTo[c] for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -857,15 +857,15 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is Int -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Long -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Float -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Double -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Decimal128 -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is ObjectId -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is UUID -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Date -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is Int -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Long -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Float -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Double -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Decimal128 -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is ObjectId -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is UUID -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Date -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.greaterThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             is Byte -> return
             is Short -> return
             else -> throw IllegalStateException("GreaterThanOrEqualTo for type ${value::class.qualifiedName} not implemented")
@@ -878,15 +878,15 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is Int -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Long -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Float -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Double -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Decimal128 -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is ObjectId -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is UUID -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Date -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.greaterThan(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is Int -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Long -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Float -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Double -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Decimal128 -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is ObjectId -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is UUID -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Date -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.greaterThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             is Byte -> return
             is Short -> return
             else -> throw IllegalStateException("GreaterThan for type ${value::class.qualifiedName} not implemented")
@@ -899,15 +899,15 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is Int -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Long -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Float -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Double -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Decimal128 -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is ObjectId -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is UUID -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Date -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is Int -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Long -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Float -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Double -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Decimal128 -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is ObjectId -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is UUID -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Date -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.lessThanOrEqualTo(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             is Byte -> return
             is Short -> return
             else -> throw IllegalStateException("LessThanOrEqualTo for type ${value::class.qualifiedName} not implemented")
@@ -920,15 +920,15 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is Int -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Long -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Float -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Double -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Decimal128 -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is ObjectId -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is UUID -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is Date -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.lessThan(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is Int -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Long -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Float -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Double -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Decimal128 -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is ObjectId -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is UUID -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is Date -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.lessThan(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             is Byte -> return
             is Short -> return
             else -> throw IllegalStateException("LessThan for type ${value::class.qualifiedName} not implemented")
@@ -949,16 +949,16 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
 
         if (value.isNotEmpty()) {
             when (value[0]) {
-                is Boolean -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<Boolean?>(value))
-                is Byte -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<Byte?>(value))
-                is Short -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<Short?>(value))
-                is Int -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<Int?>(value))
-                is Long -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<Long?>(value))
-                is Float -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<Float?>(value))
-                is Double -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<Double?>(value))
-                is String -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<String?>(value))
-                is Date -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<Date?>(value))
-                is RealmAny -> query.`in`(RealmAnyNotIndexed.FIELD_MIXED, convertToType<RealmAny?>(value))
+                is Boolean -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<Boolean?>(value))
+                is Byte -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<Byte?>(value))
+                is Short -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<Short?>(value))
+                is Int -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<Int?>(value))
+                is Long -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<Long?>(value))
+                is Float -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<Float?>(value))
+                is Double -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<Double?>(value))
+                is String -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<String?>(value))
+                is Date -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<Date?>(value))
+                is RealmAny -> query.`in`(RealmAnyNotIndexed.FIELD_REALM_ANY, convertToType<RealmAny?>(value))
                 is Decimal128 -> return
                 is ObjectId -> return
                 is UUID -> return
@@ -975,13 +975,13 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value1) {
-            is Int -> query.between(RealmAnyNotIndexed.FIELD_MIXED, value1, value2 as Int)
-            is Long -> query.between(RealmAnyNotIndexed.FIELD_MIXED, value1, value2 as Long)
-            is Float -> query.between(RealmAnyNotIndexed.FIELD_MIXED, value1, value2 as Float)
-            is Double -> query.between(RealmAnyNotIndexed.FIELD_MIXED, value1, value2 as Double)
-            is Decimal128 -> query.between(RealmAnyNotIndexed.FIELD_MIXED, value1, value2 as Decimal128)
-            is Date -> query.between(RealmAnyNotIndexed.FIELD_MIXED, value1, value2 as Date)
-            is RealmAny -> query.between(RealmAnyNotIndexed.FIELD_MIXED, value1, value2 as RealmAny)
+            is Int -> query.between(RealmAnyNotIndexed.FIELD_REALM_ANY, value1, value2 as Int)
+            is Long -> query.between(RealmAnyNotIndexed.FIELD_REALM_ANY, value1, value2 as Long)
+            is Float -> query.between(RealmAnyNotIndexed.FIELD_REALM_ANY, value1, value2 as Float)
+            is Double -> query.between(RealmAnyNotIndexed.FIELD_REALM_ANY, value1, value2 as Double)
+            is Decimal128 -> query.between(RealmAnyNotIndexed.FIELD_REALM_ANY, value1, value2 as Decimal128)
+            is Date -> query.between(RealmAnyNotIndexed.FIELD_REALM_ANY, value1, value2 as Date)
+            is RealmAny -> query.between(RealmAnyNotIndexed.FIELD_REALM_ANY, value1, value2 as RealmAny)
             is Byte -> return
             is Short -> return
             is ObjectId -> return
@@ -996,8 +996,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.beginsWith(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.beginsWith(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is String -> query.beginsWith(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.beginsWith(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             else -> throw IllegalStateException("BeginsWith for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -1008,8 +1008,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.beginsWith(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-            is RealmAny -> query.beginsWith(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is String -> query.beginsWith(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
+            is RealmAny -> query.beginsWith(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("BeginsWith for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -1020,8 +1020,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.endsWith(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.endsWith(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is String -> query.endsWith(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.endsWith(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             else -> throw IllegalStateException("EndsWith for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -1032,8 +1032,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.endsWith(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-            is RealmAny -> query.endsWith(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is String -> query.endsWith(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
+            is RealmAny -> query.endsWith(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("EndsWith for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -1044,8 +1044,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.contains(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.contains(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is String -> query.contains(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.contains(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             else -> throw IllegalStateException("Contains for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -1056,8 +1056,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.contains(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-            is RealmAny -> query.contains(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is String -> query.contains(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
+            is RealmAny -> query.contains(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("Contains for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -1068,8 +1068,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.like(RealmAnyNotIndexed.FIELD_MIXED, value)
-            is RealmAny -> query.like(RealmAnyNotIndexed.FIELD_MIXED, value)
+            is String -> query.like(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
+            is RealmAny -> query.like(RealmAnyNotIndexed.FIELD_REALM_ANY, value)
             else -> throw IllegalStateException("Like for type ${value::class.qualifiedName} not implemented")
         }
 
@@ -1080,8 +1080,8 @@ class RealmAnyParameterizedQueryTests(val test: RealmAnyParameterizedQueryTest) 
         val query: RealmQuery<RealmAnyNotIndexed> = realm.where()
 
         when (value) {
-            is String -> query.like(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
-            is RealmAny -> query.like(RealmAnyNotIndexed.FIELD_MIXED, value, Case.INSENSITIVE)
+            is String -> query.like(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
+            is RealmAny -> query.like(RealmAnyNotIndexed.FIELD_REALM_ANY, value, Case.INSENSITIVE)
             else -> throw IllegalStateException("Like for type ${value::class.qualifiedName} not implemented")
         }
 
