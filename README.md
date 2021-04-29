@@ -19,7 +19,7 @@ See [Realm Kotlin](https://github.com/realm/realm-kotlin) for more information a
 
 ## Getting Started
 
-Please see the [detailed instructions in our docs](https://docs.mongodb.com/realm/sdk/android/) to add Realm to your project.
+Please see the [detailed instructions in our docs](https://docs.mongodb.com/realm/sdk/android/install/) to add Realm to your project.
 
 ## Documentation
 
