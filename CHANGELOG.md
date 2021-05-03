@@ -1,4 +1,4 @@
-## 11.0.0 (YYYY-MM-DD)
+## 10.5.0 (YYYY-MM-DD)
 
 ### Breaking Changes
 * Queries no longer do nullability checks on non-nullable fields, so using `null` as an argument will not throw an `IllegalArgumentException`.
