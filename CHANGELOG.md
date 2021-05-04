@@ -8,8 +8,7 @@
 * [RealmApp] Client Reset errors now correctly forward the server error message. (Issue [#7363](https://github.com/realm/realm-java/issues/7363), since 10.0.0)
 * [RealmApp] All `AppException`s now correctly report the error message through `RuntimeException.getMessage()` instead of only through `AppException.getErrorMessage()`. 
 * [RealmApp] Proactively check the expiry time on the access token and refresh it before attempting to initiate a sync session. This prevents some error logs from appearing on the client such as: "ERROR: Connection[1]: Websocket: Expected HTTP response 101 Switching Protocols, but received: HTTP/1.1 401 Unauthorized" (RCORE-473, since v10.0.0).
-* Fix a race condition which could result in a skipping notifications failing to skip if several commits using notification skipping were made in succession (since v7.0.0).
-* Name aliasing not working in sort/distinct clauses of raw string predicates.
+* Fix name aliasing not working in sort/distinct clauses of raw string predicates.
 * Fix collection notification reporting for modifications. This could be observed by receiving the wrong indices of modifications on sorted or distinct results, or notification sometimes not being called when only modifications have occured. (since v7.0.0).
 * Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. (#4548)
 
