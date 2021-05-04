@@ -1,7 +1,7 @@
-## 10.4.1 (YYYY-MM-DD)
+## 10.4.1 (2021-05-04)
 
 ### Enhancements
-* We now make a backup of a Realm file prior to any file format upgrade. The backup is retained for 3 months. Backups from before a file format upgrade allows for better analysis of any upgrade failure. We also restore a backup, if a) an attempt is made to open a realm file whith a "future" file format and b) a backup file exist that fits the current file format. The backup file is placed next to the real Realm file and is named `<fileName>.v<realmFileFormat>.backup.realm`.
+* We now make a backup of a Realm file prior to any file format upgrade. The backup is retained for 3 months. Backups from before a file format upgrade allows for better analysis of any upgrade failure. We also restore a backup, if a) an attempt is made to open a realm file whith a "future" file format and b) a backup file exist that fits the current file format. The backup file is placed next to the real Realm file and is named `<fileName>.v<realmFileFormatVersion>.backup.realm`.
 * The error message when the intial steps of opening a Realm file fails is now more descriptive.
 
 ### Fixes
