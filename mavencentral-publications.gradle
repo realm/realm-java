@@ -1,5 +1,7 @@
 // This script is responsible for setting up the publications, so they are ready to be published
-// to Maven Central and other repositories.
+// to Maven Central and other repositories. Publishing to Maven Central is configured in
+// `mavencentral-publish.gradle`. They are in separate files as the nexus publish plugin used
+// to deploy to Maven Central can only be applied to top level projects.
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 apply from: buildscript.sourceFile.getParent() + "/" + "mavencentral-properties.gradle"
