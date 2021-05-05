@@ -108,17 +108,14 @@ create_javadoc() {
   cd $HERE
 }
 
-create_native_debug_symbols_package() {
-  echo "Creating zip file with native debug symbols.."
-  cd $REALM_JAVA_PATH
-  ./gradlew distributionPackage
-  cd $HERE
-}
-
 upload_to_mavenCentral() {
   echo "Releasing on MavenCentral"
   cd $REALM_JAVA_PATH
-  ./gradlew mavenCentralUpload closeAndReleaseRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace --info
+  # FIXME: Closing and releasing doesn't currently work as the plugin doesn't handle uploads from multiple projects very well. So we might end up
+  # with half a release. For this reason we must manually close and release the artifacts using the Maven Central UI:
+  # https://oss.sonatype.org/#stagingRepositories
+  # ./gradlew mavenCentralUpload closeAndReleaseStagingRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace
+  ./gradlew mavenCentralUpload -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace
   cd $HERE
 }
 
