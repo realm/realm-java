@@ -111,9 +111,11 @@ create_javadoc() {
 upload_to_mavenCentral() {
   echo "Releasing on MavenCentral"
   cd $REALM_JAVA_PATH
-  # FIXME: This doesn't currently work. Apparently we must call this from each repository.
-  # This is very annoying as it means we might end up with half a release.
-  ./gradlew mavenCentralUpload closeAndReleaseStagingRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace
+  # FIXME: Closing and releasing doesn't currently work as the plugin doesn't handle uploads from multiple projects very well. So we might end up
+  # with half a release. For this reason we must manually close and release the artifacts using the Maven Central UI:
+  # https://oss.sonatype.org/#stagingRepositories
+  # ./gradlew mavenCentralUpload closeAndReleaseStagingRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace
+  ./gradlew mavenCentralUpload -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace
   cd $HERE
 }
 
