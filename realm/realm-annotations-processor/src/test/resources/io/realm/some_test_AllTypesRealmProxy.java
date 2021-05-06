@@ -3401,8 +3401,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         RealmList<some.test.AllTypes> columnRealmListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmList();
         if (columnRealmListList != null && columnRealmListList.size() == columnRealmListOsList.size()) {
             // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
-            int objects = columnRealmListList.size();
-            for (int i = 0; i < objects; i++) {
+            int objectCount = columnRealmListList.size();
+            for (int i = 0; i < objectCount; i++) {
                 some.test.AllTypes columnRealmListItem = columnRealmListList.get(i);
                 Long cacheItemIndexcolumnRealmList = cache.get(columnRealmListItem);
                 if (cacheItemIndexcolumnRealmList == null) {
@@ -3428,8 +3428,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         RealmList<some.test.Simple> columnRealmListNoPkList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmListNoPk();
         if (columnRealmListNoPkList != null && columnRealmListNoPkList.size() == columnRealmListNoPkOsList.size()) {
             // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
-            int objects = columnRealmListNoPkList.size();
-            for (int i = 0; i < objects; i++) {
+            int objectCount = columnRealmListNoPkList.size();
+            for (int i = 0; i < objectCount; i++) {
                 some.test.Simple columnRealmListNoPkItem = columnRealmListNoPkList.get(i);
                 Long cacheItemIndexcolumnRealmListNoPk = cache.get(columnRealmListNoPkItem);
                 if (cacheItemIndexcolumnRealmListNoPk == null) {
@@ -3455,8 +3455,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         RealmList<some.test.AllTypes> columnRealmFinalListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmFinalList();
         if (columnRealmFinalListList != null && columnRealmFinalListList.size() == columnRealmFinalListOsList.size()) {
             // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
-            int objects = columnRealmFinalListList.size();
-            for (int i = 0; i < objects; i++) {
+            int objectCount = columnRealmFinalListList.size();
+            for (int i = 0; i < objectCount; i++) {
                 some.test.AllTypes columnRealmFinalListItem = columnRealmFinalListList.get(i);
                 Long cacheItemIndexcolumnRealmFinalList = cache.get(columnRealmFinalListItem);
                 if (cacheItemIndexcolumnRealmFinalList == null) {
@@ -3482,8 +3482,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         RealmList<some.test.Simple> columnRealmFinalListNoPkList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmFinalListNoPk();
         if (columnRealmFinalListNoPkList != null && columnRealmFinalListNoPkList.size() == columnRealmFinalListNoPkOsList.size()) {
             // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
-            int objects = columnRealmFinalListNoPkList.size();
-            for (int i = 0; i < objects; i++) {
+            int objectCount = columnRealmFinalListNoPkList.size();
+            for (int i = 0; i < objectCount; i++) {
                 some.test.Simple columnRealmFinalListNoPkItem = columnRealmFinalListNoPkList.get(i);
                 Long cacheItemIndexcolumnRealmFinalListNoPk = cache.get(columnRealmFinalListNoPkItem);
                 if (cacheItemIndexcolumnRealmFinalListNoPk == null) {
@@ -3691,8 +3691,8 @@ public class some_test_AllTypesRealmProxy extends some.test.AllTypes
         RealmList<RealmAny> columnRealmAnyListList = ((some_test_AllTypesRealmProxyInterface) object).realmGet$columnRealmAnyList();
         if (columnRealmAnyListList != null && columnRealmAnyListList.size() == columnRealmAnyListOsList.size()) {
             // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
-            int objects = columnRealmAnyListList.size();
-            for (int i = 0; i < objects; i++) {
+            int objectCount = columnRealmAnyListList.size();
+            for (int i = 0; i < objectCount; i++) {
                 RealmAny columnRealmAnyListItem = columnRealmAnyListList.get(i);
                 Long cacheItemIndexcolumnRealmAnyList = cache.get(columnRealmAnyListItem);
                 if (cacheItemIndexcolumnRealmAnyList == null) {

@@ -613,14 +613,28 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
 
         OsList childrenOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.childrenColKey);
         RealmList<some.test.EmbeddedClass> childrenList = ((some_test_EmbeddedClassSimpleParentRealmProxyInterface) object).realmGet$children();
-        childrenOsList.removeAll();
-        if (childrenList != null) {
-            for (some.test.EmbeddedClass childrenItem : childrenList) {
+        if (childrenList != null && childrenList.size() == childrenOsList.size()) {
+            // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
+            int objectCount = childrenList.size();
+            for (int i = 0; i < objectCount; i++) {
+                some.test.EmbeddedClass childrenItem = childrenList.get(i);
                 Long cacheItemIndexchildren = cache.get(childrenItem);
                 if (cacheItemIndexchildren != null) {
                     throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: " + cacheItemIndexchildren.toString());
                 } else {
                     cacheItemIndexchildren = some_test_EmbeddedClassRealmProxy.insertOrUpdate(realm, table, columnInfo.childrenColKey, objKey, childrenItem, cache);
+                }
+            }
+        } else {
+            childrenOsList.removeAll();
+            if (childrenList != null) {
+                for (some.test.EmbeddedClass childrenItem : childrenList) {
+                    Long cacheItemIndexchildren = cache.get(childrenItem);
+                    if (cacheItemIndexchildren != null) {
+                        throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: " + cacheItemIndexchildren.toString());
+                    } else {
+                        cacheItemIndexchildren = some_test_EmbeddedClassRealmProxy.insertOrUpdate(realm, table, columnInfo.childrenColKey, objKey, childrenItem, cache);
+                    }
                 }
             }
         }
