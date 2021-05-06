@@ -209,6 +209,7 @@ class UnmanagedDictionaryTester<T : Any>(
         }
     }
 
+    override fun insert() = Unit                                       // Not applicable
     override fun copyToRealm() = Unit                                       // Not applicable
     override fun copyToRealmOrUpdate() = Unit                               // Not applicable
     override fun copyFromRealm() = Unit                                     // Not applicable
