@@ -179,6 +179,7 @@ class ParameterizedDictionaryTests(
         tester.insertList()
     }
 
+    @Test
     fun insertOrUpdate() {
         tester.insertOrUpdate()
     }
