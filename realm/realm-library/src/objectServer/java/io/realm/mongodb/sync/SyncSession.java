@@ -96,6 +96,8 @@ public class SyncSession {
     private static final byte STATE_VALUE_ACTIVE = 0;
     private static final byte STATE_VALUE_DYING = 1;
     private static final byte STATE_VALUE_INACTIVE = 2;
+    private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 3;
+    
 
     // List of Java connection change listeners
     private final CopyOnWriteArrayList<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
@@ -138,7 +140,19 @@ public class SyncSession {
          * The Realm was closed, but still contains data that needs to be synchronized to the server.
          * The session will attempt to upload all local data before going {@link #INACTIVE}.
          */
-        DYING(STATE_VALUE_DYING);
+        DYING(STATE_VALUE_DYING),
+
+        /**
+         * The user is attempting to synchronize data but needs a valid access token to do so. Realm
+         * will either use a cached token or automatically try to acquire one based on the current
+         * users login. This requires a network connection.
+         * <p>
+         * Data cannot be synchronized in this state.
+         * <p>
+         * Once a valid token is acquired, the session will transition to {@link #ACTIVE}.
+         */
+        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN);
+
 
         final byte value;
 
