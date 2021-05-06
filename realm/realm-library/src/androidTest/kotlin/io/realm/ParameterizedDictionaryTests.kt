@@ -170,6 +170,11 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
+    fun insert() {
+        tester.insert()
+    }
+
+    @Test
     fun copyToRealm() {
         tester.copyToRealm()
     }
