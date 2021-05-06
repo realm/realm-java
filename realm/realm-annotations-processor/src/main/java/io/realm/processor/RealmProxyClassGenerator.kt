@@ -1712,14 +1712,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             val args = if (metadata.embedded) embeddedArgs else topLevelArgs
             beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
 
-            // Throw if model contains a dictionary field until we add support for it
-            if (containsDictionary(metadata.fields)) {
-                emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmDictionary properties are not supported yet.\")")
-                endMethod()
-                emitEmptyLine()
-                return@apply
-            }
-
             // Throw if model contains a set field until we add support for it
             if (containsSet(metadata.fields)) {
                 emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmSet properties are not supported yet.\")")
@@ -1862,9 +1854,69 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         endControlFlow()
                     endControlFlow()
-                } else if (Utils.isRealmDictionary(field)) {
-                    // TODO: dictionary
-                    emitSingleLineComment("TODO: Dictionary")
+                } else if (Utils.isRealmModelDictionary(field)) {
+                    val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
+                    val listElementType: TypeMirror = Utils.getGenericType(field)!!
+                    val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
+                    val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
+
+                    emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = ((${interfaceName}) object).${getter}()")
+                    beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
+                    emitStatement("OsMap ${fieldName}OsMap = new OsMap(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                        emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
+                        beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
+                            emitStatement("String entryKey = entry.getKey()")
+                            emitStatement("$genericType ${fieldName}UnmanagedEntryValue = entry.getValue()")
+                            beginControlFlow("if(${fieldName}UnmanagedEntryValue == null)")
+                                emitStatement("${fieldName}OsMap.put(entryKey, null)")
+                            nextControlFlow("else")
+                                // here goes the rest
+                                emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}UnmanagedEntryValue)")
+                                if (isEmbedded) {
+                                    beginControlFlow("if (cacheItemIndex${fieldName} != null)")
+                                        emitStatement("""throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: cache${fieldName}.toString()")""")
+                                    nextControlFlow("else")
+                                        emitStatement("cacheItemIndex${fieldName} = ${linkedProxyClass}.insertOrUpdate(realm, table, columnInfo.${fieldName}ColKey, objKey, ${fieldName}UnmanagedEntryValue, cache)")
+                                    endControlFlow()
+                                    emitStatement("${fieldName}OsMap.putRow(entryKey, cacheItemIndex${fieldName})")
+                                } else {
+                                    beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                        emitStatement("cacheItemIndex${fieldName} = ${linkedProxyClass}.insertOrUpdate(realm, ${fieldName}UnmanagedEntryValue, cache)")
+                                    endControlFlow()
+                                    emitStatement("${fieldName}OsMap.putRow(entryKey, cacheItemIndex${fieldName})")
+                                }
+                            endControlFlow()
+                        endControlFlow()
+                    endControlFlow()
+                } else if (Utils.isRealmValueDictionary(field)) {
+                    val genericType = Utils.getGenericTypeQualifiedName(field)
+                    emitEmptyLine()
+                    emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = ((${interfaceName}) object).${getter}()")
+                    beginControlFlow("if (${fieldName}UnmanagedDictionary != null)", fieldName)
+                        emitStatement("OsMap ${fieldName}OsMap = new OsMap(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+
+                        emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
+                        beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
+                            emitStatement("String entryKey = entry.getKey()")
+                            emitStatement("$genericType ${fieldName}UnmanagedEntryValue = entry.getValue()")
+                            emitStatement("${fieldName}OsMap.put(entryKey, ${fieldName}UnmanagedEntryValue)")
+                    endControlFlow()
+                    endControlFlow()
+                } else if (Utils.isRealmAnyDictionary(field)) {
+                    val genericType = Utils.getGenericTypeQualifiedName(field)
+                    emitStatement("RealmDictionary<RealmAny> ${fieldName}UnmanagedDictionary = ((${interfaceName}) object).${getter}()")
+                    beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
+                        emitStatement("OsMap ${fieldName}OsMap = new OsMap(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                        emitStatement("java.util.Set<java.util.Map.Entry<String, ${genericType}>> entries = ${fieldName}UnmanagedDictionary.entrySet()")
+                        emitStatement("java.util.List<String> keys = new java.util.ArrayList<>()")
+                        emitStatement("java.util.List<Long> realmAnyPointers = new java.util.ArrayList<>()")
+                        beginControlFlow("for (java.util.Map.Entry<String, ${genericType}> entry : entries)")
+                            emitStatement("RealmAny realmAnyItem = entry.getValue()")
+                            emitStatement("realmAnyItem = ProxyUtils.insertOrUpdate(realmAnyItem, realm, cache)")
+                            emitStatement("${fieldName}OsMap.putRealmAny(entry.getKey(), realmAnyItem.getNativePtr())")
+                        endControlFlow()
+                    endControlFlow()
+                    emitEmptyLine()
                 } else if (Utils.isRealmSet(field)) {
                     // TODO: sets
                     emitSingleLineComment("TODO: Set")

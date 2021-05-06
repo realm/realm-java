@@ -552,8 +552,6 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
-
-
     override fun copyFromRealm() {
         val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)
