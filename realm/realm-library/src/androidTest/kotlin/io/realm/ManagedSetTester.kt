@@ -354,6 +354,56 @@ class ManagedSetTester<T : Any>(
         }
     }
 
+    override fun insert() {
+        doInsertTest(initializedSet)
+    }
+
+    // Separate method to allow calls from RealmModelSetManagedTester with unmanaged realm objects
+    fun doInsertTest(expectedSet: List<T?>) {
+        // Instantiate container and set Set on container
+        val manualInstance = SetAllTypes().apply {
+            setSetter.call(this, RealmSet<T>().init(expectedSet))
+        }
+
+        // Insert into Realm
+        realm.executeTransaction {
+            realm.insert(manualInstance)
+        }
+
+        // Get set from container from Realm
+        val allTypesObject = realm.where<SetAllTypes>().findFirst()
+        assertNotNull(allTypesObject)
+        val set: RealmSet<T> = setGetter.call(allTypesObject)
+
+        assertFalse(set.isEmpty())
+        assertSetContainsSet(expectedSet, set)
+    }
+
+    override fun insertList() {
+        doInsertTest(initializedSet)
+    }
+
+    // Separate method to allow calls from RealmModelSetManagedTester with unmanaged realm objects
+    fun doInsertTestList(expectedSet: List<T?>) {
+        // Instantiate container and set Set on container
+        val manualInstance = SetAllTypes().apply {
+            setSetter.call(this, RealmSet<T>().init(expectedSet))
+        }
+
+        // Insert into Realm
+        realm.executeTransaction {
+            realm.insert(listOf(manualInstance))
+        }
+
+        // Get set from container from Realm
+        val allTypesObject = realm.where<SetAllTypes>().findFirst()
+        assertNotNull(allTypesObject)
+        val set: RealmSet<T> = setGetter.call(allTypesObject)
+
+        assertFalse(set.isEmpty())
+        assertSetContainsSet(expectedSet, set)
+    }
+
     override fun copyToRealm() {
         doCopyToRealmTest(initializedSet)
     }
