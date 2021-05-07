@@ -1,4 +1,7 @@
-## 10.4.1 (YYYY-MM-DD)
+## 10.5.0 (YYYY-MM-DD)
+
+### Breaking Changes
+* [RealmApp] `SyncSession.State.WaitingForAccessToken` has been added. It represents the local access token not longer being valid, but is automatically being refreshed.
 
 ### Enhancements
 * We now make a backup of a Realm file prior to any file format upgrade. The backup is retained for 3 months. Backups from before a file format upgrade allows for better analysis of any upgrade failure. We also restore a backup, if a) an attempt is made to open a realm file whith a "future" file format and b) a backup file exist that fits the current file format. The backup file is placed next to the real Realm file and is named `<fileName>.v<realmFileFormatVersion>.backup.realm`.
@@ -18,7 +21,7 @@
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core 10.6.1, commit 37744ee5ba498d659e65ee11341e6f039aa21bea.
+* Updated to Realm Core 10.7.1, commit 5043c25e1d8f5971002e0fec85dea5ea3d7eb3d7.
 
 
 ## 10.4.0 (2021-03-26)
