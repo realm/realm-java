@@ -556,16 +556,22 @@ class ManagedDictionaryTester<T : Any>(
     override fun insertOrUpdateList() {
         // Instantiate container and set dictionary on container
         val manualInstance = PrimaryKeyDictionaryContainer().apply {
+            name = "manual"
             primaryKeyDictionaryProperty.get(this).putAll(initializedDictionary)
+        }
+        val emptyInstance = PrimaryKeyDictionaryContainer().apply {
+            name = "empty"
         }
 
         // insert into Realm
         realm.executeTransaction {
-            realm.insertOrUpdate(listOf(manualInstance))
+            realm.insertOrUpdate(listOf(emptyInstance, manualInstance))
         }
 
         // Get dictionary from container from Realm
-        val primaryKeyDictionaryContainer = realm.where<PrimaryKeyDictionaryContainer>().findFirst()
+        val primaryKeyDictionaryContainer = realm.where<PrimaryKeyDictionaryContainer>()
+            .equalTo("name", "manual")
+            .findFirst()
         assertNotNull(primaryKeyDictionaryContainer)
         val dictionary = primaryKeyDictionaryProperty.get(primaryKeyDictionaryContainer)
         assertFalse(dictionary.isEmpty())
@@ -581,10 +587,12 @@ class ManagedDictionaryTester<T : Any>(
 
         // Insert to Realm with non managed updated model
         realm.executeTransaction {
-            realm.insertOrUpdate(listOf(manualInstance))
+            realm.insertOrUpdate(listOf(emptyInstance, manualInstance))
         }
 
-        val updatedContainer = realm.where<PrimaryKeyDictionaryContainer>().findFirst()
+        val updatedContainer = realm.where<PrimaryKeyDictionaryContainer>()
+            .equalTo("name", "manual")
+            .findFirst()
         assertNotNull(updatedContainer)
         val updatedDictinary = primaryKeyDictionaryProperty.get(primaryKeyDictionaryContainer)
         assertEquals(initializedDictionary.size + 1, updatedDictinary.size)

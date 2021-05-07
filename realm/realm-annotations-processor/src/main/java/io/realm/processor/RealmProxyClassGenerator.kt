@@ -1965,14 +1965,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
 
             beginMethod("void", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
 
-                // Throw if model contains a dictionary field until we add support for it
-                if (containsDictionary(metadata.fields)) {
-                    emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmDictionary properties are not supported yet.\")")
-                    endMethod()
-                    emitEmptyLine()
-                    return@apply
-                }
-
                 // Throw if model contains a set field until we add support for it
                 if (containsSet(metadata.fields)) {
                     emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmSet properties are not supported yet.\")")
