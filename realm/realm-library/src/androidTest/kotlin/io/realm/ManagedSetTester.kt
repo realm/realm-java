@@ -390,13 +390,15 @@ class ManagedSetTester<T : Any>(
             setSetter.call(this, RealmSet<T>().init(expectedSet))
         }
 
+        val emptyInstace = SetAllTypes()
+
         // Insert into Realm
         realm.executeTransaction {
-            realm.insert(listOf(manualInstance))
+            realm.insert(listOf(emptyInstace, manualInstance))
         }
 
         // Get set from container from Realm
-        val allTypesObject = realm.where<SetAllTypes>().findFirst()
+        val allTypesObject = realm.where<SetAllTypes>().findAll()[1]
         assertNotNull(allTypesObject)
         val set: RealmSet<T> = setGetter.call(allTypesObject)
 

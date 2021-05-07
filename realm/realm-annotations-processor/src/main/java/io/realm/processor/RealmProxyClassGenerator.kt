@@ -1699,14 +1699,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             val args = if (metadata.embedded) embeddedArgs else topLevelArgs
 
             beginMethod("void", "insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
-                // Throw if model contains a set field until we add support for it
-                if (containsSet(metadata.fields)) {
-                    emitStatement("throw new UnsupportedOperationException(\"Calls to 'insert' with RealmModels containing RealmSet properties are not supported yet.\")")
-                    endMethod()
-                    emitEmptyLine()
-                    return@apply
-                }
-
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)
