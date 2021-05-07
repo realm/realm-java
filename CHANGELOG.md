@@ -1,4 +1,4 @@
-## 10.5.0 (YYYY-MM-DD)
+## 10.5.0 (2021-05-07)
 
 ### Breaking Changes
 * [RealmApp] `SyncSession.State.WaitingForAccessToken` has been added. It represents the local access token not longer being valid, but is automatically being refreshed.
