@@ -380,11 +380,11 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun insertList() {
-        doInsertTest(initializedSet)
+        doInsertListTest(initializedSet)
     }
 
     // Separate method to allow calls from RealmModelSetManagedTester with unmanaged realm objects
-    fun doInsertTestList(expectedSet: List<T?>) {
+    fun doInsertListTest(expectedSet: List<T?>) {
         // Instantiate container and set Set on container
         val manualInstance = SetAllTypes().apply {
             setSetter.call(this, RealmSet<T>().init(expectedSet))

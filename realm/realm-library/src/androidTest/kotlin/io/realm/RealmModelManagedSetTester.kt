@@ -216,7 +216,7 @@ class RealmModelManagedSetTester<T : Any>(
         }
 
         // Call with unmanaged objects
-        managedTester.doInsertTest(unmanagedInitializedSet)
+        managedTester.doInsertListTest(unmanagedInitializedSet)
     }
 
     override fun copyToRealm() {
