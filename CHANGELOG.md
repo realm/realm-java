@@ -21,7 +21,7 @@
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core 10.7.0, commit c3e326da42bab787ca8d8db6c21bc4554da114c3.
+* Updated to Realm Core 10.7.1, commit 5043c25e1d8f5971002e0fec85dea5ea3d7eb3d7.
 
 
 ## 10.4.0 (2021-03-26)
