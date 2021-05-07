@@ -1733,48 +1733,47 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     Utils.isRealmModelList(field) -> {
                         val genericType: TypeMirror = Utils.getGenericType(field)!!
                         val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
+
                         emitEmptyLine()
                         emitStatement("OsList %1\$sOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
                         emitStatement("RealmList<%s> %sList = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
-                        beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
-                            emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
-                            emitStatement("int objectCount = %1\$sList.size()", fieldName)
-                            beginControlFlow("for (int i = 0; i < objectCount; i++)")
-                                emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
-                                emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                if (isEmbedded) {
+                        if (isEmbedded) {
+                            emitStatement("%1\$sOsList.removeAll()", fieldName)
+                            beginControlFlow("if (%sList != null)", fieldName)
+                                beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
+                                    emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                     beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
                                         emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
                                     nextControlFlow("else")
                                         emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(QualifiedClassName(genericType.toString())), fieldName)
                                     endControlFlow()
-                                } else {
+                                endControlFlow()
+                            endControlFlow()
+                        } else {
+                            beginControlFlow("if (%1\$sList != null && %1\$sList.size() == %1\$sOsList.size())", fieldName)
+                                emitSingleLineComment("For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.")
+                                emitStatement("int objectCount = %1\$sList.size()", fieldName)
+                                beginControlFlow("for (int i = 0; i < objectCount; i++)")
+                                    emitStatement("%1\$s %2\$sItem = %2\$sList.get(i)", genericType, fieldName)
+                                    emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                     beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                         emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                                     endControlFlow()
                                     emitStatement("%1\$sOsList.setRow(i, cacheItemIndex%1\$s)", fieldName)
-                                }
-                            endControlFlow()
-                        nextControlFlow("else")
-                            emitStatement("%1\$sOsList.removeAll()", fieldName)
-                            beginControlFlow("if (%sList != null)", fieldName)
-                                beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
-                                    emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
-                                    if (isEmbedded) {
-                                        beginControlFlow("if (cacheItemIndex%s != null)", fieldName)
-                                            emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex%s.toString())", fieldName)
-                                        nextControlFlow("else")
-                                            emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, table, columnInfo.%3\$sColKey, objKey, %3\$sItem, cache)", fieldName, Utils.getProxyClassName(QualifiedClassName(genericType.toString())), fieldName)
-                                        endControlFlow()
-                                    } else {
+                                endControlFlow()
+                            nextControlFlow("else")
+                                emitStatement("%1\$sOsList.removeAll()", fieldName)
+                                beginControlFlow("if (%sList != null)", fieldName)
+                                    beginControlFlow("for (%1\$s %2\$sItem : %2\$sList)", genericType, fieldName)
+                                        emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
                                         beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
                                             emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getProxyClassSimpleName(field))
                                         endControlFlow()
                                         emitStatement("%1\$sOsList.addRow(cacheItemIndex%1\$s)", fieldName)
-                                    }
+                                    endControlFlow()
                                 endControlFlow()
                             endControlFlow()
-                        endControlFlow()
+                        }
                         emitEmptyLine()
                     }
                     Utils.isRealmValueList(field) -> {
