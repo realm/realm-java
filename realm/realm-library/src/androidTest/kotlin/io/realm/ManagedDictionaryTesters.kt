@@ -491,13 +491,14 @@ class ManagedDictionaryTester<T : Any>(
 
     override fun insertList() {
         // Instantiate container and set dictionary on container
+        val emptyInstance = DictionaryAllTypes()
         val manualInstance = DictionaryAllTypes().apply {
             dictionarySetter.call(this, initializedDictionary)
         }
 
         // Insert into Realm
         realm.executeTransaction {
-            realm.insert(listOf(manualInstance))
+            realm.insert(listOf(manualInstance, emptyInstance))
         }
 
         // Get dictionary from container from Realm
