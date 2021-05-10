@@ -418,24 +418,27 @@ task mavenCentralAnnotations(type: GradleBuild) {
     description = 'Publish the Realm Annotations to Maven Central'
     group = 'Publishing'
     buildFile = file('realm-annotations/build.gradle')
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['publishToSonatype']
+    startParameter.projectProperties = gradle.startParameter.projectProperties
+    configure copyProperties
 }
 
 task mavenCentralGradlePlugin(type: GradleBuild) {
     description = 'Publish the Realm Gradle Plugin to Maven Central'
     group = 'Publishing'
     buildFile = file('gradle-plugin/build.gradle')
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['publishToSonatype']
+    startParameter.projectProperties = gradle.startParameter.projectProperties
+    configure copyProperties
 }
 
 task mavenCentralTransformer(type: GradleBuild) {
     description = 'Publish the Realm Transformer to Maven Central'
     group = 'Publishing'
     buildFile = file('realm-transformer/build.gradle')
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['publishToSonatype']
+    startParameter.projectProperties = gradle.startParameter.projectProperties
+    configure copyProperties
 }
 
 task mavenCentralUpload {
