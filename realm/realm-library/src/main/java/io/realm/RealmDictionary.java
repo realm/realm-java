@@ -82,6 +82,17 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         super(getStrategy(valueClass, baseRealm, osMap));
     }
 
+    /**
+     * Constructor used by {@code Realm}s.
+     *
+     * @param baseRealm
+     * @param osMap
+     * @param className
+     */
+    RealmDictionary(BaseRealm baseRealm, OsMap osMap, String className) {
+        super(getStrategy(className, baseRealm, osMap));
+    }
+
     // ------------------------------------------
     // Private stuff
     // ------------------------------------------
@@ -118,7 +129,6 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
         return new ManagedMapStrategy<>(manager);
     }
 
-    @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD", justification = "This function would be used on dynamic realms, not yet implemented")
     private static <V> ManagedMapStrategy<String, V> getStrategy(String valueClass,
                                                                  BaseRealm baseRealm,
                                                                  OsMap osMap) {

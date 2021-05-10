@@ -30,12 +30,17 @@ import javax.annotation.Nullable;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsList;
+import io.realm.internal.OsMap;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
 import io.realm.internal.core.NativeRealmAny;
+
+import static io.realm.RealmFieldTypeConstants.DICTIONARY_OFFSET;
+import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
+import static io.realm.RealmFieldTypeConstants.SET_OFFSET;
 
 
 /**
@@ -467,7 +472,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             throw new IllegalArgumentException("Non-null 'primitiveType' required.");
         }
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
-        RealmFieldType realmType = classToRealmType(primitiveType);
+        RealmFieldType realmType = primitiveTypeToRealmFieldType(CollectionType.LIST, primitiveType);
         try {
             OsList osList = proxyState.getRow$realm().getValueList(columnKey, realmType);
             return new RealmList<>(primitiveType, osList, proxyState.getRealm$realm());
@@ -477,32 +482,111 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
     }
 
-    private <E> RealmFieldType classToRealmType(Class<E> primitiveType) {
+    /**
+     * Returns the {@link RealmDictionary} of {@link DynamicRealmObject}s being linked from the given field.
+     * <p>
+     * If the dictionary contains primitive types, use {@link #getDictionary(String, Class)} instead.
+     *
+     * @param fieldName the name of the field.
+     * @return the {@link RealmDictionary} data for this field.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a dictionary of objects.
+     */
+    public RealmDictionary<DynamicRealmObject> getDictionary(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        try {
+            OsMap osMap = proxyState.getRow$realm().getModelMap(columnKey);
+            //noinspection ConstantConditions
+            @Nonnull
+            String className = osMap.getTargetTable().getClassName();
+            return new RealmDictionary<>(proxyState.getRealm$realm(), osMap, className);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnKey, RealmFieldType.LIST);
+            throw e;
+        }
+    }
+
+    /**
+     * Returns the {@link RealmDictionary} containing only primitive values.
+     *
+     * <p>
+     * If the dictionary contains references to other Realm objects, use {@link #getDictionary(String)} instead.
+     *
+     * @param fieldName     the name of the field.
+     * @param primitiveType the type of elements in the dictionary. Only primitive types are supported.
+     * @return the {@link RealmDictionary} data for this field.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a dictionary of primitive objects.
+     */
+    public <E> RealmDictionary<E> getDictionary(String fieldName, Class<E> primitiveType) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        if (primitiveType == null) {
+            throw new IllegalArgumentException("Non-null 'primitiveType' required.");
+        }
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        RealmFieldType realmType = primitiveTypeToRealmFieldType(CollectionType.DICTIONARY, primitiveType);
+        try {
+            OsMap osMap = proxyState.getRow$realm().getValueMap(columnKey, realmType);
+            return new RealmDictionary<>(proxyState.getRealm$realm(), osMap, primitiveType);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnKey, realmType);
+            throw e;
+        }
+    }
+
+    private enum CollectionType {
+        LIST,
+        DICTIONARY,
+        SET
+    }
+
+    private <E> RealmFieldType primitiveTypeToRealmFieldType(CollectionType collectionType, Class<E> primitiveType) {
+        int nativeValue = primitiveTypeToCoreType(primitiveType);
+
+        switch (collectionType) {
+            case SET:
+                nativeValue += SET_OFFSET;
+                break;
+            case DICTIONARY:
+                nativeValue += DICTIONARY_OFFSET;
+                break;
+            case LIST:
+                nativeValue += LIST_OFFSET;
+                break;
+            default:
+                throw new IllegalArgumentException("Type not supported: " + collectionType);
+        }
+
+        return RealmFieldType.fromNativeValue(nativeValue);
+    }
+
+    private <E> int primitiveTypeToCoreType(Class<E> primitiveType) {
         if (primitiveType.equals(Integer.class)
                 || primitiveType.equals(Long.class)
                 || primitiveType.equals(Short.class)
                 || primitiveType.equals(Byte.class)) {
-            return RealmFieldType.INTEGER_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_INTEGER;
         } else if (primitiveType.equals(Boolean.class)) {
-            return RealmFieldType.BOOLEAN_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_BOOLEAN;
         } else if (primitiveType.equals(String.class)) {
-            return RealmFieldType.STRING_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
         } else if (primitiveType.equals(byte[].class)) {
-            return RealmFieldType.BINARY_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_BINARY;
         } else if (primitiveType.equals(Date.class)) {
-            return RealmFieldType.DATE_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_DATE;
         } else if (primitiveType.equals(Float.class)) {
-            return RealmFieldType.FLOAT_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_FLOAT;
         } else if (primitiveType.equals(Double.class)) {
-            return RealmFieldType.DOUBLE_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_DOUBLE;
         } else if (primitiveType.equals(Decimal128.class)) {
-            return RealmFieldType.DECIMAL128_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_DECIMAL128;
         } else if (primitiveType.equals(ObjectId.class)) {
-            return RealmFieldType.OBJECT_ID_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECTID;
         } else if (primitiveType.equals(UUID.class)) {
-            return RealmFieldType.UUID_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_UUID;
         } else if (primitiveType.equals(RealmAny.class)) {
-            return RealmFieldType.MIXED_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_MIXED;
         } else {
             throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + primitiveType);
         }

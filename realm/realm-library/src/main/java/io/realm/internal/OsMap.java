@@ -62,6 +62,10 @@ public class OsMap implements NativeObject {
         context.addReference(this);
     }
 
+    public Table getTargetTable() {
+        return targetTable;
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
