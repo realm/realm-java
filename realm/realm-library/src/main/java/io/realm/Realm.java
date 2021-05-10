@@ -1314,9 +1314,6 @@ public class Realm extends BaseRealm {
      * transaction.
      * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
      * inserted or if a primary key value already exists in the Realm.
-     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmSet}.
-     * @see #copyToRealmOrUpdate(Iterable, ImportFlag...)
-     * @see RealmSet
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
         checkIfValidAndInTransaction();
@@ -1352,9 +1349,6 @@ public class Realm extends BaseRealm {
      * @param object RealmObjects to insert.
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
      * transaction.
-     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmSet}.
-     * @see #copyToRealmOrUpdate(RealmModel, ImportFlag...)
-     * @see RealmSet
      */
     public void insertOrUpdate(RealmModel object) {
         checkIfValidAndInTransaction();
