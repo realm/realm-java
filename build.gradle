@@ -8,13 +8,7 @@ buildscript {
             url "https://plugins.gradle.org/m2/"
         }
     }
-    dependencies {
-        classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
-        classpath 'ch.netzwerg:gradle-release-plugin:1.2.0'
-    }
 }
-
-apply plugin: 'ch.netzwerg.release'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim()
 
@@ -448,15 +442,4 @@ task mavenCentralUpload {
     dependsOn mavenCentralAnnotations
     dependsOn mavenCentralGradlePlugin
     dependsOn mavenCentralTransformer
-}
-
-apply from: "mavencentral-publish.gradle"
-
-// This is just a placeholder for the release plugin
-task build {}
-
-release {
-    push = false
-    versionSuffix = '-SNAPSHOT'
-    tagPrefix = 'v'
 }

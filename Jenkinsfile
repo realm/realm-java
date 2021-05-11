@@ -355,8 +355,8 @@ def runPublish() {
         sh tools/publish_release.sh '$MAVEN_CENTRAL_USER' '$MAVEN_CENTRAL_PASSWORD' \
         '$REALM_S3_ACCESS_KEY' '$REALM_S3_SECRET_KEY' \
         '$DOCS_S3_ACCESS_KEY' '$DOCS_S3_SECRET_KEY' \
-        '$SLACK_URL_RELEASE' \
-        '$SLACK_URL_CI', '-PsignBuild=true -PsignSecretRingFile=\"${SIGN_KEY}\" -PsignPassword=${SIGN_KEY_PASSWORD} -PenableLTO=true -PbuildCore=true'
+        '$SLACK_URL_RELEASE' '$SLACK_URL_CI' \
+        '-PsignBuild=true -PsignSecretRingFile="${SIGN_KEY}" -PsignPassword=${SIGN_KEY_PASSWORD} -PenableLTO=true -PbuildCore=true'
       """
     }
   }
