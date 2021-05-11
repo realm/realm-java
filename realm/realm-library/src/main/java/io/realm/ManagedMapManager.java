@@ -194,6 +194,14 @@ abstract class ManagedMapManager<K, V> implements Map<K, V>, ManageableObject, F
     OsMap getOsMap() {
         return mapValueOperator.osMap;
     }
+
+    String getClassName() {
+        return typeSelectorForMap.getValueClassName();
+    }
+
+    Class<V> getValueClass() {
+        return typeSelectorForMap.getValueClass();
+    }
 }
 
 /**

@@ -68,6 +68,10 @@ abstract class TypeSelectorForMap<K, V> {
     abstract Collection<V> getValues();
 
     abstract RealmDictionary<V> freeze(BaseRealm frozenBaseRealm);
+
+    abstract String getValueClassName();
+
+    abstract Class<V> getValueClass();
 }
 
 /**
@@ -119,6 +123,16 @@ class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
         }
 
         throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
+    }
+
+    @Override
+    Class<V> getValueClass() {
+        return valueClass;
+    }
+
+    @Override
+    String getValueClassName() {
+        return null;
     }
 }
 
@@ -216,5 +230,15 @@ class DynamicSelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
     public RealmDictionary<V> freeze(BaseRealm frozenBaseRealm) {
         // TODO
         throw new UnsupportedOperationException("Support for freeze for DynamicRealms not ready yet ");
+    }
+
+    @Override
+    Class<V> getValueClass() {
+        return null;
+    }
+
+    @Override
+    String getValueClassName() {
+        return className;
     }
 }

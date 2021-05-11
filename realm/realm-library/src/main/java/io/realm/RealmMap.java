@@ -305,6 +305,14 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         return mapStrategy.getOsMap();
     }
 
+    String getValueClassName() {
+        return mapStrategy.getValueClassName();
+    }
+
+    Class<V> getValueClass() {
+        return mapStrategy.getValueClass();
+    }
+
     /**
      * Strategy responsible for abstracting the managed/unmanaged logic for maps.
      *
@@ -339,6 +347,10 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         abstract boolean hasListeners();
 
         abstract OsMap getOsMap();
+
+        abstract String getValueClassName();
+
+        abstract Class<V> getValueClass();
 
         // ------------------------------------------
         // Map API
@@ -514,6 +526,16 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         OsMap getOsMap() {
             return managedMapManager.getOsMap();
         }
+
+        @Override
+        String getValueClassName() {
+            return managedMapManager.getClassName();
+        }
+
+        @Override
+        Class<V> getValueClass() {
+            return managedMapManager.getValueClass();
+        }
     }
 
     /**
@@ -657,6 +679,16 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
         @Override
         OsMap getOsMap() {
             throw new UnsupportedOperationException("Unmanaged maps aren't represented in native code.");
+        }
+
+        @Override
+        String getValueClassName() {
+            return null;
+        }
+
+        @Override
+        Class<V> getValueClass() {
+            return null;
         }
     }
 }

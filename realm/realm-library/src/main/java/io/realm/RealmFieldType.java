@@ -290,5 +290,9 @@ public enum RealmFieldType {
         }
         throw new IllegalArgumentException("Invalid native Realm type: " + value);
     }
+
+    public boolean isDictionary() {
+        return DICTIONARY_OFFSET <= nativeValue;
+    }
 }
 
