@@ -291,7 +291,6 @@ task assemble {
 
 task distributionJniUnstrippedPackage(type:Zip) {
     description = 'Generate native libs package with debug symbols'
-    dependsOn assembleRealm
 
     group = 'Artifact'
     archiveName = "realm-java-jni-libs-unstripped-${currentVersion}.zip"
@@ -299,6 +298,15 @@ task distributionJniUnstrippedPackage(type:Zip) {
 
     from("realm/realm-library/build/outputs/jniLibs-unstripped") {
         include '**/*.so'
+    }
+    doLast {
+        // Failsafe check, ensuring that we catch if the path ever changes, which it might since it is an
+        // implementation detail of the Android Gradle Plugin
+        def unstrippedDir = file("${rootDir}/realm/realm-library/build/outputs/jniLibs-unstripped")
+        print(unstrippedDir)
+        if (!unstrippedDir.exists() || !unstrippedDir.isDirectory() || unstrippedDir.listFiles().size() == 0) {
+            throw new GradleException("Could not locate unstripped binary files in: ${unstrippedDir.getPath()}")
+        }
     }
 }
 
