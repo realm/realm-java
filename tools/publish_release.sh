@@ -105,7 +105,7 @@ verify_changelog() {
 create_javadoc() {
   echo "Creating JavaDoc..."
   cd $REALM_JAVA_PATH
-  ./gradlew javadoc
+  eval "./gradlew javadoc $GRADLE_BUILD_PARAMS --stacktrace" 
   cd $HERE
 }
 
@@ -116,7 +116,7 @@ upload_to_mavenCentral() {
   # with half a release. For this reason we must manually close and release the artifacts using the Maven Central UI:
   # https://oss.sonatype.org/#stagingRepositories
   # ./gradlew mavenCentralUpload closeAndReleaseStagingRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace
-  eval "./gradlew mavenCentralUpload $GRADLE_BUILD_PARAMS -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace"
+  eval "./gradlew mavenCentralUpload $GRADLE_BUILD_PARAMS -PossrhUsername='$MAVEN_CENTRAL_USER' -PossrhPassword='$MAVEN_CENTRAL_KEY' --stacktrace"
   cd $HERE
 }
 
