@@ -111,7 +111,7 @@ class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
     private <T> RealmResults<T> produceResults(BaseRealm baseRealm,
                                                Pair<Table, Long> tableAndValuesPtr,
                                                boolean forPrimitives,
-                                               @Nullable Class<T> clazz) {
+                                               Class<T> clazz) {
         Long valuesPtr = tableAndValuesPtr.second;
         OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, valuesPtr);
         return new RealmResults<>(baseRealm, osResults, clazz, forPrimitives);
@@ -221,11 +221,10 @@ class DynamicSelectorForMap<K> extends TypeSelectorForMap<K, DynamicRealmObject>
     // Do not use <K> or <V> as this method can be used for either keys or values
     private <T> RealmResults<T> produceResults(BaseRealm baseRealm,
             Pair<Table, Long> tableAndValuesPtr,
-            boolean forPrimitives,
             String className) {
         Long valuesPtr = tableAndValuesPtr.second;
         OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, valuesPtr);
-        return new RealmResults<>(baseRealm, osResults, className, forPrimitives);
+        return new RealmResults<>(baseRealm, osResults, className, false);
     }
 
     @Override
@@ -236,12 +235,12 @@ class DynamicSelectorForMap<K> extends TypeSelectorForMap<K, DynamicRealmObject>
 
     @Override
     public Set<K> keySet() {
-        return new HashSet<>(produceResults(baseRealm, osMap.tableAndKeyPtrs(), false, className));
+        return new HashSet<>(produceResults(baseRealm, osMap.tableAndKeyPtrs(), className));
     }
 
     @Override
     public Collection<DynamicRealmObject> getValues() {
-        return produceResults(baseRealm, osMap.tableAndValuePtrs(), false, className);
+        return produceResults(baseRealm, osMap.tableAndValuePtrs(), className);
     }
 
     @Override
