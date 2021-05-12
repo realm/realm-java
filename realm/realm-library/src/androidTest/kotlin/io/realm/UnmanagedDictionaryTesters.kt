@@ -209,6 +209,7 @@ class UnmanagedDictionaryTester<T : Any>(
         }
     }
 
+    override fun dynamic() = Unit                                           // Not applicable
     override fun insert() = Unit                                            // Not applicable
     override fun insertList() = Unit                                        // Not applicable
     override fun insertOrUpdate() = Unit                                    // Not applicable

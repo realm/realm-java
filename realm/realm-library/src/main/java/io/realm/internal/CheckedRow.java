@@ -133,7 +133,7 @@ public class CheckedRow extends UncheckedRow {
     @Override
     public OsMap getModelMap(long columnIndex) {
         RealmFieldType fieldType = getTable().getColumnType(columnIndex);
-        if (fieldType != RealmFieldType.STRING_TO_MIXED_MAP) {
+        if (fieldType != RealmFieldType.STRING_TO_LINK_MAP) {
             throw new IllegalArgumentException(
                     String.format(Locale.US, "Field '%s' is not a 'RealmDictionary'.",
                             getTable().getColumnName(columnIndex)));

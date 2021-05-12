@@ -508,7 +508,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             String className = osMap.getTargetTable().getClassName();
             return new RealmDictionary<>(proxyState.getRealm$realm(), osMap, className);
         } catch (IllegalArgumentException e) {
-            checkFieldType(fieldName, columnKey, RealmFieldType.LIST);
+            checkFieldType(fieldName, columnKey, RealmFieldType.STRING_TO_LINK_MAP);
             throw e;
         }
     }
