@@ -604,9 +604,9 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         @Override
         public abstract RealmSet<E> freeze();
 
-        abstract public String getValueClassName();
+        abstract String getValueClassName();
 
-        abstract public Class<E> getValueClass();
+        abstract Class<E> getValueClass();
     }
 
     /**
