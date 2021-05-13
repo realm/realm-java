@@ -24,6 +24,7 @@ import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.lang.UnsupportedOperationException
 import java.util.*
+import kotlin.collections.HashSet
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 import kotlin.reflect.KMutableProperty1
@@ -35,6 +36,8 @@ import kotlin.test.*
  */
 class ManagedSetTester<T : Any>(
         private val testerName: String,
+        private val setFieldName: String,
+        private val setFieldClass: Class<T>,
         private val realmAnyType: RealmAny.Type? = null,
         private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
         private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
@@ -352,6 +355,34 @@ class ManagedSetTester<T : Any>(
                 set.addAll(TestHelper.getNull())
             }
         }
+    }
+
+    override fun dynamic() {
+        val set = initAndAssertEmptySet(id = "id")
+        realm.executeTransaction {
+            set.addAll(initializedSet)
+        }
+
+        val dynamicRealm = DynamicRealm.getInstance(realm.configuration)
+        val dynamicObject: DynamicRealmObject = dynamicRealm.where(SetAllTypes.NAME).equalTo(AllTypes.FIELD_STRING, "id").findFirst()!!
+        val dynamicSet = dynamicObject.getSet(setFieldName, setFieldClass)
+
+        dynamicRealm.executeTransaction {
+            dynamicSet.add(notPresentValue)
+        }
+
+        assertSetContainsSet(initializedSet.plus(notPresentValue), dynamicSet)
+
+        dynamicRealm.executeTransaction {
+            dynamicObject.setSet(setFieldName, RealmSet<T>().apply {
+                add(notPresentValue)
+            })
+        }
+
+        assertSetContainsSet(listOf(notPresentValue), dynamicSet)
+        assertEquals(1, dynamicObject.getSet(setFieldName, setFieldClass).size)
+
+        dynamicRealm.close()
     }
 
     override fun insert() {
@@ -1032,6 +1063,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.LONG ->
                 ManagedSetTester<Long>(
                         testerName = "Long",
+                        setFieldClass = Long::class.javaObjectType,
+                        setFieldName = "columnLongSet",
                         setGetter = SetAllTypes::getColumnLongSet,
                         setSetter = SetAllTypes::setColumnLongSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredLongSet,
@@ -1045,6 +1078,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.INTEGER ->
                 ManagedSetTester<Int>(
                         testerName = "Integer",
+                        setFieldClass = Int::class.javaObjectType,
+                        setFieldName = "columnIntegerSet",
                         setGetter = SetAllTypes::getColumnIntegerSet,
                         setSetter = SetAllTypes::setColumnIntegerSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredIntegerSet,
@@ -1058,6 +1093,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.SHORT ->
                 ManagedSetTester<Short>(
                         testerName = "Short",
+                        setFieldClass = Short::class.javaObjectType,
+                        setFieldName = "columnShortSet",
                         setGetter = SetAllTypes::getColumnShortSet,
                         setSetter = SetAllTypes::setColumnShortSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredShortSet,
@@ -1071,6 +1108,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.BYTE ->
                 ManagedSetTester<Byte>(
                         testerName = "Byte",
+                        setFieldClass = Byte::class.javaObjectType,
+                        setFieldName = "columnByteSet",
                         setGetter = SetAllTypes::getColumnByteSet,
                         setSetter = SetAllTypes::setColumnByteSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredByteSet,
@@ -1084,6 +1123,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.FLOAT ->
                 ManagedSetTester<Float>(
                         testerName = "Float",
+                        setFieldClass = Float::class.javaObjectType,
+                        setFieldName = "columnFloatSet",
                         setGetter = SetAllTypes::getColumnFloatSet,
                         setSetter = SetAllTypes::setColumnFloatSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredFloatSet,
@@ -1097,6 +1138,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.DOUBLE ->
                 ManagedSetTester<Double>(
                         testerName = "Double",
+                        setFieldClass = Double::class.javaObjectType,
+                        setFieldName = "columnDoubleSet",
                         setGetter = SetAllTypes::getColumnDoubleSet,
                         setSetter = SetAllTypes::setColumnDoubleSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredDoubleSet,
@@ -1110,6 +1153,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.STRING ->
                 ManagedSetTester<String>(
                         testerName = "String",
+                        setFieldClass = String::class.javaObjectType,
+                        setFieldName = "columnStringSet",
                         setGetter = SetAllTypes::getColumnStringSet,
                         setSetter = SetAllTypes::setColumnStringSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredStringSet,
@@ -1123,6 +1168,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.BOOLEAN ->
                 ManagedSetTester<Boolean>(
                         testerName = "Boolean",
+                        setFieldClass = Boolean::class.javaObjectType,
+                        setFieldName = "columnBooleanSet",
                         setGetter = SetAllTypes::getColumnBooleanSet,
                         setSetter = SetAllTypes::setColumnBooleanSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredBooleanSet,
@@ -1136,6 +1183,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.DATE ->
                 ManagedSetTester<Date>(
                         testerName = "Date",
+                        setFieldClass = Date::class.javaObjectType,
+                        setFieldName = "columnDateSet",
                         setGetter = SetAllTypes::getColumnDateSet,
                         setSetter = SetAllTypes::setColumnDateSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredDateSet,
@@ -1149,6 +1198,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.DECIMAL128 ->
                 ManagedSetTester<Decimal128>(
                         testerName = "Decimal128",
+                        setFieldClass = Decimal128::class.javaObjectType,
+                        setFieldName = "columnDecimal128Set",
                         setGetter = SetAllTypes::getColumnDecimal128Set,
                         setSetter = SetAllTypes::setColumnDecimal128Set,
                         requiredSetGetter = SetAllTypes::getColumnRequiredDecimal128Set,
@@ -1162,6 +1213,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.BINARY ->
                 ManagedSetTester<ByteArray>(
                         testerName = "Binary",
+                        setFieldClass = ByteArray::class.javaObjectType,
+                        setFieldName = "columnBinarySet",
                         setGetter = SetAllTypes::getColumnBinarySet,
                         setSetter = SetAllTypes::setColumnBinarySet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredBinarySet,
@@ -1178,6 +1231,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.OBJECT_ID ->
                 ManagedSetTester<ObjectId>(
                         testerName = "ObjectId",
+                        setFieldClass = ObjectId::class.javaObjectType,
+                        setFieldName = "columnObjectIdSet",
                         setGetter = SetAllTypes::getColumnObjectIdSet,
                         setSetter = SetAllTypes::setColumnObjectIdSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredObjectIdSet,
@@ -1192,6 +1247,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.UUID ->
                 ManagedSetTester<UUID>(
                         testerName = "UUID",
+                        setFieldClass = UUID::class.javaObjectType,
+                        setFieldName = "columnUUIDSet",
                         setGetter = SetAllTypes::getColumnUUIDSet,
                         setSetter = SetAllTypes::setColumnUUIDSet,
                         requiredSetGetter = SetAllTypes::getColumnRequiredUUIDSet,
@@ -1206,6 +1263,8 @@ fun managedSetFactory(): List<SetTester> {
             SetSupportedType.LINK ->
                 RealmModelManagedSetTester<DogPrimaryKey>(
                         testerName = "LINK",
+                        setFieldClass = DogPrimaryKey::class.java,
+                        setFieldName = "columnRealmModelSet",
                         setGetter = SetAllTypes::getColumnRealmModelSet,
                         setSetter = SetAllTypes::setColumnRealmModelSet,
                         managedSetGetter = SetContainerClass::myRealmModelSet,
@@ -1251,6 +1310,8 @@ fun managedSetFactory(): List<SetTester> {
                     RealmAny.Type.OBJECT -> RealmModelManagedSetTester<RealmAny>(
                             testerName = "MIXED-${realmAnyType.name}",
                             realmAnyType = realmAnyType,
+                            setFieldClass = RealmAny::class.java,
+                            setFieldName = "columnRealmAnySet",
                             setGetter = SetAllTypes::getColumnRealmAnySet,
                             setSetter = SetAllTypes::setColumnRealmAnySet,
                             managedSetGetter = SetContainerClass::myRealmAnySet,
@@ -1304,6 +1365,8 @@ fun managedSetFactory(): List<SetTester> {
                     else -> ManagedSetTester<RealmAny>(
                             testerName = "MIXED-${realmAnyType.name}",
                             realmAnyType = realmAnyType,
+                            setFieldClass = RealmAny::class.java,
+                            setFieldName = "columnRealmAnySet",
                             setGetter = SetAllTypes::getColumnRealmAnySet,
                             setSetter = SetAllTypes::setColumnRealmAnySet,
                             managedSetGetter = SetContainerClass::myRealmAnySet,

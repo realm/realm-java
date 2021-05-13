@@ -487,6 +487,70 @@ class StringOperator extends SetValueOperator<String> {
 }
 
 /**
+ * {@link SetValueOperator} targeting {@code Number} values in {@link RealmSet}s.
+ */
+class NumberOperator extends SetValueOperator<Number> {
+
+    NumberOperator(BaseRealm baseRealm, OsSet osSet, Class<Number> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Number value) {
+        return osSet.add(value.longValue());
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object o) {
+        Long value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = ((Number) o).longValue();
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object o) {
+        // Object has been type-checked from caller
+        return osSet.remove(((Number) o).longValue());
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<Number> numberCollection = (Collection<Number>) c;
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newIntegerCollection(numberCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Number> c) {
+        // Collection has been type-checked from caller
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newIntegerCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newIntegerCollection((Collection<Number>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newIntegerCollection((Collection<Number>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
  * {@link SetValueOperator} targeting {@code int} values in {@link RealmSet}s.
  */
 class IntegerOperator extends SetValueOperator<Integer> {

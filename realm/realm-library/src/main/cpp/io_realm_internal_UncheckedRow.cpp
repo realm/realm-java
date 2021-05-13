@@ -93,6 +93,8 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
         return int(column_type) + int(PropertyType::Array);
     } else if (column_key.is_dictionary()) {
         return int(column_type) + int(PropertyType::Dictionary);
+    } else if (column_key.is_set()) {
+        return int(column_type) + int(PropertyType::Set);
     }
 
     return int(column_type);

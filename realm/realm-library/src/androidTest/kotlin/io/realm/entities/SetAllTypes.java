@@ -28,6 +28,7 @@ import io.realm.RealmSet;
 import io.realm.annotations.Required;
 
 public class SetAllTypes extends RealmObject {
+    public static final String NAME = "SetAllTypes";
 
     private RealmSet<Boolean> columnBooleanSet;
     private RealmSet<String> columnStringSet;

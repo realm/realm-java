@@ -1461,7 +1461,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case MIXED_SET:
                 setValueSet(fieldName, set, columnType);
                 break;
-            case STRING_TO_LINK_MAP:
+            case LINK_SET:
                 //noinspection unchecked
                 setModelSet(fieldName, (RealmSet<DynamicRealmObject>) set);
                 break;
@@ -1524,7 +1524,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
 
         Class<E> elementClass;
         switch(primitiveType) {
-            case INTEGER_SET: elementClass = (Class<E>) Long.class; break;
+            case INTEGER_SET: elementClass = (Class<E>) Number.class; break;
             case BOOLEAN_SET: elementClass = (Class<E>) Boolean.class; break;
             case STRING_SET: elementClass = (Class<E>) String.class; break;
             case BINARY_SET: elementClass = (Class<E>) byte[].class; break;

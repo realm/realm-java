@@ -144,6 +144,8 @@ class UnmanagedSetTester<T : Any>(
         assertTrue(differentRealmSet.isEmpty())
     }
 
+    override fun dynamic() = Unit  // Not applicable
+
     override fun insert() = Unit  // Not applicable
 
     override fun insertList() = Unit  // Not applicable

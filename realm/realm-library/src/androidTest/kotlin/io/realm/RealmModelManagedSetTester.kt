@@ -37,6 +37,8 @@ import kotlin.test.*
  */
 class RealmModelManagedSetTester<T : Any>(
     private val testerName: String,
+    private val setFieldName: String,
+    private val setFieldClass: Class<T>,
     private val realmAnyType: RealmAny.Type? = null,
     private val setGetter: KFunction1<SetAllTypes, RealmSet<T>>,
     private val setSetter: KFunction2<SetAllTypes, RealmSet<T>, Unit>,
@@ -81,6 +83,8 @@ class RealmModelManagedSetTester<T : Any>(
 
         this.managedTester = ManagedSetTester(
             testerName = testerName,
+            setFieldClass = setFieldClass,
+            setFieldName = setFieldName,
             realmAnyType = realmAnyType,
             setGetter = setGetter,
             setSetter = setSetter,
@@ -147,6 +151,10 @@ class RealmModelManagedSetTester<T : Any>(
     override fun toArray() = managedTester.toArray()
 
     override fun toArrayWithParameter() = managedTester.toArrayWithParameter()
+
+    override fun dynamic() {
+        TODO("Not yet implemented")
+    }
 
     override fun add() {
         // Test with managed objects

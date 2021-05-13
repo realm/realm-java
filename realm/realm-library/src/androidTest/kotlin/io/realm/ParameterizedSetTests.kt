@@ -89,6 +89,11 @@ class ParameterizedSetTests(
     }
 
     @Test
+    fun dynamic() {
+        tester.dynamic()
+    }
+
+    @Test
     fun iterator() {
         tester.iterator()
     }
@@ -239,6 +244,7 @@ interface SetTester : GenericTester {
     fun add()
     fun remove()
     fun containsAll()
+    fun dynamic()
     fun insert()
     fun insertList()
     fun insertOrUpdate()
