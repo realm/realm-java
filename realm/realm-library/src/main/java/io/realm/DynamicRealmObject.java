@@ -1307,7 +1307,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             }
             if (!typeValidated && !linkTargetTable.hasSameSchema(obj.realmGet$proxyState().getRow$realm().getTable())) {
                 throw new IllegalArgumentException(String.format(Locale.US,
-                        "Element at with key %s is not the proper type. " +
+                        "Element with key %s is not the proper type. " +
                                 "Was '%s' expected '%s'.",
                         entry.getKey(),
                         obj.realmGet$proxyState().getRow$realm().getTable().getClassName(),
