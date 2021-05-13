@@ -16,13 +16,10 @@
 
 package io.realm
 
-import io.realm.entities.DogPrimaryKey
-import io.realm.entities.SetContainerClass
+import io.realm.entities.*
 import io.realm.kotlin.createObject
 import io.realm.rule.BlockingLooperThread
 import java.lang.IllegalArgumentException
-import io.realm.entities.SetAllTypes
-import io.realm.entities.SetAllTypesPrimaryKey
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 import kotlin.reflect.KMutableProperty1
@@ -153,7 +150,83 @@ class RealmModelManagedSetTester<T : Any>(
     override fun toArrayWithParameter() = managedTester.toArrayWithParameter()
 
     override fun dynamic() {
-        TODO("Not yet implemented")
+        if (realmAnyType != null) {
+            dynamicRealmAnyTest()
+        } else {
+            dynamicObjectTest()
+        }
+    }
+
+    private fun toDynamicRealmAny(realm: DynamicRealm, value: RealmAny): RealmAny {
+        val id = value.asRealmModel(DogPrimaryKey::class.java).id
+        return RealmAny.valueOf(realm.where(DogPrimaryKey.CLASS_NAME).equalTo(DogPrimaryKey.ID, id).findFirst()!!)
+    }
+
+    private fun dynamicRealmAnyTest() {
+        val set = initAndAssertEmptySet()
+        realm.executeTransaction {
+            set.addAll(unmanagedInitializedSet)
+        }
+
+        val dynamicRealm = DynamicRealm.getInstance(realm.configuration)
+        val dynamicObject: DynamicRealmObject = dynamicRealm.where(SetAllTypes.NAME)
+            .equalTo(AllTypes.FIELD_STRING, "unmanaged").findFirst()!!
+        val dynamicSet: RealmSet<RealmAny> = dynamicObject.getSet(setFieldName, setFieldClass) as RealmSet<RealmAny>
+
+        dynamicRealm.executeTransaction {
+            dynamicSet.add(toDynamicRealmAny(dynamicRealm, unmanagedNotPresentValue as RealmAny))
+        }
+
+        assertEquals(4, dynamicSet.size)
+
+        dynamicRealm.executeTransaction {
+            dynamicObject.setSet(setFieldName, RealmSet<RealmAny>().apply {
+                add(toDynamicRealmAny(dynamicRealm, unmanagedNotPresentValue as RealmAny))
+            })
+        }
+
+        assertEquals(1, dynamicObject.getSet(setFieldName, setFieldClass).size)
+
+        dynamicRealm.close()
+    }
+
+    private fun dynamicObjectTest() {
+        val set = initAndAssertEmptySet()
+        realm.executeTransaction {
+            set.addAll(unmanagedInitializedSet)
+        }
+
+        val dynamicRealm = DynamicRealm.getInstance(realm.configuration)
+        val dynamicObject: DynamicRealmObject =
+            dynamicRealm.where(SetAllTypes.NAME).equalTo(AllTypes.FIELD_STRING, "unmanaged").findFirst()!!
+        val dynamicSet = dynamicObject.getSet(setFieldName)
+
+        dynamicRealm.executeTransaction {
+            val notPresentManaged = dynamicRealm.where(DogPrimaryKey.CLASS_NAME)
+                .equalTo(DogPrimaryKey.ID, (unmanagedNotPresentValue as DogPrimaryKey).id).findFirst()!!
+            dynamicSet.add(notPresentManaged)
+        }
+
+        set.plus(unmanagedNotPresentValue).forEach { value ->
+            if (RealmObject.isValid(value as DogPrimaryKey)) {
+                val managedObject =
+                    dynamicRealm.where(DogPrimaryKey.CLASS_NAME).equalTo(DogPrimaryKey.ID, (value as DogPrimaryKey).id)
+                        .findFirst()!!
+                assertTrue(dynamicSet.contains(managedObject))
+            }
+        }
+
+        dynamicRealm.executeTransaction {
+            val notPresentManaged = dynamicRealm.where(DogPrimaryKey.CLASS_NAME)
+                .equalTo(DogPrimaryKey.ID, (unmanagedNotPresentValue as DogPrimaryKey).id).findFirst()!!
+            dynamicObject.setSet(setFieldName, RealmSet<DynamicRealmObject>().apply {
+                add(notPresentManaged)
+            })
+        }
+
+        assertEquals(1, dynamicObject.get<RealmSet<T>>(setFieldName).size)
+
+        dynamicRealm.close()
     }
 
     override fun add() {

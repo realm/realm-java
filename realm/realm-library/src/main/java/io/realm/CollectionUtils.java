@@ -71,7 +71,7 @@ public class CollectionUtils {
             if (proxy instanceof DynamicRealmObject) {
                 if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
                     String objectClassName = ((DynamicRealmObject) object).getType();
-                    if (className.equals(objectClassName)) {
+                    if (className.equals(RealmAny.class.getCanonicalName()) || className.equals(objectClassName)) {
                         // Same Realm instance and same target table
                         return false;
                     } else {
