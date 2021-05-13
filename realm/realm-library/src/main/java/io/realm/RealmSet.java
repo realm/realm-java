@@ -110,6 +110,17 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         this.setStrategy = getStrategy(baseRealm, osSet, valueClass);
     }
 
+    /**
+     * Instantiates a RealmSet in managed mode. This constructor is used internally by Realm.
+     *
+     * @param baseRealm
+     * @param osSet
+     * @param className
+     */
+    public RealmSet(BaseRealm baseRealm, OsSet osSet, String className) {
+        this.setStrategy = null;
+    }
+
     // ------------------------------------------
     // ManageableObject API
     // ------------------------------------------
@@ -517,6 +528,14 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         }
 
         return new ManagedSetStrategy<>(operator, valueClass);
+    }
+
+    public String getValueClassName() {
+        return null;
+    }
+
+    public Class<E> getValueClass() {
+        return null;
     }
 
     /**

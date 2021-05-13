@@ -34,6 +34,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsList;
 import io.realm.internal.OsMap;
+import io.realm.internal.OsSet;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
@@ -141,6 +142,9 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             default:
                 if (type.isDictionary()) {
                     return (E) getDictionary(fieldName);
+                }
+                if (type.isSet()) {
+                    return (E) getSet(fieldName);
                 }
                 throw new IllegalStateException("Field type not supported: " + type);
         }
@@ -535,6 +539,59 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         try {
             OsMap osMap = proxyState.getRow$realm().getValueMap(columnKey, realmType);
             return new RealmDictionary<>(proxyState.getRealm$realm(), osMap, primitiveType);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnKey, realmType);
+            throw e;
+        }
+    }
+
+    /**
+     * Returns the {@link RealmSet} of {@link DynamicRealmObject}s being linked from the given field.
+     * <p>
+     * If the set contains primitive types, use {@link #getSet(String, Class)} instead.
+     *
+     * @param fieldName the name of the field.
+     * @return the {@link RealmSet} data for this field.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a set of objects.
+     */
+    public RealmSet<DynamicRealmObject> getSet(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        try {
+            OsSet osSet = proxyState.getRow$realm().getModelSet(columnKey);
+            //noinspection ConstantConditions
+            @Nonnull
+            String className = osSet.getTargetTable().getClassName();
+            return new RealmSet<>(proxyState.getRealm$realm(), osSet, className);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnKey, RealmFieldType.LINK_SET);
+            throw e;
+        }
+    }
+
+    /**
+     * Returns the {@link RealmSet} containing only primitive values.
+     *
+     * <p>
+     * If the set contains references to other Realm objects, use {@link #getSet(String)} instead.
+     *
+     * @param fieldName     the name of the field.
+     * @param primitiveType the type of elements in the set. Only primitive types are supported.
+     * @return the {@link RealmSet} data for this field.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a set of primitive objects.
+     */
+    public <E> RealmSet<E> getSet(String fieldName, Class<E> primitiveType) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        if (primitiveType == null) {
+            throw new IllegalArgumentException("Non-null 'primitiveType' required.");
+        }
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        RealmFieldType realmType = primitiveTypeToRealmFieldType(CollectionType.SET, primitiveType);
+        try {
+            OsSet osSet = proxyState.getRow$realm().getValueSet(columnKey, realmType);
+            return new RealmSet<>(proxyState.getRealm$realm(), osSet, primitiveType);
         } catch (IllegalArgumentException e) {
             checkFieldType(fieldName, columnKey, realmType);
             throw e;
@@ -1363,6 +1420,138 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         for (Map.Entry<String, E> entry : auxiliaryDictionary.entrySet()) {
             targetDictionary.put(entry.getKey(), entry.getValue());
         }
+    }
+
+    /**
+     * Sets the reference to a {@link RealmSet} on the given field.
+     * <p>
+     * This will copy all the elements in the set into Realm, but any further changes to the set
+     * will not be reflected in the Realm. Use {@link #getSet(String)} in order to get a reference to
+     * the managed set.
+     *
+     * @param fieldName field name.
+     * @param set       set of objects. Must either be primitive types or {@link DynamicRealmObject}s.
+     * @throws IllegalArgumentException if field name doesn't exist, it is not a set field, the objects in the
+     *                                  set doesn't match the expected type or any Realm object in the set
+     *                                  belongs to a different Realm.
+     */
+    public <E> void setSet(String fieldName, RealmSet<E> set) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        //noinspection ConstantConditions
+        if (set == null) {
+            throw new IllegalArgumentException("Non-null 'set' required");
+        }
+
+        // Find type of list in Realm
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        final RealmFieldType columnType = proxyState.getRow$realm().getColumnType(columnKey);
+
+        switch (columnType) {
+            case INTEGER_SET:
+            case BOOLEAN_SET:
+            case STRING_SET:
+            case BINARY_SET:
+            case DATE_SET:
+            case FLOAT_SET:
+            case DOUBLE_SET:
+            case DECIMAL128_SET:
+            case OBJECT_ID_SET:
+            case UUID_SET:
+            case MIXED_SET:
+                setValueSet(fieldName, set, columnType);
+                break;
+            case STRING_TO_LINK_MAP:
+                //noinspection unchecked
+                setModelSet(fieldName, (RealmSet<DynamicRealmObject>) set);
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Field '%s' is not a set but a %s", fieldName, columnType));
+        }
+    }
+
+    private void setModelSet(String fieldName, RealmSet<DynamicRealmObject> sourceSet) {
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        OsSet osSet = proxyState.getRow$realm().getModelSet(columnKey);
+        Table linkTargetTable = osSet.getTargetTable();
+        //noinspection ConstantConditions
+        @Nonnull final String linkTargetTableName = linkTargetTable.getClassName();
+
+        boolean typeValidated;
+        if (sourceSet.getValueClassName() == null && sourceSet.getValueClass() == null) {
+            typeValidated = false;
+        } else {
+            String setType = sourceSet.getValueClassName() != null ? sourceSet.getValueClassName()
+                    : proxyState.getRealm$realm().getSchema().getTable(sourceSet.getValueClass()).getClassName();
+            if (!linkTargetTableName.equals(setType)) {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "The elements in the set are not the proper type. " +
+                                "Was %s expected %s.", setType, linkTargetTableName));
+            }
+            typeValidated = true;
+        }
+
+        // This set holds all the validated row pointers
+        RealmSet<Long> auxiliarySet = new RealmSet<>();
+
+        // Now we must validate that the set contains valid objects
+        for (DynamicRealmObject obj : sourceSet) {
+            if (obj.realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
+                throw new IllegalArgumentException("Each element in 'set' must belong to the same Realm instance.");
+            }
+            if (!typeValidated && !linkTargetTable.hasSameSchema(obj.realmGet$proxyState().getRow$realm().getTable())) {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "Set contains an element with not the proper type. " +
+                                "Was '%s' expected '%s'.",
+                        obj.realmGet$proxyState().getRow$realm().getTable().getClassName(),
+                        linkTargetTableName));
+            }
+            long row = obj.realmGet$proxyState().getRow$realm().getObjectKey();
+            auxiliarySet.add(row);
+        }
+
+        // We have validated the source set and we can safely clear the target set
+        osSet.clear();
+        for (Long row : auxiliarySet) {
+            osSet.addRow(row);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <E> void setValueSet(String fieldName, RealmSet<E> sourceSet, RealmFieldType primitiveType) {
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        OsSet osSet = proxyState.getRow$realm().getValueSet(columnKey, primitiveType);
+
+        Class<E> elementClass;
+        switch(primitiveType) {
+            case INTEGER_SET: elementClass = (Class<E>) Long.class; break;
+            case BOOLEAN_SET: elementClass = (Class<E>) Boolean.class; break;
+            case STRING_SET: elementClass = (Class<E>) String.class; break;
+            case BINARY_SET: elementClass = (Class<E>) byte[].class; break;
+            case DATE_SET: elementClass = (Class<E>) Date.class; break;
+            case FLOAT_SET: elementClass = (Class<E>) Float.class; break;
+            case DOUBLE_SET: elementClass = (Class<E>) Double.class; break;
+            case DECIMAL128_SET: elementClass = (Class<E>) Decimal128.class; break;
+            case OBJECT_ID_SET: elementClass = (Class<E>) ObjectId.class; break;
+            case UUID_SET: elementClass = (Class<E>) UUID.class; break;
+            case MIXED_SET: elementClass = (Class<E>) RealmAny.class; break;
+            default:
+                throw new IllegalArgumentException("Unsupported type: " + primitiveType);
+        }
+
+        // Set in the RealmObject
+        RealmSet<E> targetSet = new RealmSet<>(proxyState.getRealm$realm(), osSet, elementClass);
+
+        // We move the data in a auxiliary set to prevent removing the values when the input and out sets are
+        // the same.
+        RealmSet<E> auxiliarySet = new RealmSet<>();
+        auxiliarySet.addAll(sourceSet);
+
+        // Now we can safely clear the target set
+        osSet.clear();
+
+        // And now we move the data back in
+        targetSet.addAll(auxiliarySet);
     }
 
     /**

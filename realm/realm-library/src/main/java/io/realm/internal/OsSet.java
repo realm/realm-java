@@ -73,6 +73,10 @@ public class OsSet implements NativeObject, OsCollection {
         context.addReference(this);
     }
 
+    public Table getTargetTable() {
+        return targetTable;
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
