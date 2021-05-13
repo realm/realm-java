@@ -118,7 +118,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
      * @param className
      */
     public RealmSet(BaseRealm baseRealm, OsSet osSet, String className) {
-        this.setStrategy = null;
+        this.setStrategy = getStrategy(baseRealm, osSet, className);
     }
 
     // ------------------------------------------
@@ -530,12 +530,53 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         return new ManagedSetStrategy<>(operator, valueClass);
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> ManagedSetStrategy<T> getStrategy(BaseRealm baseRealm,
+            OsSet osSet,
+            String className) {
+        SetValueOperator<T> operator;
+
+        if (className.equals(Boolean.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new BooleanOperator(baseRealm, osSet, Boolean.class);
+        } else if (className.equals(String.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new StringOperator(baseRealm, osSet, String.class);
+        } else if (className.equals(Integer.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new IntegerOperator(baseRealm, osSet, Integer.class);
+        } else if (className.equals(Long.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new LongOperator(baseRealm, osSet, Long.class);
+        } else if (className.equals(Short.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new ShortOperator(baseRealm, osSet, Short.class);
+        } else if (className.equals(Byte.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new ByteOperator(baseRealm, osSet, Byte.class);
+        } else if (className.equals(Float.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new FloatOperator(baseRealm, osSet, Float.class);
+        } else if (className.equals(Double.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new DoubleOperator(baseRealm, osSet, Double.class);
+        } else if (className.equals(byte[].class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new BinaryOperator(baseRealm, osSet, byte[].class);
+        } else if (className.equals(Date.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new DateOperator(baseRealm, osSet, Date.class);
+        } else if (className.equals(Decimal128.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new Decimal128Operator(baseRealm, osSet, Decimal128.class);
+        } else if (className.equals(ObjectId.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new ObjectIdOperator(baseRealm, osSet, ObjectId.class);
+        } else if (className.equals(UUID.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new UUIDOperator(baseRealm, osSet, UUID.class);
+        } else if (className.equals(RealmAny.class.getCanonicalName())) {
+            operator = (SetValueOperator<T>) new RealmAnySetOperator(baseRealm, osSet, RealmAny.class);
+        } else {
+            operator = (SetValueOperator<T>) new DynamicSetOperator(baseRealm, osSet, className);
+        }
+
+        return new ManagedSetStrategy<>(operator, className);
+    }
+
     public String getValueClassName() {
-        return null;
+        return setStrategy.getValueClassName();
     }
 
     public Class<E> getValueClass() {
-        return null;
+        return setStrategy.getValueClass();
     }
 
     /**
@@ -560,6 +601,10 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
 
         @Override
         public abstract RealmSet<E> freeze();
+
+        abstract public String getValueClassName();
+
+        abstract public Class<E> getValueClass();
     }
 
     /**
@@ -570,11 +615,17 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
     private static class ManagedSetStrategy<E> extends SetStrategy<E> {
 
         private final SetValueOperator<E> setValueOperator;
-        private final Class<E> valueClass;
+        private Class<E> valueClass;
+        private String className;
 
         ManagedSetStrategy(SetValueOperator<E> setValueOperator, Class<E> valueClass) {
             this.setValueOperator = setValueOperator;
             this.valueClass = valueClass;
+        }
+
+        ManagedSetStrategy(SetValueOperator<E> setValueOperator, String className) {
+            this.setValueOperator = setValueOperator;
+            this.className = className;
         }
 
         // ------------------------------------------
@@ -846,6 +897,16 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
                 throw new NullPointerException("Collection must not be null.");
             }
         }
+
+        @Override
+        public String getValueClassName() {
+            return setValueOperator.getValueClassName();
+        }
+
+        @Override
+        public Class<E> getValueClass() {
+            return setValueOperator.getValueClass();
+        }
     }
 
     /**
@@ -1021,6 +1082,16 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
         @Override
         public RealmSet<E> freeze() {
             throw new UnsupportedOperationException("Unmanaged RealmSets cannot be frozen.");
+        }
+
+        @Override
+        public String getValueClassName() {
+            return null;
+        }
+
+        @Override
+        public Class<E> getValueClass() {
+            return null;
         }
 
         @Override
