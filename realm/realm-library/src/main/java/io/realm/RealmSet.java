@@ -570,7 +570,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
             operator = (SetValueOperator<T>) new DynamicSetOperator(baseRealm, osSet, className);
         }
 
-        return new ManagedSetStrategy<>(operator, className);
+        return new ManagedSetStrategy<>(operator, operator.getValueClass());
     }
 
     public String getValueClassName() {
@@ -618,16 +618,10 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
 
         private final SetValueOperator<E> setValueOperator;
         private Class<E> valueClass;
-        private String className;
 
         ManagedSetStrategy(SetValueOperator<E> setValueOperator, Class<E> valueClass) {
             this.setValueOperator = setValueOperator;
             this.valueClass = valueClass;
-        }
-
-        ManagedSetStrategy(SetValueOperator<E> setValueOperator, String className) {
-            this.setValueOperator = setValueOperator;
-            this.className = className;
         }
 
         // ------------------------------------------

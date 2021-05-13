@@ -497,6 +497,8 @@ class NumberOperator extends SetValueOperator<Number> {
 
     @Override
     boolean add(@Nullable Number value) {
+        if (value == null) { return osSet.add((Long) null); }
+
         return osSet.add(value.longValue());
     }
 
@@ -513,6 +515,7 @@ class NumberOperator extends SetValueOperator<Number> {
 
     @Override
     boolean removeInternal(@Nullable Object o) {
+        if (o == null) { return osSet.remove((Long) null); }
         // Object has been type-checked from caller
         return osSet.remove(((Number) o).longValue());
     }
