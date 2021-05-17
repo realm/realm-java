@@ -403,6 +403,7 @@ class ManagedDictionaryTester<T : Any>(
     }
 
     override fun dynamic() {
+        // The methods for Realm object and primitive types are different
         if (notPresentValue is DogPrimaryKey) {
             doObjectDynamicTest()
         } else {
@@ -411,6 +412,7 @@ class ManagedDictionaryTester<T : Any>(
     }
 
     private fun doPrimitiveDynamicTest() {
+        // Create a dictionary from a immutable schema context
         val dictionary = initAndAssert()
         realm.executeTransaction {
             dictionary.putAll(initializedDictionary)
@@ -420,6 +422,12 @@ class ManagedDictionaryTester<T : Any>(
         val dynamicObject: DynamicRealmObject = dynamicRealm.where(DictionaryAllTypes.NAME).equalTo("columnString", "").findFirst()!!
         val dynamicDictionary = dynamicObject.getDictionary(dictionaryFieldName, dictionaryFieldClass)
 
+        // Access the previous dictionary from a mutable context
+        dictionary.values.forEach { value ->
+            typeAsserter.assertValues(dynamicDictionary, value)
+        }
+
+        // Update the dictionary with a new value
         dynamicRealm.executeTransaction {
             dynamicDictionary[KEY_NOT_PRESENT] = notPresentValue
         }
@@ -432,6 +440,7 @@ class ManagedDictionaryTester<T : Any>(
             typeAsserter.assertKeys(dynamicDictionary, key)
         }
 
+        // Try to replace the whole dictionary by a new one
         dynamicRealm.executeTransaction {
             dynamicObject.setDictionary(dictionaryFieldName, RealmDictionary<T>().apply {
                 this[KEY_NOT_PRESENT] = notPresentValue
@@ -444,6 +453,7 @@ class ManagedDictionaryTester<T : Any>(
     }
 
     private fun doObjectDynamicTest() {
+        // Create a dictionary from a immutable schema context
         val dictionary = initAndAssert()
         realm.executeTransaction {
             dictionary.putAll(initializedDictionary)
@@ -455,6 +465,17 @@ class ManagedDictionaryTester<T : Any>(
             dynamicRealm.where(DictionaryAllTypes.NAME).equalTo("columnString", "").findFirst()!!
         val dynamicDictionary = dynamicObject.getDictionary(dictionaryFieldName)
 
+        // Access the previous dictionary from a mutable context
+        dictionary.values.forEach { value ->
+            if (RealmObject.isValid(value as DogPrimaryKey)) {
+                val managedObject =
+                    dynamicRealm.where(DogPrimaryKey.CLASS_NAME).equalTo(DogPrimaryKey.ID, (value as DogPrimaryKey).id)
+                        .findFirst()!!
+                typeAsserter.assertDynamicValues(dynamicDictionary, managedObject)
+            }
+        }
+
+        // Update the dictionary with a new value
         dynamicRealm.executeTransaction {
             val notPresentManaged = dynamicRealm.where(DogPrimaryKey.CLASS_NAME)
                 .equalTo(DogPrimaryKey.ID, (notPresentValue as DogPrimaryKey).id).findFirst()!!
@@ -474,6 +495,7 @@ class ManagedDictionaryTester<T : Any>(
             typeAsserter.assertKeys(dynamicDictionary, key)
         }
 
+        // Try to replace the whole dictionary by a new one
         dynamicRealm.executeTransaction {
             val notPresentManaged = dynamicRealm.where(DogPrimaryKey.CLASS_NAME)
                 .equalTo(DogPrimaryKey.ID, (notPresentValue as DogPrimaryKey).id).findFirst()!!
