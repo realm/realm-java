@@ -163,6 +163,7 @@ class RealmModelManagedSetTester<T : Any>(
     }
 
     private fun dynamicRealmAnyTest() {
+        // Create a set from a immutable schema context
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
             set.addAll(unmanagedInitializedSet)
@@ -173,12 +174,17 @@ class RealmModelManagedSetTester<T : Any>(
             .equalTo(AllTypes.FIELD_STRING, "unmanaged").findFirst()!!
         val dynamicSet: RealmSet<RealmAny> = dynamicObject.getSet(setFieldName, setFieldClass) as RealmSet<RealmAny>
 
+        // Access the previous set from a mutable context
+        assertEquals(3, dynamicSet.size)
+
+        // Update the set with a new value
         dynamicRealm.executeTransaction {
             dynamicSet.add(toDynamicRealmAny(dynamicRealm, unmanagedNotPresentValue as RealmAny))
         }
 
         assertEquals(4, dynamicSet.size)
 
+        // Try to replace the whole set by a new one
         dynamicRealm.executeTransaction {
             dynamicObject.setSet(setFieldName, RealmSet<RealmAny>().apply {
                 add(toDynamicRealmAny(dynamicRealm, unmanagedNotPresentValue as RealmAny))
@@ -191,6 +197,7 @@ class RealmModelManagedSetTester<T : Any>(
     }
 
     private fun dynamicObjectTest() {
+        // Create a set from a immutable schema context
         val set = initAndAssertEmptySet()
         realm.executeTransaction {
             set.addAll(unmanagedInitializedSet)
@@ -201,6 +208,17 @@ class RealmModelManagedSetTester<T : Any>(
             dynamicRealm.where(SetAllTypes.NAME).equalTo(AllTypes.FIELD_STRING, "unmanaged").findFirst()!!
         val dynamicSet = dynamicObject.getSet(setFieldName)
 
+        // Access the previous set from a mutable context
+        set.forEach { value ->
+            if (RealmObject.isValid(value as DogPrimaryKey)) {
+                val managedObject =
+                    dynamicRealm.where(DogPrimaryKey.CLASS_NAME).equalTo(DogPrimaryKey.ID, (value as DogPrimaryKey).id)
+                        .findFirst()!!
+                assertTrue(dynamicSet.contains(managedObject))
+            }
+        }
+
+        // Update the set with a new value
         dynamicRealm.executeTransaction {
             val notPresentManaged = dynamicRealm.where(DogPrimaryKey.CLASS_NAME)
                 .equalTo(DogPrimaryKey.ID, (unmanagedNotPresentValue as DogPrimaryKey).id).findFirst()!!
@@ -216,6 +234,7 @@ class RealmModelManagedSetTester<T : Any>(
             }
         }
 
+        // Try to replace the whole set by a new one
         dynamicRealm.executeTransaction {
             val notPresentManaged = dynamicRealm.where(DogPrimaryKey.CLASS_NAME)
                 .equalTo(DogPrimaryKey.ID, (unmanagedNotPresentValue as DogPrimaryKey).id).findFirst()!!

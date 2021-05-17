@@ -358,6 +358,7 @@ class ManagedSetTester<T : Any>(
     }
 
     override fun dynamic() {
+        // Create a set from a immutable schema context
         val set = initAndAssertEmptySet(id = "id")
         realm.executeTransaction {
             set.addAll(initializedSet)
@@ -367,12 +368,17 @@ class ManagedSetTester<T : Any>(
         val dynamicObject: DynamicRealmObject = dynamicRealm.where(SetAllTypes.NAME).equalTo(AllTypes.FIELD_STRING, "id").findFirst()!!
         val dynamicSet = dynamicObject.getSet(setFieldName, setFieldClass)
 
+        // Access the previous set from a mutable context
+        assertSetContainsSet(initializedSet, dynamicSet)
+
+        // Update the set with a new value
         dynamicRealm.executeTransaction {
             dynamicSet.add(notPresentValue)
         }
 
         assertSetContainsSet(initializedSet.plus(notPresentValue), dynamicSet)
 
+        // Try to replace the whole set by a new one
         dynamicRealm.executeTransaction {
             dynamicObject.setSet(setFieldName, RealmSet<T>().apply {
                 add(notPresentValue)
