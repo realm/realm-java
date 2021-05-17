@@ -1,4 +1,4 @@
-## 10.6.0-BETA.1 (YYYY-MM-DD)
+## 10.6.0-BETA.1 (2021-05-17)
 
 ### Breaking Changes
 * [RealmApp] Sync protocol version increased to 3. This version adds support for the new data types introduced in file format version 21.
@@ -18,10 +18,6 @@
 * Allow UTF8 encoded characters in property names in string-based queries ([#4467](https://github.com/realm/realm-core/issues/4467))
 * The error message when the initial steps of opening a Realm file fails is now more descriptive.
 * Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. ([#4548](https://github.com/realm/realm-core/issues/4548))
-* We now make a backup of the realm file prior to any file format upgrade. The backup is retained for 3 months.
-  Backups from before a file format upgrade allows for better analysis of any upgrade failure. We also restore
-  a backup, if a) an attempt is made to open a realm file with a "future" file format and b) a backup file exist
-  that fits the current file format. ([#4166](https://github.com/realm/realm-core/pull/4166))
 * Remove type coercion on bool and ObjectId when doing queries.
 * Allow passing arguments into string-based query predicates.
 * Queries across relationships now support the `between` operator.
@@ -39,7 +35,7 @@
 ### Compatibility
 * File format: Generates Realms with format v21. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
-* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
 * Updated to Realm Core 11.0.0-beta.4, commit: d50aef63a8aaf435e3afed82b589b47d8e1ab1ab.
