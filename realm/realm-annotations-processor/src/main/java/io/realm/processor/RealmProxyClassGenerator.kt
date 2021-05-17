@@ -1830,8 +1830,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     }
                     Utils.isRealmModelDictionary(field) -> {
                         val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
-                        val listElementType: TypeMirror = Utils.getGenericType(field)!!
-                        val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
+                        val dictElementType: TypeMirror = Utils.getGenericType(field)!!
+                        val isEmbedded = Utils.isFieldTypeEmbedded(dictElementType, classCollection)
                         val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
 
                         emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = ((${interfaceName}) object).${getter}()")
@@ -1877,8 +1877,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                                 emitStatement("${fieldName}OsMap.put(entryKey, ${fieldName}UnmanagedEntryValue)")
                         endControlFlow()
                         endControlFlow()
-                                        }
-                                        Utils.isRealmAnyDictionary(field) -> {
+                    }
+                    Utils.isRealmAnyDictionary(field) -> {
                         val genericType = Utils.getGenericTypeQualifiedName(field)
                         emitStatement("RealmDictionary<RealmAny> ${fieldName}UnmanagedDictionary = ((${interfaceName}) object).${getter}()")
                         beginControlFlow("if (${fieldName}UnmanagedDictionary != null)")
