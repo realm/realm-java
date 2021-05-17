@@ -1170,6 +1170,8 @@ static void TableQuery_StringPredicate(JNIEnv* env, jlong nativeQueryPtr, jlongA
             }
             switch (predicate) {
                 case StringEqual:{
+                    // FIXME Alternative to try out querying objects by predicate on primitive lists with updated query syntax
+                    // Q(nativeQueryPtr)->and_query(Q(nativeQueryPtr)->get_table()->column<Lst<String>>(ColKey(col_key_arr[0])) == value2);
                     Q(nativeQueryPtr)->equal(ColKey(col_key_arr[0]), value2, is_case_sensitive);
                     break;
                 }

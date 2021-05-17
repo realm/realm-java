@@ -733,6 +733,32 @@ public class RealmQueryTests extends QueryTests {
         assertEquals(0, resultList.size());
     }
 
+    @Test
+    public void equalTo_primitiveList_string() {
+        int numberOfObjects = 4;
+        int numberOfBlocks = 5;
+
+        realm.beginTransaction();
+        for (int i = 0; i < numberOfObjects; i++) {
+            for (int j = 0; j < numberOfBlocks; j++) {
+                AllTypes obj = realm.createObject(AllTypes.class);
+                obj.getColumnStringList().add("realm" + j);
+                obj.getColumnBinaryList();
+                obj.getColumnBooleanList();
+                obj.getColumnLongList();
+                obj.getColumnDoubleList();
+                obj.getColumnFloatList();
+                obj.getColumnDateList();
+                obj.getColumnDecimal128List();
+                obj.getColumnObjectIdList();
+            }
+        }
+        realm.commitTransaction();
+
+        RealmResults<AllTypes> all = realm.where(AllTypes.class).equalTo("columnStringList", "realm0").findAll();
+        assertEquals(numberOfObjects, all.size());
+    }
+
     private void doTestForInString(String targetField) {
         populateNoPrimaryKeyNullTypesRows();
         RealmResults<NoPrimaryKeyNullTypes> resultList = realm.where(NoPrimaryKeyNullTypes.class).in(targetField, new String[]{"test data 14"}).findAll();

@@ -337,7 +337,7 @@ public class RealmQuery<E> {
     }
 
     private RealmQuery<E> equalToWithoutThreadValidation(String fieldName, @Nullable String value, Case casing) {
-        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING);
+        FieldDescriptor fd = schema.getFieldDescriptors(fieldName, RealmFieldType.STRING, RealmFieldType.STRING_LIST);
         this.query.equalTo(fd.getColumnKeys(), fd.getNativeTablePointers(), value, casing);
         return this;
     }
