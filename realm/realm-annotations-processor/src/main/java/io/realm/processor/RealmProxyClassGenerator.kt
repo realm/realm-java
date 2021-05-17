@@ -1856,8 +1856,8 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     endControlFlow()
                 } else if (Utils.isRealmModelDictionary(field)) {
                     val genericType: QualifiedClassName = Utils.getGenericTypeQualifiedName(field)!!
-                    val listElementType: TypeMirror = Utils.getGenericType(field)!!
-                    val isEmbedded = Utils.isFieldTypeEmbedded(listElementType, classCollection)
+                    val dictElementType: TypeMirror = Utils.getGenericType(field)!!
+                    val isEmbedded = Utils.isFieldTypeEmbedded(dictElementType, classCollection)
                     val linkedProxyClass: SimpleClassName = Utils.getDictionaryGenericProxyClassSimpleName(field)
 
                     emitStatement("RealmDictionary<${genericType}> ${fieldName}UnmanagedDictionary = ((${interfaceName}) object).${getter}()")
