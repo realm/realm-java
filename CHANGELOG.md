@@ -1,8 +1,7 @@
 ## 10.6.0-BETA.2 (2021-05-17)
 
 ### Breaking Changes
-* Sorting on a `RealmAny` field has changed behavior. `RealmObject` references are considered "larger" than UUID's.
-* `RealmQuery.maxRealmAny()` will now return `RealmObject` references rather than UUID's when comparing them.
+* None.
 
 ### Enhancements
 * None.
