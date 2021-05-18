@@ -2339,12 +2339,12 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Finds the minimum value of a field.
+     * Finds the minimum value of a {@link RealmAny} field.
      *
-     * @param fieldName the field name
-     * @return if no objects exist or they all have {@code null} as the value for the given RealmAny field, {@code null}
+     * @param fieldName the field containing a RealmAny value.
+     * @return if no objects exist or they all have {@code null} as the value for the given RealmAny field, {@link RealmAny.Type#NULL}
      * will be returned. Otherwise the minimum RealmAny is returned. When determining the minimum RealmAny, objects with
-     * {@code null} values are ignored.
+     * {@code null} values are ignored. See the {@link RealmAny} documentation for more details on how RealmAny values are compared.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      * @throws RealmException                          if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
@@ -2406,15 +2406,14 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Finds the maximum value of a field.
+     * Finds the maximum value of a {@link RealmAny} field.
      *
-     * @param fieldName the field name.
-     * @return if no objects exist or they all have {@code null} as the value for the given RealmAny field, {@code null}
+     * @param fieldName the field containing a RealmAny value.
+     * @return if no objects exist or they all have {@code null} as the value for the given RealmAny field, {@link RealmAny.Type#NULL}
      * will be returned. Otherwise the maximum RealmAny is returned. When determining the maximum RealmAny, objects with
-     * {@code null} values are ignored.
+     * {@code null} values are ignored. See the {@link RealmAny} documentation for more details on how RealmAny values are compared.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
-    @Nullable
     public RealmAny maxRealmAny(String fieldName) {
         realm.checkIfValid();
         realm.checkAllowQueriesOnUiThread();

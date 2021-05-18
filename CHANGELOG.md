@@ -1,3 +1,24 @@
+## 10.6.0-BETA.2 (2021-05-17)
+
+### Breaking Changes
+* Sorting on a `RealmAny` field has changed behavior. `RealmObject` references are considered "larger" than UUID's.
+* `RealmQuery.maxRealmAny()` will now return `RealmObject` references rather than UUID's when comparing them.
+
+### Enhancements
+* None.
+
+### Fixed
+* Removed wrong `@Nullable` annotation on `RealmQuery.maxRealmAny()`.
+
+### Compatibility
+* File format: Generates Realms with format v21. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* None.
+
+
 ## 10.6.0-BETA.1 (2021-05-17)
 
 ### Breaking Changes
