@@ -2193,9 +2193,11 @@ public class RealmQuery<E> {
      * Calculates the sum of a given field.
      *
      * @param fieldName the field to sum. Only number and RealmAny fields are supported.
-     * @return the sum of fields of the matching objects. If no objects exist or they all have {@code null} as the value
-     * for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
-     * are ignored. When applied to a RealmAny field, the returning type will be {@code Decimal128}.
+     * @return the sum of fields of the matching objects. If no objects exist or they all have
+     * {@code null} as the value for the given field, {@code 0} will be returned. When computing the
+     * sum, objects with {@code null} values are ignored. When applied to a RealmAny field, only
+     * numeric values will be summed up (Byte/Integer/Integer/Long/Float/Double/Decimal128) and the
+     * returning type will be {@code Decimal128}.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
