@@ -553,6 +553,56 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
+    override fun insertOrUpdateList() {
+        // Instantiate container and set dictionary on container
+        val manualInstance = PrimaryKeyDictionaryContainer().apply {
+            name = "manual"
+            primaryKeyDictionaryProperty.get(this).putAll(initializedDictionary)
+        }
+        val emptyInstance = PrimaryKeyDictionaryContainer().apply {
+            name = "empty"
+        }
+
+        // insert into Realm
+        realm.executeTransaction {
+            realm.insertOrUpdate(listOf(emptyInstance, manualInstance))
+        }
+
+        // Get dictionary from container from Realm
+        val primaryKeyDictionaryContainer = realm.where<PrimaryKeyDictionaryContainer>()
+            .equalTo("name", "manual")
+            .findFirst()
+        assertNotNull(primaryKeyDictionaryContainer)
+        val dictionary = primaryKeyDictionaryProperty.get(primaryKeyDictionaryContainer)
+        assertFalse(dictionary.isEmpty())
+        initializedDictionary.forEach { key, value ->
+            typeAsserter.assertEqualsHelper(realm, value, dictionary[key])
+        }
+
+        if (testerClass == "String-NonLatin" || testerClass == "RealmAny-NonLatin") {
+            primaryKeyDictionaryProperty.get(manualInstance)[NEW_KEY_NON_LATIN] = alternativeDictionary[KEY_BYE_NON_LATIN]
+        } else {
+            primaryKeyDictionaryProperty.get(manualInstance)[NEW_KEY] = alternativeDictionary[KEY_BYE]
+        }
+
+        // Insert to Realm with non managed updated model
+        realm.executeTransaction {
+            realm.insertOrUpdate(listOf(emptyInstance, manualInstance))
+        }
+
+        val updatedContainer = realm.where<PrimaryKeyDictionaryContainer>()
+            .equalTo("name", "manual")
+            .findFirst()
+        assertNotNull(updatedContainer)
+        val updatedDictinary = primaryKeyDictionaryProperty.get(primaryKeyDictionaryContainer)
+        assertEquals(initializedDictionary.size + 1, updatedDictinary.size)
+        if (testerClass == "String-NonLatin" || testerClass == "RealmAny-NonLatin") {
+            typeAsserter.assertEqualsHelper(realm, alternativeDictionary[KEY_BYE_NON_LATIN], updatedDictinary[NEW_KEY_NON_LATIN])
+        } else {
+            typeAsserter.assertEqualsHelper(realm, alternativeDictionary[KEY_BYE], updatedDictinary[NEW_KEY])
+        }
+    }
+
     override fun copyFromRealm() {
         val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)

@@ -42,6 +42,7 @@ interface DictionaryTester : GenericTester {
     fun insert()
     fun insertList()
     fun insertOrUpdate()
+    fun insertOrUpdateList()
     fun copyToRealm()
     fun copyToRealmOrUpdate()
     fun copyFromRealm()
