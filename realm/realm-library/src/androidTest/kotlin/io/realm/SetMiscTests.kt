@@ -241,16 +241,6 @@ class SetMiscTests {
     }
 
     @Test
-    fun insert_unsupportedOperation() {
-        realm = Realm.getInstance(configFactory.createConfiguration())
-        realm.executeTransaction {
-            assertFailsWith<UnsupportedOperationException> {
-                realm.insert(SetContainerMigrationClass())
-            }
-        }
-    }
-
-    @Test
     fun insertOrUpdate_unsupportedOperation() {
         realm = Realm.getInstance(configFactory.createConfiguration())
         realm.executeTransaction {

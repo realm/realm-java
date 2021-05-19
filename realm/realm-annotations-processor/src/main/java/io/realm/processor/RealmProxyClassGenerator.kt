@@ -1588,9 +1588,52 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             endControlFlow()
                         endControlFlow()
                     }
-                    Utils.isRealmSet(field) -> {
-                        // TODO: sets
-                        emitSingleLineComment("TODO: Set")
+                    Utils.isRealmModelSet(field) -> {
+                        val genericType: TypeMirror = Utils.getGenericType(field)!!
+                        val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
+                        emitEmptyLine()
+                        emitStatement("RealmSet<${genericType}> ${fieldName}Set = ((${interfaceName}) object).${getter}()")
+                        beginControlFlow("if (${fieldName}Set != null)")
+                            emitStatement("OsSet ${fieldName}OsSet = new OsSet(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                            beginControlFlow("for (${genericType} ${fieldName}Item: ${fieldName}Set)")
+                                emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                                if (isEmbedded) {
+                                    emitStatement("throw new IllegalArgumentException(\"Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: \" + cacheItemIndex${fieldName}.toString())")
+                                } else {
+                                    beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                        emitStatement("cacheItemIndex${fieldName} = ${Utils.getSetGenericProxyClassSimpleName(field)}.insert(realm, ${fieldName}Item, cache)")
+                                    endControlFlow()
+                                    emitStatement("${fieldName}OsSet.addRow(cacheItemIndex${fieldName})")
+                                }
+                            endControlFlow()
+                        endControlFlow()
+                    }
+                    Utils.isRealmValueSet(field) -> {
+                        val genericType = Utils.getGenericTypeQualifiedName(field)
+                        emitEmptyLine()
+                        emitStatement("RealmSet<${genericType}> ${fieldName}Set = ((${interfaceName}) object).${getter}()")
+                        beginControlFlow("if (${fieldName}Set != null)")
+                            emitStatement("OsSet ${fieldName}OsSet = new OsSet(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                            beginControlFlow("for (${genericType} ${fieldName}Item: ${fieldName}Set)")
+                                beginControlFlow("if (${fieldName}Item == null)")
+                                    emitStatement(fieldName + "OsSet.add(($genericType) null)")
+                                nextControlFlow("else")
+                                    emitStatement("${fieldName}OsSet.add(${fieldName}Item)")
+                                endControlFlow()
+                            endControlFlow()
+                        endControlFlow()
+                    }
+                    Utils.isRealmAnySet(field) -> {
+                        emitEmptyLine()
+
+                        emitStatement("RealmSet<RealmAny> ${fieldName}UnmanagedSet = ((${interfaceName}) object).${getter}()")
+                        beginControlFlow("if (${fieldName}UnmanagedSet != null)")
+                            emitStatement("OsSet ${fieldName}OsSet = new OsSet(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                            beginControlFlow("for (RealmAny realmAnyItem: ${fieldName}UnmanagedSet)")
+                                emitStatement("realmAnyItem = ProxyUtils.insert(realmAnyItem, realm, cache)")
+                                emitStatement("${fieldName}OsSet.addRealmAny(realmAnyItem.getNativePtr())")
+                            endControlFlow()
+                        endControlFlow()
                     }
                     else -> {
                         if (metadata.primaryKey !== field) {
@@ -1616,14 +1659,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "Map<RealmModel,Long>", "cache")
             val args = if (metadata.embedded) embeddedArgs else topLevelArgs
             beginMethod("long","insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
-
-            // Throw if model contains a set field until we add support for it
-            if (containsSet(metadata.fields)) {
-                emitStatement("throw new UnsupportedOperationException(\"Calls to 'insert' with RealmModels containing RealmSet properties are not supported yet.\")")
-                endMethod()
-                emitEmptyLine()
-                return@apply
-            }
 
             // If object is already in the Realm there is nothing to update, unless it is an embedded
             // object. In which case we always update the underlying object.
@@ -1664,14 +1699,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             val args = if (metadata.embedded) embeddedArgs else topLevelArgs
 
             beginMethod("void", "insert", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
-                // Throw if model contains a set field until we add support for it
-                if (containsSet(metadata.fields)) {
-                    emitStatement("throw new UnsupportedOperationException(\"Calls to 'insert' with RealmModels containing RealmSet properties are not supported yet.\")")
-                    endMethod()
-                    emitEmptyLine()
-                    return@apply
-                }
-
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
                 emitStatement("%s columnInfo = (%s) realm.getSchema().getColumnInfo(%s.class)", columnInfoClassName(), columnInfoClassName(), qualifiedJavaClassName)

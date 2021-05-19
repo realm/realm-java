@@ -50,6 +50,10 @@ class NullRealmAnySetTester(
 
     override fun isFrozen() = Unit // Tested in frozen
 
+    override fun insert() = Unit // Not applicable
+
+    override fun insertList() = Unit // Not applicable
+
     override fun copyToRealm() = Unit // Not applicable
 
     override fun copyToRealmOrUpdate() = Unit // Not applicable
