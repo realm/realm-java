@@ -70,7 +70,9 @@ Java_io_realm_internal_OsSet_nativeCreate(JNIEnv* env, jclass, jlong shared_real
 
         // Special case for objects: return the table. Ignore for other types
         if (wrapper_ptr->collection().get_type() == PropertyType::Object) {
-            auto target_table_ptr = new TableRef(obj.get_table());
+            auto set_view_ref = obj.get_linkset(ColKey(column_key));
+
+            auto target_table_ptr = new TableRef(set_view_ref.get_target_table());
             ret[1] = reinterpret_cast<jlong>(target_table_ptr);
         } else {
             ret[1] = reinterpret_cast<jlong>(nullptr);

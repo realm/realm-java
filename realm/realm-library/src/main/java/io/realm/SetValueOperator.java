@@ -51,13 +51,19 @@ abstract class SetValueOperator<E> implements ObservableSet {
     protected final BaseRealm baseRealm;
     protected final OsSet osSet;
     protected final Class<E> valueClass;
+    protected final String className;
 
     protected final ObserverPairList<ObservableSet.SetObserverPair<E>> setObserverPairs = new ObserverPairList<>();
 
     SetValueOperator(BaseRealm baseRealm, OsSet osSet, Class<E> valueClass) {
+        this(baseRealm, osSet, valueClass, valueClass.getSimpleName());
+    }
+
+    SetValueOperator(BaseRealm baseRealm, OsSet osSet, Class<E> valueClass, String className) {
         this.baseRealm = baseRealm;
         this.osSet = osSet;
         this.valueClass = valueClass;
+        this.className = className;
     }
 
     abstract boolean add(@Nullable E value);
@@ -175,7 +181,7 @@ abstract class SetValueOperator<E> implements ObservableSet {
     }
 
     Iterator<E> iterator() {
-        return iteratorFactory(valueClass, osSet, baseRealm);
+        return iteratorFactory(valueClass, osSet, baseRealm, className);
     }
 
     void clear() {
@@ -315,7 +321,8 @@ abstract class SetValueOperator<E> implements ObservableSet {
     @SuppressWarnings("unchecked")
     private static <T> SetIterator<T> iteratorFactory(Class<T> valueClass,
                                                       OsSet osSet,
-                                                      BaseRealm baseRealm) {
+                                                      BaseRealm baseRealm,
+                                                      String className) {
         if (valueClass == Boolean.class) {
             return (SetIterator<T>) new BooleanSetIterator(osSet, baseRealm);
         } else if (valueClass == String.class) {
@@ -344,11 +351,21 @@ abstract class SetValueOperator<E> implements ObservableSet {
             return (SetIterator<T>) new UUIDSetIterator(osSet, baseRealm);
         } else if (valueClass == RealmAny.class) {
             return (SetIterator<T>) new RealmAnySetIterator(osSet, baseRealm);
+        } else if (valueClass == DynamicRealmObject.class){
+            return (SetIterator<T>) new DynamicSetIterator(osSet, baseRealm, className);
         } else if (CollectionUtils.isClassForRealmModel(valueClass)) {
             return (SetIterator<T>) new RealmModelSetIterator(osSet, baseRealm, valueClass);
         } else {
             throw new IllegalArgumentException("Unknown class for iterator: " + valueClass.getSimpleName());
         }
+    }
+
+    public Class<E> getValueClass() {
+        return valueClass;
+    }
+
+    public String getValueClassName() {
+        return className;
     }
 }
 
@@ -465,6 +482,73 @@ class StringOperator extends SetValueOperator<String> {
         // Collection has been type-checked from caller
         //noinspection unchecked
         NativeRealmAnyCollection collection = NativeRealmAnyCollection.newStringCollection((Collection<String>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+}
+
+/**
+ * {@link SetValueOperator} targeting {@code Number} values in {@link RealmSet}s.
+ */
+class NumberOperator extends SetValueOperator<Number> {
+
+    NumberOperator(BaseRealm baseRealm, OsSet osSet, Class<Number> valueClass) {
+        super(baseRealm, osSet, valueClass);
+    }
+
+    @Override
+    boolean add(@Nullable Number value) {
+        if (value == null) { return osSet.add((Long) null); }
+
+        return osSet.add(value.longValue());
+    }
+
+    @Override
+    boolean containsInternal(@Nullable Object o) {
+        Long value;
+        if (o == null) {
+            value = null;
+        } else {
+            value = ((Number) o).longValue();
+        }
+        return osSet.contains(value);
+    }
+
+    @Override
+    boolean removeInternal(@Nullable Object o) {
+        if (o == null) { return osSet.remove((Long) null); }
+        // Object has been type-checked from caller
+        return osSet.remove(((Number) o).longValue());
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<Number> numberCollection = (Collection<Number>) c;
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newIntegerCollection(numberCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends Number> c) {
+        // Collection has been type-checked from caller
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newIntegerCollection(c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newIntegerCollection((Collection<Number>) c);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newIntegerCollection((Collection<Number>) c);
         return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
     }
 }
@@ -1277,6 +1361,121 @@ class RealmModelSetOperator<T extends RealmModel> extends SetValueOperator<T> {
 }
 
 /**
+ * {@link SetValueOperator} targeting {@link RealmModel} values in {@link RealmSet}s.
+ */
+class DynamicSetOperator extends SetValueOperator<DynamicRealmObject> {
+    DynamicSetOperator(BaseRealm baseRealm, OsSet osSet, String className) {
+        super(baseRealm, osSet, DynamicRealmObject.class, className);
+    }
+
+    @Override
+    boolean add(DynamicRealmObject value) {
+        // Realm model sets cannot contain null values
+        RealmObjectProxy proxy = (RealmObjectProxy) getManagedObject(value);
+        Row row$realm = proxy.realmGet$proxyState().getRow$realm();
+        return osSet.addRow(row$realm.getObjectKey());
+    }
+
+    private DynamicRealmObject getManagedObject(DynamicRealmObject value) {
+        if (value == null) {
+            throw new NullPointerException("This set does not permit null values.");
+        }
+        // Check we can add this object into the Realm
+        boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, className, SET_TYPE);
+
+        // Add value into set
+        //noinspection unchecked
+        return (DynamicRealmObject) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, (RealmModel) value) : value);
+    }
+
+    /**
+     * Check that object is a valid and managed object by the set's Realm.
+     *
+     * @param value model object
+     */
+    private void checkValidObject(RealmModel value) {
+        // Realm model sets cannot contain null values
+        if (value == null) {
+            throw new NullPointerException("This set does not permit null values.");
+        }
+        if (!RealmObject.isValid(value) || !RealmObject.isManaged(value)) {
+            throw new IllegalArgumentException("'value' is not a valid managed object.");
+        }
+        if (((RealmObjectProxy) value).realmGet$proxyState().getRealm$realm() != baseRealm) {
+            throw new IllegalArgumentException("'value' belongs to a different Realm.");
+        }
+    }
+
+    @Override
+    boolean containsInternal(Object value) {
+        checkValidObject((RealmModel) value);
+        Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
+        return osSet.containsRow(row$realm.getObjectKey());
+    }
+
+    @Override
+    boolean removeInternal(Object value) {
+        checkValidObject((RealmModel) value);
+        Row row$realm = ((RealmObjectProxy) value).realmGet$proxyState().getRow$realm();
+        return osSet.removeRow(row$realm.getObjectKey());
+    }
+
+    @Override
+    boolean containsAllInternal(Collection<?> collection) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<DynamicRealmObject> realmModelCollection = (Collection<DynamicRealmObject>) collection;
+        // All models must be managed and from the same set's Realm
+        checkValidCollection(realmModelCollection);
+        NativeRealmAnyCollection realmAnyCollection = NativeRealmAnyCollection.newRealmModelCollection(realmModelCollection);
+        return osSet.collectionFunnel(realmAnyCollection, OsSet.ExternalCollectionOperation.CONTAINS_ALL);
+    }
+
+    @Override
+    boolean addAllInternal(Collection<? extends DynamicRealmObject> collection) {
+        // Collection has been type-checked from caller
+        // Use add method as it contains all the necessary checks
+        List<DynamicRealmObject> managedRealmObjectCollection = new ArrayList<>(collection.size());
+        for (DynamicRealmObject item : collection) {
+            managedRealmObjectCollection.add(getManagedObject(item));
+        }
+        NativeRealmAnyCollection realmAnyCollection = NativeRealmAnyCollection.newRealmModelCollection(managedRealmObjectCollection);
+        return osSet.collectionFunnel(realmAnyCollection, OsSet.ExternalCollectionOperation.ADD_ALL);
+    }
+
+    @Override
+    boolean removeAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<DynamicRealmObject> realmModelCollection = (Collection<DynamicRealmObject>) c;
+        checkValidCollection(realmModelCollection);
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newRealmModelCollection(realmModelCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.REMOVE_ALL);
+    }
+
+    @Override
+    boolean retainAllInternal(Collection<?> c) {
+        // Collection has been type-checked from caller
+        //noinspection unchecked
+        Collection<DynamicRealmObject> realmModelCollection = (Collection<DynamicRealmObject>) c;
+        checkValidCollection(realmModelCollection);
+        NativeRealmAnyCollection collection = NativeRealmAnyCollection.newRealmModelCollection(realmModelCollection);
+        return osSet.collectionFunnel(collection, OsSet.ExternalCollectionOperation.RETAIN_ALL);
+    }
+
+    private void checkValidCollection(Collection<? extends DynamicRealmObject> collection) {
+        for (DynamicRealmObject object : collection) {
+            checkValidObject(object);
+        }
+    }
+
+    @Override
+    RealmQuery<DynamicRealmObject> where() {
+        return new RealmQuery<>(baseRealm, osSet, valueClass);
+    }
+}
+
+/**
  * {@link SetValueOperator} targeting {@link RealmAny} values in {@link RealmSet}s.
  */
 class RealmAnySetOperator extends SetValueOperator<RealmAny> {
@@ -1623,5 +1822,24 @@ class RealmModelSetIterator<T extends RealmModel> extends SetIterator<T> {
     protected T getValueAtIndex(int position) {
         long rowPtr = osSet.getRow(position);
         return baseRealm.get(valueClass, rowPtr, false, new ArrayList<>());
+    }
+}
+
+/**
+ * Set iterator for {@link DynamicRealmObject} values.
+ */
+class DynamicSetIterator extends SetIterator<DynamicRealmObject> {
+
+    private final String className;
+
+    DynamicSetIterator(OsSet osSet, BaseRealm baseRealm, String className) {
+        super(osSet, baseRealm);
+        this.className = className;
+    }
+
+    @Override
+    protected DynamicRealmObject getValueAtIndex(int position) {
+        long rowPtr = osSet.getRow(position);
+        return baseRealm.get(DynamicRealmObject.class, className, rowPtr);
     }
 }

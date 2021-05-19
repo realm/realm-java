@@ -229,6 +229,8 @@ class NullRealmAnySetTester(
 
     override fun setters() = Unit // Not tested
 
+    override fun dynamic() = Unit // Not tested
+
     override fun addRealmChangeListener() = Unit
 
     override fun removeSetChangeListener() = Unit

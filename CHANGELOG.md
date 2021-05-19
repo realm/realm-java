@@ -6,6 +6,7 @@
 ### Enhancements
 * Allow `insert` and `insertOrUpdate` operations on `RealmObject` or `RealmObject` collections containing `RealmDictionary` or `RealmSet` fields.
 * Added support for `RealmDictionary` in `DynamicRealmObject` with `setDictionary(String fieldName, RealmDictionary<?> dictionary)`, `getDictionary(String fieldName, Class<?> primitiveType)`, and `getDictionary(String fieldName)`.
+* Added support for `RealmSet` in `DynamicRealmObject` with `setRealmSet(String fieldName, RealmSet<?> realmSet)`, `getRealmSet(String fieldName, Class<?> primitiveType)`, and `getRealmSet(String fieldName)`.
 
 ### Fixed
 * Removed wrong `@Nullable` annotation on `RealmQuery.maxRealmAny()`.

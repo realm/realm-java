@@ -202,6 +202,8 @@ class NoPKRealmModelSetTester<T : RealmModel>(
         }
     }
 
+    override fun dynamic() = Unit // Not tested
+
     override fun containsAll() {
         val set = initAndAssertEmptySet(id = "id")
 
