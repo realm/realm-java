@@ -4,7 +4,7 @@
 * None.
 
 ### Enhancements
-* None.
+* Allow `insert` RealmObject's containing RealmDictionaries.
 
 ### Fixed
 * Removed wrong `@Nullable` annotation on `RealmQuery.maxRealmAny()`.
