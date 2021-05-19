@@ -2193,9 +2193,11 @@ public class RealmQuery<E> {
      * Calculates the sum of a given field.
      *
      * @param fieldName the field to sum. Only number and RealmAny fields are supported.
-     * @return the sum of fields of the matching objects. If no objects exist or they all have {@code null} as the value
-     * for the given field, {@code 0} will be returned. When computing the sum, objects with {@code null} values
-     * are ignored. When applied to a RealmAny field, the returning type will be {@code Decimal128}.
+     * @return the sum of fields of the matching objects. If no objects exist or they all have
+     * {@code null} as the value for the given field, {@code 0} will be returned. When computing the
+     * sum, objects with {@code null} values are ignored. When applied to a RealmAny field, only
+     * numeric values will be summed up (Byte/Integer/Integer/Long/Float/Double/Decimal128) and the
+     * returning type will be {@code Decimal128}.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
      * @throws RealmException                     if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
@@ -2339,12 +2341,12 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Finds the minimum value of a field.
+     * Finds the minimum value of a {@link RealmAny} field.
      *
-     * @param fieldName the field name
-     * @return if no objects exist or they all have {@code null} as the value for the given RealmAny field, {@code null}
+     * @param fieldName the field containing a RealmAny value.
+     * @return if no objects exist or they all have {@code null} as the value for the given RealmAny field, {@link RealmAny.Type#NULL}
      * will be returned. Otherwise the minimum RealmAny is returned. When determining the minimum RealmAny, objects with
-     * {@code null} values are ignored.
+     * {@code null} values are ignored. See the {@link RealmAny} documentation for more details on how RealmAny values are compared.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      * @throws RealmException                          if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
@@ -2406,15 +2408,14 @@ public class RealmQuery<E> {
     }
 
     /**
-     * Finds the maximum value of a field.
+     * Finds the maximum value of a {@link RealmAny} field.
      *
-     * @param fieldName the field name.
-     * @return if no objects exist or they all have {@code null} as the value for the given RealmAny field, {@code null}
+     * @param fieldName the field containing a RealmAny value.
+     * @return if no objects exist or they all have {@code null} as the value for the given RealmAny field, {@link RealmAny.Type#NULL}
      * will be returned. Otherwise the maximum RealmAny is returned. When determining the maximum RealmAny, objects with
-     * {@code null} values are ignored.
+     * {@code null} values are ignored. See the {@link RealmAny} documentation for more details on how RealmAny values are compared.
      * @throws java.lang.UnsupportedOperationException if the query is not valid ("syntax error").
      */
-    @Nullable
     public RealmAny maxRealmAny(String fieldName) {
         realm.checkIfValid();
         realm.checkAllowQueriesOnUiThread();
