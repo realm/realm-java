@@ -20,11 +20,9 @@ import org.bson.types.ObjectId;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -164,29 +162,29 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             case STRING_TO_LINK_MAP:
                 return (E) getDictionary(fieldName);
             case INTEGER_SET:
-                return (E) getSet(fieldName, Integer.class);
+                return (E) getRealmSet(fieldName, Integer.class);
             case BOOLEAN_SET:
-                return (E) getSet(fieldName, Boolean.class);
+                return (E) getRealmSet(fieldName, Boolean.class);
             case STRING_SET:
-                return (E) getSet(fieldName, String.class);
+                return (E) getRealmSet(fieldName, String.class);
             case BINARY_SET:
-                return (E) getSet(fieldName, byte[].class);
+                return (E) getRealmSet(fieldName, byte[].class);
             case DATE_SET:
-                return (E) getSet(fieldName, Date.class);
+                return (E) getRealmSet(fieldName, Date.class);
             case FLOAT_SET:
-                return (E) getSet(fieldName, Float.class);
+                return (E) getRealmSet(fieldName, Float.class);
             case DOUBLE_SET:
-                return (E) getSet(fieldName, Double.class);
+                return (E) getRealmSet(fieldName, Double.class);
             case DECIMAL128_SET:
-                return (E) getSet(fieldName, Decimal128.class);
+                return (E) getRealmSet(fieldName, Decimal128.class);
             case OBJECT_ID_SET:
-                return (E) getSet(fieldName, ObjectId.class);
+                return (E) getRealmSet(fieldName, ObjectId.class);
             case UUID_SET:
-                return (E) getSet(fieldName, UUID.class);
+                return (E) getRealmSet(fieldName, UUID.class);
             case LINK_SET:
-                return (E) getSet(fieldName);
+                return (E) getRealmSet(fieldName);
             case MIXED_SET:
-                return (E) getSet(fieldName, RealmAny.class);
+                return (E) getRealmSet(fieldName, RealmAny.class);
             default:
                 throw new IllegalStateException("Field type not supported: " + type);
         }
@@ -590,13 +588,13 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
     /**
      * Returns the {@link RealmSet} of {@link DynamicRealmObject}s being linked from the given field.
      * <p>
-     * If the set contains primitive types, use {@link #getSet(String, Class)} instead.
+     * If the set contains primitive types, use {@link #getRealmSet(String, Class)} instead.
      *
      * @param fieldName the name of the field.
      * @return the {@link RealmSet} data for this field.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a set of objects.
      */
-    public RealmSet<DynamicRealmObject> getSet(String fieldName) {
+    public RealmSet<DynamicRealmObject> getRealmSet(String fieldName) {
         proxyState.getRealm$realm().checkIfValid();
 
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
@@ -616,14 +614,14 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Returns the {@link RealmSet} containing only primitive values.
      *
      * <p>
-     * If the set contains references to other Realm objects, use {@link #getSet(String)} instead.
+     * If the set contains references to other Realm objects, use {@link #getRealmSet(String)} instead.
      *
      * @param fieldName     the name of the field.
      * @param primitiveType the type of elements in the set. Only primitive types are supported.
      * @return the {@link RealmSet} data for this field.
      * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a set of primitive objects.
      */
-    public <E> RealmSet<E> getSet(String fieldName, Class<E> primitiveType) {
+    public <E> RealmSet<E> getRealmSet(String fieldName, Class<E> primitiveType) {
         proxyState.getRealm$realm().checkIfValid();
 
         if (primitiveType == null) {
@@ -1468,7 +1466,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      * Sets the reference to a {@link RealmSet} on the given field.
      * <p>
      * This will copy all the elements in the set into Realm, but any further changes to the set
-     * will not be reflected in the Realm. Use {@link #getSet(String)} in order to get a reference to
+     * will not be reflected in the Realm. Use {@link #getRealmSet(String)} in order to get a reference to
      * the managed set.
      *
      * @param fieldName field name.

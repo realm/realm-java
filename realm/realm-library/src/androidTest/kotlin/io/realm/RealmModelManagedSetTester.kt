@@ -172,7 +172,7 @@ class RealmModelManagedSetTester<T : Any>(
         val dynamicRealm = DynamicRealm.getInstance(realm.configuration)
         val dynamicObject: DynamicRealmObject = dynamicRealm.where(SetAllTypes.NAME)
             .equalTo(AllTypes.FIELD_STRING, "unmanaged").findFirst()!!
-        val dynamicSet: RealmSet<RealmAny> = dynamicObject.getSet(setFieldName, setFieldClass) as RealmSet<RealmAny>
+        val dynamicSet: RealmSet<RealmAny> = dynamicObject.getRealmSet(setFieldName, setFieldClass) as RealmSet<RealmAny>
 
         // Access the previous set from a mutable context
         assertEquals(3, dynamicSet.size)
@@ -191,7 +191,7 @@ class RealmModelManagedSetTester<T : Any>(
             })
         }
 
-        assertEquals(1, dynamicObject.getSet(setFieldName, setFieldClass).size)
+        assertEquals(1, dynamicObject.getRealmSet(setFieldName, setFieldClass).size)
 
         dynamicRealm.close()
     }
@@ -206,7 +206,7 @@ class RealmModelManagedSetTester<T : Any>(
         val dynamicRealm = DynamicRealm.getInstance(realm.configuration)
         val dynamicObject: DynamicRealmObject =
             dynamicRealm.where(SetAllTypes.NAME).equalTo(AllTypes.FIELD_STRING, "unmanaged").findFirst()!!
-        val dynamicSet = dynamicObject.getSet(setFieldName)
+        val dynamicSet = dynamicObject.getRealmSet(setFieldName)
 
         // Access the previous set from a mutable context
         set.forEach { value ->

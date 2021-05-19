@@ -24,7 +24,6 @@ import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import java.lang.UnsupportedOperationException
 import java.util.*
-import kotlin.collections.HashSet
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction2
 import kotlin.reflect.KMutableProperty1
@@ -366,7 +365,7 @@ class ManagedSetTester<T : Any>(
 
         val dynamicRealm = DynamicRealm.getInstance(realm.configuration)
         val dynamicObject: DynamicRealmObject = dynamicRealm.where(SetAllTypes.NAME).equalTo(AllTypes.FIELD_STRING, "id").findFirst()!!
-        val dynamicSet = dynamicObject.getSet(setFieldName, setFieldClass)
+        val dynamicSet = dynamicObject.getRealmSet(setFieldName, setFieldClass)
 
         // Access the previous set from a mutable context
         assertSetContainsSet(initializedSet, dynamicSet)
