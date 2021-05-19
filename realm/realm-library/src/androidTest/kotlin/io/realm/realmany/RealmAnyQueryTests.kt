@@ -147,8 +147,8 @@ class RealmAnyQueryTests {
     @Test
     fun max() {
         initializeTestData()
-        val value = realm.where<RealmAnyNotIndexed>().maxRealmAny(RealmAnyNotIndexed.FIELD_REALM_ANY)
-        assertEquals(RealmAny.valueOf(UUID.fromString("00000004-aa12-4afa-9219-e20cc3018599")), value)
+        val value = realm.where<RealmAnyNotIndexed>().maxRealmAny(RealmAnyNotIndexed.FIELD_REALM_ANY)!!
+        assertEquals("item 2", value.asRealmModel(PrimaryKeyAsString::class.java).name)
     }
 
     @Test
@@ -157,7 +157,7 @@ class RealmAnyQueryTests {
         val results = realm.where<RealmAnyNotIndexed>().sort(RealmAnyNotIndexed.FIELD_REALM_ANY).findAll()
         assertEquals(112, results.size)
         assertTrue(results.first()!!.realmAny!!.isNull)
-        assertEquals(RealmAny.Type.UUID, results.last()!!.realmAny!!.type)
+        assertEquals(RealmAny.Type.OBJECT, results.last()!!.realmAny!!.type)
     }
 
     @Test

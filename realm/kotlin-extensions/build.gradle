@@ -128,7 +128,7 @@ task javadocJar(type: Jar, dependsOn: dokka) {
     from "$buildDir/dokka"
 }
 
-apply from: "${rootDir}/../mavencentral-publish.gradle"
+apply from: "${rootDir}/../mavencentral-publications.gradle"
 
 publishing {
     publications {

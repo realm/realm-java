@@ -42,7 +42,7 @@ sourceSets {
 compileKotlin.dependsOn generateVersionClass
 compileTestJava.dependsOn ':realm-library:assembleBaseRelease'
 
-apply from: "${rootDir}/../mavencentral-publish.gradle"
+apply from: "${rootDir}/../mavencentral-publications.gradle"
 
 publishing {
     publications {
