@@ -111,7 +111,7 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
     }
 
     /**
-     * Instantiates a RealmSet in managed mode. This constructor is used internally by Realm.
+     * Instantiates a RealmSet in managed mode. This constructor is used internally by a Dynamic Realm.
      *
      * @param baseRealm
      * @param osSet
@@ -1082,12 +1082,12 @@ public class RealmSet<E> implements Set<E>, ManageableObject, RealmCollection<E>
 
         @Override
         public String getValueClassName() {
-            return null;
+            throw new UnsupportedOperationException("Unmanaged sets do not support retrieving the value class name.");
         }
 
         @Override
         public Class<E> getValueClass() {
-            return null;
+            throw new UnsupportedOperationException("Unmanaged sets do not support retrieving the value class.");
         }
 
         @Override

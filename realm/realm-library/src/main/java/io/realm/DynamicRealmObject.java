@@ -1520,10 +1520,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         @Nonnull final String linkTargetTableName = linkTargetTable.getClassName();
 
         boolean typeValidated;
-        if (sourceSet.getValueClassName() == null && sourceSet.getValueClass() == null) {
+        if (!sourceSet.isManaged()) {
             typeValidated = false;
         } else {
-            String setType = sourceSet.getValueClassName() != null ? sourceSet.getValueClassName()
+            String setType = (sourceSet.getValueClassName() != null) ? sourceSet.getValueClassName()
                     : proxyState.getRealm$realm().getSchema().getTable(sourceSet.getValueClass()).getClassName();
             if (!linkTargetTableName.equals(setType)) {
                 throw new IllegalArgumentException(String.format(Locale.US,
