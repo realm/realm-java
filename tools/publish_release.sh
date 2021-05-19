@@ -20,12 +20,12 @@ set -e
 
 usage() {
 cat <<EOF
-Usage: $0 <maven_central_user> <maven_central_key> <realm_s3_access_key> <realm_s3_secret_key> <docs_s3_access_key> <docs_s3_secret_key> <slack-webhook-releases-url> <slack-webhook-java-ci-url>
+Usage: $0 <maven_central_user> <maven_central_key> <realm_s3_access_key> <realm_s3_secret_key> <docs_s3_access_key> <docs_s3_secret_key> <slack-webhook-releases-url> <slack-webhook-java-ci-url> <gradle-build-params>
 Usage: $0 verify
 EOF
 }
 
-if [ "$#" -ne 8 ] && [ "$1" != "verify" ]; then
+if [ "$#" -ne 9 ] && [ "$1" != "verify" ]; then
   usage
   exit 1
 fi
@@ -45,6 +45,7 @@ DOCS_S3_ACCESS_KEY="$5"
 DOCS_S3_SECRET_KEY="$6"
 SLACK_WEBHOOK_RELEASES_URL="$7"
 SLACK_WEBHOOK_JAVA_CI_URL="$8"
+GRADLE_BUILD_PARAMS="$9"
 
 abort_release() {
   # Reporting failures to #realm-java-team-ci is done from Jenkins
@@ -104,21 +105,18 @@ verify_changelog() {
 create_javadoc() {
   echo "Creating JavaDoc..."
   cd $REALM_JAVA_PATH
-  ./gradlew javadoc
-  cd $HERE
-}
-
-create_native_debug_symbols_package() {
-  echo "Creating zip file with native debug symbols.."
-  cd $REALM_JAVA_PATH
-  ./gradlew distributionPackage
+  eval "./gradlew javadoc $GRADLE_BUILD_PARAMS --stacktrace" 
   cd $HERE
 }
 
 upload_to_mavenCentral() {
   echo "Releasing on MavenCentral"
   cd $REALM_JAVA_PATH
-  ./gradlew mavenCentralUpload closeAndReleaseRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace --info
+  # FIXME: Closing and releasing doesn't currently work as the plugin doesn't handle uploads from multiple projects very well. So we might end up
+  # with half a release. For this reason we must manually close and release the artifacts using the Maven Central UI:
+  # https://oss.sonatype.org/#stagingRepositories
+  # ./gradlew mavenCentralUpload closeAndReleaseStagingRepository -PossrhUsername=$MAVEN_CENTRAL_USER -PossrhPassword=$MAVEN_CENTRAL_KEY --stacktrace
+  eval "./gradlew mavenCentralUpload $GRADLE_BUILD_PARAMS -PossrhUsername='$MAVEN_CENTRAL_USER' -PossrhPassword='$MAVEN_CENTRAL_KEY' --stacktrace"
   cd $HERE
 }
 

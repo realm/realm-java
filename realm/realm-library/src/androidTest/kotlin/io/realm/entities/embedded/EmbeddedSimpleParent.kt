@@ -21,5 +21,10 @@ import java.util.*
 
 // Top-level object describing a simple embedded objects structure consisting of only an object reference.
 open class EmbeddedSimpleParent(@PrimaryKey var _id: String = UUID.randomUUID().toString()) : RealmObject() {
+    companion object {
+        const val NAME = "EmbeddedSimpleParent"
+        const val CHILD = "child"
+    }
+
     var child: EmbeddedSimpleChild? = null
 }

@@ -261,22 +261,20 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
-                                                     "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V");
+                                                     "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 
         // error handler will be called form the sync client thread
         auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
             auto error_category = error.error_code.category().name();
             auto error_message = error.message;
             auto error_code = error.error_code.value();
+            std::string client_reset_path_info = "";
 
             // All client reset errors will be in the protocol category. Re-assign the error code
             // to a value not used by https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp#L232
             // This way we only have one error in Java representing Client Reset.
             if (error.is_client_reset_requested()) {
-                // Hack the error message to send information about the location of the backup.
-                // If more uses of the user_info map surfaces. Refactor this to send the full
-                // map instead.
-                error_message = error.user_info[SyncError::c_recovery_file_path_key];
+                client_reset_path_info = error.user_info[SyncError::c_recovery_file_path_key];
                 error_code = 7; // See ErrorCode.java
             }
 
@@ -311,9 +309,15 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
             jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
+            jstring jclient_reset_path_info = to_jstring(env, client_reset_path_info);
             jstring jsession_path = to_jstring(env, session.get()->path());
-            env->CallVoidMethod(sync_service_object.get(), java_error_callback_method, jerror_category, error_code, jerror_message,
-                                      jsession_path);
+            env->CallVoidMethod(sync_service_object.get(),
+                                java_error_callback_method,
+                                jerror_category,
+                                error_code,
+                                jerror_message,
+                                jclient_reset_path_info,
+                                jsession_path);
             env->DeleteLocalRef(jerror_category);
             env->DeleteLocalRef(jerror_message);
             env->DeleteLocalRef(jsession_path);
