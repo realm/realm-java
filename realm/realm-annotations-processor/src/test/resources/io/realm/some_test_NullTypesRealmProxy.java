@@ -3253,7 +3253,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
                 if (cachefieldObjectNull == null) {
                     cachefieldObjectNull = some_test_NullTypesRealmProxy.insert(realm, fieldObjectNullObj, cache);
                 }
-                table.setLink(columnInfo.fieldObjectNullColKey, objKey, cachefieldObjectNull, false);
+                Table.nativeSetLink(tableNativePtr, columnInfo.fieldObjectNullColKey, objKey, cachefieldObjectNull, false);
             }
 
             RealmList<java.lang.String> fieldStringListNotNullList = ((some_test_NullTypesRealmProxyInterface) object).realmGet$fieldStringListNotNull();

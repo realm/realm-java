@@ -489,6 +489,28 @@ class ManagedDictionaryTester<T : Any>(
         }
     }
 
+    override fun insertList() {
+        // Instantiate container and set dictionary on container
+        val manualInstance = DictionaryAllTypes().apply {
+            dictionarySetter.call(this, initializedDictionary)
+        }
+        val emptyInstance = DictionaryAllTypes()
+
+        // Insert into Realm
+        realm.executeTransaction {
+            realm.insert(listOf(emptyInstance, manualInstance))
+        }
+
+        // Get dictionary from container from Realm
+        val allTypesObject = realm.where<DictionaryAllTypes>().findAll()[1]
+        assertNotNull(allTypesObject)
+        val dictionary = dictionaryGetter.call(allTypesObject)
+        assertFalse(dictionary.isEmpty())
+        initializedDictionary.forEach { key, value ->
+            typeAsserter.assertEqualsHelper(realm, value, dictionary[key])
+        }
+    }
+
     override fun copyFromRealm() {
         val allTypesObject = createCollectionAllTypesManagedContainerAndAssert(realm)
         assertNotNull(allTypesObject)
