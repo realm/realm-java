@@ -219,6 +219,14 @@ class RealmModelManagedSetTester<T : Any>(
         managedTester.doInsertListTest(unmanagedInitializedSet)
     }
 
+    override fun insertOrUpdate() {
+        managedTester.insertOrUpdate()
+    }
+
+    override fun insertOrUpdateList() {
+        managedTester.insertOrUpdate()
+    }
+
     override fun copyToRealm() {
         // This specific test case needs unmanaged objects on PK models
         realm.executeTransaction {

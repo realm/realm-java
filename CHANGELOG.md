@@ -4,10 +4,11 @@
 * None.
 
 ### Enhancements
-* Allow `insert` and `insertOrUpdate` RealmObject's or collections of RealmObject's containing RealmDictionaries.
+* Allow `insert` and `insertOrUpdate` operations on `RealmObject` or `RealmObject` collections containing `RealmDictionary` or `RealmSet` fields.
 
 ### Fixed
 * Removed wrong `@Nullable` annotation on `RealmQuery.maxRealmAny()`.
+* Fixed `RealmAny.getValueClass()` returning the `RealmObject` proxy class instead of the model class on a `RealmAny` referencing a managed `RealmObject`.
 
 ### Compatibility
 * File format: Generates Realms with format v21. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.

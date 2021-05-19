@@ -406,7 +406,7 @@ class RealmModelOperator extends RealmAnyOperator {
 
     @Override
     Class<?> getTypedClass() {
-        return clazz;
+        return RealmObjectProxy.class.isAssignableFrom(clazz) ? clazz.getSuperclass() : clazz;
     }
 
     @Override

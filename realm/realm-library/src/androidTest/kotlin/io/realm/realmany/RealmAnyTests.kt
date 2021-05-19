@@ -504,6 +504,16 @@ class RealmAnyTests {
     }
 
     @Test
+    fun managed_realmModel() {
+        realm.executeTransaction {
+            val realmAnyObject = realm.createObject<RealmAnyNotIndexed>()
+            val realmAny = RealmAny.valueOf(realmAnyObject)
+
+            assertEquals(RealmAnyNotIndexed::class.java, realmAny.valueClass)
+        }
+    }
+
+    @Test
     fun managed_nullRealmAny() {
         realm.executeTransaction {
             val realmAnyObject = it.createObject<RealmAnyNotIndexed>()

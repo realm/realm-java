@@ -406,6 +406,75 @@ class ManagedSetTester<T : Any>(
         assertSetContainsSet(expectedSet, set)
     }
 
+    override fun insertOrUpdate() {
+        // Instantiate container and set Set on container
+        val manualInstance = SetAllTypesPrimaryKey().apply {
+            primaryKeyAllTypesSetProperty.setter(this, RealmSet<T>().init(initializedSet))
+        }
+
+        // Insert to Realm
+        realm.executeTransaction {
+            realm.insertOrUpdate(manualInstance)
+        }
+
+        // Get Set from container from Realm
+        val allTypesPrimaryKey = realm.where<SetAllTypesPrimaryKey>().findFirst()!!
+        val set = primaryKeyAllTypesSetProperty.get(allTypesPrimaryKey)
+        assertFalse(set.isEmpty())
+
+        assertSetContainsSet(initializedSet, set)
+
+        primaryKeyAllTypesSetProperty.getter(manualInstance).add(notPresentValue)
+
+        // Insert to Realm with non managed updated model
+        realm.executeTransaction {
+            realm.insertOrUpdate(manualInstance)
+        }
+
+        val updatedContainer = realm.where<SetAllTypesPrimaryKey>().findFirst()!!
+        val updatedSet = primaryKeyAllTypesSetProperty.get(updatedContainer)
+        assertEquals(initializedSet.size + 1, updatedSet.size)
+
+        assertSetContainsSet(initializedSet.plus(notPresentValue), set)
+    }
+
+    override fun insertOrUpdateList() {
+        // Instantiate container and set Set on container
+        val manualInstance = SetAllTypesPrimaryKey().apply {
+            columnLong = 0
+            primaryKeyAllTypesSetProperty.setter(this, RealmSet<T>().init(initializedSet))
+        }
+
+        val emptyInstance = SetAllTypesPrimaryKey().apply {
+            columnLong = 1
+        }
+
+        // Insert to Realm
+        realm.executeTransaction {
+            realm.insertOrUpdate(listOf(emptyInstance, manualInstance))
+        }
+
+        // Get Set from container from Realm
+        val allTypesPrimaryKey = realm.where<SetAllTypesPrimaryKey>().equalTo("columnLong", 0.toLong()).findFirst()!!
+        val set = primaryKeyAllTypesSetProperty.get(allTypesPrimaryKey)
+        assertFalse(set.isEmpty())
+
+        assertSetContainsSet(initializedSet, set)
+
+        primaryKeyAllTypesSetProperty.getter(manualInstance).add(notPresentValue)
+
+        // Insert to Realm with non managed updated model
+        realm.executeTransaction {
+            realm.insertOrUpdate(listOf(emptyInstance, manualInstance))
+        }
+
+        val updatedContainer = realm.where<SetAllTypesPrimaryKey>().findFirst()!!
+        val updatedSet = primaryKeyAllTypesSetProperty.get(updatedContainer)
+        assertEquals(initializedSet.size + 1, updatedSet.size)
+
+        assertSetContainsSet(initializedSet.plus(notPresentValue), set)
+    }
+
     override fun copyToRealm() {
         doCopyToRealmTest(initializedSet)
     }

@@ -54,6 +54,10 @@ class NullRealmAnySetTester(
 
     override fun insertList() = Unit // Not applicable
 
+    override fun insertOrUpdate() = Unit // Not applicable
+
+    override fun insertOrUpdateList() = Unit // Not applicable
+
     override fun copyToRealm() = Unit // Not applicable
 
     override fun copyToRealmOrUpdate() = Unit // Not applicable

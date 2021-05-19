@@ -130,6 +130,10 @@ class NoPKRealmModelSetTester<T : RealmModel>(
 
     override fun insertList() = Unit // Not tested
 
+    override fun insertOrUpdate() = Unit // Not tested
+
+    override fun insertOrUpdateList() = Unit // Not tested
+
     override fun copyToRealm() = Unit // Not tested
 
     override fun copyToRealmOrUpdate() = Unit // Not tested

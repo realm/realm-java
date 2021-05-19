@@ -1921,9 +1921,86 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         endControlFlow()
                         emitEmptyLine()
                     }
-                    Utils.isRealmSet(field) -> {
-                        // TODO: Set
-                        emitSingleLineComment("TODO: Set")
+                    Utils.isRealmModelSet(field) -> {
+                        val genericType: TypeMirror = Utils.getGenericType(field)!!
+                        val isEmbedded = Utils.isFieldTypeEmbedded(genericType, classCollection)
+
+                        emitEmptyLine()
+                        emitStatement("OsSet %1\$sOsSet = new OsSet(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
+                        emitStatement("RealmSet<%s> %sSet = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
+                        if (isEmbedded) {
+                            // throw not supported
+                            throw UnsupportedOperationException("Field $fieldName of type RealmSet<${genericType}>, RealmSet does not support embedded objects.")
+                        } else {
+                            beginControlFlow("if (%1\$sSet != null && %1\$sSet.size() == %1\$sOsSet.size())", fieldName)
+                                emitSingleLineComment("For Sets of equal lengths, we need to set each element directly as clearing the receiver Set can be wrong if the input and target Set are the same.")
+                                emitStatement("int objectCount = %1\$sSet.size()", fieldName)
+                                beginControlFlow("for (${genericType} ${fieldName}Item: ${fieldName}Set)")
+                                    emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
+                                    beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                        emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getSetGenericProxyClassSimpleName(field))
+                                    endControlFlow()
+                                    emitStatement("%1\$sOsSet.addRow(cacheItemIndex%1\$s)", fieldName)
+                                endControlFlow()
+                            nextControlFlow("else")
+                                emitStatement("%1\$sOsSet.clear()", fieldName)
+                                beginControlFlow("if (%sSet != null)", fieldName)
+                                    beginControlFlow("for (%1\$s %2\$sItem : %2\$sSet)", genericType, fieldName)
+                                        emitStatement("Long cacheItemIndex%1\$s = cache.get(%1\$sItem)", fieldName)
+                                        beginControlFlow("if (cacheItemIndex%s == null)", fieldName)
+                                            emitStatement("cacheItemIndex%1\$s = %2\$s.insertOrUpdate(realm, %1\$sItem, cache)", fieldName, Utils.getSetGenericProxyClassSimpleName(field))
+                                        endControlFlow()
+                                        emitStatement("%1\$sOsSet.addRow(cacheItemIndex%1\$s)", fieldName)
+                                    endControlFlow()
+                                endControlFlow()
+                            endControlFlow()
+                        }
+                        emitEmptyLine()
+                    }
+                    Utils.isRealmValueSet(field) -> {
+                        val genericType = Utils.getGenericTypeQualifiedName(field)
+                        emitEmptyLine()
+                        emitStatement("OsSet %1\$sOsSet = new OsSet(table.getUncheckedRow(objKey), columnInfo.%1\$sColKey)", fieldName)
+                        emitStatement("%1\$sOsSet.clear()", fieldName)
+                        emitStatement("RealmSet<%s> %sSet = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
+                        beginControlFlow("if (%sSet != null)", fieldName)
+                           beginControlFlow("for (%1\$s %2\$sItem : %2\$sSet)", genericType, fieldName)
+                                beginControlFlow("if (%1\$sItem == null)", fieldName)
+                                    emitStatement("%1\$sOsSet.add(($genericType) null)", fieldName)
+                                nextControlFlow("else")
+                                    emitStatement("${fieldName}OsSet.add(${fieldName}Item)")
+                                endControlFlow()
+                            endControlFlow()
+                        endControlFlow()
+                        emitEmptyLine()
+                    }
+                    Utils.isRealmAnySet(field) -> {
+                        emitEmptyLine()
+                        emitStatement("OsSet ${fieldName}OsSet = new OsSet(table.getUncheckedRow(objKey), columnInfo.${fieldName}ColKey)")
+                        emitStatement("RealmSet<RealmAny> ${fieldName}Set = ((${interfaceName}) object).${getter}()")
+
+                        beginControlFlow("if (${fieldName}Set != null && ${fieldName}Set.size() == ${fieldName}OsSet.size())")
+                            emitSingleLineComment("For Sets of equal lengths, we need to set each element directly as clearing the receiver Set can be wrong if the input and target Set are the same.")
+                            emitStatement("int objectCount = ${fieldName}Set.size()")
+                            beginControlFlow("for (RealmAny ${fieldName}Item: ${fieldName}Set)")
+                                emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                                beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                    emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
+                                endControlFlow()
+                                emitStatement("${fieldName}OsSet.addRealmAny(${fieldName}Item.getNativePtr())")
+                            endControlFlow()
+                        nextControlFlow("else")
+                            emitStatement("${fieldName}OsSet.clear()")
+                            beginControlFlow("if (${fieldName}Set != null)")
+                                beginControlFlow("for (RealmAny ${fieldName}Item : ${fieldName}Set)")
+                                    emitStatement("Long cacheItemIndex${fieldName} = cache.get(${fieldName}Item)")
+                                    beginControlFlow("if (cacheItemIndex${fieldName} == null)")
+                                        emitStatement("${fieldName}Item = ProxyUtils.insertOrUpdate(${fieldName}Item, realm, cache)")
+                                    endControlFlow()
+                                    emitStatement("${fieldName}OsSet.addRealmAny(${fieldName}Item.getNativePtr())")
+                                endControlFlow()
+                            endControlFlow()
+                        endControlFlow()
                     }
                     else -> {
                         if (metadata.primaryKey !== field) {
@@ -1949,14 +2026,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                     "Map<RealmModel,Long>", "cache")
             val args = if (metadata.embedded) embeddedArgs else topLevelArgs
             beginMethod("long", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
-
-            // Throw if model contains a set field until we add support for it
-            if (containsSet(metadata.fields)) {
-                emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmSet properties are not supported yet.\")")
-                endMethod()
-                emitEmptyLine()
-                return@apply
-            }
 
             // If object is already in the Realm there is nothing to update
             beginControlFlow("if (object instanceof RealmObjectProxy && !RealmObject.isFrozen(object) && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm() != null && ((RealmObjectProxy) object).realmGet\$proxyState().getRealm\$realm().getPath().equals(realm.getPath()))")
@@ -1991,14 +2060,6 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
             val args = if (metadata.embedded) embeddedArgs else topLevelArgs
 
             beginMethod("void", "insertOrUpdate", EnumSet.of(Modifier.PUBLIC, Modifier.STATIC), *args)
-
-                // Throw if model contains a set field until we add support for it
-                if (containsSet(metadata.fields)) {
-                    emitStatement("throw new UnsupportedOperationException(\"Calls to 'insertOrUpdate' with RealmModels containing RealmSet properties are not supported yet.\")")
-                    endMethod()
-                    emitEmptyLine()
-                    return@apply
-                }
 
                 emitStatement("Table table = realm.getTable(%s.class)", qualifiedJavaClassName)
                 emitStatement("long tableNativePtr = table.getNativePtr()")
