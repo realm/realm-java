@@ -183,16 +183,6 @@ class DictionaryMiscTests {
     }
 
     @Test
-    fun insertOrUpdate_unsupportedOperation() {
-        realm = Realm.getInstance(configFactory.createConfiguration())
-        realm.executeTransaction {
-            assertFailsWith<UnsupportedOperationException> {
-                realm.insertOrUpdate(DictionaryContainerClass())
-            }
-        }
-    }
-
-    @Test
     fun createAllFromJson_unsupportedOperation() {
         realm = Realm.getInstance(configFactory.createConfiguration())
         realm.executeTransaction {

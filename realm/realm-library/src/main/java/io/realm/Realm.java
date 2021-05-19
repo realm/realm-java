@@ -1361,12 +1361,9 @@ public class Realm extends BaseRealm {
      * @param object RealmObjects to insert.
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
      * transaction.
-     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
-     * a {@link RealmSet}.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmSet}.
      * @see #copyToRealmOrUpdate(RealmModel, ImportFlag...)
      * @see RealmSet
-     * @see RealmDictionary
-     * @see RealmMap
      */
     public void insertOrUpdate(RealmModel object) {
         checkIfValidAndInTransaction();
