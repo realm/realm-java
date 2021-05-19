@@ -1,15 +1,14 @@
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${projectDir}/dependencies.list"))
+
     repositories {
         jcenter()
-    }
-    dependencies {
-        classpath 'io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0'
-        classpath 'ch.netzwerg:gradle-release-plugin:1.2.0'
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
 }
-
-apply plugin: 'ch.netzwerg.release'
-apply plugin: 'io.codearte.nexus-staging'
 
 def currentVersion = file("${projectDir}/version.txt").text.trim()
 
@@ -292,7 +291,6 @@ task assemble {
 
 task distributionJniUnstrippedPackage(type:Zip) {
     description = 'Generate native libs package with debug symbols'
-    dependsOn assembleRealm
 
     group = 'Artifact'
     archiveName = "realm-java-jni-libs-unstripped-${currentVersion}.zip"
@@ -300,6 +298,15 @@ task distributionJniUnstrippedPackage(type:Zip) {
 
     from("realm/realm-library/build/outputs/jniLibs-unstripped") {
         include '**/*.so'
+    }
+    doLast {
+        // Failsafe check, ensuring that we catch if the path ever changes, which it might since it is an
+        // implementation detail of the Android Gradle Plugin
+        def unstrippedDir = file("${rootDir}/realm/realm-library/build/outputs/jniLibs-unstripped")
+        print(unstrippedDir)
+        if (!unstrippedDir.exists() || !unstrippedDir.isDirectory() || unstrippedDir.listFiles().size() == 0) {
+            throw new GradleException("Could not locate unstripped binary files in: ${unstrippedDir.getPath()}")
+        }
     }
 }
 
@@ -404,7 +411,7 @@ task mavenCentralRealm(type: GradleBuild) {
     description = 'Publish the Realm AAR and AP to Maven Central'
     group = 'Publishing'
     buildFile = file('realm/build.gradle')
-    tasks = ['publishAllPublicationsToMavenCentralRepository']
+    tasks = ['publishToSonatype']
     startParameter.projectProperties = gradle.startParameter.projectProperties
     configure copyProperties
 }
@@ -413,24 +420,27 @@ task mavenCentralAnnotations(type: GradleBuild) {
     description = 'Publish the Realm Annotations to Maven Central'
     group = 'Publishing'
     buildFile = file('realm-annotations/build.gradle')
+    tasks = ['publishToSonatype']
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['publishAllPublicationsToMavenCentralRepository']
+    configure copyProperties
 }
 
 task mavenCentralGradlePlugin(type: GradleBuild) {
     description = 'Publish the Realm Gradle Plugin to Maven Central'
     group = 'Publishing'
     buildFile = file('gradle-plugin/build.gradle')
+    tasks = ['publishToSonatype']
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['publishAllPublicationsToMavenCentralRepository']
+    configure copyProperties
 }
 
 task mavenCentralTransformer(type: GradleBuild) {
     description = 'Publish the Realm Transformer to Maven Central'
     group = 'Publishing'
     buildFile = file('realm-transformer/build.gradle')
+    tasks = ['publishToSonatype']
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['publishAllPublicationsToMavenCentralRepository']
+    configure copyProperties
 }
 
 task mavenCentralUpload {
@@ -440,27 +450,4 @@ task mavenCentralUpload {
     dependsOn mavenCentralAnnotations
     dependsOn mavenCentralGradlePlugin
     dependsOn mavenCentralTransformer
-}
-
-apply from: "mavencentral-properties.gradle"
-
-nexusStaging {
-    // Lazily evaluate properties so they are only needed when actually used.
-    packageGroup = "io.realm"
-    stagingProfileId = rootProject.ext["sonatypeStagingProfileId"]
-    username = rootProject.ext["ossrhUsername"]
-    password = rootProject.ext["ossrhPassword"]
-    // Maven Central, at times, seems really slow to update the repository status,
-    // so setting the timeout to 20 minutes.
-    delayBetweenRetriesInMillis = 10000
-    numberOfRetries = 120
-}
-
-// This is just a placeholder for the release plugin
-task build {}
-
-release {
-    push = false
-    versionSuffix = '-SNAPSHOT'
-    tagPrefix = 'v'
 }

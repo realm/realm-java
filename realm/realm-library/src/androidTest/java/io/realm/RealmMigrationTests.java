@@ -60,6 +60,8 @@ import io.realm.entities.PrimaryKeyAsUUID;
 import io.realm.entities.StringOnly;
 import io.realm.entities.StringOnlyRequired;
 import io.realm.entities.Thread;
+import io.realm.entities.embedded.EmbeddedSimpleChild;
+import io.realm.entities.embedded.EmbeddedSimpleParent;
 import io.realm.entities.migration.MigrationClassRenamed;
 import io.realm.entities.migration.MigrationCore6PKStringIndexedByDefault;
 import io.realm.entities.migration.MigrationFieldRenameAndAdd;
@@ -1672,6 +1674,42 @@ public class RealmMigrationTests {
         assertEquals(RealmFieldType.MIXED_LIST, objectSchema.getFieldType(RealmAnyRealmListWithPK.FIELD_REALM_ANY));
         assertTrue(objectSchema.hasPrimaryKey());
         realm.close();
+    }
+
+    @Test
+    public void migrate_embeddedObject(){
+        // Create schema v0
+        RealmConfiguration originalConfig = configFactory.createConfigurationBuilder()
+                .schema(StringOnly.class)
+                .build();
+
+        Realm.getInstance(originalConfig).close();
+
+        RealmMigration migration = new RealmMigration() {
+            @Override
+            public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
+                RealmSchema schema = realm.getSchema();
+                RealmObjectSchema embeddedSimpleChildSchema = schema
+                        .create(EmbeddedSimpleChild.NAME)
+                        .addField("childId", String.class, FieldAttribute.REQUIRED);
+
+                schema.create(EmbeddedSimpleParent.NAME)
+                        .addField("_id", String.class, FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED)
+                        .addRealmObjectField(EmbeddedSimpleParent.CHILD, embeddedSimpleChildSchema);
+
+                embeddedSimpleChildSchema.setEmbedded(true);
+            }
+        };
+
+        // Create schema v1
+        RealmConfiguration realmConfig = configFactory
+                .createConfigurationBuilder()
+                .schemaVersion(1)
+                .schema(StringOnly.class, EmbeddedSimpleParent.class, EmbeddedSimpleChild.class)
+                .migration(migration)
+                .build();
+
+        realm = Realm.getInstance(realmConfig);
     }
 
     // TODO Add unit tests for default nullability

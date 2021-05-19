@@ -1930,6 +1930,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         emitStatement("RealmSet<%s> %sSet = ((%s) object).%s()", genericType, fieldName, interfaceName, getter)
                         if (isEmbedded) {
                             // throw not supported
+                            throw UnsupportedOperationException("Field $fieldName of type RealmSet<${genericType}>, RealmSet does not support embedded objects.")
                         } else {
                             beginControlFlow("if (%1\$sSet != null && %1\$sSet.size() == %1\$sOsSet.size())", fieldName)
                                 emitSingleLineComment("For Sets of equal lengths, we need to set each element directly as clearing the receiver Set can be wrong if the input and target Set are the same.")
