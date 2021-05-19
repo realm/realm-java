@@ -1477,7 +1477,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
      *                                  set doesn't match the expected type or any Realm object in the set
      *                                  belongs to a different Realm.
      */
-    public <E> void setSet(String fieldName, RealmSet<E> set) {
+    public <E> void setRealmSet(String fieldName, RealmSet<E> set) {
         proxyState.getRealm$realm().checkIfValid();
 
         //noinspection ConstantConditions
