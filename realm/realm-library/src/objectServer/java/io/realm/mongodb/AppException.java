@@ -106,6 +106,7 @@ public class AppException extends RuntimeException {
 
     public AppException(ErrorCode errorCode, String nativeErrorType, int nativeErrorCode,
                         @Nullable String errorMessage, @Nullable Throwable exception) {
+        super(errorMessage);
         this.error = errorCode;
         this.nativeErrorType = nativeErrorType;
         this.nativeErrorIntValue = nativeErrorCode;

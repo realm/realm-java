@@ -447,7 +447,7 @@ class ManagedDictionaryTester<T : Any>(
             })
         }
 
-        assertEquals(1, dynamicObject.getDictionary(dictionaryFieldName, dictionaryFieldClass).size)
+        assertEquals(1, dynamicObject.get<RealmDictionary<T>>(dictionaryFieldName).size)
 
         dynamicRealm.close()
     }

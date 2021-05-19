@@ -83,7 +83,7 @@ public class RealmDictionary<V> extends RealmMap<String, V> {
     }
 
     /**
-     * Constructor used by {@code Realm}s.
+     * Constructor used by {@code DynamicRealmObject}s.
      *
      * @param baseRealm
      * @param osMap
