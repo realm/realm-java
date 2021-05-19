@@ -27,6 +27,7 @@ public class DogPrimaryKey extends RealmObject {
     public static final String CLASS_NAME = "DogPrimaryKey";
     public static final String AGE = "age";
     public static final String BIRTHDAY = "birthday";
+    public static final String ID = "id";
 
     @PrimaryKey
     private long id;

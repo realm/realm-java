@@ -20,8 +20,11 @@ import org.bson.types.ObjectId;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nonnull;
@@ -30,12 +33,17 @@ import javax.annotation.Nullable;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.OsList;
+import io.realm.internal.OsMap;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.android.JsonUtils;
 import io.realm.internal.core.NativeRealmAny;
+
+import static io.realm.RealmFieldTypeConstants.DICTIONARY_OFFSET;
+import static io.realm.RealmFieldTypeConstants.LIST_OFFSET;
+import static io.realm.RealmFieldTypeConstants.SET_OFFSET;
 
 
 /**
@@ -130,8 +138,33 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 return (E) getObject(fieldName);
             case LIST:
                 return (E) getList(fieldName);
+            case STRING_TO_INTEGER_MAP:
+                return (E) getDictionary(fieldName, Integer.class);
+            case STRING_TO_BOOLEAN_MAP:
+                return (E) getDictionary(fieldName, Boolean.class);
+            case STRING_TO_STRING_MAP:
+                return (E) getDictionary(fieldName, String.class);
+            case STRING_TO_BINARY_MAP:
+                return (E) getDictionary(fieldName, byte[].class);
+            case STRING_TO_DATE_MAP:
+                return (E) getDictionary(fieldName, Date.class);
+            case STRING_TO_FLOAT_MAP:
+                return (E) getDictionary(fieldName, Float.class);
+            case STRING_TO_DOUBLE_MAP:
+                return (E) getDictionary(fieldName, Double.class);
+            case STRING_TO_DECIMAL128_MAP:
+                return (E) getDictionary(fieldName, Decimal128.class);
+            case STRING_TO_OBJECT_ID_MAP:
+                return (E) getDictionary(fieldName, ObjectId.class);
+            case STRING_TO_UUID_MAP:
+                return (E) getDictionary(fieldName, UUID.class);
+            case STRING_TO_MIXED_MAP:
+                return (E) getDictionary(fieldName, RealmAny.class);
+            case STRING_TO_LINK_MAP:
+                return (E) getDictionary(fieldName);
             default:
                 throw new IllegalStateException("Field type not supported: " + type);
+
         }
     }
 
@@ -467,7 +500,7 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             throw new IllegalArgumentException("Non-null 'primitiveType' required.");
         }
         long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
-        RealmFieldType realmType = classToRealmType(primitiveType);
+        RealmFieldType realmType = primitiveTypeToRealmFieldType(CollectionType.LIST, primitiveType);
         try {
             OsList osList = proxyState.getRow$realm().getValueList(columnKey, realmType);
             return new RealmList<>(primitiveType, osList, proxyState.getRealm$realm());
@@ -477,32 +510,111 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         }
     }
 
-    private <E> RealmFieldType classToRealmType(Class<E> primitiveType) {
+    /**
+     * Returns the {@link RealmDictionary} of {@link DynamicRealmObject}s being linked from the given field.
+     * <p>
+     * If the dictionary contains primitive types, use {@link #getDictionary(String, Class)} instead.
+     *
+     * @param fieldName the name of the field.
+     * @return the {@link RealmDictionary} data for this field.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a dictionary of objects.
+     */
+    public RealmDictionary<DynamicRealmObject> getDictionary(String fieldName) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        try {
+            OsMap osMap = proxyState.getRow$realm().getModelMap(columnKey);
+            //noinspection ConstantConditions
+            @Nonnull
+            String className = osMap.getTargetTable().getClassName();
+            return new RealmDictionary<>(proxyState.getRealm$realm(), osMap, className);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnKey, RealmFieldType.STRING_TO_LINK_MAP);
+            throw e;
+        }
+    }
+
+    /**
+     * Returns the {@link RealmDictionary} containing only primitive values.
+     *
+     * <p>
+     * If the dictionary contains references to other Realm objects, use {@link #getDictionary(String)} instead.
+     *
+     * @param fieldName     the name of the field.
+     * @param primitiveType the type of elements in the dictionary. Only primitive types are supported.
+     * @return the {@link RealmDictionary} data for this field.
+     * @throws IllegalArgumentException if field name doesn't exist or it doesn't contain a dictionary of primitive objects.
+     */
+    public <E> RealmDictionary<E> getDictionary(String fieldName, Class<E> primitiveType) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        if (primitiveType == null) {
+            throw new IllegalArgumentException("Non-null 'primitiveType' required.");
+        }
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        RealmFieldType realmType = primitiveTypeToRealmFieldType(CollectionType.DICTIONARY, primitiveType);
+        try {
+            OsMap osMap = proxyState.getRow$realm().getValueMap(columnKey, realmType);
+            return new RealmDictionary<>(proxyState.getRealm$realm(), osMap, primitiveType);
+        } catch (IllegalArgumentException e) {
+            checkFieldType(fieldName, columnKey, realmType);
+            throw e;
+        }
+    }
+
+    private enum CollectionType {
+        LIST,
+        DICTIONARY,
+        SET
+    }
+
+    private <E> RealmFieldType primitiveTypeToRealmFieldType(CollectionType collectionType, Class<E> primitiveType) {
+        int nativeValue = primitiveTypeToCoreType(primitiveType);
+
+        switch (collectionType) {
+            case SET:
+                nativeValue += SET_OFFSET;
+                break;
+            case DICTIONARY:
+                nativeValue += DICTIONARY_OFFSET;
+                break;
+            case LIST:
+                nativeValue += LIST_OFFSET;
+                break;
+            default:
+                throw new IllegalArgumentException("Type not supported: " + collectionType);
+        }
+
+        return RealmFieldType.fromNativeValue(nativeValue);
+    }
+
+    private <E> int primitiveTypeToCoreType(Class<E> primitiveType) {
         if (primitiveType.equals(Integer.class)
                 || primitiveType.equals(Long.class)
                 || primitiveType.equals(Short.class)
                 || primitiveType.equals(Byte.class)) {
-            return RealmFieldType.INTEGER_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_INTEGER;
         } else if (primitiveType.equals(Boolean.class)) {
-            return RealmFieldType.BOOLEAN_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_BOOLEAN;
         } else if (primitiveType.equals(String.class)) {
-            return RealmFieldType.STRING_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_STRING;
         } else if (primitiveType.equals(byte[].class)) {
-            return RealmFieldType.BINARY_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_BINARY;
         } else if (primitiveType.equals(Date.class)) {
-            return RealmFieldType.DATE_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_DATE;
         } else if (primitiveType.equals(Float.class)) {
-            return RealmFieldType.FLOAT_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_FLOAT;
         } else if (primitiveType.equals(Double.class)) {
-            return RealmFieldType.DOUBLE_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_DOUBLE;
         } else if (primitiveType.equals(Decimal128.class)) {
-            return RealmFieldType.DECIMAL128_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_DECIMAL128;
         } else if (primitiveType.equals(ObjectId.class)) {
-            return RealmFieldType.OBJECT_ID_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_OBJECTID;
         } else if (primitiveType.equals(UUID.class)) {
-            return RealmFieldType.UUID_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_UUID;
         } else if (primitiveType.equals(RealmAny.class)) {
-            return RealmFieldType.MIXED_LIST;
+            return RealmFieldTypeConstants.CORE_TYPE_VALUE_MIXED;
         } else {
             throw new IllegalArgumentException("Unsupported element type. Only primitive types supported. Yours was: " + primitiveType);
         }
@@ -1135,6 +1247,144 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
             return (ManagedListOperator<E>) new RealmAnyListOperator(realm, osList, (Class<RealmAny>) valueClass);
         }
         throw new IllegalArgumentException("Unexpected list type: " + valueListType.name());
+    }
+
+    /**
+     * Sets the reference to a {@link RealmDictionary} on the given field.
+     * <p>
+     * This will copy all the elements in the dictionary into Realm, but any further changes to the dictionary
+     * will not be reflected in the Realm. Use {@link #getDictionary(String)} in order to get a reference to
+     * the managed dictionary.
+     *
+     * @param fieldName  field name.
+     * @param dictionary dictionary of objects. Must either be primitive types or {@link DynamicRealmObject}s.
+     * @throws IllegalArgumentException if field name doesn't exist, it is not a dictionary field, the objects in the
+     *                                  dictionary doesn't match the expected type or any Realm object in the dictionary
+     *                                  belongs to a different Realm.
+     */
+    public <E> void setDictionary(String fieldName, RealmDictionary<E> dictionary) {
+        proxyState.getRealm$realm().checkIfValid();
+
+        //noinspection ConstantConditions
+        if (dictionary == null) {
+            throw new IllegalArgumentException("Non-null 'dictionary' required");
+        }
+
+        // Find type of list in Realm
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        final RealmFieldType columnType = proxyState.getRow$realm().getColumnType(columnKey);
+
+        switch (columnType) {
+            case STRING_TO_INTEGER_MAP:
+            case STRING_TO_BOOLEAN_MAP:
+            case STRING_TO_STRING_MAP:
+            case STRING_TO_BINARY_MAP:
+            case STRING_TO_DATE_MAP:
+            case STRING_TO_FLOAT_MAP:
+            case STRING_TO_DOUBLE_MAP:
+            case STRING_TO_DECIMAL128_MAP:
+            case STRING_TO_OBJECT_ID_MAP:
+            case STRING_TO_UUID_MAP:
+            case STRING_TO_MIXED_MAP:
+                setValueDictionary(fieldName, dictionary, columnType);
+                break;
+            case STRING_TO_LINK_MAP:
+                //noinspection unchecked
+                setModelDictionary(fieldName, (RealmDictionary<DynamicRealmObject>) dictionary);
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("Field '%s' is not a dictionary but a %s", fieldName, columnType));
+        }
+    }
+
+    private void setModelDictionary(String fieldName, RealmDictionary<DynamicRealmObject> sourceDictionary) {
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        OsMap osMap = proxyState.getRow$realm().getModelMap(columnKey);
+        Table linkTargetTable = osMap.getTargetTable();
+        //noinspection ConstantConditions
+        @Nonnull final String linkTargetTableName = linkTargetTable.getClassName();
+
+        boolean typeValidated;
+        if (!sourceDictionary.isManaged()) {
+            typeValidated = false;
+        } else {
+            String dictType = (sourceDictionary.getValueClassName() != null) ? sourceDictionary.getValueClassName()
+                    : proxyState.getRealm$realm().getSchema().getTable(sourceDictionary.getValueClass()).getClassName();
+            if (!linkTargetTableName.equals(dictType)) {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "The elements in the dictionary are not the proper type. " +
+                                "Was %s expected %s.", dictType, linkTargetTableName));
+            }
+            typeValidated = true;
+        }
+
+        // This dictionary holds all the validated row pointers
+        RealmDictionary<Long> auxiliaryDictionary = new RealmDictionary<>();
+
+        // Now we must validate that the dictionary contains valid objects
+        for (Map.Entry<String, DynamicRealmObject> entry : sourceDictionary.entrySet()) {
+            RealmObjectProxy obj = entry.getValue();
+            if (obj.realmGet$proxyState().getRealm$realm() != proxyState.getRealm$realm()) {
+                throw new IllegalArgumentException("Each element in 'dictionary' must belong to the same Realm instance.");
+            }
+            if (!typeValidated && !linkTargetTable.hasSameSchema(obj.realmGet$proxyState().getRow$realm().getTable())) {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "Element with key %s is not the proper type. " +
+                                "Was '%s' expected '%s'.",
+                        entry.getKey(),
+                        obj.realmGet$proxyState().getRow$realm().getTable().getClassName(),
+                        linkTargetTableName));
+            }
+            long row = obj.realmGet$proxyState().getRow$realm().getObjectKey();
+            auxiliaryDictionary.put(entry.getKey(), row);
+        }
+
+        // We have validated the source dictionary and we can safely clear the target dictionary
+        osMap.clear();
+        for (Map.Entry<String, Long> entry : auxiliaryDictionary.entrySet()) {
+            osMap.putRow(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <E> void setValueDictionary(String fieldName, RealmDictionary<E> sourceDictionary, RealmFieldType primitiveType) {
+        long columnKey = proxyState.getRow$realm().getColumnKey(fieldName);
+        OsMap osMap = proxyState.getRow$realm().getValueMap(columnKey, primitiveType);
+
+        Class<E> elementClass;
+        switch(primitiveType) {
+            case STRING_TO_INTEGER_MAP: elementClass = (Class<E>) Long.class; break;
+            case STRING_TO_BOOLEAN_MAP: elementClass = (Class<E>) Boolean.class; break;
+            case STRING_TO_STRING_MAP: elementClass = (Class<E>) String.class; break;
+            case STRING_TO_BINARY_MAP: elementClass = (Class<E>) byte[].class; break;
+            case STRING_TO_DATE_MAP: elementClass = (Class<E>) Date.class; break;
+            case STRING_TO_FLOAT_MAP: elementClass = (Class<E>) Float.class; break;
+            case STRING_TO_DOUBLE_MAP: elementClass = (Class<E>) Double.class; break;
+            case STRING_TO_DECIMAL128_MAP: elementClass = (Class<E>) Decimal128.class; break;
+            case STRING_TO_OBJECT_ID_MAP: elementClass = (Class<E>) ObjectId.class; break;
+            case STRING_TO_UUID_MAP: elementClass = (Class<E>) UUID.class; break;
+            case STRING_TO_MIXED_MAP: elementClass = (Class<E>) RealmAny.class; break;
+            default:
+                throw new IllegalArgumentException("Unsupported type: " + primitiveType);
+        }
+
+        // Dictionary in the RealmObject
+        RealmDictionary<E> targetDictionary = new RealmDictionary<>(proxyState.getRealm$realm(), osMap, elementClass);
+
+        // We move the data in a auxiliary dictionary to prevent removing the values when the input and out dicts are
+        // the same.
+        RealmDictionary<E> auxiliaryDictionary = new RealmDictionary<>();
+        for (Map.Entry<String, E> entry : sourceDictionary.entrySet()) {
+            auxiliaryDictionary.put(entry.getKey(), entry.getValue());
+        }
+
+        // Now we can safely clear the target dictionary
+        osMap.clear();
+
+        // And now we move the data back in
+        for (Map.Entry<String, E> entry : auxiliaryDictionary.entrySet()) {
+            targetDictionary.put(entry.getKey(), entry.getValue());
+        }
     }
 
     /**

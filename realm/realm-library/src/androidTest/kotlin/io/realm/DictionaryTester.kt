@@ -39,6 +39,7 @@ interface DictionaryTester : GenericTester {
     fun values()
     fun entrySet()
     fun freeze()
+    fun dynamic()
     fun insert()
     fun insertList()
     fun insertOrUpdate()

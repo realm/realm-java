@@ -170,6 +170,11 @@ class ParameterizedDictionaryTests(
     }
 
     @Test
+    fun dynamic() {
+        tester.dynamic()
+    }
+
+    @Test
     fun insert() {
         tester.insert()
     }

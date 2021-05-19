@@ -68,6 +68,10 @@ abstract class TypeSelectorForMap<K, V> {
     abstract Collection<V> getValues();
 
     abstract RealmDictionary<V> freeze(BaseRealm frozenBaseRealm);
+
+    abstract String getValueClassName();
+
+    abstract Class<V> getValueClass();
 }
 
 /**
@@ -107,18 +111,20 @@ class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
     private <T> RealmResults<T> produceResults(BaseRealm baseRealm,
                                                Pair<Table, Long> tableAndValuesPtr,
                                                boolean forPrimitives,
-                                               @Nullable Class<T> clazz) {
-        if (baseRealm instanceof Realm) {
-            Realm realm = (Realm) baseRealm;
-            Long valuesPtr = tableAndValuesPtr.second;
-            OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, valuesPtr);
-            if (clazz != null) {
-                return new RealmResults<>(realm, osResults, clazz, forPrimitives);
-            }
-            throw new IllegalStateException("MapValueOperator missing class.");
-        }
+                                               Class<T> clazz) {
+        Long valuesPtr = tableAndValuesPtr.second;
+        OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, valuesPtr);
+        return new RealmResults<>(baseRealm, osResults, clazz, forPrimitives);
+    }
 
-        throw new UnsupportedOperationException("Add support for 'values' for DynamicRealms.");
+    @Override
+    Class<V> getValueClass() {
+        return valueClass;
+    }
+
+    @Override
+    String getValueClassName() {
+        return valueClass.getSimpleName();
     }
 }
 
@@ -171,7 +177,7 @@ class LinkSelectorForMap<K, V extends RealmModel> extends SelectorForMap<K, V> {
 /**
  * Implementation for DynamicRealms.
  */
-class DynamicSelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
+class DynamicSelectorForMap<K> extends TypeSelectorForMap<K, DynamicRealmObject> {
 
     private final String className;
 
@@ -183,38 +189,72 @@ class DynamicSelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
     }
 
     @Override
-    public V getRealmModel(BaseRealm baseRealm, long realmModelKey) {
-        // TODO
-        throw new UnsupportedOperationException("Support for getRealmModel for DynamicRealms not ready yet ");
+    public DynamicRealmObject getRealmModel(BaseRealm baseRealm, long realmModelKey) {
+        return baseRealm.get(DynamicRealmObject.class, className, realmModelKey);
     }
 
     @Override
-    public V putRealmModel(BaseRealm baseRealm, OsMap osMap, K key, @Nullable V value) {
-        // TODO
-        throw new UnsupportedOperationException("Support for putRealmModel for DynamicRealms not ready yet ");
+    public DynamicRealmObject putRealmModel(BaseRealm baseRealm, OsMap osMap, K key, @Nullable DynamicRealmObject value) {
+        long rowModelKey = osMap.getModelRowKey(key);
+
+        if (value == null) {
+            osMap.put(key, null);
+        } else {
+            boolean isEmbedded = baseRealm.getSchema().getSchemaForClass(className).isEmbedded();
+            if (isEmbedded) {
+                long objKey = osMap.createAndPutEmbeddedObject(key);
+                CollectionUtils.updateEmbeddedObject((Realm) baseRealm, value, objKey);
+            } else {
+                boolean copyObject = CollectionUtils.checkCanObjectBeCopied(baseRealm, value, className, DICTIONARY_TYPE);
+                RealmObjectProxy proxy = (RealmObjectProxy) ((copyObject) ? CollectionUtils.copyToRealm(baseRealm, value) : value);
+                osMap.putRow(key, proxy.realmGet$proxyState().getRow$realm().getObjectKey());
+            }
+        }
+
+        if (rowModelKey == OsMap.NOT_FOUND) {
+            return null;
+        } else {
+            return baseRealm.get(DynamicRealmObject.class, className, rowModelKey);
+        }
+    }
+
+    // Do not use <K> or <V> as this method can be used for either keys or values
+    private <T> RealmResults<T> produceResults(BaseRealm baseRealm,
+            Pair<Table, Long> tableAndValuesPtr,
+            String className) {
+        Long valuesPtr = tableAndValuesPtr.second;
+        OsResults osResults = OsResults.createFromMap(baseRealm.sharedRealm, valuesPtr);
+        return new RealmResults<>(baseRealm, osResults, className, false);
     }
 
     @Override
-    public Map.Entry<K, V> getModelEntry(BaseRealm baseRealm, long objRow, K key) {
-        // TODO
-        throw new UnsupportedOperationException("Support for getModelEntry for DynamicRealms not ready yet ");
+    public Map.Entry<K, DynamicRealmObject> getModelEntry(BaseRealm baseRealm, long objRow, K key) {
+        DynamicRealmObject realmModel = baseRealm.get(DynamicRealmObject.class, className, objRow);
+        return new AbstractMap.SimpleImmutableEntry<>(key, realmModel);
     }
 
     @Override
     public Set<K> keySet() {
-        // TODO
-        throw new UnsupportedOperationException("Support for keySet for DynamicRealms not ready yet ");
+        return new HashSet<>(produceResults(baseRealm, osMap.tableAndKeyPtrs(), className));
     }
 
     @Override
-    public Collection<V> getValues() {
-        // TODO
-        throw new UnsupportedOperationException("Support for getValues for DynamicRealms not ready yet ");
+    public Collection<DynamicRealmObject> getValues() {
+        return produceResults(baseRealm, osMap.tableAndValuePtrs(), className);
     }
 
     @Override
-    public RealmDictionary<V> freeze(BaseRealm frozenBaseRealm) {
-        // TODO
-        throw new UnsupportedOperationException("Support for freeze for DynamicRealms not ready yet ");
+    public RealmDictionary<DynamicRealmObject> freeze(BaseRealm frozenBaseRealm) {
+        return new RealmDictionary<>(frozenBaseRealm, osMap, className);
+    }
+
+    @Override
+    Class<DynamicRealmObject> getValueClass() {
+        return DynamicRealmObject.class;
+    }
+
+    @Override
+    String getValueClassName() {
+        return className;
     }
 }

@@ -41,6 +41,8 @@ import kotlin.test.*
 class ManagedDictionaryTester<T : Any>(
         private val testerClass: String,
         private val realmAnyType: RealmAny.Type? = null,
+        private val dictionaryFieldName: String,
+        private val dictionaryFieldClass: Class<T>,
         private val dictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>,
         private val dictionarySetter: KFunction2<DictionaryAllTypes, RealmDictionary<T>, Unit>,
         private val requiredDictionaryGetter: KFunction1<DictionaryAllTypes, RealmDictionary<T>>? = null,
@@ -398,6 +400,113 @@ class ManagedDictionaryTester<T : Any>(
 
             assertFalse(entrySet.containsAll(differentCollection))
         }
+    }
+
+    override fun dynamic() {
+        // The methods for Realm object and primitive types are different
+        if (notPresentValue is DogPrimaryKey) {
+            doObjectDynamicTest()
+        } else {
+            doPrimitiveDynamicTest()
+        }
+    }
+
+    private fun doPrimitiveDynamicTest() {
+        // Create a dictionary from a immutable schema context
+        val dictionary = initAndAssert()
+        realm.executeTransaction {
+            dictionary.putAll(initializedDictionary)
+        }
+
+        val dynamicRealm = DynamicRealm.getInstance(realm.configuration)
+        val dynamicObject: DynamicRealmObject = dynamicRealm.where(DictionaryAllTypes.NAME).equalTo("columnString", "").findFirst()!!
+        val dynamicDictionary = dynamicObject.getDictionary(dictionaryFieldName, dictionaryFieldClass)
+
+        // Access the previous dictionary from a mutable context
+        dictionary.values.forEach { value ->
+            typeAsserter.assertValues(dynamicDictionary, value)
+        }
+
+        // Update the dictionary with a new value
+        dynamicRealm.executeTransaction {
+            dynamicDictionary[KEY_NOT_PRESENT] = notPresentValue
+        }
+
+        dictionary.values.plus(notPresentValue).forEach { value ->
+            typeAsserter.assertValues(dynamicDictionary, value)
+        }
+
+        dictionary.keys.plus(KEY_NOT_PRESENT).forEach { key ->
+            typeAsserter.assertKeys(dynamicDictionary, key)
+        }
+
+        // Try to replace the whole dictionary by a new one
+        dynamicRealm.executeTransaction {
+            dynamicObject.setDictionary(dictionaryFieldName, RealmDictionary<T>().apply {
+                this[KEY_NOT_PRESENT] = notPresentValue
+            })
+        }
+
+        assertEquals(1, dynamicObject.get<RealmDictionary<T>>(dictionaryFieldName).size)
+
+        dynamicRealm.close()
+    }
+
+    private fun doObjectDynamicTest() {
+        // Create a dictionary from a immutable schema context
+        val dictionary = initAndAssert()
+        realm.executeTransaction {
+            dictionary.putAll(initializedDictionary)
+            realm.insert(notPresentValue as DogPrimaryKey)
+        }
+
+        val dynamicRealm = DynamicRealm.getInstance(realm.configuration)
+        val dynamicObject: DynamicRealmObject =
+            dynamicRealm.where(DictionaryAllTypes.NAME).equalTo("columnString", "").findFirst()!!
+        val dynamicDictionary = dynamicObject.getDictionary(dictionaryFieldName)
+
+        // Access the previous dictionary from a mutable context
+        dictionary.values.forEach { value ->
+            if (RealmObject.isValid(value as DogPrimaryKey)) {
+                val managedObject =
+                    dynamicRealm.where(DogPrimaryKey.CLASS_NAME).equalTo(DogPrimaryKey.ID, (value as DogPrimaryKey).id)
+                        .findFirst()!!
+                typeAsserter.assertDynamicValues(dynamicDictionary, managedObject)
+            }
+        }
+
+        // Update the dictionary with a new value
+        dynamicRealm.executeTransaction {
+            val notPresentManaged = dynamicRealm.where(DogPrimaryKey.CLASS_NAME)
+                .equalTo(DogPrimaryKey.ID, (notPresentValue as DogPrimaryKey).id).findFirst()!!
+            dynamicDictionary[KEY_NOT_PRESENT] = notPresentManaged
+        }
+
+        dictionary.values.plus(notPresentValue).forEach { value ->
+            if (RealmObject.isValid(value as DogPrimaryKey)) {
+                val managedObject =
+                    dynamicRealm.where(DogPrimaryKey.CLASS_NAME).equalTo(DogPrimaryKey.ID, (value as DogPrimaryKey).id)
+                        .findFirst()!!
+                typeAsserter.assertDynamicValues(dynamicDictionary, managedObject)
+            }
+        }
+
+        dictionary.keys.plus(KEY_NOT_PRESENT).forEach { key ->
+            typeAsserter.assertKeys(dynamicDictionary, key)
+        }
+
+        // Try to replace the whole dictionary by a new one
+        dynamicRealm.executeTransaction {
+            val notPresentManaged = dynamicRealm.where(DogPrimaryKey.CLASS_NAME)
+                .equalTo(DogPrimaryKey.ID, (notPresentValue as DogPrimaryKey).id).findFirst()!!
+            dynamicObject.setDictionary(dictionaryFieldName, RealmDictionary<DynamicRealmObject>().apply {
+                this[KEY_NOT_PRESENT] = notPresentManaged
+            })
+        }
+
+        assertEquals(1, dynamicObject.get<RealmDictionary<T>>(dictionaryFieldName).size)
+
+        dynamicRealm.close()
     }
 
     override fun freeze() = Unit                    // This has already been tested in "isFrozen"
@@ -840,6 +949,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
     val primitiveTesters = listOf<DictionaryTester>(
             ManagedDictionaryTester(
                     testerClass = "Long",
+                    dictionaryFieldClass = Long::class.javaObjectType,
+                    dictionaryFieldName = "columnLongDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnLongDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnLongDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredLongDictionary,
@@ -851,6 +962,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Int",
+                    dictionaryFieldClass = Int::class.javaObjectType,
+                    dictionaryFieldName = "columnIntegerDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnIntegerDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnIntegerDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredIntegerDictionary,
@@ -862,6 +975,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Short",
+                    dictionaryFieldClass = Short::class.javaObjectType,
+                    dictionaryFieldName = "columnShortDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnShortDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnShortDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredShortDictionary,
@@ -873,6 +988,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Byte",
+                    dictionaryFieldClass = Byte::class.javaObjectType,
+                    dictionaryFieldName = "columnByteDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnByteDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnByteDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredByteDictionary,
@@ -884,6 +1001,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Float",
+                    dictionaryFieldClass = Float::class.javaObjectType,
+                    dictionaryFieldName = "columnFloatDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnFloatDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnFloatDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredFloatDictionary,
@@ -895,6 +1014,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Double",
+                    dictionaryFieldClass = Double::class.javaObjectType,
+                    dictionaryFieldName = "columnDoubleDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnDoubleDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnDoubleDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredDoubleDictionary,
@@ -906,6 +1027,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "String",
+                    dictionaryFieldClass = String::class.java,
+                    dictionaryFieldName = "columnStringDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnStringDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnStringDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredStringDictionary,
@@ -917,6 +1040,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "String-NonLatin",
+                    dictionaryFieldClass = String::class.java,
+                    dictionaryFieldName = "columnStringDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnStringDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnStringDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredStringDictionary,
@@ -928,6 +1053,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Boolean",
+                    dictionaryFieldClass = Boolean::class.javaObjectType,
+                    dictionaryFieldName = "columnBooleanDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnBooleanDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnBooleanDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredBooleanDictionary,
@@ -939,6 +1066,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Date",
+                    dictionaryFieldClass = Date::class.java,
+                    dictionaryFieldName = "columnDateDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnDateDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnDateDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredDateDictionary,
@@ -950,6 +1079,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "Decimal128",
+                    dictionaryFieldClass = Decimal128::class.java,
+                    dictionaryFieldName = "columnDecimal128Dictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnDecimal128Dictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnDecimal128Dictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredDecimal128Dictionary,
@@ -961,6 +1092,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "ByteArray",
+                    dictionaryFieldClass = ByteArray::class.java,
+                    dictionaryFieldName = "columnBinaryDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnBinaryDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnBinaryDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredBinaryDictionary,
@@ -973,6 +1106,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "ObjectId",
+                    dictionaryFieldClass = ObjectId::class.java,
+                    dictionaryFieldName = "columnObjectIdDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnObjectIdDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnObjectIdDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredObjectIdDictionary,
@@ -984,6 +1119,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "UUID",
+                    dictionaryFieldClass = UUID::class.java,
+                    dictionaryFieldName = "columnUUIDDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnUUIDDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnUUIDDictionary,
                     requiredDictionaryGetter = DictionaryAllTypes::getColumnRequiredUUIDDictionary,
@@ -995,6 +1132,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ),
             ManagedDictionaryTester(
                     testerClass = "DogPrimaryKey",
+                    dictionaryFieldClass = DogPrimaryKey::class.java,
+                    dictionaryFieldName = "columnRealmDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnRealmDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnRealmDictionary,
                     initializedDictionary = RealmDictionary<DogPrimaryKey>().init(listOf(KEY_HELLO to VALUE_LINK_HELLO, KEY_BYE to VALUE_LINK_BYE, KEY_NULL to null)),
@@ -1011,6 +1150,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
         ManagedDictionaryTester(
                 testerClass = "RealmAny",
                 realmAnyType = realmAnyType,
+                dictionaryFieldClass = RealmAny::class.java,
+                dictionaryFieldName = "columnRealmAnyDictionary",
                 dictionaryGetter = DictionaryAllTypes::getColumnRealmAnyDictionary,
                 dictionarySetter = DictionaryAllTypes::setColumnRealmAnyDictionary,
                 initializedDictionary = RealmDictionary<RealmAny>().init(getRealmAnyKeyValuePairs(realmAnyType)),
@@ -1024,6 +1165,8 @@ fun managedDictionaryFactory(): List<DictionaryTester> {
             ManagedDictionaryTester(
                     testerClass = "RealmAny-NonLatin",
                     realmAnyType = RealmAny.Type.STRING,
+                    dictionaryFieldClass = RealmAny::class.java,
+                    dictionaryFieldName = "columnRealmAnyDictionary",
                     dictionaryGetter = DictionaryAllTypes::getColumnRealmAnyDictionary,
                     dictionarySetter = DictionaryAllTypes::setColumnRealmAnyDictionary,
                     initializedDictionary = RealmDictionary<RealmAny>().init(listOf(KEY_HELLO_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_BYE, KEY_BYE_NON_LATIN to VALUE_MIXED_STRING_NON_LATIN_HELLO, KEY_NULL_NON_LATIN to null)),
@@ -1064,6 +1207,19 @@ open class TypeAsserter<T> {
     // RealmModel requires different testing here
     open fun assertValues(dictionary: RealmDictionary<T>, value: T?) =
             assertTrue(dictionary.containsValue(value))
+
+    open fun assertKeys(dictionary: RealmDictionary<*>, value: String?) =
+        assertTrue(dictionary.containsKey(value))
+
+    fun assertDynamicValues(dictionary: RealmDictionary<DynamicRealmObject>, value: DynamicRealmObject?) {
+        // null entries become "invalid object" when calling dictionary.values()
+        assertNotNull(value)
+        if (value.isValid) {
+            assertTrue(dictionary.containsValue(value))
+        } else {
+            assertTrue(dictionary.containsValue(null))
+        }
+    }
 
     // RealmModel and RealmAny require different testing here
     open fun assertContainsValueHelper(
