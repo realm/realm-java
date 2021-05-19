@@ -386,7 +386,7 @@ class ManagedSetTester<T : Any>(
         }
 
         assertSetContainsSet(listOf(notPresentValue), dynamicSet)
-        assertEquals(1, dynamicObject.getSet(setFieldName, setFieldClass).size)
+        assertEquals(1, dynamicObject.get<RealmSet<T>>(setFieldName).size)
 
         dynamicRealm.close()
     }

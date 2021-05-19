@@ -163,9 +163,32 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 return (E) getDictionary(fieldName, RealmAny.class);
             case STRING_TO_LINK_MAP:
                 return (E) getDictionary(fieldName);
+            case INTEGER_SET:
+                return (E) getSet(fieldName, Integer.class);
+            case BOOLEAN_SET:
+                return (E) getSet(fieldName, Boolean.class);
+            case STRING_SET:
+                return (E) getSet(fieldName, String.class);
+            case BINARY_SET:
+                return (E) getSet(fieldName, byte[].class);
+            case DATE_SET:
+                return (E) getSet(fieldName, Date.class);
+            case FLOAT_SET:
+                return (E) getSet(fieldName, Float.class);
+            case DOUBLE_SET:
+                return (E) getSet(fieldName, Double.class);
+            case DECIMAL128_SET:
+                return (E) getSet(fieldName, Decimal128.class);
+            case OBJECT_ID_SET:
+                return (E) getSet(fieldName, ObjectId.class);
+            case UUID_SET:
+                return (E) getSet(fieldName, UUID.class);
+            case LINK_SET:
+                return (E) getSet(fieldName);
+            case MIXED_SET:
+                return (E) getSet(fieldName, RealmAny.class);
             default:
                 throw new IllegalStateException("Field type not supported: " + type);
-
         }
     }
 
