@@ -683,12 +683,12 @@ public abstract class RealmMap<K, V> implements Map<K, V>, ManageableObject, Fre
 
         @Override
         String getValueClassName() {
-            return null;
+            throw new UnsupportedOperationException("Unmanaged maps do not support retrieving the value class name.");
         }
 
         @Override
         Class<V> getValueClass() {
-            return null;
+            throw new UnsupportedOperationException("Unmanaged maps do not support retrieving the value class.");
         }
     }
 }

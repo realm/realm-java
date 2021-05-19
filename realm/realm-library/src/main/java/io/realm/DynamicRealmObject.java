@@ -138,11 +138,33 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 return (E) getObject(fieldName);
             case LIST:
                 return (E) getList(fieldName);
+            case STRING_TO_INTEGER_MAP:
+                return (E) getDictionary(fieldName, Integer.class);
+            case STRING_TO_BOOLEAN_MAP:
+                return (E) getDictionary(fieldName, Boolean.class);
+            case STRING_TO_STRING_MAP:
+                return (E) getDictionary(fieldName, String.class);
+            case STRING_TO_BINARY_MAP:
+                return (E) getDictionary(fieldName, byte[].class);
+            case STRING_TO_DATE_MAP:
+                return (E) getDictionary(fieldName, Date.class);
+            case STRING_TO_FLOAT_MAP:
+                return (E) getDictionary(fieldName, Float.class);
+            case STRING_TO_DOUBLE_MAP:
+                return (E) getDictionary(fieldName, Double.class);
+            case STRING_TO_DECIMAL128_MAP:
+                return (E) getDictionary(fieldName, Decimal128.class);
+            case STRING_TO_OBJECT_ID_MAP:
+                return (E) getDictionary(fieldName, ObjectId.class);
+            case STRING_TO_UUID_MAP:
+                return (E) getDictionary(fieldName, UUID.class);
+            case STRING_TO_MIXED_MAP:
+                return (E) getDictionary(fieldName, RealmAny.class);
+            case STRING_TO_LINK_MAP:
+                return (E) getDictionary(fieldName);
             default:
-                if (type.isDictionary()) {
-                    return (E) getDictionary(fieldName);
-                }
                 throw new IllegalStateException("Field type not supported: " + type);
+
         }
     }
 
@@ -1283,10 +1305,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
         @Nonnull final String linkTargetTableName = linkTargetTable.getClassName();
 
         boolean typeValidated;
-        if (sourceDictionary.getValueClassName() == null && sourceDictionary.getValueClass() == null) {
+        if (!sourceDictionary.isManaged()) {
             typeValidated = false;
         } else {
-            String dictType = sourceDictionary.getValueClassName() != null ? sourceDictionary.getValueClassName()
+            String dictType = (sourceDictionary.getValueClassName() != null) ? sourceDictionary.getValueClassName()
                     : proxyState.getRealm$realm().getSchema().getTable(sourceDictionary.getValueClass()).getClassName();
             if (!linkTargetTableName.equals(dictType)) {
                 throw new IllegalArgumentException(String.format(Locale.US,

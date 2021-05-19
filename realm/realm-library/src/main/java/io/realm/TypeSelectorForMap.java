@@ -124,7 +124,7 @@ class SelectorForMap<K, V> extends TypeSelectorForMap<K, V> {
 
     @Override
     String getValueClassName() {
-        return null;
+        return valueClass.getSimpleName();
     }
 }
 
