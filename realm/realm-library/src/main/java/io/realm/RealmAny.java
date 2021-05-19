@@ -111,6 +111,23 @@ import static io.realm.RealmFieldTypeConstants.MAX_CORE_TYPE_VALUE;
  * value wrapped by the RealmAny instance. If the resulting class is
  * a realization of {@link io.realm.RealmModel} asRealmModel() can be
  * called to cast the RealmAny value to a Realm object reference.
+ * <p>
+ * RealmAny values can also be sorted. The sorting order used between
+ * different RealmAny types, from lowest to highest, is:
+ * <ol>
+ *     <li>Boolean</li>
+ *     <li>Byte/Short/Integer/Long/Float/Double/Decimal128</li>
+ *     <li>byte[]/String</li>
+ *     <li>Date</li>
+ *     <li>ObjectId</li>
+ *     <li>UUID</li>
+ *     <li>RealmObject</li>
+ * </ol>
+ * This has implications on how {@link RealmQuery#sort(String)},
+ * {@link RealmQuery#minRealmAny(String)} and {@link RealmQuery#maxRealmAny(String)}
+ * work. Especially {@code min()} and {@code max()} will not only take
+ * numeric fields into account, but will use the sorting order to determine
+ * the "largest" or "lowest" value.
  */
 public class RealmAny {
     @Nonnull

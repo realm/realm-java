@@ -134,6 +134,10 @@ class SessionTests {
                     assertEquals(filePathFromError, filePathFromConfig)
                     assertFalse(error.backupFile.exists())
                     assertTrue(error.originalFile.exists())
+                    // Note, this error message is just the one created by ObjectStore for testing
+                    // The server will send a different message. This just ensures that we don't
+                    // accidentially modify or remove the message.
+                    assertEquals("Simulate Client Reset", error.message)
                     looperThread.testComplete()
                 }
                 .build()
@@ -442,7 +446,7 @@ class SessionTests {
             RealmLog.setLevel(LogLevel.WARN)
             val testLogger = TestLogger()
             RealmLog.add(testLogger)
-            session.notifySessionError("unknown", 3, "Unknown Error")
+            session.notifySessionError("unknown", 3, "Unknown Error", "")
             RealmLog.remove(testLogger)
             // TODO See comment above
             RealmLog.setLevel(level)
