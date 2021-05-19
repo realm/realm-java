@@ -212,6 +212,8 @@ JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetState(JN
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_DYING;
                 case SyncSession::PublicState::Inactive:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_INACTIVE;
+                case SyncSession::PublicState::WaitingForAccessToken:
+                    return io_realm_mongodb_sync_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
             }
         }
     }
