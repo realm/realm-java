@@ -380,7 +380,7 @@ class ManagedSetTester<T : Any>(
 
         // Try to replace the whole set by a new one
         dynamicRealm.executeTransaction {
-            dynamicObject.setSet(setFieldName, RealmSet<T>().apply {
+            dynamicObject.setRealmSet(setFieldName, RealmSet<T>().apply {
                 add(notPresentValue)
             })
         }
