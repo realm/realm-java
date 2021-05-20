@@ -449,7 +449,23 @@ class ManagedDictionaryTester<T : Any>(
 
         assertEquals(1, dynamicObject.get<RealmDictionary<T>>(dictionaryFieldName).size)
 
+        // Validate that dict is properly represented as a String
+        validateToString(dynamicObject, dynamicDictionary)
+
         dynamicRealm.close()
+    }
+
+    private fun validateToString(dynamicObject: DynamicRealmObject, dynamicDictionary: RealmDictionary<*>) {
+        val type = when (dictionaryFieldClass.simpleName) {
+            "Byte", "Short", "Integer" -> "Long"
+            else -> dictionaryFieldClass.simpleName
+        }
+
+        val expectedDictionaryString = "${dictionaryFieldName}:RealmDictionary<$type>[${dynamicDictionary.size}]"
+        assertTrue(
+            dynamicObject.toString().contains(expectedDictionaryString),
+            "DynamicRealmObject does not contain expected RealmDictionary string: $expectedDictionaryString"
+        )
     }
 
     private fun doObjectDynamicTest() {
@@ -505,6 +521,9 @@ class ManagedDictionaryTester<T : Any>(
         }
 
         assertEquals(1, dynamicObject.get<RealmDictionary<T>>(dictionaryFieldName).size)
+
+        // Validate that dict is properly represented as a String
+        validateToString(dynamicObject, dynamicDictionary)
 
         dynamicRealm.close()
     }
