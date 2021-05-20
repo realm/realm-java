@@ -354,4 +354,29 @@ class DynamicRealmAnyTests {
             assertEquals(0, realmAnyList.size)
         }
     }
+
+    @Test
+    fun toString_test() {
+        realm.executeTransaction { transactionRealm ->
+            val anObject = transactionRealm.createObject("RealmAnyObject")
+
+            mapOf(
+                RealmAny.valueOf(10.toInt()) to "RealmAny<Integer>(10)",
+                RealmAny.valueOf(true) to "RealmAny<Boolean>(true)",
+                RealmAny.valueOf("Hello world") to "RealmAny<String>(Hello world)",
+                RealmAny.valueOf(byteArrayOf(0, 1)) to "RealmAny<byte[]>([0, 1])",
+                RealmAny.valueOf(Date(100)) to "RealmAny<Date>(Thu Jan 01 01:00:00 GMT+01:00 1970)",
+                RealmAny.valueOf(10.0.toFloat()) to "RealmAny<Float>(10.0)",
+                RealmAny.valueOf(10.0.toDouble()) to "RealmAny<Double>(10.0)",
+                RealmAny.valueOf(Decimal128(100)) to "RealmAny<Decimal128>(100)",
+                RealmAny.valueOf(ObjectId(TestHelper.generateObjectIdHexString(0))) to "RealmAny<ObjectId>(0123456789abcdef01234567)",
+                RealmAny.valueOf(anObject) to "RealmAny<RealmAnyObject>(id:0)",
+                RealmAny.valueOf(UUID.fromString("00000000-0000-0000-0000-000000000000")) to "RealmAny<UUID>(00000000-0000-0000-0000-000000000000)",
+                RealmAny.nullValue() to "RealmAny<Null>"
+            ).map {
+                anObject.setRealmAny("myRealmAny", it.key)
+                assertEquals("RealmAnyObject = dynamic[{myRealmAny:${it.value}}]", anObject.toString())
+            }
+        }
+    }
 }

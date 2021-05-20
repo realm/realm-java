@@ -324,6 +324,16 @@ public class RealmAny {
     }
 
     /**
+     * Creates a new RealmAny with the specified value.
+     *
+     * @param value the RealmAny value.
+     * @return a new RealmAny of a DynamicRealmObject.
+     */
+    public static RealmAny valueOf(@Nullable DynamicRealmObject value) {
+        return new RealmAny((value == null) ? new NullRealmAnyOperator() : new DynamicRealmModelRealmAnyOperator(value));
+    }
+
+    /**
      * Returns true if the inner value is null, false otherwise.
      *
      * @return true if the inner value is null, false otherwise.
