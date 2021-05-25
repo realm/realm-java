@@ -138,7 +138,7 @@ public class Store {
 
         final int ivLength = buffer.getInt();
         final byte[] iv = new byte[ivLength];
-        final byte[] encryptedKey = new byte[ivAndEncryptedKey.length - Integer.SIZE - ivLength];
+        final byte[] encryptedKey = new byte[ivAndEncryptedKey.length - Integer.BYTES - ivLength];
 
         buffer.get(iv);
         buffer.get(encryptedKey);
