@@ -1,3 +1,20 @@
+## 10.5.1 (YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixes
+* Notifications now trigger correctly on Linux kernel 5.5 and above. So far this only impacted the preview emulator image for Android 12. (Issue[#7321](https://github.com/realm/realm-java/issues/7321))   
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 10.x.x, commit xxx.
+
+
 ## 10.5.0 (2021-05-07)
 
 ### Breaking Changes
