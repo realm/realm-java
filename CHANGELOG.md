@@ -4,7 +4,9 @@
 * None.
 
 ### Fixes
-* Notifications now trigger correctly on Linux kernel 5.5 and above. So far this only impacted the preview emulator image for Android 12. (Issue[#7321](https://github.com/realm/realm-java/issues/7321))   
+* [RealmApp] Errors related to "uncaught exception in notifier thread: N5realm11KeyNotFoundE: No such object". This could happen in a sync'd app when a linked object was deleted by another client.
+* Notifications now trigger correctly on Linux kernel 5.5 and above. So far this only impacted the preview emulator image for Android 12. (Issue[#7321](https://github.com/realm/realm-java/issues/7321))  
+
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -12,7 +14,7 @@
 * Realm Studio 10.0.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core 10.x.x, commit xxx.
+* Updated to Realm Core 10.7.2, commit ae14e6be382a72a9252d4e6710c2710c1ea4e688.
 
 
 ## 10.5.0 (2021-05-07)
