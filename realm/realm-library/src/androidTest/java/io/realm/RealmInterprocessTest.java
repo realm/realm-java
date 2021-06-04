@@ -30,22 +30,25 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesModelModule;
+import io.realm.log.RealmLog;
+import io.realm.rule.BlockingLooperThread;
 import io.realm.services.RemoteProcessService;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -64,7 +67,6 @@ import static org.junit.Assert.fail;
 //      1. Open two Realms
 //      B. Open three Realms
 //      2. assertTrue("OK, remote process win. You can open more Realms than I do in the main local process", false);
-@Ignore // FIXME Needs to be upgraded to support JUnit4: https://github.com/realm/realm-java/issues/6452
 @RunWith(AndroidJUnit4.class)
 public class RealmInterprocessTest {
 
@@ -76,7 +78,9 @@ public class RealmInterprocessTest {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             remoteMessenger = new Messenger(iBinder);
-            serviceStartLatch.countDown();
+            if (serviceStartLatch != null) {
+                serviceStartLatch.countDown();
+            }
         }
 
         @Override
@@ -88,45 +92,14 @@ public class RealmInterprocessTest {
         }
     };
 
-    // It is necessary to overload this method.
-    // AndroidTestRunner does call Looper.prepare() and we can have a looper in the case. The problem is all the test
-    // cases are running in a single thread!!! And after Looper.quit() called, it cannot start again. That means we
-    // can only have one case in this class LoL.
-    // By overloading this method, we create a new thread and looper to run the real case. And use latch to wait until
-    // it is finished. Then we can get rid of creating the thread in the test method, using array to store exception, many
-    // levels of nested code. Make the test case more nature.
-//    @Override
-//    public void runBare() throws Throwable {
-//        final Throwable[] throwableArray = new Throwable[1];
-//        final CountDownLatch latch = new CountDownLatch(1);
-//        Thread thread = new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Looper.prepare();
-//                try {
-//                    RealmInterprocessTest.super.runBare();
-//                } catch (Throwable throwable) {
-//                    throwableArray[0] = throwable;
-//                } finally {
-//                    latch.countDown();
-//                }
-//            }
-//        });
-//
-//        thread.start();
-//        TestHelper.awaitOrFail(latch);
-//
-//        if (throwableArray[0] != null) {
-//            throw throwableArray[0];
-//        }
-//    }
+    BlockingLooperThread looperThread = new BlockingLooperThread();
 
     // Helper handler to make it easy to interact with remote service process.
     @SuppressLint("HandlerLeak") // SuppressLint bug, doesn't work
     private class InterprocessHandler extends Handler {
         // Timeout Watchdog. In case the service crashed or expected response is not returned.
         // It is very important to feed the dog after the expected message arrived.
-        private final static int timeout = 5000;
+        private final static int timeout = 10_000;
         private volatile boolean isTimeout = true;
         private Runnable timeoutRunnable = new Runnable() {
             @Override
@@ -170,6 +143,7 @@ public class RealmInterprocessTest {
 
     @Before
     public void setUp() throws Exception {
+        Realm.init(InstrumentationRegistry.getInstrumentation().getTargetContext());
         Realm.deleteRealm(getConfiguration());
 
         // Starts the testing service.
@@ -186,10 +160,6 @@ public class RealmInterprocessTest {
     @After
     public void tearDown() throws Exception {
         int counter = 10;
-        if (testRealm != null) {
-            testRealm.close();
-        }
-
         getContext().unbindService(serviceConnection);
         remoteMessenger = null;
 
@@ -253,81 +223,139 @@ public class RealmInterprocessTest {
     // A. Opens a realm, closes it, then calls Runtime.getRuntime().exit(0).
     // 1. Waits 3 seconds to see if the service process existed.
     @Test
-    @UiThreadTest
     public void exitProcess() {
-        new InterprocessHandler(new Runnable() {
+        looperThread.runBlocking("testThread", true, new Function0<Unit>() {
             @Override
-            public void run() {
-                // Step A
-                triggerServiceStep(RemoteProcessService.stepExitProcess_A);
-            }
-        }) {
-
-            @SuppressWarnings("ConstantConditions")
-            final int servicePid = getServiceInfo().pid;
-
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if (msg.what == RemoteProcessService.stepExitProcess_A.message) {
-                    // Step 1
-                    clearTimeoutFlag();
-                    try {
-                        // Timeout is 5 seconds. 3 (6x500ms) seconds should be enough to quit the process.
-                        for (int i = 1; i <= 6; i++) {
-                            // We need to retrieve the service's pid again since the system might restart it automatically.
-                            ActivityManager.RunningAppProcessInfo processInfo = getRemoteProcessInfo();
-                            if (processInfo != null && processInfo.pid == servicePid && i >= 6) {
-                                // The process is still alive.
-                                fail("Process is still alive");
-                            } else if (processInfo == null || processInfo.pid != servicePid) {
-                                // The process is gone.
-                                break;
-                            }
-                            Thread.sleep(500);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        assertTrue(false);
+            public Unit invoke() {
+                new InterprocessHandler(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Step A
+                        triggerServiceStep(RemoteProcessService.stepExitProcess_A);
                     }
-                    done();
-                }
+                }) {
+
+                    @SuppressWarnings("ConstantConditions")
+                    final int servicePid = getServiceInfo().pid;
+
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        if (msg.what == RemoteProcessService.stepExitProcess_A.message) {
+                            // Step 1
+                            clearTimeoutFlag();
+                            try {
+                                // Timeout is 5 seconds. 3 (6x500ms) seconds should be enough to quit the process.
+                                for (int i = 1; i <= 6; i++) {
+                                    // We need to retrieve the service's pid again since the system might restart it automatically.
+                                    ActivityManager.RunningAppProcessInfo processInfo = getRemoteProcessInfo();
+                                    if (processInfo != null && processInfo.pid == servicePid && i >= 6) {
+                                        // The process is still alive.
+                                        fail("Process is still alive");
+                                    } else if (processInfo == null || processInfo.pid != servicePid) {
+                                        // The process is gone.
+                                        break;
+                                    }
+                                    Thread.sleep(500);
+                                }
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                                assertTrue(false);
+                            }
+                            looperThread.testComplete();
+                        }
+                    }
+                };
+                return Unit.INSTANCE;
             }
-        };
-        Looper.loop();
+        });
     }
 
     // 1. Main process creates Realm, write one object.
     // A. Service process opens Realm, check if there is one and only one object.
     @Test
-    @UiThreadTest
     public void createInitialRealm() throws InterruptedException {
-        new InterprocessHandler(new Runnable() {
+        looperThread.runBlocking("testThread", true, new Function0<Unit>() {
             @Override
-            public void run() {
-                // Step 1
-                testRealm = Realm.getInstance(getConfiguration());
-                assertEquals(0, testRealm.where(AllTypes.class).count());
-                testRealm.beginTransaction();
-                testRealm.createObject(AllTypes.class);
-                testRealm.commitTransaction();
+            public Unit invoke() {
+                new InterprocessHandler(new Runnable() {
+                    @Override
+                    public void run() {
+                        // Step 1
+                        testRealm = Realm.getInstance(getConfiguration());
+                        looperThread.closeAfterTest(testRealm);
+                        assertEquals(0, testRealm.where(AllTypes.class).count());
+                        testRealm.beginTransaction();
+                        testRealm.createObject(AllTypes.class);
+                        testRealm.commitTransaction();
 
-                // Step A
-                triggerServiceStep(RemoteProcessService.stepCreateInitialRealm_A);
+                        // Step A
+                        triggerServiceStep(RemoteProcessService.stepCreateInitialRealm_A);
+                    }
+                }) {
+
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        if (msg.what == RemoteProcessService.stepCreateInitialRealm_A.message) {
+                            clearTimeoutFlag();
+                            looperThread.testComplete();
+                        } else {
+                            assertTrue(false);
+                        }
+                    }
+                };
+                return Unit.INSTANCE;
             }
-        }) {
+        });
+    }
+
+    @Test
+    public void interprocessNotifications() {
+        looperThread.runBlocking("testThread", true, new Function0<Unit>() {
+            private RealmResults<AllTypes> results;
+            private AtomicInteger updateCount = new AtomicInteger(0);
 
             @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-                if (msg.what == RemoteProcessService.stepCreateInitialRealm_A.message) {
-                    clearTimeoutFlag();
-                    done();
-                } else {
-                    assertTrue(false);
-                }
+            public Unit invoke() {
+                new InterprocessHandler(new Runnable() {
+                    @Override
+                    public void run() {
+                        testRealm = Realm.getInstance(getConfiguration());
+                        looperThread.closeAfterTest(testRealm);
+                        results = testRealm.where(AllTypes.class).findAll();
+                        assertEquals(0, results.size());
+                        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+                            @Override
+                            public void onChange(RealmResults<AllTypes> allTypes) {
+                                switch(updateCount.incrementAndGet()) {
+                                    case 1: {
+                                        assertEquals(1, results.size());
+                                        break;
+                                    }
+                                    case 2: {
+                                        assertEquals(2, results.size());
+                                        looperThread.testComplete();
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                        triggerServiceStep(RemoteProcessService.stepCreateObjects);
+                    }
+                }) {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        super.handleMessage(msg);
+                        if (msg.what == RemoteProcessService.stepCreateObjects.message) {
+                            clearTimeoutFlag();
+                        } else {
+                            assertTrue(false);
+                        }
+                    }
+                };
+                return Unit.INSTANCE;
             }
-        };
-        Looper.loop();
+        });
     }
 }
