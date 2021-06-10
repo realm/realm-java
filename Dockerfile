@@ -56,6 +56,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
 RUN cd /opt && \
     wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip -O android-tools-linux.zip && \
     unzip android-tools-linux.zip -d ${ANDROID_HOME} && \
+    mv ${ANDROID_HOME}/cmdline-tools/* ${ANDROID_HOME} && \
     rm -f android-tools-linux.zip
 
 # Grab what's needed in the SDK
