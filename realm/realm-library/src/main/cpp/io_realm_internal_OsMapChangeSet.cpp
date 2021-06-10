@@ -45,11 +45,11 @@ Java_io_realm_internal_OsMapChangeSet_nativeGetFinalizerPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_changeset);
 }
 
-JNIEXPORT jlong JNICALL
-Java_io_realm_internal_OsMapChangeSet_nativeGetDeletionCount(JNIEnv*, jclass,
+JNIEXPORT jobjectArray JNICALL
+Java_io_realm_internal_OsMapChangeSet_nativeGetStringKeyDeletions(JNIEnv* env, jclass,
                                                              jlong native_ptr) {
     DictionaryChangeSet& change_set = *reinterpret_cast<DictionaryChangeSet*>(native_ptr);
-    return change_set.deletions.size();
+    return generate_change_set(env, change_set.deletions);
 }
 
 JNIEXPORT jobjectArray JNICALL

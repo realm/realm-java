@@ -1,7 +1,7 @@
-## 10.6.0-BETA.2 (2021-05-17)
+## 10.6.0-BETA.2 (YYYY-MM-DD)
 
 ### Breaking Changes
-* None.
+* ``MapChangeSet.getDeletionsCount()` has been replaced with `MapChangeSet.getDeletions()` that return the keys for entries that has been deleted instead of just the number of deleted entries.
 
 ### Enhancements
 * Allow `insert` and `insertOrUpdate` operations on `RealmObject` or `RealmObject` collections containing `RealmDictionary` or `RealmSet` fields.
@@ -18,7 +18,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Realm Core 11.0.2, commit 2374cd405012d3e6d81bd115d8edb17966910c9f.
 
 
 ## 10.6.0-BETA.1 (2021-05-17)
