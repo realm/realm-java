@@ -14,7 +14,7 @@ ENV ANDROID_HOME /opt/android-sdk-linux
 # Need by cmake
 ENV ANDROID_NDK_HOME /opt/android-ndk
 ENV ANDROID_NDK /opt/android-ndk
-ENV PATH ${PATH}:${ANDROID_HOME}/emulator:${ANDROID_HOME}/cmdline-tools:${ANDROID_HOME}/cmdline-tools/bin:${ANDROID_HOME}/platform-tools
+ENV PATH ${PATH}:${ANDROID_HOME}/emulator:${ANDROID_HOME}/cmdline-tools/latest:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
 ENV CCACHE_CPP2 yes
