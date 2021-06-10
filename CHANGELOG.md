@@ -19,6 +19,7 @@
 
 ### Internal
 * Updated to Realm Core 11.0.2, commit 2374cd405012d3e6d81bd115d8edb17966910c9f.
+* Updated to Gradle 6.8.3.
 
 
 ## 10.6.0-BETA.1 (2021-05-17)
