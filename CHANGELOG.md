@@ -18,7 +18,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core 11.0.2, commit 2374cd405012d3e6d81bd115d8edb17966910c9f.
+* Updated to Realm Core 11.0.2, commit 7827477e1d2103ff3111257fadfe2dfe4d05b1cc.
 * Updated to Gradle 6.8.3.
 
 
