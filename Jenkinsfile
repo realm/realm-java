@@ -239,13 +239,13 @@ def runBuild(buildFlags, instrumentationTestTarget) {
       // Work around XXX by building each artifact independantly instead of using Gradle to
       // call down into sub projects (which seems to trigger a bug somewhere).
       sh """
-        cd ../realm-annotations
+        cd realm-annotations
         ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
         cd ../realm-transformer
         ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
         cd ../library-build-transformer
         ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd gradle-plugin
+        cd ../gradle-plugin
         ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
         cd ../realm
         ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
