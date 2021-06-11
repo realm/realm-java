@@ -240,15 +240,15 @@ def runBuild(buildFlags, instrumentationTestTarget) {
       // call down into sub projects (which seems to trigger a bug somewhere).
       sh """
         cd gradle-plugin
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
         cd ../realm-annotations
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
         cd ../realm-transformer
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
         cd ../library-build-transformer
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
         cd ../realm
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
       """
     }
   }
