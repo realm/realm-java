@@ -236,7 +236,20 @@ def runBuild(buildFlags, instrumentationTestTarget) {
       if (isReleaseBranch) {
         signingFlags = "-PsignBuild=true -PsignSecretRingFile=\"${SIGN_KEY}\" -PsignPassword=${SIGN_KEY_PASSWORD}"
       }
-      sh "./gradlew assemble ${buildFlags} ${signingFlags} --stacktrace"
+      // Work around XXX by building each artifact independantly instead of using Gradle to
+      // call down into sub projects (which seems to trigger a bug somewhere).
+      sh """
+        cd gradle-plugin
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        cd ../realm-annotations
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        cd ../realm-transformer
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        cd ../library-build-transformer
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+        cd ../realm
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace"
+      """
     }
   }
 
