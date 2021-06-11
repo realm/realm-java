@@ -321,7 +321,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     },
     'Gradle Plugin' : {
       try {
-        gradle('gradle-plugin', 'check --debug')
+        gradle('gradle-plugin', 'check')
       } finally {
         storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
       }
