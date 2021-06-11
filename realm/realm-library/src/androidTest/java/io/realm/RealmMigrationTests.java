@@ -1489,7 +1489,7 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema schema = realm.getSchema().get(ObjectIdPrimaryKey.CLASS_NAME);
         assertTrue(schema.hasPrimaryKey());
-        assertFalse(schema.hasIndex(ObjectIdPrimaryKey.PROPERTY_OBJECT_ID));
+        assertTrue(schema.hasIndex(ObjectIdPrimaryKey.PROPERTY_OBJECT_ID));
         realm.close();
     }
 

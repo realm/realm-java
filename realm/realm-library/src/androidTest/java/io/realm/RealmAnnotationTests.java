@@ -126,16 +126,19 @@ public class RealmAnnotationTests {
     }
 
     @Test
-    public void string_primaryKey_isNotIndexed() {
+    public void string_primaryKey_isIndexed() {
         // Before Core 6 only String primary keys did not have a Index as a default
-        // With Core 10, primary keys do not need indexes in general.
+        // With Core 10, primary keys do not need indexes in general and they where removed (file
+        // format 21), but it turned out this was causing problems with performance when upgrading
+        // Realm files. In pathological cases, upgrades could take minutes, so this decision was
+        // reverted and indexes was re-added in file format v22.
         Table table = realm.getTable(PrimaryKeyAsString.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsString.CLASS_NAME));
-        assertFalse(table.hasSearchIndex(table.getColumnKey("name")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("name")));
 
         table = realm.getTable(PrimaryKeyAsLong.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsLong.CLASS_NAME));
-        assertFalse(table.hasSearchIndex(table.getColumnKey("id")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
     }
 
     // Annotation processor honors common naming conventions.

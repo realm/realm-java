@@ -2,6 +2,7 @@
 
 ### Breaking Changes
 * ``MapChangeSet.getDeletionsCount()` has been replaced with `MapChangeSet.getDeletions()` that return the keys for entries that has been deleted instead of just the number of deleted entries.
+* Primary keys now have automatic indexes again. Indexes was removed in v10.0.0 because they were not needed, but it caused issues when upgrading from a pre v10 version of Realm, and in some cases resulted in large delays when upgrading the fileformat. (Issue [#7426](https://github.com/realm/realm-java/issues/7426), since 10.0.0).
 
 ### Enhancements
 * Allow `insert` and `insertOrUpdate` operations on `RealmObject` or `RealmObject` collections containing `RealmDictionary` or `RealmSet` fields.
@@ -13,7 +14,7 @@
 * Fixed `RealmAny.getValueClass()` returning the `RealmObject` proxy class instead of the model class on a `RealmAny` referencing a managed `RealmObject`.
 
 ### Compatibility
-* File format: Generates Realms with format v21. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
