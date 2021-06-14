@@ -861,7 +861,7 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema schema = realm.getSchema().get("AnnotationTypes");
         assertTrue(schema.hasPrimaryKey());
-        assertFalse(schema.hasIndex("id"));
+        assertTrue(schema.hasIndex("id"));
         realm.close();
     }
 
@@ -895,7 +895,7 @@ public class RealmMigrationTests {
         Table table = realm.getTable(AnnotationTypes.class);
         assertEquals(3, table.getColumnCount());
         assertEquals("id", OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), "AnnotationTypes"));
-        assertFalse(table.hasSearchIndex(table.getColumnKey("id")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
         assertTrue(table.hasSearchIndex(table.getColumnKey("indexString")));
     }
 
@@ -1168,7 +1168,6 @@ public class RealmMigrationTests {
 
     // Tests older Realms for setting Boxed type primary keys fields nullable in migration process to support Realm Version 0.89+.
     @Test
-    @Ignore("Temporary disabled")
     public void settingNullableToPrimaryKey() throws IOException {
         final long SCHEMA_VERSION = 67;
         final Class[] classes = {PrimaryKeyAsBoxedByte.class, PrimaryKeyAsBoxedShort.class, PrimaryKeyAsBoxedInteger.class, PrimaryKeyAsBoxedLong.class, PrimaryKeyAsString.class};
@@ -1456,8 +1455,8 @@ public class RealmMigrationTests {
                 .schema(MigrationCore6PKStringIndexedByDefault.class)
                 .build());
         assertFalse(realm.isEmpty());
-        // Upgrading to Core 6 will strip all indexes on primary keys as they are no longer needed.
-        assertFalse(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
+        // Upgrading to Core 10 will retain all indexes on primary keys.
+        assertTrue(realm.getSchema().get("MigrationCore6PKStringIndexedByDefault").hasIndex("name"));
         MigrationCore6PKStringIndexedByDefault first = realm.where(MigrationCore6PKStringIndexedByDefault.class).findFirst();
         assertNotNull(first);
         assertEquals("Foo", first.name);
@@ -1524,7 +1523,7 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(realmConfig);
         RealmObjectSchema schema = realm.getSchema().get(PrimaryKeyAsUUID.CLASS_NAME);
         assertTrue(schema.hasPrimaryKey());
-        assertFalse(schema.hasIndex(PrimaryKeyAsUUID.FIELD_PRIMARY_KEY));
+        assertTrue(schema.hasIndex(PrimaryKeyAsUUID.FIELD_PRIMARY_KEY));
         realm.close();
     }
 
