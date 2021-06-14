@@ -148,7 +148,7 @@ class RealmAnyQueryTests {
     fun max() {
         initializeTestData()
         val value = realm.where<RealmAnyNotIndexed>().maxRealmAny(RealmAnyNotIndexed.FIELD_REALM_ANY)!!
-        assertEquals("item 2", value.asRealmModel(PrimaryKeyAsString::class.java).name)
+        assertEquals("item 5", value.asRealmModel(PrimaryKeyAsString::class.java).name)
     }
 
     @Test
