@@ -22,6 +22,7 @@ import org.bson.types.ObjectId;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -1167,6 +1168,7 @@ public class RealmMigrationTests {
 
     // Tests older Realms for setting Boxed type primary keys fields nullable in migration process to support Realm Version 0.89+.
     @Test
+    @Ignore("Temporary disabled")
     public void settingNullableToPrimaryKey() throws IOException {
         final long SCHEMA_VERSION = 67;
         final Class[] classes = {PrimaryKeyAsBoxedByte.class, PrimaryKeyAsBoxedShort.class, PrimaryKeyAsBoxedInteger.class, PrimaryKeyAsBoxedLong.class, PrimaryKeyAsString.class};
