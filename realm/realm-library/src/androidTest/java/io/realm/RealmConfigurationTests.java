@@ -56,7 +56,6 @@ import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
-import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.rx.CollectionChange;
 import io.realm.rx.ObjectChange;
 import io.realm.rx.RealmObservableFactory;

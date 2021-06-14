@@ -32,7 +32,6 @@ import java.io.InputStream;
 
 import io.realm.entities.MutableRealmIntegerTypes;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

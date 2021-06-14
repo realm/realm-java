@@ -19,12 +19,16 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
+import io.realm.internal.OsMap;
+import io.realm.internal.OsSet;
 import io.realm.internal.OsSharedRealm;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -113,6 +117,16 @@ public enum FrozenPendingRow implements Row {
     }
 
     @Override
+    public UUID getUUID(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public NativeRealmAny getNativeRealmAny(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
@@ -129,6 +143,36 @@ public enum FrozenPendingRow implements Row {
 
     @Override
     public OsList getValueList(long columnKey, RealmFieldType fieldType) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsMap getRealmAnyMap(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsMap getModelMap(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsMap getValueMap(long columnKey, RealmFieldType fieldType) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsSet getRealmAnySet(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsSet getModelSet(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsSet getValueSet(long columnKey, RealmFieldType fieldType) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
@@ -159,6 +203,11 @@ public enum FrozenPendingRow implements Row {
 
     @Override
     public void setString(long columnKey, String value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setRealmAny(long columnKey, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
@@ -194,6 +243,11 @@ public enum FrozenPendingRow implements Row {
 
     @Override
     public void setObjectId(long columnKey, ObjectId value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setUUID(long columnKey, UUID value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

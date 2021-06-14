@@ -17,8 +17,6 @@
 package io.realm.internal;
 
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,15 +30,16 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import io.realm.RealmAny;
 import io.realm.RealmChangeListener;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.Sort;
 import io.realm.TestHelper;
-import io.realm.internal.core.DescriptorOrdering;
-import io.realm.internal.core.QueryDescriptor;
+import io.realm.TestRealmConfigurationFactory;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -161,9 +160,7 @@ public class OsResultsTests {
 
     @Test
     public void constructor_withDistinct() {
-        DescriptorOrdering queryDescriptors = new DescriptorOrdering();
-        queryDescriptors.appendDistinct(QueryDescriptor.getInstanceForDistinct(null, table, "firstName"));
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), queryDescriptors);
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().distinct(null, new String[]{"firstName"}));
 
         assertEquals(3, osResults.size());
         assertEquals("John", osResults.getUncheckedRow(0).getString(colKey0));
@@ -171,16 +168,10 @@ public class OsResultsTests {
         assertEquals("Henry", osResults.getUncheckedRow(2).getString(colKey0));
     }
 
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void constructor_queryIsValidated() {
-        // OsResults's constructor should call TableQuery.validateQuery()
-        OsResults.createFromQuery(sharedRealm, table.where().or());
-    }
-
     @Test
     public void constructor_queryOnDeletedTable() {
         TableQuery query = table.where();
+
         sharedRealm.beginTransaction();
         assertTrue(OsObjectStore.deleteTableForObject(sharedRealm, table.getClassName()));
         sharedRealm.commitTransaction();
@@ -198,8 +189,8 @@ public class OsResultsTests {
     @Test
     public void where() {
         OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where());
-        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo(new long[] {colKey0}, oneNullTable, "John"));
-        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo(new long[] {colKey1}, oneNullTable, "Anderson"));
+        OsResults osResults2 = OsResults.createFromQuery(sharedRealm, osResults.where().equalTo(null,"firstName", RealmAny.valueOf("John")));
+        OsResults osResults3 = OsResults.createFromQuery(sharedRealm, osResults2.where().equalTo(null, "lastName",  RealmAny.valueOf("Anderson")));
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -212,10 +203,9 @@ public class OsResultsTests {
 
     @Test
     public void sort() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(new long[] {colKey2}, oneNullTable, 1));
-        QueryDescriptor sortDescriptor = QueryDescriptor.getTestInstance(table, new long[] {colKey2});
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().greaterThan(null,"age", RealmAny.valueOf(1)));
 
-        OsResults osResults2 = osResults.sort(sortDescriptor);
+        OsResults osResults2 = osResults.sort(null,"age", Sort.ASCENDING);
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -245,20 +235,16 @@ public class OsResultsTests {
 
     @Test
     public void indexOf() {
-        DescriptorOrdering queryDescriptors = new DescriptorOrdering();
-        queryDescriptors.appendSort(QueryDescriptor.getTestInstance(table, new long[] {colKey2}));
-
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where(), queryDescriptors);
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().sort(null,new String[] {"age"}, new Sort[] {Sort.ASCENDING}));
         UncheckedRow row = table.getUncheckedRow(rowKey0);
         assertEquals(3, osResults.indexOf(row));
     }
 
     @Test
     public void distinct() {
-        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(new long[] {colKey2}, oneNullTable, 4));
+        OsResults osResults = OsResults.createFromQuery(sharedRealm, table.where().lessThan(null,"age", RealmAny.valueOf(4)));
 
-        QueryDescriptor distinctDescriptor = QueryDescriptor.getTestInstance(table, new long[] {colKey2});
-        OsResults osResults2 = osResults.distinct(distinctDescriptor);
+        OsResults osResults2 = osResults.distinct(null, new String[]{"age"});
 
         // A new native Results should be created.
         assertTrue(osResults.getNativePtr() != osResults2.getNativePtr());
@@ -446,6 +432,11 @@ public class OsResultsTests {
 
         @Override
         protected Integer convertRowToObject(UncheckedRow row) {
+            return null;
+        }
+
+        @Override
+        protected Integer getInternal(int pos, OsResults iteratorOsResults) {
             return null;
         }
 

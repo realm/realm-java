@@ -6,7 +6,6 @@ import io.realm.entities.AllPropTypesClass
 import io.realm.kotlin.createObject
 import io.realm.kotlin.oneOf
 import io.realm.kotlin.where
-import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before

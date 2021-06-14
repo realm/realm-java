@@ -37,7 +37,6 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -578,7 +577,7 @@ public class SortTest {
     }
 
     @Test
-    public void sortAndDistinctMixed() {
+    public void sortAndDistinctRealmAny() {
         // Dataset:
         // (FIELD_INDEX_LONG, FIELD_INDEX_INT, FIELD_INDEX_STRING)
         // (1, 1, "A")

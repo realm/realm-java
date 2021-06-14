@@ -5,11 +5,12 @@ import org.bson.types.ObjectId;
 
 import java.lang.ref.WeakReference;
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.FrozenPendingRow;
 import io.realm.RealmChangeListener;
 import io.realm.RealmFieldType;
-import io.realm.internal.core.DescriptorOrdering;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -40,10 +41,10 @@ public class PendingRow implements Row {
     private WeakReference<FrontEnd> frontEndRef;
     private boolean returnCheckedRow;
 
-    public PendingRow(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors,
+    public PendingRow(OsSharedRealm sharedRealm, TableQuery query,
                       final boolean returnCheckedRow) {
         this.sharedRealm = sharedRealm;
-        pendingOsResults = OsResults.createFromQuery(sharedRealm, query, queryDescriptors);
+        pendingOsResults = OsResults.createFromQuery(sharedRealm, query);
 
         listener = new RealmChangeListener<PendingRow>() {
             @Override
@@ -137,6 +138,16 @@ public class PendingRow implements Row {
     }
 
     @Override
+    public UUID getUUID(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public NativeRealmAny getNativeRealmAny(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
@@ -153,6 +164,36 @@ public class PendingRow implements Row {
 
     @Override
     public OsList getValueList(long columnKey, RealmFieldType fieldType) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsMap getRealmAnyMap(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsMap getModelMap(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsMap getValueMap(long columnKey, RealmFieldType fieldType) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsSet getRealmAnySet(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsSet getModelSet(long columnKey) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public OsSet getValueSet(long columnKey, RealmFieldType fieldType) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
@@ -183,6 +224,11 @@ public class PendingRow implements Row {
 
     @Override
     public void setString(long columnKey, String value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setRealmAny(long columnKey, long value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 
@@ -218,6 +264,11 @@ public class PendingRow implements Row {
 
     @Override
     public void setObjectId(long columnKey, ObjectId value) {
+        throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
+    }
+
+    @Override
+    public void setUUID(long columnKey, UUID value) {
         throw new IllegalStateException(QUERY_NOT_RETURNED_MESSAGE);
     }
 

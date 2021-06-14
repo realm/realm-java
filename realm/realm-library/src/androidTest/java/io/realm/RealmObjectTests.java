@@ -16,9 +16,6 @@
 
 package io.realm;
 
-import androidx.test.rule.UiThreadTestRule;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -41,6 +38,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.UiThreadTestRule;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -58,7 +57,6 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -119,7 +117,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(22, row.getColumnCount());
+        assertEquals(26, row.getColumnCount());     // Update this value when adding new fields to AllTypes
     }
 
     @Test
@@ -441,7 +439,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void equals_mixedCustomMethod() {
+    public void equals_realmAnyCustomMethod() {
         CustomMethods cm1 = new CustomMethods();
         cm1.setName("Bar");
         CustomMethods cm2 = new CustomMethods();

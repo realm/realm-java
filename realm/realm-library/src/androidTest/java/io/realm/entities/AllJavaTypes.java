@@ -20,7 +20,9 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.RealmList;
 import io.realm.RealmObject;
 import io.realm.RealmResults;
@@ -48,6 +50,8 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_BINARY = "fieldBinary";
     public static final String FIELD_DECIMAL128 = "fieldDecimal128";
     public static final String FIELD_OBJECT_ID = "fieldObjectId";
+    public static final String FIELD_UUID = "fieldUUID";
+    public static final String FIELD_REALM_ANY = "fieldRealmAny";
     public static final String FIELD_OBJECT = "fieldObject";
     public static final String FIELD_LIST = "fieldList";
 
@@ -63,6 +67,8 @@ public class AllJavaTypes extends RealmObject {
     public static final String FIELD_DATE_LIST = "fieldDateList";
     public static final String FIELD_DECIMAL128_LIST = "fieldDecimal128List";
     public static final String FIELD_OBJECT_ID_LIST = "fieldObjectIdList";
+    public static final String FIELD_UUID_LIST = "fieldUUIDList";
+    public static final String FIELD_REALM_ANY_LIST = "fieldRealmAnyList";
 
     public static final String FIELD_LO_OBJECT = "objectParents";
     public static final String FIELD_LO_LIST = "listParents";
@@ -81,6 +87,7 @@ public class AllJavaTypes extends RealmObject {
             FIELD_OBJECT + "." + FIELD_DATE_LIST,
             FIELD_OBJECT + "." + FIELD_DECIMAL128_LIST,
             FIELD_OBJECT + "." + FIELD_OBJECT_ID_LIST,
+            FIELD_OBJECT + "." + FIELD_UUID_LIST,
     };
 
     @Ignore
@@ -100,6 +107,8 @@ public class AllJavaTypes extends RealmObject {
     private byte[] fieldBinary;
     private Decimal128 fieldDecimal128;
     private ObjectId fieldObjectId;
+    private UUID fieldUUID;
+    private RealmAny fieldRealmAny;
     private AllJavaTypes fieldObject;
     private RealmList<AllJavaTypes> fieldList;
 
@@ -115,6 +124,8 @@ public class AllJavaTypes extends RealmObject {
     private RealmList<Date> fieldDateList;
     private RealmList<Decimal128> fieldDecimal128List;
     private RealmList<ObjectId> fieldObjectIdList;
+    private RealmList<UUID> fieldUUIDList;
+    private RealmList<RealmAny> fieldRealmAnyList;
 
     @LinkingObjects(FIELD_OBJECT)
     private final RealmResults<AllJavaTypes> objectParents = null;
@@ -338,6 +349,22 @@ public class AllJavaTypes extends RealmObject {
         this.fieldObjectId = fieldObjectId;
     }
 
+    public UUID getFieldUUID() {
+        return fieldUUID;
+    }
+
+    public void setFieldUUID(UUID fieldUUID) {
+        this.fieldUUID = fieldUUID;
+    }
+
+    public RealmAny getFieldRealmAny() {
+        return fieldRealmAny;
+    }
+
+    public void setFieldRealmAny(RealmAny fieldRealmAny) {
+        this.fieldRealmAny = fieldRealmAny;
+    }
+
     public RealmList<Decimal128> getFieldDecimal128List() {
         return fieldDecimal128List;
     }
@@ -352,6 +379,22 @@ public class AllJavaTypes extends RealmObject {
 
     public void setFieldObjectIdList(RealmList<ObjectId> fieldObjectIdList) {
         this.fieldObjectIdList = fieldObjectIdList;
+    }
+
+    public RealmList<UUID> getFieldUUIDList() {
+        return fieldUUIDList;
+    }
+
+    public void setFieldUUIDList(RealmList<UUID> fieldUUIDList) {
+        this.fieldUUIDList = fieldUUIDList;
+    }
+
+    public RealmList<RealmAny> getFieldRealmAnyList() {
+        return fieldRealmAnyList;
+    }
+
+    public void setFieldRealmAnyList(RealmList<RealmAny> fieldRealmAnyList) {
+        this.fieldRealmAnyList = fieldRealmAnyList;
     }
 
     public RealmResults<AllJavaTypes> getObjectParents() {

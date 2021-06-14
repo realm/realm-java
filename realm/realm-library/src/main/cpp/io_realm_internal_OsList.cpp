@@ -200,6 +200,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsList_nativeGetQuery(JNIEnv* env
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         auto query = wrapper.collection().get_query();
+        query.set_ordering(std::make_unique<DescriptorOrdering>());
         return reinterpret_cast<jlong>(new Query(std::move(query)));
     }
     CATCH_STD()
@@ -509,7 +510,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetDecimal128(JNIEnv*
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddObjectId(JNIEnv* env, jclass, jlong list_ptr,
-                                                                         jstring j_value)
+                                                                       jstring j_value)
 {
 
     try {
@@ -520,7 +521,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddObjectId(JNIEnv* e
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertObjectId(JNIEnv* env, jclass, jlong list_ptr,
-                                                                            jlong pos, jstring j_value)
+                                                                          jlong pos, jstring j_value)
 {
     try {
         JStringAccessor value(env, j_value);
@@ -530,11 +531,71 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertObjectId(JNIEnv
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetObjectId(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
-                                                                         jstring j_value)
+                                                                       jstring j_value)
 {
     try {
         JStringAccessor value(env, j_value);
         set_value(env, list_ptr, pos, Any(ObjectId(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddUUID(JNIEnv* env, jclass, jlong list_ptr,
+                                                                       jstring j_value)
+{
+    try {
+        JStringAccessor value(env, j_value);
+        add_value(env, list_ptr, Any(UUID(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertUUID(JNIEnv* env, jclass, jlong list_ptr,
+                                                                          jlong pos, jstring j_value)
+{
+    try {
+        JStringAccessor value(env, j_value);
+        insert_value(env, list_ptr, pos, Any(UUID(StringData(value).data())));
+    }
+    CATCH_STD();
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetUUID(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
+                                                                       jstring j_value)
+{
+    try {
+        JStringAccessor value(env, j_value);
+        set_value(env, list_ptr, pos, Any(UUID(StringData(value).data())));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeAddRealmAny(JNIEnv* env, jclass, jlong list_ptr,
+                                                                   jlong mixed_ptr)
+{
+    try {
+        auto java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        add_value(env, list_ptr, Any(java_value.to_mixed()));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeInsertRealmAny(JNIEnv* env, jclass, jlong list_ptr,
+                                                                      jlong pos, jlong mixed_ptr)
+{
+    try {
+        auto java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        insert_value(env, list_ptr, pos, Any(java_value.to_mixed()));
+    }
+    CATCH_STD();
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_OsList_nativeSetRealmAny(JNIEnv* env, jclass, jlong list_ptr, jlong pos,
+                                                                   jlong mixed_ptr)
+{
+    try {
+        auto java_value = *reinterpret_cast<JavaValue*>(mixed_ptr);
+        set_value(env, list_ptr, pos, Any(java_value.to_mixed()));
     }
     CATCH_STD()
 }

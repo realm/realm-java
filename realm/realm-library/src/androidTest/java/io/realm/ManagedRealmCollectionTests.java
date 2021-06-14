@@ -38,7 +38,6 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

@@ -18,8 +18,7 @@ package io.realm.processor
 
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
-import java.util.Date
-
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
 import javax.lang.model.element.VariableElement
 import javax.lang.model.type.DeclaredType
@@ -36,6 +35,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
 
     @JvmField val STRING_MIRROR: TypeMirror
     @JvmField val BINARY_MIRROR: TypeMirror
+    @JvmField val BINARY_NON_PRIMITIVE_MIRROR: TypeMirror
     @JvmField val BOOLEAN_MIRROR: TypeMirror
     @JvmField val LONG_MIRROR: TypeMirror
     @JvmField val INTEGER_MIRROR: TypeMirror
@@ -46,6 +46,8 @@ class TypeMirrors(env: ProcessingEnvironment) {
     @JvmField val DATE_MIRROR: TypeMirror
     @JvmField val DECIMAL128_MIRROR: TypeMirror
     @JvmField val OBJECT_ID_MIRROR: TypeMirror
+    @JvmField val UUID_MIRROR: TypeMirror
+    @JvmField val MIXED_MIRROR: TypeMirror
 
     @JvmField val PRIMITIVE_LONG_MIRROR: TypeMirror
     @JvmField val PRIMITIVE_INT_MIRROR: TypeMirror
@@ -58,6 +60,7 @@ class TypeMirrors(env: ProcessingEnvironment) {
 
         STRING_MIRROR = elementUtils.getTypeElement("java.lang.String").asType()
         BINARY_MIRROR = typeUtils.getArrayType(typeUtils.getPrimitiveType(TypeKind.BYTE))
+        BINARY_NON_PRIMITIVE_MIRROR = typeUtils.getArrayType(elementUtils.getTypeElement(Byte::class.javaObjectType.name).asType())
         BOOLEAN_MIRROR = elementUtils.getTypeElement(Boolean::class.javaObjectType.name).asType()
         LONG_MIRROR = elementUtils.getTypeElement(Long::class.javaObjectType.name).asType()
         INTEGER_MIRROR = elementUtils.getTypeElement(Int::class.javaObjectType.name).asType()
@@ -68,6 +71,8 @@ class TypeMirrors(env: ProcessingEnvironment) {
         DATE_MIRROR = elementUtils.getTypeElement(Date::class.javaObjectType.name).asType()
         DECIMAL128_MIRROR = elementUtils.getTypeElement(Decimal128::class.javaObjectType.name).asType()
         OBJECT_ID_MIRROR = elementUtils.getTypeElement(ObjectId::class.javaObjectType.name).asType()
+        UUID_MIRROR = elementUtils.getTypeElement(UUID::class.javaObjectType.name).asType()
+        MIXED_MIRROR = elementUtils.getTypeElement("io.realm.RealmAny").asType()
 
         PRIMITIVE_LONG_MIRROR = typeUtils.getPrimitiveType(TypeKind.LONG)
         PRIMITIVE_INT_MIRROR = typeUtils.getPrimitiveType(TypeKind.INT)
@@ -84,6 +89,32 @@ class TypeMirrors(env: ProcessingEnvironment) {
             if (!Utils.isRealmList(field)) {
                 return null
             }
+            return getTypeArgument(field)
+        }
+
+        /**
+         * @return the [TypeMirror] of the elements in `RealmDictionary`.
+         */
+        @JvmStatic
+        fun getRealmDictionaryElementTypeMirror(field: VariableElement): TypeMirror? {
+            if (!Utils.isRealmDictionary(field)) {
+                return null
+            }
+            return getTypeArgument(field)
+        }
+
+        /**
+         * @return the [TypeMirror] of the elements in `RealmSet`.
+         */
+        @JvmStatic
+        fun getRealmSetElementTypeMirror(field: VariableElement): TypeMirror? {
+            if (!Utils.isRealmSet(field)) {
+                return null
+            }
+            return getTypeArgument(field)
+        }
+
+        private fun getTypeArgument(field: VariableElement): TypeMirror? {
             val typeArguments = (field.asType() as DeclaredType).typeArguments
             return if (typeArguments.isNotEmpty()) typeArguments[0] else null
         }

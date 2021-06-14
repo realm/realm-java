@@ -21,8 +21,6 @@ import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Looper;
 
-import androidx.test.platform.app.InstrumentationRegistry;
-
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.junit.Assert;
@@ -55,6 +53,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import androidx.test.platform.app.InstrumentationRegistry;
 import io.realm.entities.AllTypesPrimaryKey;
 import io.realm.entities.AnnotationIndexTypes;
 import io.realm.entities.BacklinksSource;
@@ -73,7 +72,6 @@ import io.realm.internal.Util;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.LogLevel;
 import io.realm.log.RealmLogger;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
@@ -1376,6 +1374,10 @@ public class TestHelper {
             randomId.append(hex[(i + j) % 16]);
         }
         return randomId.toString();
+    }
+
+    public static String generateUUIDString(int i){
+        return String.format("%08d-aa12-4afa-9219-e20cc3018599", i);
     }
 
 }

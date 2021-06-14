@@ -9,15 +9,19 @@ import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.NativeContext;
 import io.realm.internal.OsList;
+import io.realm.internal.OsMap;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.OsSet;
 import io.realm.internal.Property;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -25,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -664,28 +669,14 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
 
             OsList childrenOsList = new OsList(table.getUncheckedRow(objKey), columnInfo.childrenColKey);
             RealmList<some.test.EmbeddedClass> childrenList = ((some_test_EmbeddedClassSimpleParentRealmProxyInterface) object).realmGet$children();
-            if (childrenList != null && childrenList.size() == childrenOsList.size()) {
-                // For lists of equal lengths, we need to set each element directly as clearing the receiver list can be wrong if the input and target list are the same.
-                int objectCount = childrenList.size();
-                for (int i = 0; i < objectCount; i++) {
-                    some.test.EmbeddedClass childrenItem = childrenList.get(i);
+            childrenOsList.removeAll();
+            if (childrenList != null) {
+                for (some.test.EmbeddedClass childrenItem : childrenList) {
                     Long cacheItemIndexchildren = cache.get(childrenItem);
                     if (cacheItemIndexchildren != null) {
                         throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: " + cacheItemIndexchildren.toString());
                     } else {
                         cacheItemIndexchildren = some_test_EmbeddedClassRealmProxy.insertOrUpdate(realm, table, columnInfo.childrenColKey, objKey, childrenItem, cache);
-                    }
-                }
-            } else {
-                childrenOsList.removeAll();
-                if (childrenList != null) {
-                    for (some.test.EmbeddedClass childrenItem : childrenList) {
-                        Long cacheItemIndexchildren = cache.get(childrenItem);
-                        if (cacheItemIndexchildren != null) {
-                            throw new IllegalArgumentException("Embedded objects can only have one parent pointing to them. This object was already copied, so another object is pointing to it: " + cacheItemIndexchildren.toString());
-                        } else {
-                            cacheItemIndexchildren = some_test_EmbeddedClassRealmProxy.insertOrUpdate(realm, table, columnInfo.childrenColKey, objKey, childrenItem, cache);
-                        }
                     }
                 }
             }
@@ -712,6 +703,7 @@ public class some_test_EmbeddedClassSimpleParentRealmProxy extends some.test.Emb
         }
         some_test_EmbeddedClassSimpleParentRealmProxyInterface unmanagedCopy = (some_test_EmbeddedClassSimpleParentRealmProxyInterface) unmanagedObject;
         some_test_EmbeddedClassSimpleParentRealmProxyInterface realmSource = (some_test_EmbeddedClassSimpleParentRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$id(realmSource.realmGet$id());
 
         // Deep copy of child

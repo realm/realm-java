@@ -16,35 +16,16 @@
 
 package io.realm.processor
 
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.Collections
-import java.util.LinkedHashSet
-import java.util.Locale
-
+import io.realm.annotations.*
+import io.realm.processor.nameconverter.NameConverter
+import java.util.*
 import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.Modifier
-import javax.lang.model.element.PackageElement
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.VariableElement
+import javax.lang.model.element.*
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
-
-import io.realm.annotations.Ignore
-import io.realm.annotations.Index
-import io.realm.annotations.LinkingObjects
-import io.realm.annotations.PrimaryKey
-import io.realm.annotations.RealmClass
-import io.realm.annotations.RealmField
-import io.realm.annotations.RealmNamingPolicy
-import io.realm.annotations.Required
-import io.realm.processor.nameconverter.NameConverter
 
 /**
  * Utility class for holding metadata for RealmProxy classes.
@@ -59,6 +40,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     private val backlinks = LinkedHashSet<Backlink>()
     private val nullableFields = LinkedHashSet<RealmFieldElement>() // Set of fields which can be nullable
     private val nullableValueListFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
+    private val nullableValueMapFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
+    private val nullableValueSetFields = LinkedHashSet<RealmFieldElement>() // Set of fields whose elements can be nullable
+    private val realmModelSets = LinkedHashSet<RealmFieldElement>()
 
     // package name for model class.
     private lateinit var packageName: String
@@ -78,15 +62,16 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     lateinit var internalClassName: String
         private set
 
-    private val validPrimaryKeyTypes: List<TypeMirror> = Arrays.asList(
+    private val validPrimaryKeyTypes: List<TypeMirror> = listOf(
             typeMirrors.STRING_MIRROR,
             typeMirrors.PRIMITIVE_LONG_MIRROR,
             typeMirrors.PRIMITIVE_INT_MIRROR,
             typeMirrors.PRIMITIVE_SHORT_MIRROR,
             typeMirrors.PRIMITIVE_BYTE_MIRROR,
-            typeMirrors.OBJECT_ID_MIRROR
+            typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.UUID_MIRROR
     )
-    private val validListValueTypes: List<TypeMirror> = Arrays.asList(
+    private val validListValueTypes: List<TypeMirror> = listOf(
             typeMirrors.STRING_MIRROR,
             typeMirrors.BINARY_MIRROR,
             typeMirrors.BOOLEAN_MIRROR,
@@ -98,7 +83,41 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             typeMirrors.FLOAT_MIRROR,
             typeMirrors.DATE_MIRROR,
             typeMirrors.DECIMAL128_MIRROR,
-            typeMirrors.OBJECT_ID_MIRROR
+            typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.UUID_MIRROR,
+            typeMirrors.MIXED_MIRROR
+    )
+    private val validDictionaryTypes: List<TypeMirror> = listOf(
+            typeMirrors.STRING_MIRROR,
+            typeMirrors.BINARY_MIRROR,
+            typeMirrors.BOOLEAN_MIRROR,
+            typeMirrors.LONG_MIRROR,
+            typeMirrors.INTEGER_MIRROR,
+            typeMirrors.SHORT_MIRROR,
+            typeMirrors.BYTE_MIRROR,
+            typeMirrors.DOUBLE_MIRROR,
+            typeMirrors.FLOAT_MIRROR,
+            typeMirrors.DATE_MIRROR,
+            typeMirrors.DECIMAL128_MIRROR,
+            typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.UUID_MIRROR,
+            typeMirrors.MIXED_MIRROR
+    )
+    private val validSetTypes: List<TypeMirror>  = listOf(
+            typeMirrors.STRING_MIRROR,
+            typeMirrors.BINARY_MIRROR,
+            typeMirrors.BOOLEAN_MIRROR,
+            typeMirrors.LONG_MIRROR,
+            typeMirrors.INTEGER_MIRROR,
+            typeMirrors.SHORT_MIRROR,
+            typeMirrors.BYTE_MIRROR,
+            typeMirrors.DOUBLE_MIRROR,
+            typeMirrors.FLOAT_MIRROR,
+            typeMirrors.DATE_MIRROR,
+            typeMirrors.DECIMAL128_MIRROR,
+            typeMirrors.OBJECT_ID_MIRROR,
+            typeMirrors.UUID_MIRROR,
+            typeMirrors.MIXED_MIRROR
     )
     private val stringType = typeMirrors.STRING_MIRROR
 
@@ -116,6 +135,9 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
     val primaryKeyGetter: String
         get() = getInternalGetter(primaryKey!!.simpleName.toString())
+
+    val realmModelSetFields: Set<RealmFieldElement>
+        get() = realmModelSets.toSet()
 
     /**
      * Returns `true if the class is considered to be a valid RealmObject class.
@@ -222,6 +244,24 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     /**
+     * Checks if the value of a `RealmDictionary` entry designated by `realmDictionaryVariableElement` is nullable.
+     *
+     * @return `true` if the element is nullable type, `false` otherwise.
+     */
+    fun isDictionaryValueNullable(realmDictionaryVariableElement: VariableElement): Boolean {
+        return nullableValueMapFields.contains(realmDictionaryVariableElement)
+    }
+
+    /**
+     * Checks if the value of a `RealmDictionary` entry designated by `realmDictionaryVariableElement` is nullable.
+     *
+     * @return `true` if the element is nullable type, `false` otherwise.
+     */
+    fun isSetValueNullable(realmSetVariableElement: VariableElement): Boolean {
+        return nullableValueSetFields.contains(realmSetVariableElement)
+    }
+
+    /**
      * Checks if a VariableElement is indexed.
      *
      * @param variableElement the element/field
@@ -319,6 +359,12 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         if (!checkCollectionTypes()) {
             return false
         }
+        if (!checkDictionaryTypes()) {
+            return false
+        }
+        if (!checkSetTypes()) {
+            return false
+        }
         if (!checkReferenceTypes()) {
             return false
         }
@@ -377,6 +423,62 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
         return true
     }
 
+    private fun checkDictionaryTypes(): Boolean {
+        for (field in fields) {
+            if (Utils.isRealmDictionary(field)) {
+                if (!checkDictionaryValuesType(field)) {
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
+    private fun checkSetTypes(): Boolean {
+        for (field in fields) {
+            if (Utils.isRealmSet(field)) {
+                if (!checkSetValuesType(field)) {
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
+    private fun checkSetValuesType(field: VariableElement): Boolean {
+        // Check for missing generic (default back to Object)
+        if (Utils.getGenericTypeQualifiedName(field) == null) {
+            Utils.error(getFieldErrorSuffix(field) + "No generic type supplied for field", field)
+            return false
+        }
+
+        val elementTypeMirror = checkReferenceIsNotInterface(field) ?: return false
+        return checkAcceptableClass(
+                field,
+                elementTypeMirror,
+                validSetTypes,
+                "Element type RealmSet must be of type 'RealmAny' or any type that can be boxed inside 'RealmAny': "
+        )
+    }
+
+    private fun checkDictionaryValuesType(field: VariableElement): Boolean {
+        // Check for missing generic (default back to Object)
+        if (Utils.getGenericTypeQualifiedName(field) == null) {
+            Utils.error(getFieldErrorSuffix(field) + "No generic type supplied for field", field)
+            return false
+        }
+
+        val elementTypeMirror = checkReferenceIsNotInterface(field) ?: return false
+        return checkAcceptableClass(
+                field,
+                elementTypeMirror,
+                validDictionaryTypes,
+                "Element type RealmDictionary must be of type 'RealmAny' or any type that can be boxed inside 'RealmAny': "
+        )
+    }
+
     private fun checkRealmListType(field: VariableElement): Boolean {
         // Check for missing generic (default back to Object)
         if (Utils.getGenericTypeQualifiedName(field) == null) {
@@ -384,26 +486,26 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             return false
         }
 
-        // Check that the referenced type is a concrete class and not an interface
-        val fieldType = field.asType()
-        val elementTypeMirror = (fieldType as DeclaredType).typeArguments[0]
-        if (elementTypeMirror.kind == TypeKind.DECLARED /* class of interface*/) {
-            val elementTypeElement = (elementTypeMirror as DeclaredType).asElement() as TypeElement
-            if (elementTypeElement.superclass.kind == TypeKind.NONE) {
-                Utils.error(
-                        getFieldErrorSuffix(field) + "Only concrete Realm classes are allowed in RealmLists. "
-                                + "Neither interfaces nor abstract classes are allowed.",
-                        field)
-                return false
-            }
-        }
+        val elementTypeMirror = checkReferenceIsNotInterface(field) ?: return false
+        return checkAcceptableClass(
+                field,
+                elementTypeMirror,
+                validListValueTypes,
+                "Element type of RealmList must be a class implementing 'RealmModel' or one of "
+        )
+    }
 
+    private fun checkAcceptableClass(
+            field: VariableElement,
+            elementTypeMirror: TypeMirror,
+            validTypes: List<TypeMirror>,
+            specificFieldTypeMessage: String
+    ): Boolean {
         // Check if the actual value class is acceptable
-        if (!containsType(validListValueTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
-            val messageBuilder = StringBuilder(
-                    getFieldErrorSuffix(field) + "Element type of RealmList must be a class implementing 'RealmModel' or one of ")
+        if (!containsType(validTypes, elementTypeMirror) && !Utils.isRealmModel(elementTypeMirror)) {
+            val messageBuilder = StringBuilder(getFieldErrorSuffix(field) + "Type was '$elementTypeMirror'. $specificFieldTypeMessage")
             val separator = ", "
-            for (type in validListValueTypes) {
+            for (type in validTypes) {
                 messageBuilder.append('\'').append(type.toString()).append('\'').append(separator)
             }
             messageBuilder.setLength(messageBuilder.length - separator.length)
@@ -411,8 +513,24 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             Utils.error(messageBuilder.toString(), field)
             return false
         }
-
         return true
+    }
+
+    private fun checkReferenceIsNotInterface(field: VariableElement): TypeMirror? {
+        // Check that the referenced type is a concrete class and not an interface
+        val fieldType = field.asType()
+        val elementTypeMirror: TypeMirror = (fieldType as DeclaredType).typeArguments[0]
+        if (elementTypeMirror.kind == TypeKind.DECLARED /* class of interface*/) {
+            val elementTypeElement = (elementTypeMirror as DeclaredType).asElement() as TypeElement
+            if (elementTypeElement.superclass.kind == TypeKind.NONE) {
+                Utils.error(
+                        getFieldErrorSuffix(field) + "Only concrete Realm classes are allowed in field '$field'. "
+                                + "Neither interfaces nor abstract classes are allowed.",
+                        field)
+                return null
+            }
+        }
+        return elementTypeMirror
     }
 
     private fun checkRealmResultsType(field: VariableElement): Boolean {
@@ -483,11 +601,14 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             if (!field.modifiers.contains(Modifier.FINAL)) {
                 continue
             }
-            if (Utils.isRealmList(field) || Utils.isMutableRealmInteger(field)) {
+            if (Utils.isRealmList(field) ||
+                    Utils.isMutableRealmInteger(field) ||
+                    Utils.isRealmDictionary(field) ||
+                    Utils.isRealmSet(field)) {
                 continue
             }
 
-            Utils.error(String.format(Locale.US, "Class \"%s\" contains illegal final field \"%s\".", simpleJavaClassName,
+            Utils.error(String.format(Locale.US, "Class \"%s\" contains illegal final/immutable field \"%s\".", simpleJavaClassName,
                     field.simpleName.toString()))
 
             return false
@@ -531,15 +652,16 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
             }
         }
 
-        // @Required annotation of RealmList field only affects its value type, not field itself.
+        // @Required annotation of RealmList and RealmDictionary field only affects its value type, not field itself.
         if (Utils.isRealmList(field)) {
             val hasRequiredAnnotation = hasRequiredAnnotation(field)
             val listGenericType = (field.asType() as DeclaredType).typeArguments
             val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
+            val containsRealmAny = (listGenericType.isNotEmpty() && Utils.isRealmAny(listGenericType[0]))
 
             // @Required not allowed if the list contains Realm model classes
-            if (hasRequiredAnnotation && containsRealmModelClasses) {
-                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes.")
+            if (hasRequiredAnnotation && (containsRealmModelClasses || containsRealmAny)) {
+                Utils.error("@Required not allowed on RealmList's that contain other Realm model classes or RealmAny.")
                 return false
             }
 
@@ -549,6 +671,50 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 if (!containsRealmModelClasses) {
                     nullableValueListFields.add(field)
                 }
+            }
+        } else if (Utils.isRealmDictionary(field)) {
+            // Same as RealmList
+            val hasRequiredAnnotation = hasRequiredAnnotation(field)
+            val listGenericType = (field.asType() as DeclaredType).typeArguments
+            val containsRealmModelClasses = (listGenericType.isNotEmpty() && Utils.isRealmModel(listGenericType[0]))
+            val containsRealmAny = (listGenericType.isNotEmpty() && Utils.isRealmAny(listGenericType[0]))
+
+            // @Required not allowed if the dictionary contains Realm model classes or RealmAny
+            if (hasRequiredAnnotation && (containsRealmModelClasses || containsRealmAny)) {
+                Utils.error("@Required not allowed on RealmDictionaries that contain other Realm model classes and RealmAny.")
+                return false
+            }
+
+            // @Required thus only makes sense for RealmDictionaries with primitive types
+            // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
+            if (!hasRequiredAnnotation) {
+                if (!containsRealmModelClasses) {
+                    nullableValueMapFields.add(field)
+                }
+            }
+        } else if (Utils.isRealmSet(field)) {
+            // Same as RealmList
+            val hasRequiredAnnotation = hasRequiredAnnotation(field)
+            val setGenericType = (field.asType() as DeclaredType).typeArguments
+            val containsRealmModelClasses = (setGenericType.isNotEmpty() && Utils.isRealmModel(setGenericType[0]))
+            val containsRealmAny = (setGenericType.isNotEmpty() && Utils.isRealmAny(setGenericType[0]))
+
+            // @Required not allowed if the set contains Realm model classes or RealmAny
+            if (hasRequiredAnnotation && (containsRealmModelClasses || containsRealmAny)) {
+                Utils.error("@Required not allowed on RealmSets that contain other Realm model classes and RealmAny.")
+                return false
+            }
+
+            // @Required thus only makes sense for RealmSets with primitive types
+            // We only check @Required annotation. @org.jetbrains.annotations.NotNull annotation should not affect nullability of the list values.
+            if (!hasRequiredAnnotation) {
+                if (!containsRealmModelClasses) {
+                    nullableValueSetFields.add(field)
+                }
+            }
+
+            if (containsRealmModelClasses) {
+                realmModelSets.add(field)
             }
         } else if (isRequiredField(field)) {
             if (!checkBasicRequiredAnnotationUsage(field)) {
@@ -585,7 +751,14 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
 
         // Standard field that appears to be valid (more fine grained checks might fail later).
         fields.add(field)
-        if (Utils.isRealmModel(field) || Utils.isRealmModelList(field)) {
+        if (Utils.isRealmModel(field) ||
+                Utils.isRealmModelList(field) ||
+                Utils.isRealmAnyList(field) ||
+                Utils.isRealmAny(field) ||
+                Utils.isRealmModelDictionary(field) ||
+                Utils.isRealmModelSet(field) ||
+                Utils.isRealmAnyDictionary(field)||
+                Utils.isRealmAnySet(field)) {
             _objectReferenceFields.add(field)
         } else {
             basicTypeFields.add(field)
@@ -650,11 +823,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
     }
 
     // The field has the @Index annotation. It's only valid for column types:
-    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger and OBJECT_ID
+    // STRING, DATE, INTEGER, BOOLEAN, RealmMutableInteger, OBJECT_ID, UUID and MIXED
     private fun categorizeIndexField(element: Element, fieldElement: RealmFieldElement): Boolean {
         var indexable = false
 
-        if (Utils.isMutableRealmInteger(fieldElement)) {
+        if (Utils.isMutableRealmInteger(fieldElement) || Utils.isRealmAny(fieldElement)) {
             indexable = true
         } else {
             when (Constants.JAVA_TO_REALM_TYPES[fieldElement.asType().toString()]) {
@@ -662,7 +835,8 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                 Constants.RealmFieldType.DATE,
                 Constants.RealmFieldType.INTEGER,
                 Constants.RealmFieldType.BOOLEAN,
-                Constants.RealmFieldType.OBJECT_ID -> { indexable = true }
+                Constants.RealmFieldType.OBJECT_ID,
+                Constants.RealmFieldType.UUID -> { indexable = true }
                 else -> { /* Ignore */ }
             }
         }
@@ -694,6 +868,11 @@ class ClassMetaData(env: ProcessingEnvironment, typeMirrors: TypeMirrors, privat
                         "Field \"%s\" with type \"%s\" cannot be @Required or @NotNull.", field, field.asType()))
                 return false
             }
+        }
+
+        if (Utils.isRealmAny(field)) {
+            Utils.error(String.format(Locale.US, "RealmAny field \"${field}\" cannot be @Required or @NotNull."))
+            return false
         }
 
         // Should never get here - user should remove @Required

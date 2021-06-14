@@ -19,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +29,6 @@ import io.realm.entities.realmname.ClassWithPolicy;
 import io.realm.entities.realmname.ClassWithValueDefinedNames;
 import io.realm.entities.realmname.CustomRealmNamesModule;
 import io.realm.entities.realmname.FieldNameOverrideClassPolicy;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

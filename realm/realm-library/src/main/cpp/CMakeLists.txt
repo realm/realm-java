@@ -99,9 +99,13 @@ set(classes_LIST
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.internal.Property io.realm.internal.OsSchemaInfo
     io.realm.internal.OsObjectSchemaInfo io.realm.internal.OsResults
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
+    io.realm.internal.OsMapChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
+    io.realm.internal.OsMap
     io.realm.internal.OsObjectStore
-    io.realm.internal.core.DescriptorOrdering
+    io.realm.internal.OsSet
+    io.realm.internal.core.NativeRealmAny
+    io.realm.internal.core.NativeRealmAnyCollection
     io.realm.internal.objectstore.OsObjectBuilder
     io.realm.internal.objectstore.OsKeyPathMapping
 )

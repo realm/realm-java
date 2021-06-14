@@ -155,6 +155,29 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
     CATCH_STD()
 }
 
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUID
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jstring j_data)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        UUID uuid = UUID(StringData(data).data());
+        const JavaValue value(uuid);
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddRealmAny
+        (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong native_ptr)
+{
+    try {
+        auto java_value = reinterpret_cast<JavaValue*>(native_ptr);
+        const JavaValue value(java_value);
+        add_property(data_ptr, column_key, value);
+    }
+    CATCH_STD()
+}
+
 JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObject
         (JNIEnv* env, jclass, jlong data_ptr, jlong column_key, jlong row_ptr)
 {
@@ -393,6 +416,435 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_native
         ObjectId objectId = ObjectId(StringData(data).data());
         const JavaValue value(objectId);
         add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jstring j_data)
+{
+    try {
+        JStringAccessor data(env, j_data);
+        UUID uuid = UUID(StringData(data).data());
+        const JavaValue value(uuid);
+        add_list_element(list_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddRealmAnyListItem
+        (JNIEnv* env, jclass, jlong list_ptr, jlong mixed_ptr)
+{
+    try {
+        auto java_value = *reinterpret_cast<JavaValue *>(mixed_ptr);
+        add_list_element(list_ptr, java_value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartDictionary(JNIEnv* env,
+                                                                         jclass) {
+    try {
+        auto dictionary = new std::map<std::string, JavaValue>();
+        return reinterpret_cast<jlong>(dictionary);
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStopDictionary(JNIEnv* env, jclass,
+                                                                        jlong data_ptr,
+                                                                        jlong column_key,
+                                                                        jlong dictionary_ptr) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        const JavaValue value((*dictionary));
+        add_property(data_ptr, column_key, value);
+        delete dictionary;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddNullDictionaryEntry(JNIEnv *env,
+                                                                                jclass,
+                                                                                jlong dictionary_ptr,
+                                                                                jstring j_key) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value = JavaValue();
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBooleanDictionaryEntry(JNIEnv* env,
+                                                                                   jclass,
+                                                                                   jlong dictionary_ptr,
+                                                                                   jstring j_key,
+                                                                                   jboolean j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value(j_value);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddStringDictionaryEntry(JNIEnv* env,
+                                                                                  jclass,
+                                                                                  jlong dictionary_ptr,
+                                                                                  jstring j_key,
+                                                                                  jstring j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        JStringAccessor value(env, j_value);
+        JavaValue java_value(value);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerDictionaryEntry(JNIEnv* env,
+                                                                                   jclass,
+                                                                                   jlong dictionary_ptr,
+                                                                                   jstring j_key,
+                                                                                   jlong j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value(j_value);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDoubleDictionaryEntry(JNIEnv* env,
+                                                                                  jclass,
+                                                                                  jlong dictionary_ptr,
+                                                                                  jstring j_key,
+                                                                                  jdouble j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value(j_value);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddFloatDictionaryEntry(JNIEnv* env,
+                                                                                 jclass,
+                                                                                 jlong dictionary_ptr,
+                                                                                 jstring j_key,
+                                                                                 jfloat j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value(j_value);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBinaryDictionaryEntry(JNIEnv* env,
+                                                                                  jclass,
+                                                                                  jlong dictionary_ptr,
+                                                                                  jstring j_key,
+                                                                                  jbyteArray j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+        const JavaValue value(data);
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDateDictionaryEntry(JNIEnv* env,
+                                                                                jclass,
+                                                                                jlong dictionary_ptr,
+                                                                                jstring j_key,
+                                                                                jlong j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        const JavaValue value(from_milliseconds(j_value));
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128DictionaryEntry(JNIEnv* env,
+                                                                                      jclass,
+                                                                                      jlong dictionary_ptr,
+                                                                                      jstring j_key,
+                                                                                      jlong j_high_value,
+                                                                                      jlong j_low_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+
+        JStringAccessor key(env, j_key);
+
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        auto decimal128 = Decimal128(raw);
+        const JavaValue value(decimal128);
+
+        dictionary->insert(std::make_pair(key, value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdDictionaryEntry(JNIEnv* env,
+                                                                                    jclass,
+                                                                                    jlong dictionary_ptr,
+                                                                                    jstring j_key,
+                                                                                    jstring j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+
+        JStringAccessor key(env, j_key);
+        JStringAccessor data(env, j_value);
+
+        const ObjectId object_id = ObjectId(StringData(data).data());
+        const JavaValue object_id_value(object_id);
+
+        dictionary->insert(std::make_pair(key, object_id_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDDictionaryEntry(JNIEnv* env,
+                                                                                jclass,
+                                                                                jlong dictionary_ptr,
+                                                                                jstring j_key,
+                                                                                jstring j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+
+        JStringAccessor key(env, j_key);
+        JStringAccessor data(env, j_value);
+
+        const UUID uuid = UUID(StringData(data).data());
+        const JavaValue uuid_value(uuid);
+
+        dictionary->insert(std::make_pair(key, uuid_value));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectDictionaryEntry(JNIEnv* env,
+                                                                                jclass,
+                                                                                jlong dictionary_ptr,
+                                                                                jstring j_key,
+                                                                                jlong j_value) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        JStringAccessor key(env, j_key);
+        dictionary->insert(std::make_pair(key, JavaValue(reinterpret_cast<Obj*>(j_value))));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddRealmAnyDictionaryEntry(JNIEnv* env,
+                                                                                 jclass,
+                                                                                 jlong dictionary_ptr,
+                                                                                 jstring j_key,
+                                                                                 jlong mixed_ptr) {
+    try {
+        auto dictionary = reinterpret_cast<std::map<std::string, JavaValue>*>(dictionary_ptr);
+        auto mixed_java_value = *reinterpret_cast<JavaValue *>(mixed_ptr);
+
+        JStringAccessor key(env, j_key);
+
+        dictionary->insert(std::make_pair(key, std::move(mixed_java_value)));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jlong JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStartSet(JNIEnv* env,
+                                                                  jclass,
+                                                                  jlong j_size) {
+    try {
+        auto set_as_list = new std::vector<JavaValue>();
+        set_as_list->reserve(j_size);
+        return reinterpret_cast<jlong>(set_as_list);
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeStopSet(JNIEnv* env,
+                                                                 jclass,
+                                                                 jlong data_ptr,
+                                                                 jlong column_key,
+                                                                 jlong set_ptr) {
+    try {
+        auto set_as_list = reinterpret_cast<std::vector<JavaValue>*>(set_ptr);
+        const JavaValue value((*set_as_list));
+        add_property(data_ptr, column_key, value);
+        delete set_as_list;
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddNullSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr) {
+    try {
+        const JavaValue value = JavaValue();
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddStringSetItem(JNIEnv* env,
+                                                                          jclass,
+                                                                          jlong set_ptr,
+                                                                          jstring j_value) {
+    try {
+        JStringAccessor value(env, j_value);
+        std::string string_value(value);
+        const JavaValue wrapped_value(string_value);
+        add_list_element(set_ptr, wrapped_value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddBooleanSetItem(JNIEnv* env,
+                                                                           jclass,
+                                                                           jlong set_ptr,
+                                                                           jboolean j_value) {
+    try {
+        const JavaValue wrapped_value(j_value);
+        add_list_element(set_ptr, wrapped_value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddIntegerSetItem(JNIEnv* env,
+                                                                           jclass,
+                                                                           jlong set_ptr,
+                                                                           jlong j_value) {
+    try {
+        const JavaValue value(j_value);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddFloatSetItem(JNIEnv* env,
+                                                                         jclass,
+                                                                         jlong set_ptr,
+                                                                         jfloat j_value) {
+    try {
+        const JavaValue value(j_value);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDoubleSetItem(JNIEnv* env,
+                                                                          jclass,
+                                                                          jlong set_ptr,
+                                                                          jdouble j_value) {
+    try {
+        const JavaValue value(j_value);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddByteArraySetItem(JNIEnv* env,
+                                                                             jclass,
+                                                                             jlong set_ptr,
+                                                                             jbyteArray j_value) {
+    try {
+        auto data = OwnedBinaryData(JByteArrayAccessor(env, j_value).transform<BinaryData>());
+        const JavaValue value(data);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDateSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr,
+                                                                        jlong j_value) {
+    try {
+        const JavaValue value(from_milliseconds(j_value));
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddDecimal128SetItem(JNIEnv* env,
+                                                                              jclass,
+                                                                              jlong set_ptr,
+                                                                              jlong j_low_value,
+                                                                              jlong j_high_value) {
+    try {
+        Decimal128::Bid128 raw {static_cast<uint64_t>(j_low_value), static_cast<uint64_t>(j_high_value)};
+        Decimal128 decimal128 = Decimal128(raw);
+        const JavaValue value(decimal128);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddObjectIdSetItem(JNIEnv* env,
+                                                                            jclass,
+                                                                            jlong set_ptr,
+                                                                            jstring j_value) {
+    try {
+        JStringAccessor data(env, j_value);
+        ObjectId objectId = ObjectId(StringData(data).data());
+        const JavaValue value(objectId);
+        add_list_element(set_ptr, value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL
+Java_io_realm_internal_objectstore_OsObjectBuilder_nativeAddUUIDSetItem(JNIEnv* env,
+                                                                        jclass,
+                                                                        jlong set_ptr,
+                                                                        jstring j_value) {
+    try {
+        JStringAccessor data(env, j_value);
+        UUID uuid = UUID(StringData(data).data());
+        const JavaValue value(uuid);
+        add_list_element(set_ptr, value);
     }
     CATCH_STD()
 }

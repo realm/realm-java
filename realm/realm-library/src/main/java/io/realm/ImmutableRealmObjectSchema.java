@@ -18,7 +18,6 @@ package io.realm;
 
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
-import io.realm.internal.fields.FieldDescriptor;
 
 /**
  * Immutable {@link RealmObjectSchema}.
@@ -58,6 +57,26 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public RealmObjectSchema addRealmListField(String fieldName, Class<?> primitiveType) {
+        throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
+    }
+
+    @Override
+    public RealmObjectSchema addRealmDictionaryField(String fieldName, Class<?> primitiveType) {
+        throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
+    }
+
+    @Override
+    public RealmObjectSchema addRealmSetField(String fieldName, RealmObjectSchema objectSchema) {
+        throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
+    }
+
+    @Override
+    public RealmObjectSchema addRealmSetField(String fieldName, Class<?> primitiveType) {
+        throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
+    }
+
+    @Override
+    public RealmObjectSchema addRealmDictionaryField(String fieldName, RealmObjectSchema objectSchema) {
         throw new UnsupportedOperationException(SCHEMA_IMMUTABLE_EXCEPTION_MSG);
     }
 
@@ -114,18 +133,5 @@ class ImmutableRealmObjectSchema extends RealmObjectSchema {
         } else {
             return columnDetails.linkedClassName;
         }
-    }
-
-    /**
-     * Returns a field descriptor based on Java field names found in model classes.
-     *
-     * @param publicJavaNameDescription field name or linked field description
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return the corresponding FieldDescriptor.
-     * @throws IllegalArgumentException if a proper FieldDescriptor could not be created.
-     */
-    @Override
-    FieldDescriptor getFieldDescriptors(String publicJavaNameDescription, RealmFieldType... validColumnTypes) {
-        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), publicJavaNameDescription, validColumnTypes);
     }
 }

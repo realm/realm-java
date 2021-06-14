@@ -18,6 +18,7 @@
 #include "io_realm_internal_Property.h"
 
 #include "java_accessor.hpp"
+#include "java_object_accessor.hpp"
 #include "util.hpp"
 
 using namespace realm;
@@ -90,6 +91,10 @@ JNIEXPORT jint JNICALL Java_io_realm_internal_UncheckedRow_nativeGetColumnType(J
     if (column_type != type_LinkList && table->is_list(column_key)/* && column_type < type_LinkList because type_ObjectId is = 15*/) {
         // add the offset so it can be mapped correctly in Java (RealmFieldType#fromNativeValue)
         return int(column_type) + int(PropertyType::Array);
+    } else if (column_key.is_dictionary()) {
+        return int(column_type) + int(PropertyType::Dictionary);
+    } else if (column_key.is_set()) {
+        return int(column_type) + int(PropertyType::Set);
     }
 
     return int(column_type);
@@ -224,6 +229,21 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetLong(JNIEnv*
 
     try {
         OBJ(nativeRowPtr)->set<int64_t>(ColKey(columnKey), value);
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetRealmAny(JNIEnv* env, jobject, jlong nativeRowPtr,
+                                                                              jlong columnKey, jlong nativePtr)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        auto java_value = *reinterpret_cast<JavaValue *>(nativePtr);
+        auto mixed = java_value.to_mixed();
+        OBJ(nativeRowPtr)->set<Mixed>(ColKey(columnKey), mixed);
     }
     CATCH_STD()
 }
@@ -447,8 +467,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetDecimal128(J
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetObjectId(JNIEnv* env, jobject,
-                                                                                    jlong nativeRowPtr,
-                                                                                    jlong columnKey)
+                                                                                jlong nativeRowPtr,
+                                                                                jlong columnKey)
 {
     if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
         return nullptr;
@@ -473,6 +493,53 @@ JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetObjectId(JNI
     try {
         JStringAccessor value(env, j_value);
         OBJ(nativeRowPtr)->set(ColKey(columnKey), ObjectId(StringData(value).data()));
+    }
+    CATCH_STD()
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_UncheckedRow_nativeGetUUID(JNIEnv* env, jobject,
+                                                                            jlong nativeRowPtr,
+                                                                            jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return nullptr;
+    }
+
+    try {
+        UUID uuid = OBJ(nativeRowPtr)->get<UUID>(ColKey(columnKey));
+        return to_jstring(env, uuid.to_string().data());
+    }
+    CATCH_STD()
+    return nullptr;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_UncheckedRow_nativeGetRealmAny(JNIEnv* env, jobject,
+                                                                            jlong nativeRowPtr,
+                                                                            jlong columnKey)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return reinterpret_cast<jlong>(nullptr);
+    }
+
+    try {
+        auto mixed = OBJ(nativeRowPtr)->get<Mixed>(ColKey(columnKey));
+        return reinterpret_cast<jlong>(new JavaValue(from_mixed(mixed)));
+    }
+    CATCH_STD()
+    return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_UncheckedRow_nativeSetUUID(JNIEnv* env, jobject,
+                                                                             jlong nativeRowPtr, jlong columnKey,
+                                                                             jstring j_value)
+{
+    if (!ROW_VALID(env, OBJ(nativeRowPtr))) {
+        return;
+    }
+
+    try {
+        JStringAccessor value(env, j_value);
+        OBJ(nativeRowPtr)->set(ColKey(columnKey), UUID(StringData(value).data()));
     }
     CATCH_STD()
 }

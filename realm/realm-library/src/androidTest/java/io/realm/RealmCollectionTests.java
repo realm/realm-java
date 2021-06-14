@@ -33,7 +33,6 @@ import io.realm.entities.AllJavaTypes;
 import io.realm.entities.CustomMethods;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

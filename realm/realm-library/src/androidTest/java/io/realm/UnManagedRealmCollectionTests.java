@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
