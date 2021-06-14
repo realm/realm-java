@@ -42,7 +42,6 @@ import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.RealmBackgroundTask;
 
 import static org.junit.Assert.assertEquals;

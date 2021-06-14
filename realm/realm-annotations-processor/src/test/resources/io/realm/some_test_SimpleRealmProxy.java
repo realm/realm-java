@@ -9,15 +9,19 @@ import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.NativeContext;
 import io.realm.internal.OsList;
+import io.realm.internal.OsMap;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.OsSet;
 import io.realm.internal.Property;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -25,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -379,6 +384,7 @@ public class some_test_SimpleRealmProxy extends some.test.Simple
         }
         some_test_SimpleRealmProxyInterface unmanagedCopy = (some_test_SimpleRealmProxyInterface) unmanagedObject;
         some_test_SimpleRealmProxyInterface realmSource = (some_test_SimpleRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$name(realmSource.realmGet$name());
         unmanagedCopy.realmSet$age(realmSource.realmGet$age());
 

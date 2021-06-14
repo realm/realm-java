@@ -31,7 +31,6 @@ import java.util.Set;
 
 import io.realm.entities.Cat;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 

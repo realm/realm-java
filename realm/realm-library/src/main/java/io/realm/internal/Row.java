@@ -20,10 +20,12 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import io.realm.RealmFieldType;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -86,6 +88,10 @@ public interface Row {
 
     ObjectId getObjectId(long columnKey);
 
+    UUID getUUID(long columnKey);
+
+    NativeRealmAny getNativeRealmAny(long realmAnyColKey);
+
     long getLink(long columnKey);
 
     boolean isNullLink(long columnKey);
@@ -93,6 +99,18 @@ public interface Row {
     OsList getModelList(long columnKey);
 
     OsList getValueList(long columnKey, RealmFieldType fieldType);
+
+    OsMap getRealmAnyMap(long columnKey);
+
+    OsMap getModelMap(long columnKey);
+
+    OsMap getValueMap(long columnKey, RealmFieldType fieldType);
+
+    OsSet getRealmAnySet(long columnKey);
+
+    OsSet getModelSet(long columnKey);
+
+    OsSet getValueSet(long columnKey, RealmFieldType fieldType);
 
     void setLong(long columnKey, long value);
 
@@ -119,6 +137,10 @@ public interface Row {
     void setDecimal128(long columnKey, Decimal128 value);
 
     void setObjectId(long columnKey, ObjectId value);
+
+    void setUUID(long columnKey, UUID value);
+
+    void setRealmAny(long columnKey, long value);
 
     // Creates a new Embedded object in the given property.
     // This will replace any existing object which will be

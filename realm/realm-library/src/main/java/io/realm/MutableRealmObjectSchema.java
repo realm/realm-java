@@ -26,8 +26,6 @@ import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.internal.core.DescriptorOrdering;
-import io.realm.internal.fields.FieldDescriptor;
 
 /**
  * Mutable {@link RealmObjectSchema}.
@@ -89,7 +87,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
 
     @Override
     public RealmObjectSchema addField(String fieldName, Class<?> fieldType, FieldAttribute... attributes) {
-        FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(fieldType);
+        FieldMetaData metadata = SUPPORTED_LIST_SIMPLE_FIELDS.get(fieldType);
         if (metadata == null) {
             if (SUPPORTED_LINKED_FIELDS.containsKey(fieldType)) {
                 throw new IllegalArgumentException("Use addRealmObjectField() instead to add fields that link to other RealmObjects: " + fieldName);
@@ -130,7 +128,8 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
     public RealmObjectSchema addRealmObjectField(String fieldName, RealmObjectSchema objectSchema) {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
-        table.addColumnLink(RealmFieldType.OBJECT, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        table.addColumnLink(RealmFieldType.OBJECT, fieldName,
+                realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
         return this;
     }
 
@@ -147,7 +146,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         checkLegalName(fieldName);
         checkFieldNameIsAvailable(fieldName);
 
-        FieldMetaData metadata = SUPPORTED_SIMPLE_FIELDS.get(primitiveType);
+        FieldMetaData metadata = SUPPORTED_LIST_SIMPLE_FIELDS.get(primitiveType);
         if (metadata == null) {
             if (primitiveType.equals(RealmObjectSchema.class) || RealmModel.class.isAssignableFrom(primitiveType)) {
                 throw new IllegalArgumentException("Use 'addRealmListField(String name, RealmObjectSchema schema)' instead to add lists that link to other RealmObjects: " + fieldName);
@@ -157,7 +156,61 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
                         fieldName, primitiveType));
             }
         }
-        table.addColumn(metadata.listType, fieldName, metadata.defaultNullable);
+        table.addColumn(metadata.collectionType, fieldName, metadata.defaultNullable);
+        return this;
+    }
+
+    @Override
+    public RealmObjectSchema addRealmDictionaryField(String fieldName, Class<?> primitiveType) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+
+        FieldMetaData metadata = SUPPORTED_DICTIONARY_SIMPLE_FIELDS.get(primitiveType);
+        if (metadata == null) {
+            if (primitiveType.equals(RealmObjectSchema.class) || RealmModel.class.isAssignableFrom(primitiveType)) {
+                throw new IllegalArgumentException("Use 'addRealmDictionaryField(String name, RealmObjectSchema schema)' instead to add dictionaries that link to other RealmObjects: " + fieldName);
+            } else {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "RealmDictionary does not support dictionaries with this type: %s(%s)",
+                        fieldName, primitiveType));
+            }
+        }
+        table.addColumn(metadata.collectionType, fieldName, metadata.defaultNullable);
+        return this;
+    }
+
+    @Override
+    public RealmObjectSchema addRealmDictionaryField(String fieldName, RealmObjectSchema objectSchema) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+        table.addColumnDictionaryLink(RealmFieldType.STRING_TO_LINK_MAP, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        return this;
+    }
+
+    @Override
+    public RealmObjectSchema addRealmSetField(String fieldName, RealmObjectSchema objectSchema) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+        table.addColumnSetLink(RealmFieldType.LINK_SET, fieldName, realm.sharedRealm.getTable(Table.getTableNameForClass(objectSchema.getClassName())));
+        return this;
+    }
+
+    @Override
+    public RealmObjectSchema addRealmSetField(String fieldName, Class<?> primitiveType) {
+        checkLegalName(fieldName);
+        checkFieldNameIsAvailable(fieldName);
+
+        FieldMetaData metadata = SUPPORTED_SET_SIMPLE_FIELDS.get(primitiveType);
+        if (metadata == null) {
+            if (primitiveType.equals(RealmObjectSchema.class) || RealmModel.class.isAssignableFrom(primitiveType)) {
+                throw new IllegalArgumentException("Use 'addRealmSetField(String name, RealmObjectSchema schema)' instead to add sets that link to other RealmObjects: " + fieldName);
+            } else {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "RealmSet does not support sets with this type: %s(%s)",
+                        fieldName, primitiveType));
+            }
+        }
+        table.addColumn(metadata.collectionType, fieldName, metadata.defaultNullable);
         return this;
     }
 
@@ -302,7 +355,7 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         if (function != null) {
             // Users might delete object being transformed or accidentally delete other objects
             // in the same table. E.g. cascading deletes if it is referenced by an object being deleted.
-            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where(), new DescriptorOrdering()).createSnapshot();
+            OsResults result = OsResults.createFromQuery(realm.sharedRealm, table.where()).createSnapshot();
             long original_size = result.size();
             if (original_size > Integer.MAX_VALUE) {
                 throw new UnsupportedOperationException("Too many results to iterate: " + original_size);
@@ -327,19 +380,6 @@ class MutableRealmObjectSchema extends RealmObjectSchema {
         }
 
         return linkedClassName;
-    }
-
-    /**
-     * Returns a field descriptor based on the internal field names found in the Realm file.
-     *
-     * @param internalColumnNameDescription internal column name or internal linked column name description.
-     * @param validColumnTypes valid field type for the last field in a linked field
-     * @return the corresponding FieldDescriptor.
-     * @throws IllegalArgumentException if a proper FieldDescriptor could not be created.
-     */
-    @Override
-    FieldDescriptor getFieldDescriptors(String internalColumnNameDescription, RealmFieldType... validColumnTypes) {
-        return FieldDescriptor.createStandardFieldDescriptor(getSchemaConnector(), getTable(), internalColumnNameDescription, validColumnTypes);
     }
 
     // Invariant: Field was just added. This method is responsible for cleaning up attributes if it fails.

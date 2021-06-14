@@ -20,8 +20,11 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.RealmFieldType;
+import io.realm.internal.core.NativeRealmAny;
 
 
 /**
@@ -108,6 +111,16 @@ public enum InvalidRow implements Row {
     }
 
     @Override
+    public UUID getUUID(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
+    public NativeRealmAny getNativeRealmAny(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
     public long getLink(long columnKey) {
         throw getStubException();
     }
@@ -124,6 +137,36 @@ public enum InvalidRow implements Row {
 
     @Override
     public OsList getValueList(long columnKey, RealmFieldType fieldType) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsMap getRealmAnyMap(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsMap getValueMap(long columnKey, RealmFieldType fieldType) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsSet getRealmAnySet(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsSet getModelSet(long columnKey) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsSet getValueSet(long columnKey, RealmFieldType fieldType) {
+        throw getStubException();
+    }
+
+    @Override
+    public OsMap getModelMap(long columnKey) {
         throw getStubException();
     }
 
@@ -189,6 +232,16 @@ public enum InvalidRow implements Row {
 
     @Override
     public void setObjectId(long columnKey, ObjectId value) {
+        throw getStubException();
+    }
+
+    @Override
+    public void setUUID(long columnKey, UUID value) {
+        throw getStubException();
+    }
+
+    @Override
+    public void setRealmAny(long columnKey, long value) {
         throw getStubException();
     }
 

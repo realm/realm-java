@@ -20,13 +20,12 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.RealmList;
 import io.realm.RealmObject;
-import io.realm.RealmResults;
 import io.realm.annotations.Ignore;
 import io.realm.annotations.Index;
-import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.PrimaryKey;
 import io.realm.annotations.RealmClass;
 import io.realm.annotations.RealmNamingPolicy;
@@ -54,6 +53,7 @@ public class MappedAllJavaTypes extends RealmObject {
     public byte[] fieldBinary;
     public Decimal128 fieldDecimal128;
     public ObjectId fieldObjectId;
+    public UUID fieldUUID;
     public MappedAllJavaTypes fieldObject;
     public RealmList<MappedAllJavaTypes> fieldList;
 
@@ -69,6 +69,7 @@ public class MappedAllJavaTypes extends RealmObject {
     public RealmList<Date> fieldDateList;
     public RealmList<Decimal128> fieldDecimalList; // FIXME using fieldDecimal128List causes issues investigate
     public RealmList<ObjectId> fieldObjectIdList;
+    public RealmList<UUID> fieldUUIDList;
 
     public MappedAllJavaTypes() {
     }

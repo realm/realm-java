@@ -9,15 +9,19 @@ import io.realm.ImportFlag;
 import io.realm.ProxyUtils;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.ColumnInfo;
+import io.realm.internal.NativeContext;
 import io.realm.internal.OsList;
+import io.realm.internal.OsMap;
 import io.realm.internal.OsObject;
 import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsSchemaInfo;
+import io.realm.internal.OsSet;
 import io.realm.internal.Property;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.android.JsonUtils;
+import io.realm.internal.core.NativeRealmAny;
 import io.realm.internal.objectstore.OsObjectBuilder;
 import io.realm.log.RealmLog;
 import java.io.IOException;
@@ -25,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -2334,30 +2339,30 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
                 objProxy.realmSet$fieldObjectNull(fieldObjectNullObj);
             }
         }
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldStringListNotNull(), json, "fieldStringListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldStringListNull(), json, "fieldStringListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldBinaryListNotNull(), json, "fieldBinaryListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldBinaryListNull(), json, "fieldBinaryListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldBooleanListNotNull(), json, "fieldBooleanListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldBooleanListNull(), json, "fieldBooleanListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldLongListNotNull(), json, "fieldLongListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldLongListNull(), json, "fieldLongListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldIntegerListNotNull(), json, "fieldIntegerListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldIntegerListNull(), json, "fieldIntegerListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldShortListNotNull(), json, "fieldShortListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldShortListNull(), json, "fieldShortListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldByteListNotNull(), json, "fieldByteListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldByteListNull(), json, "fieldByteListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDoubleListNotNull(), json, "fieldDoubleListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDoubleListNull(), json, "fieldDoubleListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldFloatListNotNull(), json, "fieldFloatListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldFloatListNull(), json, "fieldFloatListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDateListNotNull(), json, "fieldDateListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDateListNull(), json, "fieldDateListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDecimal128ListNotNull(), json, "fieldDecimal128ListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldDecimal128ListNull(), json, "fieldDecimal128ListNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldObjectIdListNotNull(), json, "fieldObjectIdListNotNull");
-        ProxyUtils.setRealmListWithJsonObject(objProxy.realmGet$fieldObjectIdListNull(), json, "fieldObjectIdListNull");
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldStringListNotNull(), json, "fieldStringListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldStringListNull(), json, "fieldStringListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldBinaryListNotNull(), json, "fieldBinaryListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldBinaryListNull(), json, "fieldBinaryListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldBooleanListNotNull(), json, "fieldBooleanListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldBooleanListNull(), json, "fieldBooleanListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldLongListNotNull(), json, "fieldLongListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldLongListNull(), json, "fieldLongListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldIntegerListNotNull(), json, "fieldIntegerListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldIntegerListNull(), json, "fieldIntegerListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldShortListNotNull(), json, "fieldShortListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldShortListNull(), json, "fieldShortListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldByteListNotNull(), json, "fieldByteListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldByteListNull(), json, "fieldByteListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldDoubleListNotNull(), json, "fieldDoubleListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldDoubleListNull(), json, "fieldDoubleListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldFloatListNotNull(), json, "fieldFloatListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldFloatListNull(), json, "fieldFloatListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldDateListNotNull(), json, "fieldDateListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldDateListNull(), json, "fieldDateListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldDecimal128ListNotNull(), json, "fieldDecimal128ListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldDecimal128ListNull(), json, "fieldDecimal128ListNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldObjectIdListNotNull(), json, "fieldObjectIdListNotNull", update);
+        ProxyUtils.setRealmListWithJsonObject(realm, objProxy.realmGet$fieldObjectIdListNull(), json, "fieldObjectIdListNull", update);
         return obj;
     }
 
@@ -3248,7 +3253,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
                 if (cachefieldObjectNull == null) {
                     cachefieldObjectNull = some_test_NullTypesRealmProxy.insert(realm, fieldObjectNullObj, cache);
                 }
-                table.setLink(columnInfo.fieldObjectNullColKey, objKey, cachefieldObjectNull, false);
+                Table.nativeSetLink(tableNativePtr, columnInfo.fieldObjectNullColKey, objKey, cachefieldObjectNull, false);
             }
 
             RealmList<java.lang.String> fieldStringListNotNullList = ((some_test_NullTypesRealmProxyInterface) object).realmGet$fieldStringListNotNull();
@@ -4573,6 +4578,7 @@ public class some_test_NullTypesRealmProxy extends some.test.NullTypes
         }
         some_test_NullTypesRealmProxyInterface unmanagedCopy = (some_test_NullTypesRealmProxyInterface) unmanagedObject;
         some_test_NullTypesRealmProxyInterface realmSource = (some_test_NullTypesRealmProxyInterface) realmObject;
+        Realm objectRealm = (Realm) ((RealmObjectProxy) realmObject).realmGet$proxyState().getRealm$realm();
         unmanagedCopy.realmSet$fieldStringNotNull(realmSource.realmGet$fieldStringNotNull());
         unmanagedCopy.realmSet$fieldStringNull(realmSource.realmGet$fieldStringNull());
         unmanagedCopy.realmSet$fieldBooleanNotNull(realmSource.realmGet$fieldBooleanNotNull());

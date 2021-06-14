@@ -15,9 +15,7 @@
  */
 package io.realm.processor
 
-import java.util.Collections
-import java.util.HashMap
-
+import java.util.*
 import javax.lang.model.element.VariableElement
 
 /**
@@ -27,11 +25,44 @@ object OsObjectBuilderTypeHelper {
 
     private val QUALIFIED_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
     private val QUALIFIED_LIST_TYPE_TO_BUILDER: Map<QualifiedClassName, String>
+    private val QUALIFIED_MAP_VALUES: Map<QualifiedClassName, String> = mapOf(
+            QualifiedClassName("io.realm.RealmAny") to "RealmAnyValueDictionary",
+            QualifiedClassName("java.lang.Boolean") to "BooleanValueDictionary",
+            QualifiedClassName("java.lang.String") to "StringValueDictionary",
+            QualifiedClassName("java.lang.Integer") to "IntegerValueDictionary",
+            QualifiedClassName("java.lang.Float") to "FloatValueDictionary",
+            QualifiedClassName("java.lang.Long") to "LongValueDictionary",
+            QualifiedClassName("java.lang.Short") to "ShortValueDictionary",
+            QualifiedClassName("java.lang.Byte") to "ByteValueDictionary",
+            QualifiedClassName("java.lang.Double") to "DoubleValueDictionary",
+            QualifiedClassName("java.util.Date") to "DateValueDictionary",
+            QualifiedClassName("byte[]") to "BinaryValueDictionary",
+            QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdValueDictionary",
+            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128ValueDictionary",
+            QualifiedClassName("java.util.UUID") to "UUIDValueDictionary"
+    )
+
+    private val QUALIFIED_SET_VALUES: Map<QualifiedClassName, String> = mapOf(
+            QualifiedClassName("io.realm.RealmAny") to "RealmAnySet",
+            QualifiedClassName("java.lang.Boolean") to "BooleanSet",
+            QualifiedClassName("java.lang.String") to "StringSet",
+            QualifiedClassName("java.lang.Integer") to "IntegerSet",
+            QualifiedClassName("java.lang.Float") to "FloatSet",
+            QualifiedClassName("java.lang.Long") to "LongSet",
+            QualifiedClassName("java.lang.Short") to "ShortSet",
+            QualifiedClassName("java.lang.Byte") to "ByteSet",
+            QualifiedClassName("java.lang.Double") to "DoubleSet",
+            QualifiedClassName("java.util.Date") to "DateSet",
+            QualifiedClassName("byte[]") to "BinarySet",
+            QualifiedClassName("org.bson.types.ObjectId") to "ObjectIdSet",
+            QualifiedClassName("org.bson.types.Decimal128") to "Decimal128Set",
+            QualifiedClassName("java.util.UUID") to "UUIDSet"
+    )
 
     init {
         // Map of qualified types to their OsObjectBuilder Type
         val fieldTypes = HashMap<QualifiedClassName, String>()
-        fieldTypes.apply { 
+        fieldTypes.apply {
             this[QualifiedClassName("byte")] = "Integer"
             this[QualifiedClassName("byte")] = "Integer"
             this[QualifiedClassName("short")] = "Integer"
@@ -52,7 +83,9 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("java.util.Date")] = "Date"
             this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128"
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectId"
+            this[QualifiedClassName("java.util.UUID")] = "UUID"
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmInteger"
+            this[QualifiedClassName("io.realm.RealmAny")] = "RealmAny"
         }
         QUALIFIED_TYPE_TO_BUILDER = Collections.unmodifiableMap(fieldTypes)
 
@@ -72,6 +105,8 @@ object OsObjectBuilderTypeHelper {
             this[QualifiedClassName("io.realm.MutableRealmInteger")] = "MutableRealmIntegerList"
             this[QualifiedClassName("org.bson.types.Decimal128")] = "Decimal128List"
             this[QualifiedClassName("org.bson.types.ObjectId")] = "ObjectIdList"
+            this[QualifiedClassName("io.realm.RealmAny")] = "RealmAnyList"
+            this[QualifiedClassName("java.util.UUID")] = "UUIDList"
         }
         QUALIFIED_LIST_TYPE_TO_BUILDER = Collections.unmodifiableMap(listTypes)
     }
@@ -87,6 +122,10 @@ object OsObjectBuilderTypeHelper {
             "addObjectList"
         } else if (Utils.isRealmValueList(field)) {
             "add" + getListTypeName(Utils.getRealmListType(field))
+        } else if (Utils.isRealmDictionary(field)) {
+            "add" + getDictionaryValueTypeName(Utils.getDictionaryType(field))
+        } else if (Utils.isRealmSet(field)) {
+            "add" + getSetValueTypeName(Utils.getSetType(field))
         } else if (Utils.isRealmResults(field)) {
             throw IllegalStateException("RealmResults are not supported by OsObjectBuilder: $field")
         } else {
@@ -110,4 +149,15 @@ object OsObjectBuilderTypeHelper {
         throw IllegalArgumentException("Unsupported list type: $type")
     }
 
+    private fun getDictionaryValueTypeName(typeName: QualifiedClassName?): String {
+        return requireNotNull(QUALIFIED_MAP_VALUES[typeName]) {
+            "Unsupported dictionary value type: '$typeName'"
+        }
+    }
+
+    private fun getSetValueTypeName(typeName: QualifiedClassName?): String {
+        return requireNotNull(QUALIFIED_SET_VALUES[typeName]) {
+            "Unsupported set value type: '$typeName'"
+        }
+    }
 }

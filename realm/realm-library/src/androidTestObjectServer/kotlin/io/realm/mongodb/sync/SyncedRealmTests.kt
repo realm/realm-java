@@ -33,6 +33,7 @@ import io.realm.mongodb.User
 import io.realm.mongodb.close
 import org.bson.BsonNull
 import org.bson.BsonString
+import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.*
 import org.junit.Assert.assertNotEquals
@@ -235,7 +236,7 @@ class SyncedRealmTests {
                 .testSchema(SyncByteArray::class.java)
                 .build()
 
-        var originalSize : Long? = null
+        var originalSize: Long? = null
         Realm.getInstance(config1).use { realm ->
             val oneMBData = ByteArray(1024 * 1024)
             realm.executeTransaction {
@@ -509,9 +510,300 @@ class SyncedRealmTests {
     }
 
     @Test
+    fun allTypes_roundTrip() {
+        val expectedRealmAnyValues = arrayListOf(
+                RealmAny.valueOf(1.toLong()),
+                RealmAny.valueOf(false),
+                RealmAny.valueOf(10.5.toFloat()),
+                RealmAny.valueOf(10.5.toDouble()),
+                RealmAny.valueOf("hello world 2"),
+                RealmAny.valueOf(Date(105)),
+                RealmAny.valueOf(Decimal128(102)),
+                RealmAny.valueOf(ObjectId()),
+                RealmAny.valueOf(UUID.randomUUID())
+        )
+
+        val primaryKeyValue = ObjectId()
+        val expectedRealmInteger = 100.toLong()
+        val expectedString = "hello world"
+        val expectedLong = 10.toLong()
+        val expectedDouble = 10.0
+        val expectedFloat = 10.0.toFloat()
+        val expectedBoolean = true
+        val expectedDate = Date()
+        val expectedBinary = byteArrayOf(0, 1, 0)
+        val expectedDecimal128 = Decimal128(10)
+        val expectedObjectId = ObjectId()
+        val expectedUUID = UUID.randomUUID()
+        var expectedRealmObject = SyncDog().apply {
+            id = expectedObjectId
+        }
+        val expectedRealmList = RealmList<SyncDog>()
+        val expectedStringList = RealmList<String>("hello world 1", "hello world 2")
+        val expectedBinaryList = RealmList<ByteArray>(expectedBinary)
+        val expectedBooleanList = RealmList<Boolean>(true, false, false, true)
+        val expectedLongList = RealmList<Long>(0, 1, 2, 5, 7)
+        val expectedDoubleList = RealmList<Double>(0.0, 2.toDouble(), 10.5)
+        val expectedFloatList = RealmList<Float>(0.0.toFloat(), 2.toFloat(), 10.5.toFloat())
+        val expectedDateList = RealmList<Date>(Date(100), Date(10), Date(200))
+        val expectedDecimal128List = RealmList<Decimal128>(Decimal128(10), Decimal128(100), Decimal128(20))
+        val expectedObjectIdList = RealmList<ObjectId>(ObjectId(Date(1000)), ObjectId(Date(100)), ObjectId(Date(2000)))
+        val expectedUUIDList = RealmList<UUID>(UUID.randomUUID())
+        val expectedRealmAnyList = RealmList<RealmAny>()
+        expectedRealmAnyList.addAll(expectedRealmAnyValues)
+
+        val expectedRealmDict = RealmDictionary<SyncDog>()
+        val expectedStringDict = RealmDictionary<String>().init(listOf("key" to expectedString))
+        val expectedBinaryDict = RealmDictionary<ByteArray>().init(listOf("key" to expectedBinary))
+        val expectedBooleanDict = RealmDictionary<Boolean>().init(listOf("key" to expectedBoolean))
+        val expectedLongDict = RealmDictionary<Long>().init(listOf("key" to expectedLong))
+        val expectedDoubleDict = RealmDictionary<Double>().init(listOf("key" to expectedDouble))
+        val expectedFloatDict = RealmDictionary<Float>().init(listOf("key" to expectedFloat))
+        val expectedDateDict = RealmDictionary<Date>().init(listOf("key" to expectedDate))
+        val expectedDecimal128Dict = RealmDictionary<Decimal128>().init(listOf("key" to expectedDecimal128))
+        val expectedObjectIdDict = RealmDictionary<ObjectId>().init(listOf("key" to expectedObjectId))
+        val expectedUUIDDict = RealmDictionary<UUID>().init(listOf("key" to expectedUUID))
+        val expectedRealmAnyDict = RealmDictionary<RealmAny>()
+
+        val expectedRealmSet = RealmSet<SyncDog>()
+        val expectedStringSet = RealmSet<String>().init(listOf(expectedString))
+        val expectedBinarySet = RealmSet<ByteArray>().init(listOf(expectedBinary))
+        val expectedBooleanSet = RealmSet<Boolean>().init(listOf(expectedBoolean))
+        val expectedLongSet = RealmSet<Long>().init(listOf(expectedLong))
+        val expectedDoubleSet = RealmSet<Double>().init(listOf(expectedDouble))
+        val expectedFloatSet = RealmSet<Float>().init(listOf(expectedFloat))
+        val expectedDateSet = RealmSet<Date>().init(listOf(expectedDate))
+        val expectedDecimal128Set = RealmSet<Decimal128>().init(listOf(expectedDecimal128))
+        val expectedObjectIdSet = RealmSet<ObjectId>().init(listOf(expectedObjectId))
+        val expectedUUIDSet = RealmSet<UUID>().init(listOf(expectedUUID))
+        val expectedRealmAnySet = RealmSet<RealmAny>()
+
+        val user1: User = createNewUser()
+        val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
+
+        val user2: User = createNewUser()
+        val config2: SyncConfiguration = createDefaultConfig(user2, partitionValue)
+
+        Realm.getInstance(config1).use { realm1 ->
+            Realm.getInstance(config2).use { realm2 ->
+                for (expectedRealmAny in expectedRealmAnyValues) {
+                    realm1.executeTransaction {
+                        expectedRealmObject = realm1.copyToRealmOrUpdate(expectedRealmObject)
+                        expectedRealmList.add(expectedRealmObject)
+                        expectedRealmDict["key"] = expectedRealmObject
+
+                        // Populate object to round-trip
+                        val syncObject = SyncAllTypes().apply {
+                            id = primaryKeyValue
+
+                            RealmFieldType.values().map { realmFieldType ->
+                                when (realmFieldType) {
+                                    RealmFieldType.INTEGER -> {
+                                        columnLong = expectedLong
+                                        // MutableRealmInteger
+                                        columnRealmInteger.set(expectedRealmInteger)
+                                    }
+                                    RealmFieldType.BOOLEAN -> isColumnBoolean = expectedBoolean
+                                    RealmFieldType.STRING -> columnString = expectedString
+                                    RealmFieldType.BINARY -> columnBinary = expectedBinary
+                                    RealmFieldType.DATE -> columnDate = expectedDate
+                                    RealmFieldType.DOUBLE -> columnDouble = expectedDouble
+                                    RealmFieldType.FLOAT -> columnFloat = expectedFloat
+                                    RealmFieldType.OBJECT -> columnRealmObject = expectedRealmObject
+                                    RealmFieldType.DECIMAL128 -> columnDecimal128 = expectedDecimal128
+                                    RealmFieldType.OBJECT_ID -> columnObjectId = expectedObjectId
+                                    RealmFieldType.UUID -> columnUUID = expectedUUID
+                                    RealmFieldType.MIXED -> columnRealmAny = expectedRealmAny
+                                    RealmFieldType.LIST -> columnRealmList = expectedRealmList
+                                    RealmFieldType.INTEGER_LIST -> columnLongList = expectedLongList
+                                    RealmFieldType.BOOLEAN_LIST -> columnBooleanList = expectedBooleanList
+                                    RealmFieldType.STRING_LIST -> columnStringList = expectedStringList
+                                    RealmFieldType.BINARY_LIST -> columnBinaryList = expectedBinaryList
+                                    RealmFieldType.DATE_LIST -> columnDateList = expectedDateList
+                                    RealmFieldType.DOUBLE_LIST -> columnDoubleList = expectedDoubleList
+                                    RealmFieldType.FLOAT_LIST -> columnFloatList = expectedFloatList
+                                    RealmFieldType.DECIMAL128_LIST -> columnDecimal128List = expectedDecimal128List
+                                    RealmFieldType.OBJECT_ID_LIST -> columnObjectIdList = expectedObjectIdList
+                                    RealmFieldType.UUID_LIST -> columnUUIDList = expectedUUIDList
+                                    RealmFieldType.MIXED_LIST -> columnRealmAnyList = expectedRealmAnyList
+                                    RealmFieldType.STRING_TO_INTEGER_MAP -> columnLongDictionary = expectedLongDict
+                                    RealmFieldType.STRING_TO_BOOLEAN_MAP -> columnBooleanDictionary = expectedBooleanDict
+                                    RealmFieldType.STRING_TO_STRING_MAP -> columnStringDictionary = expectedStringDict
+                                    RealmFieldType.STRING_TO_BINARY_MAP -> columnBinaryDictionary = expectedBinaryDict
+                                    RealmFieldType.STRING_TO_DATE_MAP -> columnDateDictionary = expectedDateDict
+                                    RealmFieldType.STRING_TO_DOUBLE_MAP -> columnDoubleDictionary = expectedDoubleDict
+                                    RealmFieldType.STRING_TO_FLOAT_MAP -> columnFloatDictionary = expectedFloatDict
+                                    RealmFieldType.STRING_TO_DECIMAL128_MAP -> columnDecimal128Dictionary = expectedDecimal128Dict
+                                    RealmFieldType.STRING_TO_OBJECT_ID_MAP -> columnObjectIdDictionary = expectedObjectIdDict
+                                    RealmFieldType.STRING_TO_UUID_MAP -> columnUUIDDictionary = expectedUUIDDict
+                                    RealmFieldType.STRING_TO_MIXED_MAP -> {
+                                        expectedRealmAnyDict["key"] = expectedRealmAny
+                                        columnRealmAnyDictionary = expectedRealmAnyDict
+                                    }
+                                    RealmFieldType.STRING_TO_LINK_MAP -> columnRealmDictionary = expectedRealmDict
+                                    RealmFieldType.LINK_SET -> columnRealmSet = expectedRealmSet
+                                    RealmFieldType.INTEGER_SET -> columnLongSet = expectedLongSet
+                                    RealmFieldType.BOOLEAN_SET -> columnBooleanSet = expectedBooleanSet
+                                    RealmFieldType.STRING_SET -> columnStringSet = expectedStringSet
+                                    RealmFieldType.BINARY_SET -> columnBinarySet = expectedBinarySet
+                                    RealmFieldType.DATE_SET -> columnDateSet = expectedDateSet
+                                    RealmFieldType.DOUBLE_SET -> columnDoubleSet = expectedDoubleSet
+                                    RealmFieldType.FLOAT_SET -> columnFloatSet = expectedFloatSet
+                                    RealmFieldType.DECIMAL128_SET -> columnDecimal128Set = expectedDecimal128Set
+                                    RealmFieldType.OBJECT_ID_SET -> columnObjectIdSet = expectedObjectIdSet
+                                    RealmFieldType.UUID_SET -> columnUUIDSet = expectedUUIDSet
+                                    RealmFieldType.MIXED_SET -> columnRealmAnySet = expectedRealmAnySet
+                                    RealmFieldType.LINKING_OBJECTS,     // Nothing to set
+                                    RealmFieldType.TYPED_LINK          // Not an actual exposed type, it is used internally by RealmAny
+                                    -> {}
+                                }
+                            }
+                        }
+
+                        realm1.copyToRealmOrUpdate(syncObject)
+                    }
+                    realm1.syncSession.uploadAllLocalChanges()
+
+                    assertEquals(1, realm1.where<SyncAllTypes>().count())
+
+                    realm2.syncSession.downloadAllServerChanges(TestHelper.STANDARD_WAIT_SECS.toLong(), TimeUnit.SECONDS).let {
+                        if (!it) fail()
+                    }
+                    realm2.refresh()
+
+                    assertEquals(1, realm2.where<SyncAllTypes>().count())
+
+                    // Validate that after a round-trip the values are the initial ones, the expected values
+                    realm2.where<SyncAllTypes>().findFirst()!!.let { syncAllTypes ->
+                        assertEquals(primaryKeyValue, syncAllTypes.id)
+
+                        RealmFieldType.values().map { realmFieldType ->
+                            when (realmFieldType) {
+                                RealmFieldType.INTEGER -> {
+                                    assertEquals(expectedLong, syncAllTypes.columnLong)
+                                    // MutableRealmInteger
+                                    assertEquals(expectedRealmInteger, syncAllTypes.columnRealmInteger.get())
+                                }
+                                RealmFieldType.BOOLEAN -> assertEquals(expectedBoolean, syncAllTypes.isColumnBoolean)
+                                RealmFieldType.STRING -> assertEquals(expectedString, syncAllTypes.columnString)
+                                RealmFieldType.BINARY -> assertTrue(expectedBinary.contentEquals(syncAllTypes.columnBinary))
+                                RealmFieldType.DATE -> assertEquals(expectedDate, syncAllTypes.columnDate)
+                                RealmFieldType.DOUBLE -> assertEquals(expectedDouble, syncAllTypes.columnDouble)
+                                RealmFieldType.OBJECT -> assertEquals(expectedObjectId, syncAllTypes.columnRealmObject!!.id)
+                                RealmFieldType.DECIMAL128 -> assertEquals(expectedDecimal128, syncAllTypes.columnDecimal128)
+                                RealmFieldType.OBJECT_ID -> assertEquals(expectedObjectId, syncAllTypes.columnObjectId)
+                                RealmFieldType.UUID -> assertEquals(expectedUUID, syncAllTypes.columnUUID)
+                                RealmFieldType.MIXED -> assertEquals(expectedRealmAny, syncAllTypes.columnRealmAny)
+                                RealmFieldType.LIST -> assertEquals(expectedObjectId, syncAllTypes.columnRealmList.first()!!.id)
+                                RealmFieldType.INTEGER_LIST -> assertEquals(expectedLongList, syncAllTypes.columnLongList)
+                                RealmFieldType.BOOLEAN_LIST -> assertEquals(expectedBooleanList, syncAllTypes.columnBooleanList)
+                                RealmFieldType.STRING_LIST -> assertEquals(expectedStringList, syncAllTypes.columnStringList)
+                                RealmFieldType.BINARY_LIST -> {
+                                    expectedBinaryList.forEachIndexed { index, bytes ->
+                                        Arrays.equals(bytes, syncAllTypes.columnBinaryList[index])
+                                    }
+                                }
+                                RealmFieldType.DATE_LIST -> assertEquals(expectedDateList, syncAllTypes.columnDateList)
+                                RealmFieldType.DOUBLE_LIST -> assertEquals(expectedDoubleList, syncAllTypes.columnDoubleList)
+                                RealmFieldType.DECIMAL128_LIST -> assertEquals(expectedDecimal128List, syncAllTypes.columnDecimal128List)
+                                RealmFieldType.OBJECT_ID_LIST -> assertEquals(expectedObjectIdList, syncAllTypes.columnObjectIdList)
+                                RealmFieldType.UUID_LIST -> assertEquals(expectedUUIDList, syncAllTypes.columnUUIDList)
+                                RealmFieldType.MIXED_LIST -> assertEquals(expectedRealmAnyList, syncAllTypes.columnRealmAnyList)
+                                RealmFieldType.STRING_TO_INTEGER_MAP -> assertEquals(expectedLong, syncAllTypes.columnLongDictionary["key"])
+                                RealmFieldType.STRING_TO_BOOLEAN_MAP -> assertEquals(expectedBoolean, syncAllTypes.columnBooleanDictionary["key"])
+                                RealmFieldType.STRING_TO_STRING_MAP -> assertEquals(expectedString, syncAllTypes.columnStringDictionary["key"])
+                                RealmFieldType.STRING_TO_BINARY_MAP -> assertTrue(Arrays.equals(expectedBinary, syncAllTypes.columnBinaryDictionary["key"]))
+                                RealmFieldType.STRING_TO_DATE_MAP -> assertEquals(expectedDate, syncAllTypes.columnDateDictionary["key"])
+                                RealmFieldType.STRING_TO_DOUBLE_MAP -> assertEquals(expectedDouble, syncAllTypes.columnDoubleDictionary["key"])
+                                RealmFieldType.STRING_TO_DECIMAL128_MAP -> assertEquals(expectedDecimal128, syncAllTypes.columnDecimal128Dictionary["key"])
+                                RealmFieldType.STRING_TO_OBJECT_ID_MAP -> assertEquals(expectedObjectId, syncAllTypes.columnObjectIdDictionary["key"])
+                                RealmFieldType.STRING_TO_UUID_MAP -> assertEquals(expectedUUID, syncAllTypes.columnUUIDDictionary["key"])
+                                RealmFieldType.STRING_TO_MIXED_MAP -> assertEquals(expectedRealmAny, syncAllTypes.columnRealmAnyDictionary["key"])
+                                RealmFieldType.STRING_TO_LINK_MAP -> assertEquals(expectedObjectId, syncAllTypes.columnRealmDictionary["key"]!!.id)
+                                RealmFieldType.INTEGER_SET -> {
+                                    assertEquals(expectedLongSet.size, syncAllTypes.columnLongSet.size)
+                                    expectedLongSet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnLongSet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.BOOLEAN_SET -> {
+                                    assertEquals(expectedBooleanSet.size, syncAllTypes.columnBooleanSet.size)
+                                    expectedBooleanSet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnBooleanSet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.STRING_SET -> {
+                                    assertEquals(expectedStringSet.size, syncAllTypes.columnStringSet.size)
+                                    expectedStringSet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnStringSet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.BINARY_SET -> {
+                                    assertEquals(expectedBinarySet.size, syncAllTypes.columnBinarySet.size)
+                                    expectedBinarySet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnBinarySet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.DATE_SET -> {
+                                    assertEquals(expectedDateSet.size, syncAllTypes.columnDateSet.size)
+                                    expectedDateSet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnDateSet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.DOUBLE_SET -> {
+                                    assertEquals(expectedDoubleSet.size, syncAllTypes.columnDoubleSet.size)
+                                    expectedDoubleSet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnDoubleSet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.DECIMAL128_SET -> {
+                                    assertEquals(expectedDecimal128Set.size, syncAllTypes.columnDecimal128Set.size)
+                                    expectedDecimal128Set.forEach { value ->
+                                        assertTrue(syncAllTypes.columnDecimal128Set.contains(value))
+                                    }
+                                }
+                                RealmFieldType.OBJECT_ID_SET -> {
+                                    assertEquals(expectedObjectIdSet.size, syncAllTypes.columnObjectIdSet.size)
+                                    expectedObjectIdSet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnObjectIdSet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.UUID_SET -> {
+                                    assertEquals(expectedUUIDSet.size, syncAllTypes.columnUUIDSet.size)
+                                    expectedUUIDSet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnUUIDSet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.MIXED_SET -> {
+                                    assertEquals(expectedRealmAnySet.size, syncAllTypes.columnRealmAnySet.size)
+                                    expectedRealmAnySet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnRealmAnySet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.LINK_SET -> {
+                                    assertEquals(expectedRealmSet.size, syncAllTypes.columnRealmSet.size)
+                                    expectedRealmSet.forEach { value ->
+                                        assertTrue(syncAllTypes.columnRealmSet.contains(value))
+                                    }
+                                }
+                                RealmFieldType.LINKING_OBJECTS -> assertEquals(primaryKeyValue, syncAllTypes.columnRealmObject!!.syncAllTypes!!.first()!!.id)
+                                RealmFieldType.TYPED_LINK,          // Not an actual exposed type, it is used internally by RealmAny
+                                RealmFieldType.FLOAT,               // Float is not cloud compatible yet
+                                RealmFieldType.FLOAT_LIST,          // Float is not cloud compatible yet
+                                RealmFieldType.STRING_TO_FLOAT_MAP  // Float is not cloud compatible yet
+                                -> {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     // FIXME Missing test, maybe fitting better in SyncSessionTest.kt...when migrated
     @Ignore("Not implemented yet")
-    fun refreshConnections() {}
+    fun refreshConnections() = Unit
 
     private fun createDefaultConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
@@ -521,8 +813,8 @@ class SyncedRealmTests {
 
     private fun createCustomConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
-                .schema(SyncColor::class.java)
-                .build()
+            .schema(SyncColor::class.java)
+            .build()
     }
 
     private fun createNewUser(): User {

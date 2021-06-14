@@ -16,21 +16,11 @@
 
 package io.realm.processor
 
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.HashSet
-import java.util.LinkedHashMap
-import java.util.LinkedHashSet
-
-import javax.lang.model.element.AnnotationMirror
-import javax.lang.model.element.AnnotationValue
-import javax.lang.model.element.Element
-import javax.lang.model.element.ElementKind
-import javax.lang.model.element.TypeElement
-
 import io.realm.annotations.RealmModule
 import io.realm.annotations.RealmNamingPolicy
 import io.realm.processor.nameconverter.NameConverter
+import java.util.*
+import javax.lang.model.element.*
 
 /**
  * Utility class for holding metadata for the Realm modules.

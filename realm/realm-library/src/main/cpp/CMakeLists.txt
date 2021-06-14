@@ -99,9 +99,13 @@ set(classes_LIST
     io.realm.log.LogLevel io.realm.log.RealmLog io.realm.internal.Property io.realm.internal.OsSchemaInfo
     io.realm.internal.OsObjectSchemaInfo io.realm.internal.OsResults
     io.realm.internal.NativeObjectReference io.realm.internal.OsCollectionChangeSet
+    io.realm.internal.OsMapChangeSet
     io.realm.internal.OsObject io.realm.internal.OsRealmConfig io.realm.internal.OsList
+    io.realm.internal.OsMap
     io.realm.internal.OsObjectStore
-    io.realm.internal.core.DescriptorOrdering
+    io.realm.internal.OsSet
+    io.realm.internal.core.NativeRealmAny
+    io.realm.internal.core.NativeRealmAnyCollection
     io.realm.internal.objectstore.OsObjectBuilder
     io.realm.internal.objectstore.OsKeyPathMapping
 )
@@ -200,7 +204,7 @@ endif()
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code \
-    -Wno-c99-extensions")
+    -Wno-c99-extensions -Wno-dtor-name")
 set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections -pthread -frtti -fvisibility=hidden -fsigned-char -fno-stack-protector -std=c++17")
 if (REALM_ENABLE_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")

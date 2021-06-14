@@ -16,26 +16,21 @@
  
 package io.realm.processor
 
+import com.sun.tools.javac.code.Attribute
+import com.sun.tools.javac.code.Symbol
+import com.sun.tools.javac.code.Type
+import com.sun.tools.javac.util.Pair
+import io.realm.annotations.RealmNamingPolicy
+import io.realm.processor.nameconverter.*
 import javax.annotation.processing.Messager
 import javax.annotation.processing.ProcessingEnvironment
-import javax.lang.model.element.Element
-import javax.lang.model.element.ExecutableElement
-import javax.lang.model.element.Modifier
-import javax.lang.model.element.TypeElement
-import javax.lang.model.element.VariableElement
+import javax.lang.model.element.*
 import javax.lang.model.type.DeclaredType
 import javax.lang.model.type.ReferenceType
 import javax.lang.model.type.TypeKind
 import javax.lang.model.type.TypeMirror
 import javax.lang.model.util.Types
 import javax.tools.Diagnostic
-
-import io.realm.annotations.RealmNamingPolicy
-import io.realm.processor.nameconverter.CamelCaseConverter
-import io.realm.processor.nameconverter.IdentityConverter
-import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter
-import io.realm.processor.nameconverter.NameConverter
-import io.realm.processor.nameconverter.PascalCaseConverter
 
 /**
  * Utility methods working with the Realm processor.
@@ -45,20 +40,26 @@ object Utils {
     private lateinit var typeUtils: Types
     private lateinit var messager: Messager
     private lateinit var realmInteger: TypeMirror
+    private lateinit var realmAny: TypeMirror
     private lateinit var realmList: DeclaredType
     private lateinit var realmResults: DeclaredType
     private lateinit var markerInterface: DeclaredType
     private lateinit var realmModel: TypeMirror
+    private lateinit var realmDictionary: DeclaredType
+    private lateinit var realmSet: DeclaredType
 
     fun initialize(env: ProcessingEnvironment) {
         val elementUtils = env.elementUtils
         typeUtils = env.typeUtils
         messager = env.messager
         realmInteger = elementUtils.getTypeElement("io.realm.MutableRealmInteger").asType()
+        realmAny = elementUtils.getTypeElement("io.realm.RealmAny").asType()
         realmList = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmList"), typeUtils.getWildcardType(null, null))
         realmResults = typeUtils.getDeclaredType(env.elementUtils.getTypeElement("io.realm.RealmResults"), typeUtils.getWildcardType(null, null))
         realmModel = elementUtils.getTypeElement("io.realm.RealmModel").asType()
         markerInterface = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmModel"))
+        realmDictionary = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmDictionary"), typeUtils.getWildcardType(null, null))
+        realmSet = typeUtils.getDeclaredType(elementUtils.getTypeElement("io.realm.RealmSet"), typeUtils.getWildcardType(null, null))
     }
 
     /**
@@ -78,8 +79,40 @@ object Utils {
         }
     }
 
+    fun getDictionaryGenericProxyClassSimpleName(field: VariableElement): SimpleClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmDictionary)) {
+            getProxyClassName(getGenericTypeQualifiedName(field)!!)
+        } else {
+            getProxyClassName(getFieldTypeQualifiedName(field))
+        }
+    }
+
+    fun getSetGenericProxyClassSimpleName(field: VariableElement): SimpleClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmSet)) {
+            getProxyClassName(getGenericTypeQualifiedName(field)!!)
+        } else {
+            getProxyClassName(getFieldTypeQualifiedName(field))
+        }
+    }
+
     fun getModelClassQualifiedName(field: VariableElement): QualifiedClassName {
         return if (typeUtils.isAssignable(field.asType(), realmList)) {
+            getGenericTypeQualifiedName(field)!!
+        } else {
+            getFieldTypeQualifiedName(field)
+        }
+    }
+
+    fun getDictionaryGenericModelClassQualifiedName(field: VariableElement): QualifiedClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmDictionary)) {
+            getGenericTypeQualifiedName(field)!!
+        } else {
+            getFieldTypeQualifiedName(field)
+        }
+    }
+
+    fun getSetGenericModelClassQualifiedName(field: VariableElement): QualifiedClassName {
+        return if (typeUtils.isAssignable(field.asType(), realmSet)) {
             getGenericTypeQualifiedName(field)!!
         } else {
             getFieldTypeQualifiedName(field)
@@ -113,6 +146,17 @@ object Utils {
             throw IllegalArgumentException("Argument 'field' cannot be null.")
         }
         return getFieldTypeQualifiedName(field).toString() == "org.bson.types.ObjectId"
+    }
+
+    /**
+     * @return `true` if a field is of type "java.util.UUID", `false` otherwise.
+     * @throws IllegalArgumentException if the field is `null`.
+     */
+    fun isUUID(field: VariableElement?): Boolean {
+        if (field == null) {
+            throw IllegalArgumentException("Argument 'field' cannot be null.")
+        }
+        return getFieldTypeQualifiedName(field).toString() == "java.util.UUID"
     }
 
     /**
@@ -191,10 +235,82 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmAny`, `false` otherwise.
+     */
+    fun isRealmAny(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), realmAny)
+    }
+
+    /**
      * @return `true` if a given field type is `RealmList`, `false` otherwise.
      */
     fun isRealmList(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmList)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmDictionary`, `false` otherwise.
+     */
+    fun isRealmDictionary(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), realmDictionary)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmDictionary` and its element type is value type,
+     * `false` otherwise.
+     */
+    fun isRealmValueDictionary(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field) ?: return false
+        return !isRealmModel(elementTypeMirror) && !isRealmAny(elementTypeMirror)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmDictionary<RealmModel>`, `false` otherwise.
+     */
+    fun isRealmModelDictionary(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field) ?: return false
+        return isRealmModel(elementTypeMirror)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmDictionary` and its element type is `RealmAny`,
+     * `false` otherwise.
+     */
+    fun isRealmAnyDictionary(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field) ?: return false
+        return isRealmAny(elementTypeMirror)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet`, `false` otherwise.
+     */
+    fun isRealmSet(field: VariableElement): Boolean {
+        return typeUtils.isAssignable(field.asType(), realmSet)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet<RealmModel>`, `false` otherwise.
+     */
+    fun isRealmModelSet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return isRealmModel(elementTypeMirror)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet` and its element type is value type,
+     * `false` otherwise.
+     */
+    fun isRealmValueSet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return !isRealmModel(elementTypeMirror) && !isRealmAny(elementTypeMirror)
+    }
+
+    /**
+     * @return `true` if a given field type is `RealmSet<RealmAny>`, `false` otherwise.
+     */
+    fun isRealmAnySet(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field) ?: return false
+        return isRealmAny(elementTypeMirror)
     }
 
     /**
@@ -203,7 +319,28 @@ object Utils {
      */
     fun getValueListFieldType(field: VariableElement): Constants.RealmFieldType {
         val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field)
-        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]!!
+        return Constants.LIST_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
+                ?: throw IllegalArgumentException("Invalid type mirror '$elementTypeMirror' for field '$field'")
+    }
+
+    /**
+     * @param field [VariableElement] of a value dictionary field.
+     * @return element type of the dictionary field.
+     */
+    fun getValueDictionaryFieldType(field: VariableElement): Constants.RealmFieldType {
+        val elementTypeMirror = TypeMirrors.getRealmDictionaryElementTypeMirror(field)
+        return Constants.DICTIONARY_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
+                ?: throw IllegalArgumentException("Invalid type mirror '$elementTypeMirror' for field '$field'")
+    }
+
+    /**
+     * @param field [VariableElement] of a value set field.
+     * @return element type of the set field.
+     */
+    fun getValueSetFieldType(field: VariableElement): Constants.RealmFieldType {
+        val elementTypeMirror = TypeMirrors.getRealmSetElementTypeMirror(field)
+        return Constants.SET_ELEMENT_TYPE_TO_REALM_TYPES[elementTypeMirror!!.toString()]
+                ?: throw IllegalArgumentException("Invalid type mirror '$elementTypeMirror' for field '$field'")
     }
 
     /**
@@ -216,12 +353,21 @@ object Utils {
     }
 
     /**
+     * @return `true` if a given field type is `RealmList` and its element type is `RealmAny`,
+     * `false` otherwise.
+     */
+    fun isRealmAnyList(field: VariableElement): Boolean {
+        val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field) ?: return false
+        return isRealmAny(elementTypeMirror)
+    }
+
+    /**
      * @return `true` if a given field type is `RealmList` and its element type is value type,
      * `false` otherwise.
      */
     fun isRealmValueList(field: VariableElement): Boolean {
         val elementTypeMirror = TypeMirrors.getRealmListElementTypeMirror(field) ?: return false
-        return !isRealmModel(elementTypeMirror)
+        return !isRealmModel(elementTypeMirror) && !isRealmAny(elementTypeMirror)
     }
 
     /**
@@ -257,6 +403,11 @@ object Utils {
         //        return false;
     }
 
+    /**
+     * @return `true` if a given type is `RealmAny`, `false` otherwise.
+     */
+    fun isRealmAny(type: TypeMirror?) = typeUtils.isAssignable(type, realmAny)
+
     fun isRealmResults(field: VariableElement): Boolean {
         return typeUtils.isAssignable(field.asType(), realmResults)
     }
@@ -273,6 +424,22 @@ object Utils {
     // get the fully-qualified type name for the generic type of a RealmList
     fun getRealmListType(field: VariableElement): QualifiedClassName? {
         if (!isRealmList(field)) {
+            return null
+        }
+        val type = getGenericTypeForContainer(field) ?: return null
+        return QualifiedClassName(type.toString())
+    }
+
+    fun getDictionaryType(field: VariableElement): QualifiedClassName? {
+        if (!isRealmDictionary(field)) {
+            return null
+        }
+        val type = getGenericTypeForContainer(field) ?: return null
+        return QualifiedClassName(type.toString())
+    }
+
+    fun getSetType(field: VariableElement): QualifiedClassName? {
+        if (!isRealmSet(field)) {
             return null
         }
         val type = getGenericTypeForContainer(field) ?: return null
@@ -316,6 +483,22 @@ object Utils {
         val fieldType = field.asType()
         val typeArguments = (fieldType as DeclaredType).typeArguments
         return if (typeArguments.isEmpty()) null else QualifiedClassName(typeArguments[0].toString())
+    }
+
+    /**
+     * @return the generic type for Dictionaries of the form `RealmDictionary<type>`
+     * Note: it applies to same types as RealmList.
+     */
+    fun getDictionaryValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
+        return getGenericTypeQualifiedName(field)
+    }
+
+    /**
+     * @return the generic type for Sets of the form `RealmSet<type>`
+     * Note: it applies to same types as RealmList.
+     */
+    fun getSetValueTypeQualifiedName(field: VariableElement): QualifiedClassName? {
+        return getGenericTypeQualifiedName(field)
     }
 
     /**
@@ -450,5 +633,38 @@ object Utils {
     fun getSimpleColumnInfoClassName(className: QualifiedClassName): String {
         val simpleModelClassName = className.getSimpleName()
         return "${getProxyClassName(className)}.${simpleModelClassName}ColumnInfo"
+    }
+
+    // Returns whether a type of a Realm field is embedded or not.
+    // For types which are part of this processing round we can look it up immediately from
+    // the metadata in the `classCollection`. For types defined in other modules we will
+    // have to use the slower approach of inspecting the `embedded` property of the
+    // RealmClass annotation using the compiler tool api.
+    fun isFieldTypeEmbedded(type: TypeMirror, classCollection: ClassCollection) : Boolean  {
+        val fieldType = QualifiedClassName(type)
+        val fieldTypeMetaData: ClassMetaData? = classCollection.getClassFromQualifiedNameOrNull(fieldType)
+        return fieldTypeMetaData?.embedded ?: type.isEmbedded()
+    }
+
+    private fun TypeMirror.isEmbedded() : Boolean {
+        var isEmbedded = false
+
+        if (this is Type.ClassType) {
+            val declarationAttributes: com.sun.tools.javac.util.List<Attribute.Compound>? = tsym.metadata?.declarationAttributes
+            if (declarationAttributes != null) {
+                loop@for (attribute: Attribute.Compound in declarationAttributes) {
+                    if (attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.RealmClass") {
+                        for (pair: Pair<Symbol.MethodSymbol, Attribute> in attribute.values) {
+                            if (pair.fst.name.toString() == "embedded") {
+                                isEmbedded = pair.snd.value as Boolean
+                                break@loop
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return isEmbedded
     }
 }

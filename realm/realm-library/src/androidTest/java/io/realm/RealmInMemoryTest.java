@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmFileException;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;

@@ -4,6 +4,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -13,14 +14,14 @@ import io.realm.RealmChangeListener;
 /**
  * Java wrapper of Object Store List class. This backs managed versions of RealmList.
  */
-public class OsList implements NativeObject, ObservableCollection {
+public class OsList implements NativeObject, ObservableCollection, OsCollection {
 
     private final long nativePtr;
     private final NativeContext context;
     private final Table targetTable;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final ObserverPairList<CollectionObserverPair> observerPairs =
-            new ObserverPairList<CollectionObserverPair>();
+            new ObserverPairList<>();
 
     public OsList(UncheckedRow row, long columnKey) {
         OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
@@ -227,6 +228,42 @@ public class OsList implements NativeObject, ObservableCollection {
         }
     }
 
+    public void addUUID(@Nullable UUID value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddUUID(nativePtr, value.toString());
+        }
+    }
+
+    public void insertUUID(long pos, @Nullable UUID value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertUUID(nativePtr, pos, value.toString());
+        }
+    }
+
+    public void setUUID(long pos, @Nullable UUID value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetUUID(nativePtr, pos, value.toString());
+        }
+    }
+
+    public void addRealmAny(long realmAnyPtr) {
+        nativeAddRealmAny(nativePtr, realmAnyPtr);
+    }
+
+    public void insertRealmAny(long pos, long realmAnyPtr) {
+        nativeInsertRealmAny(nativePtr, pos, realmAnyPtr);
+    }
+
+    public void setRealmAny(long pos, long realmAnyPtr) {
+        nativeSetRealmAny(nativePtr, pos, realmAnyPtr);
+    }
+
     @Nullable
     public Object getValue(long pos) {
         return nativeGetValue(nativePtr, pos);
@@ -259,6 +296,7 @@ public class OsList implements NativeObject, ObservableCollection {
         return new TableQuery(context, targetTable, nativeGetQuery(nativePtr));
     }
 
+    @Override
     public boolean isValid() {
         return nativeIsValid(nativePtr);
     }
@@ -423,6 +461,18 @@ public class OsList implements NativeObject, ObservableCollection {
     private static native void nativeInsertObjectId(long nativePtr, long pos, String data);
 
     private static native void nativeSetObjectId(long nativePtr, long pos, String data);
+
+    private static native void nativeAddUUID(long nativePtr, String data);
+
+    private static native void nativeInsertUUID(long nativePtr, long pos, String data);
+
+    private static native void nativeSetUUID(long nativePtr, long pos, String data);
+
+    private static native void nativeAddRealmAny(long nativePtr, long realmAnyPtr);
+
+    private static native void nativeInsertRealmAny(long nativePtr, long pos, long realmAnyPtr);
+
+    private static native void nativeSetRealmAny(long nativePtr, long pos, long realmAnyPtr);
 
     private static native Object nativeGetValue(long nativePtr, long pos);
 

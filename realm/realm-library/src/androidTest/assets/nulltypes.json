@@ -25,7 +25,9 @@
     "fieldDecimal128Null": null,
     "fieldDecimal128NotNull": -42,
     "fieldObjectIdNull": null,
-    "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE"
+    "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE",
+    "fieldUUIDNull": null,
+    "fieldUUIDNotNull": "027ba5ca-aa12-4afa-9219-e20cc3018599"
   },
   {
     "id": 2,
@@ -75,11 +77,15 @@
       "fieldDecimal128Null": 0,
       "fieldDecimal128NotNull": 0,
       "fieldObjectIdNull": "789ABCDEF0123456789ABCDE",
-      "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE"
+      "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE",
+      "fieldUUIDNull": "027ba5ca-aa12-4afa-9219-e20cc3018599",
+      "fieldUUIDNotNull": "027ba5ca-aa12-4afa-9219-e20cc3018599"
     },
     "fieldDecimal128Null": 0,
     "fieldDecimal128NotNull": 0,
     "fieldObjectIdNull": "789ABCDEF0123456789ABCDE",
-    "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE"
+    "fieldObjectIdNotNull": "789ABCDEF0123456789ABCDE",
+    "fieldUUIDNull": "027ba5ca-aa12-4afa-9219-e20cc3018599",
+    "fieldUUIDNotNull": "027ba5ca-aa12-4afa-9219-e20cc3018599"
   }
 ]

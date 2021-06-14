@@ -8,7 +8,7 @@ import io.realm.RealmChangeListener;
 
 // Helper class for supporting add change listeners on OsResults & OsList.
 @Keep
-interface ObservableCollection {
+public interface ObservableCollection {
     class CollectionObserverPair<T> extends ObserverPairList.ObserverPair<T, Object> {
         CollectionObserverPair(T observer, Object listener) {
             super(observer, listener);
@@ -30,7 +30,7 @@ interface ObservableCollection {
     class RealmChangeListenerWrapper<T> implements OrderedRealmCollectionChangeListener<T> {
         private final RealmChangeListener<T> listener;
 
-        RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
+        public RealmChangeListenerWrapper(RealmChangeListener<T> listener) {
             this.listener = listener;
         }
 

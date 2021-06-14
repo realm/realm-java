@@ -34,6 +34,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
     private val simpleModelClassNames = ArrayList<SimpleClassName>()
     private val internalClassNames = ArrayList<String>()
     private val embeddedClass = ArrayList<Boolean>()
+    private val primaryKeyClasses = mutableListOf<QualifiedClassName>()
 
     init {
         for (metadata in classesToValidate) {
@@ -43,6 +44,9 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
             simpleModelClassNames.add(metadata.simpleJavaClassName)
             internalClassNames.add(metadata.internalClassName)
             embeddedClass.add(metadata.embedded)
+            if(metadata.primaryKey != null) {
+                primaryKeyClasses.add(metadata.qualifiedClassName)
+            }
         }
     }
 
@@ -87,6 +91,8 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
             emitGetExpectedObjectSchemaInfoMap(this)
             emitCreateColumnInfoMethod(this)
             emitGetSimpleClassNameMethod(this)
+            emitGetClazzClassNameMethod(this)
+            emitHasPrimaryKeyMethod(this)
             emitNewInstanceMethod(this)
             emitGetClassModelList(this)
             emitCopyOrUpdateMethod(this)
@@ -163,9 +169,50 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                     EnumSet.of(Modifier.PUBLIC),
                     "Class<? extends RealmModel>", "clazz"
             )
-                emitMediatorShortCircuitSwitch(writer, emitStatement = { i: Int ->
-                    emitStatement("return \"%s\"", internalClassNames[i])
-                })
+            emitMediatorShortCircuitSwitch(writer, emitStatement = { i: Int ->
+                emitStatement("return \"%s\"", internalClassNames[i])
+            })
+            endMethod()
+            emitEmptyLine()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun emitGetClazzClassNameMethod(writer: JavaWriter) {
+        writer.apply {
+            emitAnnotation("Override")
+            beginMethod(
+                    "Class<? extends RealmModel>",
+                    "getClazzImpl",
+                    EnumSet.of(Modifier.PUBLIC),
+                    "String", "className"
+            )
+            emitMediatorInverseShortCircuitSwitch(writer, emitStatement = { i: Int ->
+                emitStatement("return %s.class", qualifiedModelClasses[i])
+            })
+            endMethod()
+            emitEmptyLine()
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun emitHasPrimaryKeyMethod(writer: JavaWriter) {
+        writer.apply {
+            emitAnnotation("Override")
+            beginMethod(
+                    "boolean",
+                    "hasPrimaryKeyImpl",
+                    EnumSet.of(Modifier.PUBLIC),
+                    "Class<? extends RealmModel>", "clazz"
+            )
+
+            if (primaryKeyClasses.size == 0) {
+                emitStatement("return false")
+            } else {
+                val primaryKeyCondition = primaryKeyClasses.joinToString(".class.isAssignableFrom(clazz)\n|| ", "", ".class.isAssignableFrom(clazz)")
+                emitStatement("return %s", primaryKeyCondition)
+            }
+
             endMethod()
             emitEmptyLine()
         }
@@ -243,7 +290,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
         writer.apply {
             emitAnnotation("Override")
             beginMethod(
-                    "void",
+                    "long",
                     "insert",
                     EnumSet.of(Modifier.PUBLIC),
                     "Realm", "realm", "RealmModel", "object", "Map<RealmModel, Long>", "cache")
@@ -257,7 +304,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                         if (embeddedClass[i]) {
                             emitEmbeddedObjectsCannotBeCopiedException(writer)
                         } else {
-                            emitStatement("%s.insert(realm, (%s) object, cache)", qualifiedProxyClasses[i], qualifiedModelClasses[i])
+                            emitStatement("return %s.insert(realm, (%s) object, cache)", qualifiedProxyClasses[i], qualifiedModelClasses[i])
                         }
                     })
                 } else {
@@ -274,7 +321,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
         writer.apply {
             emitAnnotation("Override")
             beginMethod(
-                    "void",
+                    "long",
                     "insertOrUpdate",
                     EnumSet.of(Modifier.PUBLIC),
                     "Realm", "realm", "RealmModel", "obj", "Map<RealmModel, Long>", "cache")
@@ -288,7 +335,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                     if (embeddedClass[i]) {
                         emitEmbeddedObjectsCannotBeCopiedException(writer)
                     } else {
-                        emitStatement("%s.insertOrUpdate(realm, (%s) obj, cache)", qualifiedProxyClasses[i], qualifiedModelClasses[i])
+                        emitStatement("return %s.insertOrUpdate(realm, (%s) obj, cache)", qualifiedProxyClasses[i], qualifiedModelClasses[i])
                     }
                 })
             } else {
@@ -563,6 +610,22 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
                 endControlFlow()
             }
             emitStatement("throw getMissingProxyClassException(clazz)")
+        }
+    }
+
+    @Throws(IOException::class)
+    private fun emitMediatorInverseShortCircuitSwitch(writer: JavaWriter, nullPointerCheck: Boolean = true, emitStatement: (index: Int) -> Unit) {
+        writer.apply {
+            if (nullPointerCheck) {
+                emitStatement("checkClassName(className)")
+                emitEmptyLine()
+            }
+            for (i in qualifiedModelClasses.indices) {
+                beginControlFlow("if (className.equals(\"%s\"))", internalClassNames[i])
+                emitStatement(i)
+                endControlFlow()
+            }
+            emitStatement("throw getMissingProxyClassException(className)")
         }
     }
 

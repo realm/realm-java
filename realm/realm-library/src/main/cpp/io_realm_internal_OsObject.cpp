@@ -168,7 +168,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     TableRef table = TBL_REF(table_ref_ptr);
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
-    if (is_pk_null && !COL_NULLABLE(env, table, pk_column_key)) {
+    if (is_pk_null && !COL_NULLABLE(env, table, pk_column_key)) { // throws
         return Obj();
     }
 
@@ -196,7 +196,7 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws
-    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) {
+    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) { // throws
         return Obj();
     }
 
@@ -215,14 +215,14 @@ static inline Obj do_create_row_with_primary_key(JNIEnv* env, jlong shared_realm
 }
 
 static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ref_ptr,
-                                                 jlong pk_column_key, jstring pk_value)
+                                                            jlong pk_column_key, jstring pk_value)
 {
     auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
     TableRef table = TBL_REF(table_ref_ptr);
     ColKey col_key(pk_column_key);
     shared_realm->verify_in_write(); // throws
     JStringAccessor str_accessor(env, pk_value); // throws
-    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) {
+    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) { // throws
         return Obj();
     }
 
@@ -240,6 +240,35 @@ static inline Obj do_create_row_with_object_id_primary_key(JNIEnv* env, jlong sh
             THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
         }
         return table->create_object_with_primary_key(realm::util::Optional<realm::ObjectId>());
+    }
+}
+
+static inline Obj do_create_row_with_uuid_primary_key(JNIEnv* env, jlong shared_realm_ptr, jlong table_ref_ptr,
+                                                           jlong pk_column_key, jstring pk_value)
+{
+    auto& shared_realm = *(reinterpret_cast<SharedRealm*>(shared_realm_ptr));
+    TableRef table = TBL_REF(table_ref_ptr);
+    ColKey col_key(pk_column_key);
+    shared_realm->verify_in_write(); // throws
+    JStringAccessor str_accessor(env, pk_value); // throws
+    if (!pk_value && !COL_NULLABLE(env, table, pk_column_key)) { //throws
+        return Obj();
+    }
+
+    if (pk_value) {
+        auto uuid = UUID(StringData(str_accessor).data());
+        if (bool(table->find_first_uuid(col_key, uuid))) {
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS,
+                                 util::format(PK_EXCEPTION_MSG_FORMAT, str_accessor.operator std::string()));
+        }
+
+        return table->create_object_with_primary_key(uuid);
+    }
+    else {
+        if (bool(table->find_first_null(col_key))) {
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, util::format(PK_EXCEPTION_MSG_FORMAT, "'null'"));
+        }
+        return table->create_object_with_primary_key(realm::util::Optional<realm::UUID>());
     }
 }
 
@@ -365,7 +394,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithStrin
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithObjectIdPrimaryKey(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
+        JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
 {
     try {
         Obj obj = do_create_row_with_object_id_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
@@ -376,12 +405,38 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithObjec
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithObjectIdPrimaryKey(
-    JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
+        JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
 {
     try {
         Obj obj = do_create_row_with_object_id_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
         if (bool(obj)) {
             return reinterpret_cast<jlong>(new Obj(obj));
+        }
+    }
+    CATCH_STD()
+    return 0;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateRowWithUUIDPrimaryKey(
+        JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
+{
+    try {
+        Obj obj = do_create_row_with_uuid_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
+        return (jlong)(obj.get_key().value);
+    }
+    CATCH_STD()
+    return realm::npos;
+}
+
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObject_nativeCreateNewObjectWithUUIDPrimaryKey(
+        JNIEnv* env, jclass, jlong shared_realm_ptr, jlong table_ref_ptr, jlong pk_column_ndx, jstring pk_value)
+{
+    try {
+        Obj obj = do_create_row_with_uuid_primary_key(env, shared_realm_ptr, table_ref_ptr, pk_column_ndx, pk_value);
+        if (bool(obj)) {
+            return reinterpret_cast<jlong>(new Obj(obj));
+        } else {
+            THROW_JAVA_EXCEPTION(env, PK_CONSTRAINT_EXCEPTION_CLASS, "Invalid Object returned from 'do_create_row_with_uuid_primary_key'");
         }
     }
     CATCH_STD()

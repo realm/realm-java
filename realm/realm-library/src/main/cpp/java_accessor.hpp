@@ -43,6 +43,8 @@ class JPrimitiveArrayAccessor;
 typedef JPrimitiveArrayAccessor<jbyteArray, jbyte> JByteArrayAccessor;
 typedef JPrimitiveArrayAccessor<jbooleanArray, jboolean> JBooleanArrayAccessor;
 typedef JPrimitiveArrayAccessor<jlongArray, jlong> JLongArrayAccessor;
+typedef JPrimitiveArrayAccessor<jfloatArray, jfloat> JFloatArrayAccessor;
+typedef JPrimitiveArrayAccessor<jdoubleArray, jdouble> JDoubleArrayAccessor;
 
 // JPrimitiveArrayAccessor and JObjectArrayAccessor are not supposed to be used across JNI borders. They won't acquire
 // references of the original Java object. Thus, you have to ensure the original java object is available during the
@@ -200,6 +202,14 @@ public:
     {
         return JavaClassGlobalDef::new_object_id(m_env, v);
     }
+    util::Any box(UUID v) const
+    {
+        return JavaClassGlobalDef::new_uuid(m_env, v);
+    }
+    util::Any box(Mixed v) const
+    {
+        return JavaClassGlobalDef::new_mixed(m_env, v);
+    }
     util::Any box(bool v) const
     {
         return _impl::JavaClassGlobalDef::new_boolean(m_env, v);
@@ -240,17 +250,17 @@ public:
     {
         return v ? _impl::JavaClassGlobalDef::new_object_id(m_env, v.value()) : nullptr;
     }
+    util::Any box(util::Optional<UUID> v) const
+    {
+        return v ? _impl::JavaClassGlobalDef::new_uuid(m_env, v.value()) : nullptr;
+    }
     util::Any box(Obj) const
     {
         REALM_TERMINATE("not supported");
     }
 
-    // Any properties are only supported by the Cocoa binding to enable reading
-    // old Realm files that may have used them. Other bindings can safely not
-    // implement this.
-    util::Any box(Mixed) const
-    {
-        REALM_TERMINATE("not supported");
+    bool is_null(util::Any value) {
+        return !value.has_value();
     }
 
     // Convert from the boxed type to core types. This needs to be implemented
@@ -363,6 +373,40 @@ inline JPrimitiveArrayAccessor<jlongArray, jlong>::ElementsHolder::~ElementsHold
     }
 }
 
+// Accessor for jfloatArray
+template <>
+inline JPrimitiveArrayAccessor<jfloatArray, jfloat>::ElementsHolder::ElementsHolder(JNIEnv* env, jfloatArray jarray)
+    : m_env(env)
+    , m_jarray(jarray)
+    , m_data_ptr(jarray ? env->GetFloatArrayElements(jarray, nullptr) : nullptr)
+{
+}
+
+template <>
+inline JPrimitiveArrayAccessor<jfloatArray, jfloat>::ElementsHolder::~ElementsHolder()
+{
+    if (m_jarray) {
+        m_env->ReleaseFloatArrayElements(m_jarray, m_data_ptr, m_release_mode);
+    }
+}
+
+// Accessor for jdoubleArray
+template <>
+inline JPrimitiveArrayAccessor<jdoubleArray , jdouble>::ElementsHolder::ElementsHolder(JNIEnv* env, jdoubleArray jarray)
+    : m_env(env)
+    , m_jarray(jarray)
+    , m_data_ptr(jarray ? env->GetDoubleArrayElements(jarray, nullptr) : nullptr)
+{
+}
+
+template <>
+inline JPrimitiveArrayAccessor<jdoubleArray, jdouble>::ElementsHolder::~ElementsHolder()
+{
+    if (m_jarray) {
+        m_env->ReleaseDoubleArrayElements(m_jarray, m_data_ptr, m_release_mode);
+    }
+}
+
 template <>
 inline bool JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
@@ -429,6 +473,12 @@ inline util::Optional<ObjectId> JavaAccessorContext::unbox(util::Any& v, CreateP
 }
 
 template <>
+inline util::Optional<UUID> JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
+{
+    return v.has_value() ?  util::make_optional(util::any_cast<UUID&>(v)) : util::none;
+}
+
+template <>
 inline Obj JavaAccessorContext::unbox(util::Any&, CreatePolicy, ObjKey) const
 {
     REALM_TERMINATE("not supported");
@@ -459,9 +509,9 @@ inline util::Optional<float> JavaAccessorContext::unbox(util::Any& v, CreatePoli
 }
 
 template <>
-inline Mixed JavaAccessorContext::unbox(util::Any&, CreatePolicy, ObjKey) const
+inline Mixed JavaAccessorContext::unbox(util::Any& v, CreatePolicy, ObjKey) const
 {
-    REALM_TERMINATE("not supported");
+    return v.has_value() ?  util::any_cast<Mixed&>(v) : Mixed();
 }
 
 } // namespace realm

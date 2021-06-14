@@ -14,7 +14,7 @@ ENV ANDROID_HOME /opt/android-sdk-linux
 # Need by cmake
 ENV ANDROID_NDK_HOME /opt/android-ndk
 ENV ANDROID_NDK /opt/android-ndk
-ENV PATH ${PATH}:${ANDROID_HOME}/emulator:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
+ENV PATH ${PATH}:${ANDROID_HOME}/emulator:${ANDROID_HOME}/cmdline-tools/latest:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
 ENV CCACHE_CPP2 yes
@@ -52,9 +52,12 @@ RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get clean
 
 # Install the Android SDK
+# See https://developer.android.com/studio/index.html#downloads for latest version
 RUN cd /opt && \
-    wget -q https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip -O android-tools-linux.zip && \
-    unzip android-tools-linux.zip -d ${ANDROID_HOME} && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip -O android-tools-linux.zip && \
+    mkdir --parents ${ANDROID_HOME}/cmdline-tools/latest && \
+    unzip android-tools-linux.zip -d ${ANDROID_HOME}/cmdline-tools/latest && \
+    mv ${ANDROID_HOME}/cmdline-tools/latest/cmdline-tools/* ${ANDROID_HOME}/cmdline-tools/latest/ && \
     rm -f android-tools-linux.zip
 
 # Grab what's needed in the SDK

@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Locale;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
@@ -34,7 +33,6 @@ import io.realm.entities.Cat;
 import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -172,6 +170,9 @@ public class LinkingObjectsDynamicTests {
         dynamicRealm.commitTransaction();
 
         for (RealmFieldType fieldType : RealmFieldType.values()) {
+            if(fieldType == RealmFieldType.TYPED_LINK)
+                continue;
+
             try {
                 switch (fieldType) {
                     // skip valid types
@@ -208,6 +209,12 @@ public class LinkingObjectsDynamicTests {
                     case OBJECT_ID:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID);
                         break;
+                    case UUID:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID);
+                        break;
+                    case MIXED:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_REALM_ANY);
+                        break;
                     case INTEGER_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INTEGER_LIST);
                         break;
@@ -235,6 +242,39 @@ public class LinkingObjectsDynamicTests {
                     case OBJECT_ID_LIST:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID_LIST);
                         break;
+                    case UUID_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case MIXED_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_REALM_ANY_LIST);
+                        break;
+                    case STRING_TO_MIXED_MAP:
+                    case STRING_TO_BOOLEAN_MAP:
+                    case STRING_TO_STRING_MAP:
+                    case STRING_TO_INTEGER_MAP:
+                    case STRING_TO_FLOAT_MAP:
+                    case STRING_TO_DOUBLE_MAP:
+                    case STRING_TO_BINARY_MAP:
+                    case STRING_TO_DATE_MAP:
+                    case STRING_TO_OBJECT_ID_MAP:
+                    case STRING_TO_UUID_MAP:
+                    case STRING_TO_DECIMAL128_MAP:
+                    case STRING_TO_LINK_MAP:
+                    case BOOLEAN_SET:
+                    case STRING_SET:
+                    case INTEGER_SET:
+                    case FLOAT_SET:
+                    case DOUBLE_SET:
+                    case BINARY_SET:
+                    case DATE_SET:
+                    case DECIMAL128_SET:
+                    case OBJECT_ID_SET:
+                    case UUID_SET:
+                    case LINK_SET:
+                    case MIXED_SET:
+                        // TODO: https://github.com/realm/realm-java/issues/7382
+                        // TODO: https://github.com/realm/realm-java/issues/7383
+                        throw new IllegalArgumentException("Unexpected field type");
                     default:
                         fail("unknown type: " + fieldType);
                         break;

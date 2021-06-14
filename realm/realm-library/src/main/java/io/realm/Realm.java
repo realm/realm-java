@@ -517,6 +517,11 @@ public class Realm extends BaseRealm {
      * @throws RealmException if mapping from JSON fails.
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, JSONArray json) {
         //noinspection ConstantConditions
@@ -550,7 +555,12 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if unable to map JSON.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
      * @see #createAllFromJson(Class, org.json.JSONArray)
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, JSONArray json) {
         //noinspection ConstantConditions
@@ -581,6 +591,11 @@ public class Realm extends BaseRealm {
      * @throws RealmException if mapping from JSON fails.
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, String json) {
         //noinspection ConstantConditions
@@ -614,7 +629,12 @@ public class Realm extends BaseRealm {
      * @throws RealmException if unable to create a JSON array from the json string.
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
      * @see #createAllFromJson(Class, String)
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, String json) {
         //noinspection ConstantConditions
@@ -650,6 +670,11 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws IOException if something was wrong with the input stream.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> void createAllFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
         //noinspection ConstantConditions
@@ -688,7 +713,12 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if unable to read JSON.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
      * @see #createOrUpdateAllFromJson(Class, java.io.InputStream)
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> void createOrUpdateAllFromJson(Class<E> clazz, InputStream in) {
         //noinspection ConstantConditions
@@ -730,7 +760,12 @@ public class Realm extends BaseRealm {
      * @throws RealmException if the mapping from JSON fails.
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
      * @see #createOrUpdateObjectFromJson(Class, org.json.JSONObject)
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     @Nullable
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, JSONObject json) {
@@ -763,7 +798,12 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if JSON data cannot be mapped.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
      * @see #createObjectFromJson(Class, org.json.JSONObject)
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, JSONObject json) {
         //noinspection ConstantConditions
@@ -793,6 +833,11 @@ public class Realm extends BaseRealm {
      * @throws RealmException if mapping to json failed.
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     @Nullable
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, String json) {
@@ -828,7 +873,12 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if JSON object cannot be mapped from the string parameter.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
      * @see #createObjectFromJson(Class, String)
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, String json) {
         //noinspection ConstantConditions
@@ -865,6 +915,11 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws IOException if something went wrong with the input stream.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     @Nullable
     public <E extends RealmModel> E createObjectFromJson(Class<E> clazz, InputStream inputStream) throws IOException {
@@ -922,7 +977,12 @@ public class Realm extends BaseRealm {
      * @throws IllegalArgumentException if the JSON object doesn't have a primary key property but the corresponding
      * {@link RealmObjectSchema} has a {@link io.realm.annotations.PrimaryKey} defined.
      * @throws RealmException if failure to read JSON.
+     * @throws UnsupportedOperationException if the object to insert contains a {@link RealmDictionary} or
+     * a {@link RealmSet}.
      * @see #createObjectFromJson(Class, java.io.InputStream)
+     * @see RealmSet
+     * @see RealmDictionary
+     * @see RealmMap
      */
     public <E extends RealmModel> E createOrUpdateObjectFromJson(Class<E> clazz, InputStream in) {
         //noinspection ConstantConditions
@@ -1030,9 +1090,9 @@ public class Realm extends BaseRealm {
      * This method should only be used to create objects of types marked as embedded.
      *
      * @param clazz the Class of the object to create. It must be marked with {@code \@RealmClass(embedded = true)}.
-     * @param parentObject The parent object which should hold a reference to the embedded object. If the parent property is a list
+     * @param parentObject The parent object which should hold a reference to the embedded object.
+     * @param parentProperty the property in the parent class which holds the reference. If the parent property is a list
      * the embedded object will be added to the end of that list.
-     * @param parentProperty the property in the parent class which holds the reference.
      * @return the newly created embedded object.
      * @throws IllegalArgumentException if {@code clazz} is not an embedded class or if the property
      * in the parent class cannot hold objects of the appropriate type.
@@ -1183,7 +1243,6 @@ public class Realm extends BaseRealm {
      * @param objects RealmObjects to insert.
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
      * transaction.
-     * @see #copyToRealm(Iterable, ImportFlag...)
      */
     public void insert(Collection<? extends RealmModel> objects) {
         checkIfValidAndInTransaction();
@@ -1220,7 +1279,6 @@ public class Realm extends BaseRealm {
      * transaction.
      * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
      * inserted or if a primary key value already exists in the Realm.
-     * @see #copyToRealm(RealmModel, ImportFlag...)
      */
     public void insert(RealmModel object) {
         checkIfValidAndInTransaction();
@@ -1256,7 +1314,6 @@ public class Realm extends BaseRealm {
      * transaction.
      * @throws io.realm.exceptions.RealmPrimaryKeyConstraintException if two objects with the same primary key is
      * inserted or if a primary key value already exists in the Realm.
-     * @see #copyToRealmOrUpdate(Iterable, ImportFlag...)
      */
     public void insertOrUpdate(Collection<? extends RealmModel> objects) {
         checkIfValidAndInTransaction();
@@ -1292,7 +1349,6 @@ public class Realm extends BaseRealm {
      * @param object RealmObjects to insert.
      * @throws IllegalStateException if the corresponding Realm is closed, called from an incorrect thread or not in a
      * transaction.
-     * @see #copyToRealmOrUpdate(RealmModel, ImportFlag...)
      */
     public void insertOrUpdate(RealmModel object) {
         checkIfValidAndInTransaction();
@@ -1770,12 +1826,14 @@ public class Realm extends BaseRealm {
     }
 
     private void checkHasPrimaryKey(Class<? extends RealmModel> clazz) {
-        String className = configuration.getSchemaMediator().getSimpleClassName(clazz);
-        OsObjectSchemaInfo objectSchemaInfo = sharedRealm.getSchemaInfo().getObjectSchemaInfo(className);
-
-        if (objectSchemaInfo.getPrimaryKeyProperty() == null) {
+        if (!hasPrimaryKey(clazz)) {
             throw new IllegalArgumentException("A RealmObject with no @PrimaryKey cannot be updated: " + clazz.toString());
         }
+    }
+
+    // Called from proxy classes.
+    boolean hasPrimaryKey(Class<? extends RealmModel> clazz){
+        return configuration.getSchemaMediator().hasPrimaryKey(clazz);
     }
 
     private void checkMaxDepth(int maxDepth) {

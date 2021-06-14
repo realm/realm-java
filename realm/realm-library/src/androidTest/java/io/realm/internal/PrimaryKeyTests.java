@@ -34,7 +34,7 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

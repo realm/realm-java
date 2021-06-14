@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -30,8 +31,8 @@ import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.RealmChangeListener;
 import io.realm.RealmList;
 import io.realm.RealmModel;
-import io.realm.internal.core.DescriptorOrdering;
-import io.realm.internal.core.QueryDescriptor;
+import io.realm.Sort;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.internal.objectstore.OsObjectBuilder;
 
 
@@ -46,7 +47,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     // Custom OsResults iterator. It ensures that we only iterate on a Realm OsResults that hasn't changed.
     public abstract static class Iterator<T> implements java.util.Iterator<T> {
-        OsResults iteratorOsResults;
+        protected OsResults iteratorOsResults;
         protected int pos = -1;
 
         public Iterator(OsResults osResults) {
@@ -122,12 +123,14 @@ public class OsResults implements NativeObject, ObservableCollection {
 
         @Nullable
         T get(int pos) {
-            return convertRowToObject(iteratorOsResults.getUncheckedRow(pos));
+            return getInternal(pos, iteratorOsResults);
         }
 
         // Returns the RealmModel by given row in this list. This has to be implemented in the upper layer since
         // we don't have information about the object types in the internal package.
         protected abstract T convertRowToObject(UncheckedRow row);
+
+        protected abstract T getInternal(int pos, OsResults iteratorOsResults);
     }
 
     // Custom Realm collection list iterator.
@@ -253,16 +256,13 @@ public class OsResults implements NativeObject, ObservableCollection {
     @SuppressWarnings("WeakerAccess")
     public static final byte MODE_QUERY = 3;
     @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_LINK_LIST = 4;
-    @SuppressWarnings("WeakerAccess")
-    public static final byte MODE_TABLEVIEW = 5;
+    public static final byte MODE_TABLEVIEW = 4;
 
     public enum Mode {
         EMPTY,          // Backed by nothing (for missing tables)
         TABLE,          // Backed directly by a Table
         PRIMITIVE_LIST, // List of primitives
         QUERY,          // Backed by a query that has not yet been turned into a TableView
-        LINK_LIST,      // Backed directly by a LinkView
         TABLEVIEW;      // Backed by a TableView created from a Query
 
         static Mode getByValue(byte value) {
@@ -275,8 +275,6 @@ public class OsResults implements NativeObject, ObservableCollection {
                     return QUERY;
                 case MODE_LIST:
                     return PRIMITIVE_LIST;
-                case MODE_LINK_LIST:
-                    return LINK_LIST;
                 case MODE_TABLEVIEW:
                     return TABLEVIEW;
                 default:
@@ -295,14 +293,24 @@ public class OsResults implements NativeObject, ObservableCollection {
         return new OsResults(realm, srcTable, backlinksPtr);
     }
 
-    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query, DescriptorOrdering queryDescriptors) {
+    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query) {
         query.validateQuery();
-        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr(), queryDescriptors.getNativePtr());
+        long ptr = nativeCreateResults(sharedRealm.getNativePtr(), query.getNativePtr());
         return new OsResults(sharedRealm, query.getTable(), ptr);
     }
 
-    public static OsResults createFromQuery(OsSharedRealm sharedRealm, TableQuery query) {
-        return createFromQuery(sharedRealm, query, new DescriptorOrdering());
+    public static OsResults createFromMap(OsSharedRealm sharedRealm, long resultsPtr) {
+        return new OsResults(sharedRealm, resultsPtr);
+    }
+
+    // Use this when we don't have the table, e.g. when calling RealmDictionary.values()
+    OsResults(OsSharedRealm sharedRealm, long nativePtr) {
+        this.sharedRealm = sharedRealm;
+        this.context = sharedRealm.context;
+        this.nativePtr = nativePtr;
+        this.context.addReference(this);
+        this.loaded = getMode() != Mode.QUERY;
+        this.table = new Table(sharedRealm, nativeGetTable(nativePtr));
     }
 
     OsResults(OsSharedRealm sharedRealm, Table table, long nativePtr) {
@@ -339,6 +347,10 @@ public class OsResults implements NativeObject, ObservableCollection {
     @Override
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
+    }
+
+    public Object getValue(int index) {
+        return nativeGetValue(nativePtr, index);
     }
 
     public UncheckedRow getUncheckedRow(int index) {
@@ -390,12 +402,27 @@ public class OsResults implements NativeObject, ObservableCollection {
         nativeClear(nativePtr);
     }
 
-    public OsResults sort(QueryDescriptor sortDescriptor) {
-        return new OsResults(sharedRealm, table, nativeSort(nativePtr, sortDescriptor));
+    public OsResults sort(@Nullable OsKeyPathMapping mapping, String fieldName, Sort sortOrder) {
+        String query = TableQuery.buildSortDescriptor(new String[] {fieldName}, new Sort[] {sortOrder});
+        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
-    public OsResults distinct(QueryDescriptor distinctDescriptor) {
-        return new OsResults(sharedRealm, table, nativeDistinct(nativePtr, distinctDescriptor));
+    public OsResults sort(@Nullable OsKeyPathMapping mapping, String[] fieldNames, Sort[] sortOrders) {
+        //noinspection ConstantConditions
+        if (sortOrders == null || sortOrders.length == 0) {
+            throw new IllegalArgumentException("You must provide at least one sort order.");
+        }
+        if (fieldNames.length != sortOrders.length) {
+            throw new IllegalArgumentException("Number of fields and sort orders do not match.");
+        }
+
+        String query = TableQuery.buildSortDescriptor(fieldNames, sortOrders);
+        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
+    }
+
+    public OsResults distinct(@Nullable OsKeyPathMapping mapping, String[] fieldNames) {
+        String query = TableQuery.buildDistinctDescriptor(fieldNames);
+        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
     public boolean contains(UncheckedRow row) {
@@ -468,6 +495,14 @@ public class OsResults implements NativeObject, ObservableCollection {
             nativeSetNull(nativePtr, fieldName);
         } else {
             nativeSetObjectId(nativePtr, fieldName, value.toString());
+        }
+    }
+
+    public void setUUID(String fieldName, @Nullable UUID value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, fieldName);
+        } else {
+            nativeSetUUID(nativePtr, fieldName, value.toString());
         }
     }
 
@@ -624,6 +659,15 @@ public class OsResults implements NativeObject, ObservableCollection {
         });
     }
 
+    public void setUUIDList(String fieldName, RealmList<UUID> list) {
+        addTypeSpecificList(fieldName, list, new AddListTypeDelegate<UUID>() {
+            @Override
+            public void addList(OsObjectBuilder builder, RealmList<UUID> list) {
+                builder.addUUIDList(0, list);
+            }
+        });
+    }
+
     public <T> void addListener(T observer, OrderedRealmCollectionChangeListener<T> listener) {
         if (observerPairs.isEmpty()) {
             nativeStartListening(nativePtr);
@@ -704,7 +748,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native long nativeGetFinalizerPtr();
 
-    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr, long descriptorOrderingPtr);
+    protected static native long nativeCreateResults(long sharedRealmNativePtr, long queryNativePtr);
 
     private static native long nativeCreateSnapshot(long nativePtr);
 
@@ -724,9 +768,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native Object nativeAggregate(long nativePtr, long columnIndex, byte aggregateFunc);
 
-    private static native long nativeSort(long nativePtr, QueryDescriptor sortDesc);
-
-    private static native long nativeDistinct(long nativePtr, QueryDescriptor distinctDesc);
+    private static native long nativeStringDescriptor(long nativePtr, String descriptor, long mapping);
 
     private static native boolean nativeDeleteFirst(long nativePtr);
 
@@ -754,6 +796,8 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeSetObjectId(long nativePtr, String fieldName, String data);
 
+    private static native void nativeSetUUID(long nativePtr, String fieldName, String data);
+
     private static native void nativeSetObject(long nativePtr, String fieldName, long rowNativePtr);
 
     private static native void nativeSetList(long nativePtr, String fieldName, long builderNativePtr);
@@ -762,6 +806,8 @@ public class OsResults implements NativeObject, ObservableCollection {
     private native void nativeStartListening(long nativePtr);
 
     private native void nativeStopListening(long nativePtr);
+
+    private static native long nativeGetTable(long nativePtr);
 
     private static native long nativeWhere(long nativePtr);
 
@@ -777,4 +823,5 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     private static native void nativeEvaluateQueryIfNeeded(long nativePtr, boolean wantsNotifications);
 
+    private static native Object nativeGetValue(long nativePtr, int index);
 }

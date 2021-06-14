@@ -16,7 +16,6 @@
 package io.realm
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.DynamicRealm
 import io.realm.TestHelper.TestLogger
 import io.realm.entities.AllTypes
 import io.realm.entities.Owner
@@ -24,7 +23,6 @@ import io.realm.internal.async.RealmThreadPoolExecutor
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.rule.BlockingLooperThread
-import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

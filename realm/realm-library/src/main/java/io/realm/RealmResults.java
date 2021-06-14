@@ -24,11 +24,13 @@ import org.bson.types.ObjectId;
 
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.realm.internal.Freezable;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
@@ -90,11 +92,19 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz) {
-        super(realm, osResults, clazz);
+        this(realm, osResults, clazz, false);
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz, boolean forPrimitives) {
+        super(realm, osResults, clazz, getCollectionOperator(forPrimitives, realm, osResults, clazz, null));
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, String className) {
-        super(realm, osResults, className);
+        this(realm, osResults, className, false);
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, String className, boolean forPrimitives) {
+        super(realm, osResults, className, getCollectionOperator(forPrimitives, realm, osResults, null, className));
     }
 
     /**
@@ -204,6 +214,9 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                 case OBJECT_ID:
                     value = new ObjectId(strValue);
                     break;
+                case UUID:
+                    value = UUID.fromString(strValue);
+                    break;
                 default:
                     throw new IllegalArgumentException(String.format(Locale.US,
                             "Field %s is not a String field, " +
@@ -237,6 +250,8 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             setDecimal128(fieldName, (Decimal128) value);
         } else if (value instanceof ObjectId) {
             setObjectId(fieldName, (ObjectId) value);
+        } else if (value instanceof UUID) {
+            setUUID(fieldName, (UUID) value);
         } else if (value instanceof byte[]) {
             setBlob(fieldName, (byte[]) value);
         } else if (value instanceof RealmModel) {
@@ -458,6 +473,21 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         osResults.setObjectId(fieldName, value);
     }
 
+    /**
+     * Sets the {@code UUID} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code UUID} field.
+     */
+    public void setUUID(String fieldName, @Nullable UUID value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.UUID);
+        osResults.setUUID(fieldName, value);
+    }
+
     private Row checkRealmObjectConstraints(String fieldName, @Nullable RealmModel value) {
         if (value != null) {
             if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
@@ -528,7 +558,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
                     osResults.setByteList(fieldName, (RealmList<Byte>) list);
                 } else {
                     throw new IllegalArgumentException(String.format("List contained the wrong type of elements. " +
-                            "Elements that can be mapped to Integers was expected, but the actual type is '%s'",
+                                    "Elements that can be mapped to Integers was expected, but the actual type is '%s'",
                             listType));
                 }
                 break;
@@ -555,6 +585,10 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
             case OBJECT_ID_LIST:
                 checkTypeOfListElements(list, ObjectId.class);
                 osResults.setObjectIdList(fieldName, (RealmList<ObjectId>) list);
+                break;
+            case UUID_LIST:
+                checkTypeOfListElements(list, UUID.class);
+                osResults.setUUIDList(fieldName, (RealmList<UUID>) list);
                 break;
             case FLOAT_LIST:
                 checkTypeOfListElements(list, Float.class);

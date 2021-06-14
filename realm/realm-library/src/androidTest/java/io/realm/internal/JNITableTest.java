@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;

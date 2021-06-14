@@ -16,9 +16,14 @@
 
 package io.realm.entities;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.UUID;
 
+import io.realm.RealmAny;
 import io.realm.MutableRealmInteger;
 import io.realm.RealmList;
 import io.realm.RealmObject;
@@ -26,9 +31,6 @@ import io.realm.RealmResults;
 import io.realm.TestHelper;
 import io.realm.annotations.LinkingObjects;
 import io.realm.annotations.Required;
-
-import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
 
 public class AllTypes extends RealmObject {
 
@@ -43,6 +45,8 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_MUTABLEREALMINTEGER = "columnMutableRealmInteger";
     public static final String FIELD_DECIMAL128 = "columnDecimal128";
     public static final String FIELD_OBJECT_ID = "columnObjectId";
+    public static final String FIELD_UUID = "columnUUID";
+    public static final String FIELD_REALM_ANY = "columnRealmAny";
     public static final String FIELD_REALMOBJECT = "columnRealmObject";
     public static final String FIELD_REALMLINK = "columnRealmLink";
     public static final String FIELD_REALMBACKLINK = "columnRealmBackLink";
@@ -57,9 +61,10 @@ public class AllTypes extends RealmObject {
     public static final String FIELD_DATE_LIST = "columnDateList";
 
     public static final String[] INVALID_TYPES_FIELDS_FOR_DISTINCT
-            = new String[] {FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT,
+            = new String[]{FIELD_REALMOBJECT, FIELD_REALMLIST, FIELD_DOUBLE, FIELD_FLOAT,
             FIELD_STRING_LIST, FIELD_BINARY_LIST, FIELD_BOOLEAN_LIST, FIELD_LONG_LIST,
             FIELD_DOUBLE_LIST, FIELD_FLOAT_LIST, FIELD_DATE_LIST};
+
 
     @Required
     private String columnString = "";
@@ -75,6 +80,10 @@ public class AllTypes extends RealmObject {
     private Decimal128 columnDecimal128 = new Decimal128(BigDecimal.ZERO);
     @Required
     private ObjectId columnObjectId = new ObjectId(TestHelper.randomObjectIdHexString());
+    @Required
+    private UUID columnUUID = UUID.randomUUID();
+
+    private RealmAny columnRealmAny = RealmAny.nullValue();
 
     private final MutableRealmInteger columnMutableRealmInteger = MutableRealmInteger.ofNull();
 
@@ -95,6 +104,8 @@ public class AllTypes extends RealmObject {
     private RealmList<Date> columnDateList;
     private RealmList<Decimal128> columnDecimal128List;
     private RealmList<ObjectId> columnObjectIdList;
+    private RealmList<UUID> columnUUIDList;
+    private RealmList<RealmAny> columnRealmAnyList;
 
     public String getColumnString() {
         return columnString;
@@ -261,6 +272,22 @@ public class AllTypes extends RealmObject {
         this.columnObjectId = columnObjectId;
     }
 
+    public UUID getColumnUUID() {
+        return columnUUID;
+    }
+
+    public void setColumnUUID(UUID columnUUID) {
+        this.columnUUID = columnUUID;
+    }
+
+    public RealmAny getColumnRealmAny() {
+        return columnRealmAny;
+    }
+
+    public void setColumnRealmAny(RealmAny columnRealmAny) {
+        this.columnRealmAny = columnRealmAny;
+    }
+
     public RealmList<Decimal128> getColumnDecimal128List() {
         return columnDecimal128List;
     }
@@ -275,5 +302,21 @@ public class AllTypes extends RealmObject {
 
     public void setColumnObjectIdList(RealmList<ObjectId> columnObjectIdList) {
         this.columnObjectIdList = columnObjectIdList;
+    }
+
+    public RealmList<UUID> getColumnUUIDList() {
+        return columnUUIDList;
+    }
+
+    public void setColumnUUIDList(RealmList<UUID> columnUUIDList) {
+        this.columnUUIDList = columnUUIDList;
+    }
+
+    public RealmList<RealmAny> getColumnRealmAnyList() {
+        return columnRealmAnyList;
+    }
+
+    public void setColumnRealmAnyList(RealmList<RealmAny> columnRealmAnyList) {
+        this.columnRealmAnyList = columnRealmAnyList;
     }
 }

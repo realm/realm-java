@@ -20,6 +20,7 @@ import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -109,6 +110,8 @@ public class Table implements NativeObject {
             case DOUBLE:
             case DECIMAL128:
             case OBJECT_ID:
+            case MIXED:
+            case UUID:
                 return nativeAddColumn(nativeTableRefPtr, type.getNativeValue(), name, isNullable);
 
             case INTEGER_LIST:
@@ -120,7 +123,44 @@ public class Table implements NativeObject {
             case DOUBLE_LIST:
             case DECIMAL128_LIST:
             case OBJECT_ID_LIST:
-                return nativeAddPrimitiveListColumn(nativeTableRefPtr, type.getNativeValue() - 128, name, isNullable);
+            case UUID_LIST:
+            case MIXED_LIST:
+                return nativeAddPrimitiveListColumn(nativeTableRefPtr,
+                        type.getNativeValue() - Property.TYPE_ARRAY,
+                        name,
+                        isNullable);
+
+            case STRING_TO_INTEGER_MAP:
+            case STRING_TO_BOOLEAN_MAP:
+            case STRING_TO_STRING_MAP:
+            case STRING_TO_BINARY_MAP:
+            case STRING_TO_DATE_MAP:
+            case STRING_TO_FLOAT_MAP:
+            case STRING_TO_DOUBLE_MAP:
+            case STRING_TO_DECIMAL128_MAP:
+            case STRING_TO_OBJECT_ID_MAP:
+            case STRING_TO_UUID_MAP:
+            case STRING_TO_MIXED_MAP:
+                return nativeAddPrimitiveDictionaryColumn(nativeTableRefPtr,
+                        type.getNativeValue() - Property.TYPE_DICTIONARY,
+                        name,
+                        isNullable);
+
+            case INTEGER_SET:
+            case BOOLEAN_SET:
+            case STRING_SET:
+            case BINARY_SET:
+            case DATE_SET:
+            case FLOAT_SET:
+            case DOUBLE_SET:
+            case DECIMAL128_SET:
+            case OBJECT_ID_SET:
+            case UUID_SET:
+            case MIXED_SET:
+                return nativeAddPrimitiveSetColumn(nativeTableRefPtr,
+                        type.getNativeValue() - Property.TYPE_SET,
+                        name,
+                        isNullable);
 
             default:
                 throw new IllegalArgumentException("Unsupported type: " + type);
@@ -144,6 +184,16 @@ public class Table implements NativeObject {
     public long addColumnLink(RealmFieldType type, String name, Table table) {
         verifyColumnName(name);
         return nativeAddColumnLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
+    }
+
+    public long addColumnDictionaryLink(RealmFieldType type, String name, Table table) {
+        verifyColumnName(name);
+        return nativeAddColumnDictionaryLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
+    }
+
+    public long addColumnSetLink(RealmFieldType type, String name, Table table) {
+        verifyColumnName(name);
+        return nativeAddColumnSetLink(nativeTableRefPtr, type.getNativeValue(), name, table.nativeTableRefPtr);
     }
 
     /**
@@ -503,6 +553,20 @@ public class Table implements NativeObject {
         }
     }
 
+    public void setUUID(long columnKey, long rowKey, @Nullable UUID value, boolean isDefault) {
+        checkImmutable();
+        if (value == null) {
+            nativeSetNull(nativeTableRefPtr, columnKey, rowKey, isDefault);
+        } else {
+            nativeSetUUID(nativeTableRefPtr, columnKey, rowKey, value.toString(), isDefault);
+        }
+    }
+
+    public void setRealmAny(long columnKey, long rowKey, long nativePtr, boolean isDefault) {
+        checkImmutable();
+        nativeSetRealmAny(nativeTableRefPtr, columnKey, rowKey, nativePtr, isDefault);
+    }
+
     public void setLink(long columnKey, long rowKey, long value, boolean isDefault) {
         checkImmutable();
         nativeSetLink(nativeTableRefPtr, columnKey, rowKey, value, isDefault);
@@ -618,6 +682,13 @@ public class Table implements NativeObject {
             throw new IllegalArgumentException("null is not supported");
         }
         return nativeFindFirstObjectId(nativeTableRefPtr, columnKey, value.toString());
+    }
+
+    public long findFirstUUID(long columnKey, UUID value) {
+        if (value == null) {
+            throw new IllegalArgumentException("null is not supported");
+        }
+        return nativeFindFirstUUID(nativeTableRefPtr, columnKey, value.toString());
     }
 
     /**
@@ -746,7 +817,15 @@ public class Table implements NativeObject {
 
     private native long nativeAddPrimitiveListColumn(long nativeTableRefPtr, int type, String name, boolean isNullable);
 
+    private native long nativeAddPrimitiveDictionaryColumn(long nativeTableRefPtr, int type, String name, boolean isNullable);
+
+    private native long nativeAddPrimitiveSetColumn(long nativeTableRefPtr, int type, String name, boolean isNullable);
+
     private native long nativeAddColumnLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
+
+    private native long nativeAddColumnDictionaryLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
+
+    private native long nativeAddColumnSetLink(long nativeTableRefPtr, int type, String name, long targetTablePtr);
 
     private native void nativeRenameColumn(long nativeTableRefPtr, long columnKey, String name);
 
@@ -822,7 +901,11 @@ public class Table implements NativeObject {
 
     public static native void nativeSetObjectId(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
 
+    public static native void nativeSetUUID(long nativeTableRefPtr, long columnKey, long rowKey, String data, boolean isDefault);
+
     public static native void nativeSetLink(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
+
+    public static native void nativeSetRealmAny(long nativeTableRefPtr, long columnKey, long rowKey, long value, boolean isDefault);
 
     private native void nativeAddSearchIndex(long nativePtr, long columnKey);
 
@@ -859,6 +942,8 @@ public class Table implements NativeObject {
     public static native long nativeFindFirstDecimal128(long nativeTableRefPtr, long columnKey, long low, long high);
 
     public static native long nativeFindFirstObjectId(long nativeTableRefPtr, long columnKey, String value);
+
+    public static native long nativeFindFirstUUID(long nativeTableRefPtr, long columnKey, String value);
 
     public static native long nativeFindFirstNull(long nativeTableRefPtr, long columnKey);
 

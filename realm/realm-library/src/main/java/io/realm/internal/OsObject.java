@@ -18,6 +18,8 @@ package io.realm.internal;
 
 import org.bson.types.ObjectId;
 
+import java.util.UUID;
+
 import javax.annotation.Nullable;
 
 import io.realm.ObjectChangeSet;
@@ -211,6 +213,11 @@ public class OsObject implements NativeObject {
             return new UncheckedRow(sharedRealm.context, table,
                     nativeCreateNewObjectWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                             primaryKeyColumnKey, objectIdValue));
+        } else if (type == RealmFieldType.UUID) {
+            String uuidValue = primaryKeyValue == null ? null : primaryKeyValue.toString();
+            return new UncheckedRow(sharedRealm.context, table,
+                    nativeCreateNewObjectWithUUIDPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+                            primaryKeyColumnKey, uuidValue));
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
@@ -249,6 +256,13 @@ public class OsObject implements NativeObject {
             String objectIdValue = primaryKeyValue == null ? null : primaryKeyValue.toString();
             return nativeCreateRowWithObjectIdPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
                     primaryKeyColumnIndex, objectIdValue);
+        } else if (type == RealmFieldType.UUID) {
+            if (primaryKeyValue != null && !(primaryKeyValue instanceof UUID)) {
+                throw new IllegalArgumentException("Primary key value is not an UUID: " + primaryKeyValue);
+            }
+            String uuidValue = primaryKeyValue == null ? null : primaryKeyValue.toString();
+            return nativeCreateRowWithUUIDPrimaryKey(sharedRealm.getNativePtr(), table.getNativePtr(),
+                    primaryKeyColumnIndex, uuidValue);
         } else {
             throw new RealmException("Cannot check for duplicate rows for unsupported primary key type: " + type);
         }
@@ -302,6 +316,14 @@ public class OsObject implements NativeObject {
                                                                      @Nullable String primaryKeyValue);
 
     private static native long nativeCreateNewObjectWithObjectIdPrimaryKey(long sharedRealmPtr,
+                                                                           long tableRefPtr, long pk_column_index,
+                                                                           @Nullable String data);
+
+    private static native long nativeCreateRowWithUUIDPrimaryKey(long sharedRealmPtr,
+                                                                     long tableRefPtr, long pk_column_index,
+                                                                     @Nullable String primaryKeyValue);
+
+    private static native long nativeCreateNewObjectWithUUIDPrimaryKey(long sharedRealmPtr,
                                                                            long tableRefPtr, long pk_column_index,
                                                                            @Nullable String data);
 

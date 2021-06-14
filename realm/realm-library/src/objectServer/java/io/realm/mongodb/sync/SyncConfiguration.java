@@ -195,7 +195,7 @@ public class SyncConfiguration extends RealmConfiguration {
             }
         }
 
-        RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet());
+        RealmProxyMediator schemaMediator = createSchemaMediator(validatedModules, Collections.<Class<? extends RealmModel>>emptySet(), false);
         return RealmConfiguration.forRecovery(canonicalPath, encryptionKey, schemaMediator);
     }
 
@@ -1122,7 +1122,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     null, // Custom migrations not supported
                     false, // MigrationNeededException is never thrown
                     durability,
-                    createSchemaMediator(modules, debugSchema),
+                    createSchemaMediator(modules, debugSchema, false),
                     rxFactory,
                     flowFactory,
                     initialDataTransaction,
