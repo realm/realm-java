@@ -560,6 +560,48 @@ public class RealmQueryTests extends QueryTests {
         }
     }
 
+    @Test
+    public void emptyGroup() {
+        populateTestRealm(); // create TEST_DATA_SIZE objects
+        RealmResults<AllTypes> fives = realm.where(AllTypes.class)
+                .equalTo(AllTypes.FIELD_LONG, 5)
+                .beginGroup()
+                .endGroup()
+                .findAll();
+        // Only on object with value 5
+        assertEquals(1, fives.size());
+    }
+
+    @Test
+    public void or_emptyGroupThrows() {
+        populateTestRealm(); // create TEST_DATA_SIZE objects
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class)
+                .equalTo(AllTypes.FIELD_LONG, 5)
+                .or()
+                .beginGroup()
+                .endGroup();
+        try {
+            query.findAll();
+        } catch (UnsupportedOperationException ignore) {
+            // Expected exception
+        }
+    }
+
+    @Test
+    public void not_emptyGroup_throws() {
+        RealmQuery<AllTypes> query = realm.where(AllTypes.class)
+                .equalTo(AllTypes.FIELD_LONG, 5)
+                .or()
+                .not()
+                .beginGroup()
+                .endGroup();
+        try {
+            query.findAll();
+        } catch (UnsupportedOperationException ignore) {
+            // Expected exception
+        }
+    }
+
     @Test (expected = UnsupportedOperationException.class)
     public void not_aloneThrows() {
         // a not() alone must fail
