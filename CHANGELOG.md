@@ -1,4 +1,4 @@
-## 10.6.0-BETA.2 (YYYY-MM-DD)
+## 10.6.0-BETA.2 (2021-06-14)
 
 ### Breaking Changes
 * ``MapChangeSet.getDeletionsCount()` has been replaced with `MapChangeSet.getDeletions()` that return the keys for entries that has been deleted instead of just the number of deleted entries.
