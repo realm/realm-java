@@ -236,7 +236,20 @@ def runBuild(buildFlags, instrumentationTestTarget) {
       if (isReleaseBranch) {
         signingFlags = "-PsignBuild=true -PsignSecretRingFile=\"${SIGN_KEY}\" -PsignPassword=${SIGN_KEY_PASSWORD}"
       }
-      sh "./gradlew assemble ${buildFlags} ${signingFlags} --stacktrace"
+      // Work around https://github.com/realm/realm-java/issues/7476 by building each artifact independantly instead 
+      // of using Gradle to call down into sub projects (which seems to trigger a bug somewhere).
+      sh """
+        cd realm-annotations
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
+        cd ../realm-transformer
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
+        cd ../library-build-transformer
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
+        cd ../gradle-plugin
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
+        cd ../realm
+        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
+      """
     }
   }
 
@@ -308,7 +321,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     },
     'Gradle Plugin' : {
       try {
-        gradle('gradle-plugin', 'check --debug')
+        gradle('gradle-plugin', 'check')
       } finally {
         storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
       }

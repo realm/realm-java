@@ -181,7 +181,7 @@ public:
     CoreLoggerBridge(CoreLoggerBridge&) = delete;
     CoreLoggerBridge operator=(CoreLoggerBridge&&) = delete;
     CoreLoggerBridge operator=(CoreLoggerBridge&) = delete;
-    void do_log(Logger::Level, std::string msg) override;
+    void do_log(Logger::Level, const std::string& msg) override;
 
 private:
     // Set log level for all logger bridges.

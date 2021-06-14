@@ -227,7 +227,7 @@ void CoreLoggerBridge::set_levels(Log::Level level)
     }
 }
 
-void CoreLoggerBridge::do_log(realm::util::Logger::Level level, std::string msg)
+void CoreLoggerBridge::do_log(realm::util::Logger::Level level, const std::string& msg)
 {
     // Ignore the level threshold from the root logger.
     Log::Level jni_level = Log::all; // Initial value to suppress the false positive compile warning.

@@ -147,7 +147,6 @@ inline jlong to_jlong_or_not_found(realm::ObjKey key)
 inline bool TableIsValid(JNIEnv* env, const realm::ConstTableRef table)
 {
     if (!table) {
-        realm::jni_util::Log::e("Table is no longer attached!");
         ThrowException(env, IllegalState, "Table is no longer valid to operate on.");
     }
     return true;
@@ -157,7 +156,6 @@ inline bool RowIsValid(JNIEnv* env, realm::Obj* rowPtr)
 {
     bool valid = (rowPtr != NULL && rowPtr->is_valid());
     if (!valid) {
-        realm::jni_util::Log::e("Row %1 is no longer attached!", reinterpret_cast<int64_t>(rowPtr));
         ThrowException(env, IllegalState,
                        "Object is no longer valid to operate on. Was it deleted by another thread?");
     }
@@ -170,7 +168,6 @@ inline bool TypeValid(JNIEnv* env, T* pTable, jlong columnKey, realm::ColumnType
     realm::ColKey col_key(columnKey);
     auto colType = col_key.get_type();
     if (colType != expectColType) {
-        realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, colType);
         ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(pTable->get_column_name(col_key)) + "' is invalid.");
         return false;
     }
@@ -182,7 +179,6 @@ inline bool TypeValid(JNIEnv* env, realm::ConstTableRef table, jlong columnKey, 
     realm::ColKey col_key(columnKey);
     auto colType = col_key.get_type();
     if (colType != expectColType) {
-        realm::jni_util::Log::e("Expected columnType %1, but got %2.", expectColType, colType);
         ThrowException(env, IllegalArgument, "ColumnType of '" + std::string(table->get_column_name(col_key)) + "' is invalid.");
         return false;
     }
@@ -213,7 +209,6 @@ inline bool ColIsNullable(JNIEnv* env, T table_ref, jlong columnKey)
         return true;
     }
 
-    realm::jni_util::Log::e("Expected nullable column type");
     ThrowException(env, IllegalArgument, "This field(" + std::string(table_ref->get_column_name(col)) + ") is not nullable.");
     return false;
 }

@@ -192,9 +192,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            // Search index is not added to primary key string columns. Will compute key directly from primary key value.
-            // since Core6.0.0-alpha.25
-            assertFalse(objectSchema.hasIndex("pkField"));
+            assertTrue(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -204,7 +202,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.STRING, objectSchema.getFieldType("pkField"));
             assertTrue(objectSchema.isNullable("pkField"));
-            assertFalse(objectSchema.hasIndex("pkField"));
+            assertTrue(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -230,7 +228,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertFalse(objectSchema.hasIndex("pkField"));
+            assertTrue(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -240,7 +238,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertTrue(objectSchema.isNullable("pkField"));
-            assertFalse(objectSchema.hasIndex("pkField"));
+            assertTrue(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -266,7 +264,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertFalse(objectSchema.hasIndex("pkField"));
+            assertTrue(objectSchema.hasIndex("pkField"));
 
             realmSchema.remove(validClassName);
 
@@ -276,7 +274,7 @@ public class RealmSchemaTests {
             assertEquals("pkField", objectSchema.getPrimaryKey());
             assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
             assertFalse(objectSchema.isNullable("pkField"));
-            assertFalse(objectSchema.hasIndex("pkField"));
+            assertTrue(objectSchema.hasIndex("pkField"));
         }
     }
 
@@ -291,7 +289,7 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
         assertFalse(objectSchema.isNullable("pkField"));
-        assertFalse(objectSchema.hasIndex("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
     }
 
     @Test
@@ -305,7 +303,7 @@ public class RealmSchemaTests {
         assertEquals("pkField", objectSchema.getPrimaryKey());
         assertEquals(RealmFieldType.INTEGER, objectSchema.getFieldType("pkField"));
         assertFalse(objectSchema.isNullable("pkField"));
-        assertFalse(objectSchema.hasIndex("pkField"));
+        assertTrue(objectSchema.hasIndex("pkField"));
     }
 
     @Test

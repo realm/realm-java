@@ -46,8 +46,8 @@ public class OsMapChangeSet implements NativeObject {
         return nativePtr == OsMapChangeSet.EMPTY_CHANGESET;
     }
 
-    public long getDeletionCount() {
-        return nativeGetDeletionCount(nativePtr);
+    public String[] getStringKeyDeletions() {
+        return nativeGetStringKeyDeletions(nativePtr);
     }
 
     public String[] getStringKeyInsertions() {
@@ -62,7 +62,7 @@ public class OsMapChangeSet implements NativeObject {
 
     private static native long nativeGetFinalizerPtr();
 
-    private static native long nativeGetDeletionCount(long nativePtr);
+    private static native String[] nativeGetStringKeyDeletions(long nativePtr);
 
     private static native String[] nativeGetStringKeyInsertions(long nativePtr);
 

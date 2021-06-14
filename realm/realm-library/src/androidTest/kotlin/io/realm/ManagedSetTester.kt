@@ -520,7 +520,7 @@ class ManagedSetTester<T : Any>(
             realm.insertOrUpdate(listOf(emptyInstance, manualInstance))
         }
 
-        val updatedContainer = realm.where<SetAllTypesPrimaryKey>().findFirst()!!
+        val updatedContainer = realm.where<SetAllTypesPrimaryKey>().equalTo("columnLong", 0L).findFirst()!!
         val updatedSet = primaryKeyAllTypesSetProperty.get(updatedContainer)
         assertEquals(initializedSet.size + 1, updatedSet.size)
 
