@@ -1,3 +1,20 @@
+## 10.6.1 (YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* `StackOverflow` when calling `toString()` on a `DynamicRealmObject` containing a cyclic reference through a `RealmAny` field.
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* None.
+
+
 ## 10.6.0 (2021-06-15)
 
 This release combines all changes from 10.6.0-BETA.1 and 10.6.0-BETA.2.
@@ -58,7 +75,6 @@ This release combines all changes from 10.6.0-BETA.1 and 10.6.0-BETA.2.
 ### Fixed
 * Removed wrong `@Nullable` annotation on `RealmQuery.maxRealmAny()`.
 * Fixed `RealmAny.getValueClass()` returning the `RealmObject` proxy class instead of the model class on a `RealmAny` referencing a managed `RealmObject`.
-* Fixes `StackOverflow` when calling `toString` on a `DynamicRealmObject` containing a cyclic reference through a `RealmAny` field.
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.

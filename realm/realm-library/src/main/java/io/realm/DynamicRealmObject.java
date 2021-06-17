@@ -1790,10 +1790,10 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                             sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "ObjectId", realmAny.asObjectId().toString()));
                             break;
                         case OBJECT:
-                            // if a Realm object don't print the contents as it might end in a cycle.
+                            // if a Realm object, don't print the contents as it might end in a cycle.
                             String tableName = realmAny.asRealmModel(DynamicRealmObject.class).proxyState.getRow$realm().getTable().getClassName();
                             long objectKey = realmAny.asRealmModel(DynamicRealmObject.class).proxyState.getRow$realm().getObjectKey();
-                            sb.append(String.format(Locale.US, "RealmAny<%s>(id:%d)", tableName, objectKey));
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(objKey:%d)", tableName, objectKey));
                             break;
                         case UUID:
                             sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "UUID", realmAny.asUUID().toString()));
