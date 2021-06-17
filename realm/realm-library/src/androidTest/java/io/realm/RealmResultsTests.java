@@ -2138,7 +2138,7 @@ public class RealmResultsTests extends CollectionTests {
         assertEquals(1, all.size());
 
         String json = all.asJSON();
-        final String expectedJSON = "[{\"_key\":1,\"id\":1,\"name\":\"\\\"something\\\"\"}]";
+        final String expectedJSON = "[{\"_key\":0,\"id\":1,\"name\":\"\\\"something\\\"\"}]";
         JSONAssert.assertEquals(expectedJSON, json, false);
     }
 

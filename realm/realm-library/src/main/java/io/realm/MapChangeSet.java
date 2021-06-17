@@ -29,9 +29,9 @@ public interface MapChangeSet<T> {
     /**
      * The number of entries that have been deleted in the previous version of the map.
      *
-     * @return the number of deletions.
+     * @return array with the keys that have been deleted.
      */
-    long getDeletionsCount();
+    T[] getDeletions();
 
     /**
      * Array containing the keys that have been inserted in the previous version of the map.
@@ -71,8 +71,8 @@ class MapChangeSetImpl<K> implements MapChangeSet<K> {
     }
 
     @Override
-    public long getDeletionsCount() {
-        return delegate.getDeletionsCount();
+    public K[] getDeletions() {
+        return delegate.getDeletions();
     }
 
     @Override
@@ -103,8 +103,8 @@ class StringMapChangeSet implements MapChangeSet<String> {
     }
 
     @Override
-    public long getDeletionsCount() {
-        return osMapChangeSet.getDeletionCount();
+    public String[] getDeletions() {
+        return osMapChangeSet.getStringKeyDeletions();
     }
 
     @Override

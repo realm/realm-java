@@ -449,7 +449,23 @@ class ManagedDictionaryTester<T : Any>(
 
         assertEquals(1, dynamicObject.get<RealmDictionary<T>>(dictionaryFieldName).size)
 
+        // Validate that dict is properly represented as a String
+        validateToString(dynamicObject, dynamicDictionary)
+
         dynamicRealm.close()
+    }
+
+    private fun validateToString(dynamicObject: DynamicRealmObject, dynamicDictionary: RealmDictionary<*>) {
+        val type = when (dictionaryFieldClass.simpleName) {
+            "Byte", "Short", "Integer" -> "Long"
+            else -> dictionaryFieldClass.simpleName
+        }
+
+        val expectedDictionaryString = "${dictionaryFieldName}:RealmDictionary<$type>[${dynamicDictionary.size}]"
+        assertTrue(
+            dynamicObject.toString().contains(expectedDictionaryString),
+            "DynamicRealmObject does not contain expected RealmDictionary string: $expectedDictionaryString"
+        )
     }
 
     private fun doObjectDynamicTest() {
@@ -505,6 +521,9 @@ class ManagedDictionaryTester<T : Any>(
         }
 
         assertEquals(1, dynamicObject.get<RealmDictionary<T>>(dictionaryFieldName).size)
+
+        // Validate that dict is properly represented as a String
+        validateToString(dynamicObject, dynamicDictionary)
 
         dynamicRealm.close()
     }
@@ -753,6 +772,7 @@ class ManagedDictionaryTester<T : Any>(
     override fun addMapChangeListener() {
         looperThread.runBlocking {
             val looperThreadRealm = Realm.getInstance(config)
+            looperThread.closeAfterTest(looperThreadRealm)
 
             // Get dictionary
             val dictionary = initAndAssert(looperThreadRealm)
@@ -806,6 +826,7 @@ class ManagedDictionaryTester<T : Any>(
     override fun addRealmChangeListener() {
         looperThread.runBlocking {
             val looperThreadRealm = Realm.getInstance(config)
+            looperThread.closeAfterTest(looperThreadRealm)
 
             // Get dictionary
             val dictionary = initAndAssert(looperThreadRealm)
@@ -859,6 +880,7 @@ class ManagedDictionaryTester<T : Any>(
         val looperThread = BlockingLooperThread()
         looperThread.runBlocking {
             val looperThreadRealm = Realm.getInstance(config)
+            looperThread.closeAfterTest(looperThreadRealm)
 
             // Check for RealmChangeListener
             val dictionary = initAndAssert(looperThreadRealm)
@@ -879,7 +901,6 @@ class ManagedDictionaryTester<T : Any>(
             // Housekeeping and bye-bye
             dictionary.removeAllChangeListeners()
             anotherDictionary.removeAllChangeListeners()
-            looperThreadRealm.close()
             looperThread.testComplete()
         }
     }
@@ -1278,8 +1299,7 @@ open class TypeAsserter<T> {
                     assertTrue(mapFromChangeListener.containsKey(key))
 
                     if (changes != null) {
-                        // Check insertions changeset contains keys
-                        assertTrue(changes.insertions.contains(key))
+                        assertTrue(changes.insertions.contains(key), "Key missing: $key")
                     }
                 }
             }
@@ -1297,18 +1317,19 @@ open class TypeAsserter<T> {
                             mapFromChangeListener[KEY_HELLO]
                     )
                 }
+
                 if (changes != null) {
                     assertEquals(1, changes.changes.size)
                 }
             }
             ChangeListenerOperation.DELETE -> {
                 // Dictionary has been cleared
-                assertTrue(mapFromChangeListener.isEmpty())
+                assertTrue(mapFromChangeListener.isEmpty(), "Wrong size: ${mapFromChangeListener.size}")
                 assertEquals(0, mapFromChangeListener.size)
 
                 if (changes != null) {
                     // Check deletions changeset size matches deleted elements
-                    assertEquals(initializedDictionary.size, changes.deletionsCount.toInt())
+                    assertEquals(initializedDictionary.size, changes.deletions.size)
                 }
 
                 // Housekeeping and bye-bye

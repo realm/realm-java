@@ -387,7 +387,23 @@ class ManagedSetTester<T : Any>(
         assertSetContainsSet(listOf(notPresentValue), dynamicSet)
         assertEquals(1, dynamicObject.get<RealmSet<T>>(setFieldName).size)
 
+        // Validate that set is properly represented as a String
+        validateToString(dynamicObject, dynamicSet)
+
         dynamicRealm.close()
+    }
+
+    fun validateToString(dynamicObject: DynamicRealmObject, dynamicSet: RealmSet<*>) {
+        val type = when (setFieldClass.simpleName) {
+            "Byte", "Short", "Integer" -> "Long"
+            else -> setFieldClass.simpleName
+        }
+
+        val expectedSetString = "${setFieldName}:RealmSet<$type>[${dynamicSet.size}]"
+        assertTrue(
+            dynamicObject.toString().contains(expectedSetString),
+            "DynamicRealmObject does not contain expected RealmSet string: $expectedSetString"
+        )
     }
 
     override fun insert() {
@@ -504,7 +520,7 @@ class ManagedSetTester<T : Any>(
             realm.insertOrUpdate(listOf(emptyInstance, manualInstance))
         }
 
-        val updatedContainer = realm.where<SetAllTypesPrimaryKey>().findFirst()!!
+        val updatedContainer = realm.where<SetAllTypesPrimaryKey>().equalTo("columnLong", 0L).findFirst()!!
         val updatedSet = primaryKeyAllTypesSetProperty.get(updatedContainer)
         assertEquals(initializedSet.size + 1, updatedSet.size)
 

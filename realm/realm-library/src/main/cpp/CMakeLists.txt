@@ -201,10 +201,11 @@ endif()
 #FIXME maybe-uninitialized is reported by table_view.cpp:272:15:
 #     'best.m_nanoseconds' was declared here
 #     -Wno-missing-field-initializers disable in object store as well.
+# FIXME See https://github.com/realm/realm-core/issues/4732
 set(WARNING_CXX_FLAGS "-Werror -Wall -Wextra -pedantic -Wmissing-declarations \
     -Wempty-body -Wparentheses -Wunknown-pragmas -Wunreachable-code \
     -Wno-missing-field-initializers -Wno-unevaluated-expression -Wno-unreachable-code \
-    -Wno-c99-extensions")
+    -Wno-c99-extensions -Wno-dtor-name")
 set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ANDROID -DREALM_HAVE_CONFIG -DPIC -fdata-sections -pthread -frtti -fvisibility=hidden -fsigned-char -fno-stack-protector -std=c++17")
 if (REALM_ENABLE_SYNC)
     set(REALM_COMMON_CXX_FLAGS "${REALM_COMMON_CXX_FLAGS} -DREALM_ENABLE_SYNC=1")

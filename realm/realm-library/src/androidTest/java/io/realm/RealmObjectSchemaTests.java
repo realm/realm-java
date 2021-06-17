@@ -1028,11 +1028,11 @@ public class RealmObjectSchemaTests {
             }
 
             assertTrue(schema.hasPrimaryKey());
-            assertFalse(schema.hasIndex(fieldName));
+            assertTrue(schema.hasIndex(fieldName));
 
             schema.setRequired(fieldName, isRequired);
             assertTrue(schema.hasPrimaryKey());
-            assertFalse(schema.hasIndex(fieldName));
+            assertTrue(schema.hasIndex(fieldName));
 
             RealmResults<DynamicRealmObject> results = ((DynamicRealm)realm).where(className).sort(fieldName).findAll();
             assertEquals(2, results.size());
@@ -1125,7 +1125,7 @@ public class RealmObjectSchemaTests {
             schema.addPrimaryKey(fieldName);
             assertTrue(schema.hasPrimaryKey());
             assertTrue(schema.isPrimaryKey(fieldName));
-            assertFalse(schema.hasIndex(fieldName));
+            assertTrue(schema.hasIndex(fieldName));
             schema.removePrimaryKey();
             assertFalse(schema.hasPrimaryKey());
             assertFalse(schema.isPrimaryKey(fieldName));

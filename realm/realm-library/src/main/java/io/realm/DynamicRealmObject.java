@@ -1808,10 +1808,11 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                             ? "null"
                             : proxyState.getRow$realm().getTable().getLinkTarget(columnKey).getClassName());
                     break;
-                case LIST:
+                case LIST: {
                     String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnKey).getClassName();
                     sb.append(String.format(Locale.US, "RealmList<%s>[%s]", targetClassName, proxyState.getRow$realm().getModelList(columnKey).size()));
                     break;
+                }
                 case INTEGER_LIST:
                     sb.append(String.format(Locale.US, "RealmList<Long>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
                     break;
@@ -1845,6 +1846,82 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                 case MIXED_LIST:
                     sb.append(String.format(Locale.US, "RealmList<RealmAny>[%s]", proxyState.getRow$realm().getValueList(columnKey, type).size()));
                     break;
+                case STRING_TO_INTEGER_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<Long>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_BOOLEAN_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<Boolean>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_STRING_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<String>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_BINARY_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<byte[]>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_DATE_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<Date>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_FLOAT_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<Float>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_DOUBLE_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<Double>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_DECIMAL128_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<Decimal128>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_OBJECT_ID_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<ObjectId>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_UUID_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<UUID>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_MIXED_MAP:
+                    sb.append(String.format(Locale.US, "RealmDictionary<RealmAny>[%s]", proxyState.getRow$realm().getValueMap(columnKey, type).size()));
+                    break;
+                case STRING_TO_LINK_MAP: {
+                    String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnKey).getClassName();
+                    sb.append(String.format(Locale.US, "RealmDictionary<%s>[%s]", targetClassName, proxyState.getRow$realm().getModelMap(columnKey).size()));
+                    break;
+                }
+                case INTEGER_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<Long>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case BOOLEAN_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<Boolean>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case STRING_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<String>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case BINARY_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<byte[]>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case DATE_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<Date>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case FLOAT_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<Float>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case DOUBLE_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<Double>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case DECIMAL128_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<Decimal128>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case OBJECT_ID_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<ObjectId>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case UUID_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<UUID>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case MIXED_SET:
+                    sb.append(String.format(Locale.US, "RealmSet<RealmAny>[%s]", proxyState.getRow$realm().getValueSet(columnKey, type).size()));
+                    break;
+                case LINK_SET: {
+                    String targetClassName = proxyState.getRow$realm().getTable().getLinkTarget(columnKey).getClassName();
+                    sb.append(String.format(Locale.US, "RealmSet<%s>[%s]", targetClassName, proxyState.getRow$realm().getModelSet(columnKey).size()));
+                    break;
+                }
                 default:
                     sb.append("?");
                     break;

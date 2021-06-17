@@ -193,6 +193,9 @@ class RealmModelManagedSetTester<T : Any>(
 
         assertEquals(1, dynamicObject.getRealmSet(setFieldName, setFieldClass).size)
 
+        // Validate that set is properly represented as a String
+        managedTester.validateToString(dynamicObject, dynamicSet)
+
         dynamicRealm.close()
     }
 
@@ -244,6 +247,9 @@ class RealmModelManagedSetTester<T : Any>(
         }
 
         assertEquals(1, dynamicObject.get<RealmSet<T>>(setFieldName).size)
+
+        // Validate that set is properly represented as a String
+        managedTester.validateToString(dynamicObject, dynamicSet)
 
         dynamicRealm.close()
     }
