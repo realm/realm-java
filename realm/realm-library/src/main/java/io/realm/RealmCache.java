@@ -68,8 +68,6 @@ final class RealmCache {
 
     private abstract static class ReferenceCounter {
 
-        // How many references to this Realm instance in this thread.
-        protected final ThreadLocal<Integer> localCount = new ThreadLocal<>();
         // How many threads have instances refer to this configuration.
         protected AtomicInteger globalCount = new AtomicInteger(0);
 
@@ -126,7 +124,6 @@ final class RealmCache {
             // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
             cachedRealm = realm;
 
-            localCount.set(0);
             // The global count for a frozen Realm has the same role as the local count for a live
             // Realm, so initialise it to 0.
             globalCount.set(0);
@@ -137,9 +134,7 @@ final class RealmCache {
         public void clearThreadLocalCache() {
             String canonicalPath = cachedRealm.getPath();
 
-            // The last instance in this thread.
-            // Clears local ref & counter.
-            localCount.set(null);
+            // The last instance of this frozen Realm. Clear reference.
             cachedRealm = null;
 
             // Clears global counter.
@@ -168,6 +163,8 @@ final class RealmCache {
     private static class ThreadConfinedReferenceCounter extends ReferenceCounter {
         // The Realm instance in this thread.
         private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<>();
+        // How many references to this Realm instance in this thread.
+        protected final ThreadLocal<Integer> localCount = new ThreadLocal<>();
 
         @Override
         public boolean hasInstanceAvailableForThread() {
