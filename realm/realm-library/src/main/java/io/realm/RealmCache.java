@@ -164,7 +164,7 @@ final class RealmCache {
         // The Realm instance in this thread.
         private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<>();
         // How many references to this Realm instance in this thread.
-        protected final ThreadLocal<Integer> localCount = new ThreadLocal<>();
+        private final ThreadLocal<Integer> localCount = new ThreadLocal<>();
 
         @Override
         public boolean hasInstanceAvailableForThread() {
