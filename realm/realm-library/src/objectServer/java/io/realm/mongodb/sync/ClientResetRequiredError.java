@@ -18,6 +18,7 @@ package io.realm.mongodb.sync;
 
 import java.io.File;
 
+import io.realm.DynamicRealm;
 import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.AppException;
@@ -82,6 +83,9 @@ public class ClientResetRequiredError extends AppException {
     }
 
     /**
+     * The configuration that can be used to open the backup Realm offline. This configuration can
+     * only be used in combination with a {@link DynamicRealm}.
+     *
      * @return the configuration that can be used to open the backup Realm offline.
      */
     public RealmConfiguration getBackupRealmConfiguration() {
