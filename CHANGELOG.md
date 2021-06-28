@@ -47,7 +47,7 @@ This release combines all changes from 10.6.0-BETA.1 and 10.6.0-BETA.2.
 ## 10.6.0-BETA.2 (2021-06-14)
 
 ### Breaking Changes
-* ``MapChangeSet.getDeletionsCount()` has been replaced with `MapChangeSet.getDeletions()` that return the keys for entries that has been deleted instead of just the number of deleted entries.
+* `MapChangeSet.getDeletionsCount()` has been replaced with `MapChangeSet.getDeletions()` that return the keys for entries that has been deleted instead of just the number of deleted entries.
 * Primary keys now have automatic indexes again. Indexes was removed in v10.0.0 because they were not needed, but it caused issues when upgrading from a pre v10 version of Realm, and in some cases resulted in large delays when upgrading the fileformat. (Issue [#7426](https://github.com/realm/realm-java/issues/7426), since 10.0.0).
 
 ### Enhancements
@@ -1512,7 +1512,7 @@ This has impacted a number of API's. See below for the details.
 
 * [ObjectServer] `SyncConfiguration.automatic()` has been deprecated in favour of `SyncUser.getDefaultConfiguration()`.
 * [ObjectServer] `new SyncConfiguration.Builder(user, url)` has been deprecated in favour of `SyncUser.createConfiguration(url)`. NOTE: Creating configurations using `SyncUser` will default to using query-based Realms, while creating them using `new SyncConfiguration.Builder(user, url)` will default to fully synchronized Realms.
-* [ObjectServer] With query-based sync being the default `SyncConfiguration.Builder.partialRealm()` has been deprecated. Use ``SyncConfiguration.Builder.fullSynchronization()` if you want full synchronisation instead.
+* [ObjectServer] With query-based sync being the default `SyncConfiguration.Builder.partialRealm()` has been deprecated. Use `SyncConfiguration.Builder.fullSynchronization()` if you want full synchronisation instead.
 
 ### Enhancements
 
@@ -2567,9 +2567,9 @@ No changes since 0.91.1.
 * `Realm.distinct*()`. Use `Realm.where(clazz).distinct*()` instead.
 * `DynamicRealm.allObjects*()`. Use `DynamicRealm.where(className).findAll*()` instead.
 * `DynamicRealm.distinct*()`. Use `DynamicRealm.where(className).distinct*()` instead.
-* `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
-* `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
-* `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])`` instead.
+* `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])` instead.
+* `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])` instead.
+* `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])` instead.
 * `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
 * `Realm.refresh()` and `DynamicRealm.refresh()`. Use `Realm.waitForChange()`/`stopWaitForChange()` or `DynamicRealm.waitForChange()`/`stopWaitForChange()` instead.
 
