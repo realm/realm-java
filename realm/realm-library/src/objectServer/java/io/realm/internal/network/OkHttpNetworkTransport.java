@@ -135,7 +135,12 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     private synchronized OkHttpClient getClient(long timeoutMs) {
         if (client == null) {
             client = new OkHttpClient.Builder()
-                    .callTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+                    // TODO There doesn't appear to set a timeout for the entire http request,
+                    //  so just reuse it across all 3 phases. In the worst case that means the
+                    //  the timeout is 3x the defined timeout which is acceptable.
+                    .connectTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+                    .readTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+                    .writeTimeout(timeoutMs, TimeUnit.MILLISECONDS)
                     .followRedirects(true)
                     .addInterceptor(new LoggingInterceptor(httpLogObfuscator))
                     // using custom Connection Pool to evict idle connection after 5 seconds rather than 5 minutes (which is the default)
