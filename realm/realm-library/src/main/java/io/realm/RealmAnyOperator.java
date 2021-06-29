@@ -448,6 +448,10 @@ final class DynamicRealmModelRealmAnyOperator extends RealmModelOperator {
         return realm.get((Class<T>) DynamicRealmObject.class, className, nativeRealmAny.getRealmModelRowKey());
     }
 
+    DynamicRealmModelRealmAnyOperator(RealmModel realmModel) {
+        super(realmModel);
+    }
+
     DynamicRealmModelRealmAnyOperator(BaseRealm realm, NativeRealmAny nativeRealmAny) {
         super(getRealmModel(realm, nativeRealmAny));
     }

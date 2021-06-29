@@ -1760,7 +1760,48 @@ public class DynamicRealmObject extends RealmObject implements RealmObjectProxy 
                     sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : proxyState.getRow$realm().getUUID(columnKey));
                     break;
                 case MIXED:
-                    sb.append(proxyState.getRow$realm().isNull(columnKey) ? "null" : getRealmAny(columnKey));
+                    RealmAny realmAny = getRealmAny(columnKey);
+                    switch (realmAny.getType()){
+                        case INTEGER:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "Integer", realmAny.asInteger().toString()));
+                            break;
+                        case BOOLEAN:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "Boolean", realmAny.asBoolean().toString()));
+                            break;
+                        case STRING:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "String", realmAny.asString()));
+                            break;
+                        case BINARY:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "byte[]", Arrays.toString(realmAny.asBinary())));
+                            break;
+                        case DATE:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "Date", realmAny.asDate().toString()));
+                            break;
+                        case FLOAT:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "Float", realmAny.asFloat().toString()));
+                            break;
+                        case DOUBLE:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "Double", realmAny.asDouble().toString()));
+                            break;
+                        case DECIMAL128:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "Decimal128", realmAny.asDecimal128().toString()));
+                            break;
+                        case OBJECT_ID:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "ObjectId", realmAny.asObjectId().toString()));
+                            break;
+                        case OBJECT:
+                            // if a Realm object, don't print the contents as it might end in a cycle.
+                            String tableName = realmAny.asRealmModel(DynamicRealmObject.class).proxyState.getRow$realm().getTable().getClassName();
+                            long objectKey = realmAny.asRealmModel(DynamicRealmObject.class).proxyState.getRow$realm().getObjectKey();
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(objKey:%d)", tableName, objectKey));
+                            break;
+                        case UUID:
+                            sb.append(String.format(Locale.US, "RealmAny<%s>(%s)", "UUID", realmAny.asUUID().toString()));
+                            break;
+                        case NULL:
+                            sb.append("RealmAny<Null>");
+                            break;
+                    }
                     break;
                 case OBJECT:
                     sb.append(proxyState.getRow$realm().isNullLink(columnKey)
