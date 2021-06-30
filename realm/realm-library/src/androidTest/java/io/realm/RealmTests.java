@@ -19,6 +19,7 @@ package io.realm;
 import android.content.Context;
 import android.os.Build;
 import android.os.Looper;
+import android.os.StrictMode;
 import android.os.SystemClock;
 
 import junit.framework.AssertionFailedError;
@@ -4879,6 +4880,40 @@ public class RealmTests {
             realm.getNumberOfActiveVersions();
             fail();
         } catch (IllegalStateException ignore) {
+        }
+    }
+
+    @Test
+    public void getCachedInstanceDoNotTriggerStrictMode() {
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+            .detectAll()
+            .penaltyLog()
+            .penaltyDeath()
+            .build());
+        try {
+            Realm.getInstance(realmConfig).close();
+        } finally {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .permitAll()
+                    .build());
+        }
+    }
+
+    @Test
+    public void getCachedInstanceFromOtherThreadDoNotTriggerStrictMode() throws InterruptedException {
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                .detectAll()
+                .penaltyLog()
+                .penaltyDeath()
+                .build());
+        try {
+            Thread t = new Thread(() -> Realm.getInstance(realmConfig).close());
+            t.start();
+            t.join();
+        } finally {
+            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
+                    .permitAll()
+                    .build());
         }
     }
 }
