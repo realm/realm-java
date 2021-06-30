@@ -420,13 +420,13 @@ final class RealmCache {
     private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version) {
         ReferenceCounter referenceCounter = getRefCounter(realmClass, version);
         boolean firstRealmInstanceInProcess = (getTotalGlobalRefCount() == 0);
-        boolean realmFileIsBeingCreated = !configuration.realmExists();
 
         if (firstRealmInstanceInProcess) {
             copyAssetFileIfNeeded(configuration);
             // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
             // before proceeding. We need to open the Realm instance first to start any potential underlying
             // SyncSession so this will work.
+            boolean realmFileIsBeingCreated = !configuration.realmExists();
             if (configuration.isSyncConfiguration() && realmFileIsBeingCreated) {
                 // Manually create the Java session wrapper session as this might otherwise
                 // not be created
