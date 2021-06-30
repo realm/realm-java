@@ -489,7 +489,7 @@ public class AppConfiguration {
                 throw new IllegalArgumentException("A timeout above 0 is required: " + time);
             }
             Util.checkNull(unit, "unit");
-            this.requestTimeoutMs = TimeUnit.MICROSECONDS.convert(time, unit);
+            this.requestTimeoutMs = TimeUnit.MILLISECONDS.convert(time, unit);
             return this;
         }
 

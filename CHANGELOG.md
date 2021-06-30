@@ -3,6 +3,7 @@
 ### Enhancements
 
 ### Fixed
+* [RealmApp] Configuring HTTP timeout through `AppConfiguration.Builder.requestTimeout()` did not work correctly. (Issue [#7455](https://github.com/realm/realm-java/issues/7455))
 * Opening cached Realms no longer trigger `android.os.strictmode.DiskReadViolation`. (Issue [#7500](https://github.com/realm/realm-java/issues/7500]))
 
 ### Compatibility

@@ -45,7 +45,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * This class test interoperability with Realms created on iOS.
  */
-@Ignore("FIXME: See https://github.com/realm/realm-java/issues/6789")
 @RunWith(AndroidJUnit4.class)
 public class IOSRealmTests {
 

@@ -293,7 +293,7 @@ class AppConfigurationTests {
     @Test
     fun requestTimeout() {
         val config = AppConfiguration.Builder("app-id")
-                .requestTimeout(1, TimeUnit.MILLISECONDS)
+                .requestTimeout(1, TimeUnit.SECONDS)
                 .build()
         assertEquals(1000L, config.requestTimeoutMs)
     }
