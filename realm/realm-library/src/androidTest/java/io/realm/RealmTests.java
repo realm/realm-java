@@ -495,6 +495,8 @@ public class RealmTests {
         METHOD_BEGIN,
         METHOD_COMMIT,
         METHOD_CANCEL,
+        METHOD_EXECUTE_TRANSACTION,
+        METHOD_EXECUTE_TRANSACTION_ASYNC,
         METHOD_DELETE_TYPE,
         METHOD_DELETE_ALL,
         METHOD_CREATE_OBJECT,
@@ -531,6 +533,12 @@ public class RealmTests {
                             break;
                         case METHOD_CANCEL:
                             realm.cancelTransaction();
+                            break;
+                        case METHOD_EXECUTE_TRANSACTION:
+                            realm.executeTransaction(realm -> fail());
+                            break;
+                        case METHOD_EXECUTE_TRANSACTION_ASYNC:
+                            realm.executeTransactionAsync(realm -> fail());
                             break;
                         case METHOD_DELETE_TYPE:
                             realm.delete(AllTypes.class);
@@ -598,6 +606,87 @@ public class RealmTests {
     public void methodCalledOnWrongThread() throws ExecutionException, InterruptedException {
         for (Method method : Method.values()) {
             assertTrue(method.toString(), runMethodOnWrongThread(method));
+        }
+    }
+
+    // Calling methods on a wrong thread will fail.
+    private boolean runMethodOnClosedRealm(final Method method) throws InterruptedException, ExecutionException {
+        try {
+            switch (method) {
+                case METHOD_BEGIN:
+                    realm.beginTransaction();
+                    break;
+                case METHOD_COMMIT:
+                    realm.commitTransaction();
+                    break;
+                case METHOD_CANCEL:
+                    realm.cancelTransaction();
+                    break;
+                case METHOD_EXECUTE_TRANSACTION:
+                    realm.executeTransaction(realm -> fail());
+                    break;
+                case METHOD_EXECUTE_TRANSACTION_ASYNC:
+                    realm.executeTransactionAsync(realm -> fail());
+                    break;
+                case METHOD_DELETE_TYPE:
+                    realm.delete(AllTypes.class);
+                    break;
+                case METHOD_DELETE_ALL:
+                    realm.deleteAll();
+                    break;
+                case METHOD_CREATE_OBJECT:
+                    realm.createObject(AllTypes.class);
+                    break;
+                case METHOD_CREATE_OBJECT_WITH_PRIMARY_KEY:
+                    realm.createObject(AllJavaTypes.class, 1L);
+                    break;
+                case METHOD_COPY_TO_REALM:
+                    realm.copyToRealm(new AllTypes());
+                    break;
+                case METHOD_COPY_TO_REALM_OR_UPDATE:
+                    realm.copyToRealm(new AllTypesPrimaryKey());
+                    break;
+                case METHOD_CREATE_ALL_FROM_JSON:
+                    realm.createAllFromJson(AllTypes.class, "[{}]");
+                    break;
+                case METHOD_CREATE_OR_UPDATE_ALL_FROM_JSON:
+                    realm.createOrUpdateAllFromJson(AllTypesPrimaryKey.class, "[{\"columnLong\":1," +
+                            " \"columnBoolean\": true}]");
+                    break;
+                case METHOD_CREATE_FROM_JSON:
+                    realm.createObjectFromJson(AllTypes.class, "{}");
+                    break;
+                case METHOD_CREATE_OR_UPDATE_FROM_JSON:
+                    realm.createOrUpdateObjectFromJson(AllTypesPrimaryKey.class, "{\"columnLong\":1," +
+                            " \"columnBoolean\": true}");
+                    break;
+                case METHOD_INSERT_COLLECTION:
+                    realm.insert(Arrays.asList(new AllTypes(), new AllTypes()));
+                    break;
+                case METHOD_INSERT_OBJECT:
+                    realm.insert(new AllTypes());
+                    break;
+                case METHOD_INSERT_OR_UPDATE_COLLECTION:
+                    realm.insert(Arrays.asList(new AllTypesPrimaryKey(), new AllTypesPrimaryKey()));
+                    break;
+                case METHOD_INSERT_OR_UPDATE_OBJECT:
+                    realm.insertOrUpdate(new AllTypesPrimaryKey());
+                    break;
+            }
+            return false;
+        } catch (IllegalStateException ignored) {
+            return true;
+        } catch (RealmException jsonFailure) {
+            // TODO: Eew. Reconsider how our JSON methods reports failure. See https://github.com/realm/realm-java/issues/1594
+            return (jsonFailure.getMessage().equals("Could not map Json"));
+        }
+    }
+
+    @Test
+    public void methodCalledOnClosedRealm() throws ExecutionException, InterruptedException {
+        realm.close();
+        for (Method method : Method.values()) {
+            assertTrue(method.toString(), runMethodOnClosedRealm(method));
         }
     }
 
