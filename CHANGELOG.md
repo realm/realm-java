@@ -5,6 +5,7 @@
 ### Fixed
 * [RealmApp] Configuring HTTP timeout through `AppConfiguration.Builder.requestTimeout()` did not work correctly. (Issue [#7455](https://github.com/realm/realm-java/issues/7455))
 * Opening cached Realms no longer trigger `android.os.strictmode.DiskReadViolation`. (Issue [#7500](https://github.com/realm/realm-java/issues/7500]))
+* `NullPointerException` was thrown instead of `IllegalStateException` when calling `Realm.executeTransaction()` on a closed Realm. (Issue [#7511](https://github.com/realm/realm-java/issues/7511), since 10.0.0)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
