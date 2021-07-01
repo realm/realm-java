@@ -7,6 +7,7 @@
 * [RealmApp] A recursive loop that would eventually crash trying to refresh a user app token when it had been revoked by an admin. Now this situation logs the user out and reports an error. (Issue [#7501](https://github.com/realm/realm-java/issues/7501))
 * En endless recursive loop that could cause a stack overflow when computing changes on a set of objects which contained cycles. (Realm Core Issue [#4767](https://github.com/realm/realm-core/issues/4767))
 * Opening cached Realms no longer trigger `android.os.strictmode.DiskReadViolation`. (Issue [#7500](https://github.com/realm/realm-java/issues/7500]))
+* `NullPointerException` was thrown instead of `IllegalStateException` when calling `Realm.executeTransaction()` on a closed Realm. (Issue [#7511](https://github.com/realm/realm-java/issues/7511), since 10.0.0)
 * `RealmDictionary` did not handle hash collisions correctly. (Realm Core issue [#4776](https://github.com/realm/realm-core/issues/4767))
 * Crash after clearing a List or Set of `RealmAny` containing references to objects (Realm Core issue [#4774](https://github.com/realm/realm-core/issues/4774))
 

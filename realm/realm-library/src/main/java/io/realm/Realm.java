@@ -1585,7 +1585,7 @@ public class Realm extends BaseRealm {
         if (transaction == null) {
             throw new IllegalArgumentException("Transaction should not be null");
         }
-
+        checkIfValid();
         checkAllowWritesOnUiThread();
 
         beginTransaction();
