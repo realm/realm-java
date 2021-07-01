@@ -4,10 +4,10 @@
 
 ### Fixed
 * [RealmApp] Configuring HTTP timeout through `AppConfiguration.Builder.requestTimeout()` did not work correctly. (Issue [#7455](https://github.com/realm/realm-java/issues/7455))
-* [RealmApp] A recursive loop which would eventually crash trying to refresh a user app token when it had been revoked by an admin. Now this situation logs the user out and reports an error. (Issue [#7501](https://github.com/realm/realm-java/issues/7501))
+* [RealmApp] A recursive loop that would eventually crash trying to refresh a user app token when it had been revoked by an admin. Now this situation logs the user out and reports an error. (Issue [#7501](https://github.com/realm/realm-java/issues/7501))
 * En endless recursive loop that could cause a stack overflow when computing changes on a set of objects which contained cycles. (Realm Core Issue [#4767](https://github.com/realm/realm-core/issues/4767))
 * Opening cached Realms no longer trigger `android.os.strictmode.DiskReadViolation`. (Issue [#7500](https://github.com/realm/realm-java/issues/7500]))
-* `RealmDictionary` did not handle hash collissions correctly. (Realm Core issue [#4776](https://github.com/realm/realm-core/issues/4767))
+* `RealmDictionary` did not handle hash collisions correctly. (Realm Core issue [#4776](https://github.com/realm/realm-core/issues/4767))
 * Crash after clearing a List or Set of `RealmAny` containing references to objects (Realm Core issue [#4774](https://github.com/realm/realm-core/issues/4774))
 
 ### Compatibility
