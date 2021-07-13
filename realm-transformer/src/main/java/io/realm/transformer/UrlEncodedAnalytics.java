@@ -42,15 +42,6 @@ public class UrlEncodedAnalytics {
         return new URL(prefix + Utils.base64Encode(analytics.generateJson()) + suffix);
     }
 
-    public static class MixPanel extends UrlEncodedAnalytics {
-        private static final String ADDRESS_PREFIX = "https://api.mixpanel.com/track/?data=";
-        private static final String ADDRESS_SUFFIX = "&ip=1";
-
-        public MixPanel() {
-            super(ADDRESS_PREFIX, ADDRESS_SUFFIX);
-        }
-    }
-
     public static class Segment extends UrlEncodedAnalytics {
         private static final String ADDRESS_PREFIX =
                 "https://webhooks.mongodb-realm.com/api/client/v2.0/app/realmsdkmetrics-zmhtm/service/metric_webhook/incoming_webhook/metric?data=";

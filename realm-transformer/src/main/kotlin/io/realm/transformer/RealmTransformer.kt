@@ -164,9 +164,8 @@ class RealmTransformer(val project: Project) : Transform() {
 
             val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk, target)
 
-            val pool = Executors.newFixedThreadPool(2);
+            val pool = Executors.newFixedThreadPool(1);
             try {
-                pool.execute { UrlEncodedAnalytics.MixPanel().execute(analytics) }
                 pool.execute { UrlEncodedAnalytics.Segment().execute(analytics) }
                 pool.awaitTermination(CONNECT_TIMEOUT + READ_TIMEOUT, TimeUnit.MILLISECONDS);
             } catch (e: InterruptedException) {
