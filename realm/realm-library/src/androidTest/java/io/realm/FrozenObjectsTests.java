@@ -94,6 +94,34 @@ public class FrozenObjectsTests {
     }
 
     @Test
+    public void freezeRealmTwice_atSameVersion() {
+        // Freeze the realm twice at the same version
+        assertFalse(realm.isFrozen());
+        Realm frozenRealm1 = realm.freeze();
+        Realm frozenRealm2 = realm.freeze();
+
+        // If we close one frozen instance, the other instance should be unaffected
+        frozenRealm2.close();
+        assertFalse(frozenRealm1.isClosed());
+        frozenRealm1.close();
+    }
+
+    @Test
+    public void freezeRealmTwice_atDifferentVersions() {
+        // Freeze the realm twice at different versions
+        assertFalse(realm.isFrozen());
+        Realm frozenRealm1 = realm.freeze();
+        realm.executeTransaction((Realm) -> realm.copyToRealm(new Dog("Woof", 3)));
+        Realm frozenRealm2 = realm.freeze();
+
+        // If we close one frozen instance, the other instance should be unaffected
+        frozenRealm1.close();
+        assertTrue(frozenRealm1.isClosed());
+        assertFalse(frozenRealm2.isClosed());
+        frozenRealm2.close();
+    }
+
+    @Test
     public void freezeDynamicRealm() {
         DynamicRealm dynamicRealm = DynamicRealm.getInstance(realmConfig);
         DynamicRealm frozenDynamicRealm = dynamicRealm.freeze();
