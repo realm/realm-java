@@ -224,6 +224,7 @@ final class RealmCache {
         private final Class<T> realmClass;
         private final CountDownLatch canReleaseBackgroundInstanceLatch = new CountDownLatch(1);
         private final RealmNotifier notifier;
+        private final boolean realmFileIsBeingCreated;
         // The Future this runnable belongs to.
         private Future future;
 
@@ -233,6 +234,7 @@ final class RealmCache {
             this.realmClass = realmClass;
             this.callback = callback;
             this.notifier = notifier;
+            this.realmFileIsBeingCreated = !configuration.realmExists();
         }
 
         public void setFuture(Future future) {
@@ -244,7 +246,7 @@ final class RealmCache {
             T instance = null;
             try {
                 // First call that will run all schema validation, migrations or initial transactions.
-                instance = createRealmOrGetFromCache(configuration, realmClass);
+                instance = createRealmOrGetFromCache(configuration, realmClass, realmFileIsBeingCreated);
                 boolean results = notifier.post(new Runnable() {
                     @Override
                     public void run() {
@@ -409,15 +411,22 @@ final class RealmCache {
      */
     static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass) {
         RealmCache cache = getCache(configuration.getPath(), true);
-        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, OsSharedRealm.VersionID.LIVE);
+        boolean realmFileIsBeingCreated = !configuration.realmExists();
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, OsSharedRealm.VersionID.LIVE, realmFileIsBeingCreated);
     }
 
     static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version) {
         RealmCache cache = getCache(configuration.getPath(), true);
-        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, version);
+        boolean realmFileIsBeingCreated = !configuration.realmExists();
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, version, realmFileIsBeingCreated);
     }
 
-    private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version) {
+    static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, boolean realmFileIsBeingCreated) {
+        RealmCache cache = getCache(configuration.getPath(), true);
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, OsSharedRealm.VersionID.LIVE, realmFileIsBeingCreated);
+    }
+
+    private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version, boolean realmFileIsBeingCreated) {
         ReferenceCounter referenceCounter = getRefCounter(realmClass, version);
         boolean firstRealmInstanceInProcess = (getTotalGlobalRefCount() == 0);
 
@@ -426,7 +435,6 @@ final class RealmCache {
             // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
             // before proceeding. We need to open the Realm instance first to start any potential underlying
             // SyncSession so this will work.
-            boolean realmFileIsBeingCreated = !configuration.realmExists();
             if (configuration.isSyncConfiguration() && realmFileIsBeingCreated) {
                 // Manually create the Java session wrapper session as this might otherwise
                 // not be created
