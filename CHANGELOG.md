@@ -1,3 +1,20 @@
+## 10.7.0 (YYYY-MM-DD)
+
+### Breaking Changes
+* Removed automatic injection of repositories from Gradle plugin. From now on `mavenCentral()` repository needs to be added manually.
+
+### Enhancements
+* None.
+
+### Fixed
+* None.
+
+### Compatibility
+
+### Internal
+* None.
+
+
 ## 10.6.1 (2021-07-01)
 
 ### Enhancements
