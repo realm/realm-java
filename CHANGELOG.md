@@ -1,13 +1,13 @@
 ## 10.7.0 (YYYY-MM-DD)
 
 ### Breaking Changes
-* Removed automatic injection of repositories from Gradle plugin. From now on `mavenCentral()` repository needs to be added manually.
+* Removed automatic injection of repositories from Gradle plugin. From now on `mavenCentral()` repository needs to be added manually. (Issue [#7365](https://github.com/realm/realm-java/issues/7365))
 
 ### Enhancements
 * None.
 
 ### Fixed
-* None.
+* Build errors when doing incremental builds with Android Studio's _Apply Changes..._-actions. (Issue [#7473](https://github.com/realm/realm-java/issues/7473))
 
 ### Compatibility
 
