@@ -24,9 +24,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -224,7 +226,6 @@ final class RealmCache {
         private final Class<T> realmClass;
         private final CountDownLatch canReleaseBackgroundInstanceLatch = new CountDownLatch(1);
         private final RealmNotifier notifier;
-        private final boolean realmFileIsBeingCreated;
         // The Future this runnable belongs to.
         private Future future;
 
@@ -234,7 +235,6 @@ final class RealmCache {
             this.realmClass = realmClass;
             this.callback = callback;
             this.notifier = notifier;
-            this.realmFileIsBeingCreated = !configuration.realmExists();
         }
 
         public void setFuture(Future future) {
@@ -246,7 +246,7 @@ final class RealmCache {
             T instance = null;
             try {
                 // First call that will run all schema validation, migrations or initial transactions.
-                instance = createRealmOrGetFromCache(configuration, realmClass, realmFileIsBeingCreated);
+                instance = createRealmOrGetFromCache(configuration, realmClass);
                 boolean results = notifier.post(new Runnable() {
                     @Override
                     public void run() {
@@ -342,6 +342,9 @@ final class RealmCache {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private static final Collection<RealmCache> leakedCaches = new ConcurrentLinkedQueue<RealmCache>();
 
+    // Keeps track if a Realm needs to download its initial remote data
+    private final Set<String> pendingRealmFileCreation = new HashSet<>();
+
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
 
@@ -387,6 +390,11 @@ final class RealmCache {
             throw new IllegalArgumentException(ASYNC_CALLBACK_NULL_MSG);
         }
 
+        // If there is no Realm file it means that we need to sync the initial remote data in the worker thread.
+        if (!configuration.realmExists()) {
+            pendingRealmFileCreation.add(configuration.getPath());
+        }
+
         // Always create a Realm instance in the background thread even when there are instances existing on current
         // thread. This to ensure that onSuccess will always be called in the following event loop but not current one.
         CreateRealmRunnable<T> createRealmRunnable = new CreateRealmRunnable<T>(
@@ -411,22 +419,15 @@ final class RealmCache {
      */
     static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass) {
         RealmCache cache = getCache(configuration.getPath(), true);
-        boolean realmFileIsBeingCreated = !configuration.realmExists();
-        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, OsSharedRealm.VersionID.LIVE, realmFileIsBeingCreated);
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, OsSharedRealm.VersionID.LIVE);
     }
 
     static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version) {
         RealmCache cache = getCache(configuration.getPath(), true);
-        boolean realmFileIsBeingCreated = !configuration.realmExists();
-        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, version, realmFileIsBeingCreated);
+        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, version);
     }
 
-    static <E extends BaseRealm> E createRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, boolean realmFileIsBeingCreated) {
-        RealmCache cache = getCache(configuration.getPath(), true);
-        return cache.doCreateRealmOrGetFromCache(configuration, realmClass, OsSharedRealm.VersionID.LIVE, realmFileIsBeingCreated);
-    }
-
-    private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version, boolean realmFileIsBeingCreated) {
+    private synchronized <E extends BaseRealm> E doCreateRealmOrGetFromCache(RealmConfiguration configuration, Class<E> realmClass, OsSharedRealm.VersionID version) {
         ReferenceCounter referenceCounter = getRefCounter(realmClass, version);
         boolean firstRealmInstanceInProcess = (getTotalGlobalRefCount() == 0);
 
@@ -435,7 +436,8 @@ final class RealmCache {
             // If waitForInitialRemoteData() was enabled, we need to make sure that all data is downloaded
             // before proceeding. We need to open the Realm instance first to start any potential underlying
             // SyncSession so this will work.
-            if (configuration.isSyncConfiguration() && realmFileIsBeingCreated) {
+            boolean realmFileIsBeingCreated = !configuration.realmExists();
+            if (configuration.isSyncConfiguration() && (realmFileIsBeingCreated || pendingRealmFileCreation.contains(configuration.getPath()))) {
                 // Manually create the Java session wrapper session as this might otherwise
                 // not be created
                 OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
@@ -443,6 +445,9 @@ final class RealmCache {
 
                 // Fully synchronized Realms are supported by AsyncOpen
                 ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
+
+                // Initial remote data has been synced at this point
+                pendingRealmFileCreation.remove(configuration.getPath());
             }
 
             // We are holding the lock, and we can set the valid configuration since there is no global ref to it.
