@@ -24,9 +24,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
@@ -340,6 +342,9 @@ final class RealmCache {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private static final Collection<RealmCache> leakedCaches = new ConcurrentLinkedQueue<RealmCache>();
 
+    // Keeps track if a Realm needs to download its initial remote data
+    private final Set<String> pendingRealmFileCreation = new HashSet<>();
+
     private static final String DIFFERENT_KEY_MESSAGE = "Wrong key used to decrypt Realm.";
     private static final String WRONG_REALM_CLASS_MESSAGE = "The type of Realm class must be Realm or DynamicRealm.";
 
@@ -385,6 +390,11 @@ final class RealmCache {
             throw new IllegalArgumentException(ASYNC_CALLBACK_NULL_MSG);
         }
 
+        // If there is no Realm file it means that we need to sync the initial remote data in the worker thread.
+        if (configuration.isSyncConfiguration() && !configuration.realmExists()) {
+            pendingRealmFileCreation.add(configuration.getPath());
+        }
+
         // Always create a Realm instance in the background thread even when there are instances existing on current
         // thread. This to ensure that onSuccess will always be called in the following event loop but not current one.
         CreateRealmRunnable<T> createRealmRunnable = new CreateRealmRunnable<T>(
@@ -427,7 +437,7 @@ final class RealmCache {
             // before proceeding. We need to open the Realm instance first to start any potential underlying
             // SyncSession so this will work.
             boolean realmFileIsBeingCreated = !configuration.realmExists();
-            if (configuration.isSyncConfiguration() && realmFileIsBeingCreated) {
+            if (configuration.isSyncConfiguration() && (realmFileIsBeingCreated || pendingRealmFileCreation.contains(configuration.getPath()))) {
                 // Manually create the Java session wrapper session as this might otherwise
                 // not be created
                 OsRealmConfig osConfig = new OsRealmConfig.Builder(configuration).build();
@@ -435,6 +445,9 @@ final class RealmCache {
 
                 // Fully synchronized Realms are supported by AsyncOpen
                 ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialRemoteChanges(configuration);
+
+                // Initial remote data has been synced at this point
+                pendingRealmFileCreation.remove(configuration.getPath());
             }
 
             // We are holding the lock, and we can set the valid configuration since there is no global ref to it.

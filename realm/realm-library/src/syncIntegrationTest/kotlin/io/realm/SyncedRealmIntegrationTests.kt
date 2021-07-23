@@ -41,6 +41,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.File
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -166,6 +167,96 @@ class SyncedRealmIntegrationTests {
                 }
             }
             assertEquals(20, realm.where(SyncStringOnly::class.java).count())
+        }
+    }
+
+    // Attempt to reproduce: https://github.com/realm/realm-java/issues/7517. getInstanceAsync did not
+    // wait for the initial remote data.
+    @Test
+    fun waitForInitialRemoteData_getInstanceAsync() = looperThread.runBlocking {
+        // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
+        val configOld: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
+            .testSchema(SyncStringOnly::class.java)
+            .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+            .build()
+        Realm.getInstance(configOld).use { realm ->
+            // Create many changesets to make sure that download is "slow"
+            for (i in 0..999) {
+                realm.executeTransaction { realm ->
+                    realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo$i"
+                }
+            }
+            realm.syncSession.uploadAllLocalChanges()
+        }
+        user.logOut()
+
+        // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
+        // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
+        // Use different user to trigger different path
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user2, user.id)
+            .testSchema(SyncStringOnly::class.java)
+            .waitForInitialRemoteData()
+            .build()
+
+        assertFalse(File(config.path).exists())
+        Realm.getInstanceAsync(config, object: Realm.Callback() {
+            override fun onSuccess(realm: Realm) {
+                looperThread.closeAfterTest(realm)
+                assertEquals(1000, realm.where(SyncStringOnly::class.java).count())
+                looperThread.testComplete()
+            }
+
+            override fun onError(exception: Throwable) {
+                fail(exception.toString())
+            }
+        })
+    }
+
+    // Try an scenario where a Sync and Async race to wait for the initial remote data.
+    @Test
+    fun waitForInitialRemoteData_getInstance_race_AsyncAndSync() = looperThread.runBlocking {
+        // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
+        val configOld: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
+            .testSchema(SyncStringOnly::class.java)
+            .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+            .build()
+        Realm.getInstance(configOld).use { realm ->
+            // Create many changesets to make sure that download is "slow"
+            for (i in 0..999) {
+                realm.executeTransaction { realm ->
+                    realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo$i"
+                }
+            }
+            realm.syncSession.uploadAllLocalChanges()
+        }
+        user.logOut()
+
+        // 2. Local state should now be completely reset. Open the same sync Realm but different local name again with
+        // a new configuration which should download the uploaded changes (pray it managed to do so within the time frame).
+        // Use different user to trigger different path
+        val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), SECRET_PASSWORD)
+        val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user2, user.id)
+            .testSchema(SyncStringOnly::class.java)
+            .waitForInitialRemoteData()
+            .build()
+
+        assertFalse(File(config.path).exists())
+
+        // Validate both async and sync are properly initialized.
+        Realm.getInstanceAsync(config, object: Realm.Callback() {
+            override fun onSuccess(realm: Realm) {
+                looperThread.closeAfterTest(realm)
+                assertEquals(1000, realm.where(SyncStringOnly::class.java).count())
+                looperThread.testComplete()
+            }
+
+            override fun onError(exception: Throwable) {
+                fail(exception.toString())
+            }
+        })
+        Realm.getInstance(config).use { realm ->
+            assertEquals(1000, realm.where(SyncStringOnly::class.java).count())
         }
     }
 
