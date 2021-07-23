@@ -44,7 +44,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().name);
+        return to_jstring(env, user->user_profile().name());
     }
     CATCH_STD();
     return nullptr;
@@ -54,7 +54,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().email);
+        return to_jstring(env, user->user_profile().email());
     }
     CATCH_STD();
     return nullptr;
@@ -64,7 +64,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().picture_url);
+        return to_jstring(env, user->user_profile().picture_url());
     }
     CATCH_STD();
     return nullptr;
@@ -74,7 +74,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().first_name);
+        return to_jstring(env, user->user_profile().first_name());
     }
     CATCH_STD();
     return nullptr;
@@ -84,7 +84,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().last_name);
+        return to_jstring(env, user->user_profile().last_name());
     }
     CATCH_STD();
     return nullptr;
@@ -94,7 +94,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().gender);
+        return to_jstring(env, user->user_profile().gender());
     }
     CATCH_STD();
     return nullptr;
@@ -104,7 +104,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().birthday);
+        return to_jstring(env, user->user_profile().birthday());
     }
     CATCH_STD();
     return nullptr;
@@ -114,7 +114,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().min_age);
+        return to_jstring(env, user->user_profile().min_age());
     }
     CATCH_STD();
     return nullptr;
@@ -124,7 +124,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->user_profile().max_age);
+        return to_jstring(env, user->user_profile().max_age());
     }
     CATCH_STD();
     return nullptr;
