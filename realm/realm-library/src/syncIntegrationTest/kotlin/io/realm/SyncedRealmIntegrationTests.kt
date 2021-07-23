@@ -170,7 +170,8 @@ class SyncedRealmIntegrationTests {
         }
     }
 
-    // Attempt to reproduce: https://github.com/realm/realm-java/issues/7517
+    // Attempt to reproduce: https://github.com/realm/realm-java/issues/7517. getInstanceAsync did not
+    // wait for the initial remote data.
     @Test
     fun waitForInitialRemoteData_getInstanceAsync() = looperThread.runBlocking {
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
@@ -212,7 +213,7 @@ class SyncedRealmIntegrationTests {
         })
     }
 
-    // Attempt to reproduce: https://github.com/realm/realm-java/issues/7517
+    // Try an scenario where a Sync and Async race to wait for the initial remote data.
     @Test
     fun waitForInitialRemoteData_getInstance_race_AsyncAndSync() = looperThread.runBlocking {
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)

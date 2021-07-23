@@ -391,7 +391,7 @@ final class RealmCache {
         }
 
         // If there is no Realm file it means that we need to sync the initial remote data in the worker thread.
-        if (!configuration.realmExists()) {
+        if (configuration.isSyncConfiguration() && !configuration.realmExists()) {
             pendingRealmFileCreation.add(configuration.getPath());
         }
 
