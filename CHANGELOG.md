@@ -7,7 +7,7 @@
 * None.
 
 ### Fixed
-* [RealmApp] Realm.getInstanceAsync does not wait for the initial remote data. (Issue [#7501](https://github.com/realm/realm-java/issues/7517))
+* [RealmApp] Realm.getInstanceAsync does not wait for the initial remote data. (Issue [#7517](https://github.com/realm/realm-java/issues/7517))
 * Build errors when doing incremental builds with Android Studio's _Apply Changes..._-actions. (Issue [#7473](https://github.com/realm/realm-java/issues/7473))
 
 ### Compatibility
