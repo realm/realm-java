@@ -1,4 +1,4 @@
-## 10.7.0 (YYYY-MM-DD)
+## 10.7.0 (2021-07-27)
 
 ### Breaking Changes
 * Removed automatic injection of repositories from Gradle plugin. From now on `mavenCentral()` repository needs to be added manually. (Issue [#7365](https://github.com/realm/realm-java/issues/7365))
