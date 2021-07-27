@@ -324,12 +324,13 @@ class ModuleMetaData {
         val annotationMirror: AnnotationMirror? = getAnnotationMirror(classElement)
         val annotationValue: AnnotationValue? = getAnnotationValue(annotationMirror)
         val classes = HashSet<QualifiedClassName>()
-        val moduleClasses = annotationValue!!.value as List<*>
-        for (classMirror in moduleClasses) {
-            // FIXME: Something is fishy about this. Figure out how to get the proper types in Kotlin here
-            val className = QualifiedClassName(classMirror.toString().removeSuffix(".class"))
-            classes.add(className)
-        }
+        annotationValue?.let {
+            for (classMirror in it.value as List<*>) {
+                // FIXME: Something is fishy about this. Figure out how to get the proper types in Kotlin here
+                val className = QualifiedClassName(classMirror.toString().removeSuffix(".class"))
+                classes.add(className)
+            }
+    }
         return classes
     }
 

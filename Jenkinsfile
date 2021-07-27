@@ -303,7 +303,19 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     //     ])
     //   }
     // },
-    'Instrumentation' : {
+    'Gradle Plugin' : {
+      try {
+        gradle('gradle-plugin', 'check')
+      } finally {
+        storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
+      }
+    },
+    'JavaDoc': {
+      sh "./gradlew javadoc ${buildFlags} --stacktrace"
+    }
+  }
+
+  stage('Device Tests') {
       if (enableIntegrationTests) {
         String backgroundPid
         try {
@@ -318,18 +330,8 @@ def runBuild(buildFlags, instrumentationTestTarget) {
       } else {
         echo "Instrumentation tests were disabled."
       }
-    },
-    'Gradle Plugin' : {
-      try {
-        gradle('gradle-plugin', 'check')
-      } finally {
-        storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-      }
-    },
-    'JavaDoc': {
-      sh "./gradlew javadoc ${buildFlags} --stacktrace"
-    }
   }
+
 
   // TODO: add support for running monkey on the example apps
 

@@ -1,10 +1,13 @@
 ![Realm](logo.png)
 
-[![bintray](https://api.bintray.com/packages/realm/maven/realm-gradle-plugin/images/download.svg) ](https://bintray.com/realm/maven/realm-gradle-plugin/_latestVersion)
 [![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/realm/realm-java/blob/master/LICENSE)
 
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
 This repository holds the source code for the Java version of Realm, which currently runs only on Android.
+
+## Tell us about your experience
+
+We want to hear from you! Tell us about your experience using the Realm SDKs in our [short survey](http://bit.ly/3hRO5U2).
 
 ## Realm Kotlin
 
@@ -34,7 +37,8 @@ The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/j
 
 ## Using Snapshots
 
-If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [Sonatype OSS](https://oss.sonatype.org/#nexus-search;quick~realm-gradle-plugin)
+
 
 ```
 buildscript {
