@@ -1,6 +1,5 @@
 ![Realm](logo.png)
 
-[![bintray](https://api.bintray.com/packages/realm/maven/realm-gradle-plugin/images/download.svg) ](https://bintray.com/realm/maven/realm-gradle-plugin/_latestVersion)
 [![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/realm/realm-java/blob/master/LICENSE)
 
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
