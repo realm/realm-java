@@ -1,4 +1,4 @@
-## 10.7.1 (YYYY-MM-DD)
+## 10.8.0 (YYYY-MM-DD)
 
 ### Enhancements
 * None.
