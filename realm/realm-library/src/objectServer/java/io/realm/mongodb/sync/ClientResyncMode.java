@@ -33,12 +33,6 @@ import io.realm.internal.OsRealmConfig;
 enum ClientResyncMode {
 
     /**
-     * Realm will compare the local Realm with the Realm on the server and automatically transfer
-     * any changes from the local Realm that makes sense to the Realm provided by the server.
-     */
-    RECOVER_LOCAL_REALM(OsRealmConfig.CLIENT_RESYNC_MODE_RECOVER),
-
-    /**
      * The local Realm will be discarded and replaced with the server side Realm.
      * All local changes will be lost.
      */
