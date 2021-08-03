@@ -1,4 +1,4 @@
-## 10.7.1 (YYYY-MM-DD)
+## 10.7.1 (2021-08-03)
 
 ### Enhancements
 * None.
