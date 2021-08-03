@@ -17,6 +17,7 @@
 package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
+import io.realm.processor.Utils.fieldTypeHasPrimaryKey
 import io.realm.processor.ext.beginMethod
 import io.realm.processor.ext.beginType
 import java.io.BufferedWriter
@@ -456,8 +457,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                             emitStatement("%s.updateEmbeddedObject(realm, value, proxyObject, new HashMap<RealmModel, RealmObjectProxy>(), Collections.EMPTY_SET)", linkedProxyClass)
                             emitStatement("value = proxyObject")
                         } else {
-                            val linkedMetadata = classCollection.getClassFromQualifiedName(linkedQualifiedClassName)
-                            if (linkedMetadata.hasPrimaryKey()) {
+                            if (fieldTypeHasPrimaryKey(field.asType(), classCollection)) {
                                 emitStatement("value = realm.copyToRealmOrUpdate(value)")
                             } else {
                                 emitStatement("value = realm.copyToRealm(value)")
@@ -802,8 +802,7 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (item == null || RealmObject.isManaged(item))")
                             emitStatement("value.add(item)")
                         nextControlFlow("else")
-                            val genericTypeMetadata = classCollection.getClassFromQualifiedName(genericType!!)
-                            if (genericTypeMetadata.hasPrimaryKey()) {
+                            if (fieldTypeHasPrimaryKey(field.asType(), classCollection)) {
                                 emitStatement("value.add(realm.copyToRealmOrUpdate(item))")
                             } else {
                                 emitStatement("value.add(realm.copyToRealm(item))");
