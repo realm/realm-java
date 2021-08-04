@@ -18,6 +18,7 @@ package io.realm.processor
 
 import com.squareup.javawriter.JavaWriter
 import io.realm.processor.Utils.fieldTypeHasPrimaryKey
+import io.realm.processor.Utils.getGenericType
 import io.realm.processor.ext.beginMethod
 import io.realm.processor.ext.beginType
 import java.io.BufferedWriter
@@ -802,7 +803,9 @@ class RealmProxyClassGenerator(private val processingEnvironment: ProcessingEnvi
                         beginControlFlow("if (item == null || RealmObject.isManaged(item))")
                             emitStatement("value.add(item)")
                         nextControlFlow("else")
-                            if (fieldTypeHasPrimaryKey(field.asType(), classCollection)) {
+                            val type = getGenericType(field) ?:
+                                throw IllegalArgumentException("Unable to derive generic type of ${fieldName}")
+                            if (fieldTypeHasPrimaryKey(type, classCollection)) {
                                 emitStatement("value.add(realm.copyToRealmOrUpdate(item))")
                             } else {
                                 emitStatement("value.add(realm.copyToRealm(item))");
