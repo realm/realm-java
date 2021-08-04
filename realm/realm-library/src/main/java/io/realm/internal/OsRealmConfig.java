@@ -174,9 +174,8 @@ public class OsRealmConfig implements NativeObject {
     private static final byte PROXYCONFIG_TYPE_VALUE_HTTP = 0;
 
     // Public to be usable from the io.realm package
-    public static final byte CLIENT_RESYNC_MODE_RECOVER = 0;
-    public static final byte CLIENT_RESYNC_MODE_DISCARD = 1;
-    public static final byte CLIENT_RESYNC_MODE_MANUAL = 2;
+    public static final byte CLIENT_RESYNC_MODE_DISCARD = 0;
+    public static final byte CLIENT_RESYNC_MODE_MANUAL = 1;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 

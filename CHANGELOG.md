@@ -1,4 +1,4 @@
-## 10.7.1 (YYYY-MM-DD)
+## 10.7.2 (YYYY-MM-DD)
 
 ### Enhancements
 * None.
@@ -13,6 +13,25 @@
 
 ### Internal
 * None.
+
+
+## 10.7.1 (2021-08-03)
+
+### Enhancements
+* None.
+
+### Fixed
+* [RealmApp] Crash when an object which is linked to by a `RealmAny` is invalidated (Sync only). ([Realm Core #4828](https://github.com/realm/realm-core/issues/4828), since v10.6.0)
+* Object change listeners did not handle the object being deleted properly, which could result in assertion failures mentioning "m_table" in ObjectNotifier ([Realm Core #4824](https://github.com/realm/realm-core/issues/4824), since v10.6.0).
+* Crash when delivering notifications over a nested hierarchy of lists of `RealmAny` that contain object references. ([Realm Core #4803](https://github.com/realm/realm-core/issues/4803), since v10.6.0)
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.2.0, commit: 583fc73040709383470797813096bee17802398e.
 
 
 ## 10.7.0 (2021-07-27)

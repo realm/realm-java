@@ -33,7 +33,6 @@ import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import io.realm.rx.CollectionChange
 import io.realm.rx.ObjectChange
-import io.realm.rx.RealmObservableFactory
 import io.realm.rx.RxObservableFactory
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -323,9 +322,9 @@ class SyncConfigurationTests {
 
         // Manually set the mode
         config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-                .clientResyncMode(ClientResyncMode.RECOVER_LOCAL_REALM)
+                .clientResyncMode(ClientResyncMode.DISCARD_LOCAL_REALM)
                 .build()
-        assertEquals(ClientResyncMode.RECOVER_LOCAL_REALM, config.clientResyncMode)
+        assertEquals(ClientResyncMode.DISCARD_LOCAL_REALM, config.clientResyncMode)
     }
 
     @Test
