@@ -4,7 +4,7 @@
 * None.
 
 ### Fixed
-* None.
+* Build error when having cross module model references (Issue [#7474](https://github.com/realm/realm-java/issues/7474), since v10.4.0)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
