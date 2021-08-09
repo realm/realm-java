@@ -10,7 +10,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Set the environment variables
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
-ENV JAVA8_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV ANDROID_HOME /opt/android-sdk-linux
 # Need by cmake
 ENV ANDROID_NDK_HOME /opt/android-ndk
@@ -43,7 +42,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libvirt-clients \
                           libvirt-daemon-system \
                           openjdk-11-jdk-headless \
-                          openjdk-8-jdk-headless \
                           qemu-kvm \
                           s3cmd \
                           unzip \
