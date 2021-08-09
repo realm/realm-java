@@ -252,9 +252,8 @@ task javadoc(type: Javadoc) {
 
         links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
-        // TODO We probably need to add the bson.jar to the classpath for these to work
+        links "https://developer.android.com/reference"
         links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY')}/"
-        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
 
         tags = [betaTag]
     }
@@ -411,6 +410,16 @@ project.afterEvaluate {
         android.buildTypes.all { buildType ->
             tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
         }
+
+        // Define classpath for javadoc task with project dependencies and excluded classes
+        if(variant.name == "objectServerRelease") {
+            def javaCompile = variant.javaCompileProvider.get()
+            javadoc.classpath += files(
+                    javaCompile.destinationDir, // All intermediate Realm compiled classes
+                    javaCompile.classpath.files // Dependencies
+            )
+        }
+
     }
 }
 
