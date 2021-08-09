@@ -1,9 +1,10 @@
 ## 10.8.0 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* [RealmApp] Added `User.remove()` and `User.removeAsync()` that makes it possible to deletes a users Realm(s) from the device.
 
 ### Fixed
+* [RealmApp] Clarified Javadoc for `User.logOut()` and `User.logOutAsync()` as these methods do not delete a Users Realm(s).
 * Build error when having cross module model references (Issue [#7474](https://github.com/realm/realm-java/issues/7474), since v10.4.0)
 
 ### Compatibility
