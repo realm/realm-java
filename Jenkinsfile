@@ -311,7 +311,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
       }
     },
     'JavaDoc': {
-      sh "./gradlew javadoc ${buildFlags} --stacktrace"
+      sh "JAVA_HOME=\$JAVA8_HOME ./gradlew javadoc ${buildFlags} --stacktrace"
     }
   }
 
