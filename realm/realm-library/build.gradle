@@ -411,6 +411,8 @@ project.afterEvaluate {
             tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
         }
 
+        tasks["compile${variant.name.capitalize()}JavaWithJavac"].options.compilerArgs += ["-h", file("build/jni/${variant.name}/jni_include")]
+
         // Define classpath for javadoc task with project dependencies and excluded classes
         if(variant.name == "objectServerRelease") {
             def javaCompile = variant.javaCompileProvider.get()
@@ -419,7 +421,6 @@ project.afterEvaluate {
                     javaCompile.classpath.files // Dependencies
             )
         }
-
     }
 }
 

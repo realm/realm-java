@@ -27,6 +27,11 @@ package io.realm.log;
 public class LogLevel {
 
     /**
+     * Not implemented. It forces javac to generate the JNI header file for this class.
+     */
+    private native void forceHeaderGeneration();
+
+    /**
      * The ALL has the lowest possible rank and is intended to turn on all logging.
      */
     public static final int ALL = 1;
