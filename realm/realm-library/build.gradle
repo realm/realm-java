@@ -411,9 +411,11 @@ project.afterEvaluate {
             tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
         }
 
+        // Java compiler to generate JNI headers.
         def generatedJNIHeadersPath = "$buildDir/intermediates/javac/${variant.name}/jni_include"
         tasks["compile${variant.name.capitalize()}JavaWithJavac"].with {
             options.compilerArgs += ["-h", file(generatedJNIHeadersPath)]
+            // Add generated headers into the build cache.
             outputs.dir(generatedJNIHeadersPath)
         }
 
