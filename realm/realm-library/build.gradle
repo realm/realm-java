@@ -389,6 +389,62 @@ if (project.hasProperty('dontCleanJniFiles')) {
     clean.dependsOn cleanExternalBuildFiles
 }
 
+tasks.withType(JavaCompile) { task ->
+    doFirst {
+        logger.quiet("javac arguments ${options.compilerArgs.toString()}")
+    }
+//    def a = buildDir
+//    outputs.files("$buildDir/*.h")
+}
+
+def JNI_headers = [
+        "io_realm_internal_CheckedRow.h",
+        "io_realm_internal_core_NativeRealmAny.h",
+        "io_realm_internal_core_NativeRealmAnyCollection.h",
+        "io_realm_internal_NativeObjectReference.h",
+        "io_realm_internal_objectstore_OsApp.h",
+        "io_realm_internal_objectstore_OsAppCredentials.h",
+        "io_realm_internal_objectstore_OsAsyncOpenTask.h",
+        "io_realm_internal_objectstore_OsKeyPathMapping.h",
+        "io_realm_internal_objectstore_OsMongoClient.h",
+        "io_realm_internal_objectstore_OsMongoCollection.h",
+        "io_realm_internal_objectstore_OsMongoDatabase.h",
+        "io_realm_internal_objectstore_OsObjectBuilder.h",
+        "io_realm_internal_objectstore_OsPush.h",
+        "io_realm_internal_objectstore_OsSyncUser.h",
+        "io_realm_internal_objectstore_OsWatchStream.h",
+        "io_realm_internal_OsCollectionChangeSet.h",
+        "io_realm_internal_OsList.h",
+        "io_realm_internal_OsMap.h",
+        "io_realm_internal_OsMapChangeSet.h",
+        "io_realm_internal_OsObject.h",
+        "io_realm_internal_OsObjectSchemaInfo.h",
+        "io_realm_internal_OsObjectStore.h",
+        "io_realm_internal_OsRealmConfig.h",
+        "io_realm_internal_OsResults.h",
+        "io_realm_internal_OsSchemaInfo.h",
+        "io_realm_internal_OsSet.h",
+        "io_realm_internal_OsSharedRealm.h",
+        "io_realm_internal_Property.h",
+        "io_realm_internal_Table.h",
+        "io_realm_internal_TableQuery.h",
+        "io_realm_internal_TestUtil.h",
+        "io_realm_internal_UncheckedRow.h",
+        "io_realm_internal_Util.h",
+        "io_realm_log_LogLevel.h",
+        "io_realm_log_RealmLog.h",
+        "io_realm_mongodb_ApiKeyAuthImpl.h",
+        "io_realm_mongodb_EmailPasswordAuthImpl.h",
+        "io_realm_mongodb_FunctionsImpl.h",
+        "io_realm_mongodb_mongo_iterable_AggregateIterable.h",
+        "io_realm_mongodb_mongo_iterable_FindIterable.h",
+        "io_realm_mongodb_sync_ClientResetRequiredError.h",
+        "io_realm_mongodb_sync_Sync.h",
+        "io_realm_mongodb_sync_SyncSession.h",
+        "io_realm_mongodb_User.h",
+        "io_realm_RealmQuery.h",
+]
+
 project.afterEvaluate {
     android.libraryVariants.all { variant ->
         if (project.hasProperty('buildTargetABIs') && project.getProperty('buildTargetABIs').trim().isEmpty()) {
@@ -411,7 +467,13 @@ project.afterEvaluate {
             tasks["generateJsonModel${variant.name.capitalize()}"].dependsOn "compile${variant.flavorName.capitalize()}${buildType.name.capitalize()}JavaWithJavac"
         }
 
-        tasks["compile${variant.name.capitalize()}JavaWithJavac"].options.compilerArgs += ["-h", file("build/jni/${variant.name}/jni_include")]
+        def JNIIncludePath = "$buildDir/jni/${variant.name}/jni_include"
+        tasks["compile${variant.name.capitalize()}JavaWithJavac"].with {
+            options.compilerArgs += ["-h", file(JNIIncludePath)]
+            JNI_headers.each {
+                outputs.file("$JNIIncludePath/$it")
+            }
+        }
 
         // Define classpath for javadoc task with project dependencies and excluded classes
         if(variant.name == "objectServerRelease") {
