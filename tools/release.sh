@@ -52,14 +52,14 @@ check_env() {
         exit -1
     fi
 
-    # Check BinTray credentials
-    if ! grep "bintrayUser=realm" "$HOME/.gradle/gradle.properties" > /dev/null ; then
-        echo "'bintrayUser' is not set in the '$HOME/.gradle/gradle.properties'."
+    # Check Maven Central credentials
+    if ! grep "ossrhUsername=realm" "$HOME/.gradle/gradle.properties" > /dev/null ; then
+        echo "'ossrhUsername' is not set in the '$HOME/.gradle/gradle.properties'."
         exit -1
     fi
 
-    if ! grep "bintrayKey=.*" "$HOME/.gradle/gradle.properties" > /dev/null; then
-        echo "'bintrayKey' is not set in the '$HOME/.gradle/gradle.properties'."
+    if ! grep "ossrhPassword=.*" "$HOME/.gradle/gradle.properties" > /dev/null; then
+        echo "'ossrhPassword' is not set in the '$HOME/.gradle/gradle.properties'."
         exit -1
     fi
 
@@ -168,18 +168,21 @@ build() {
     (cd examples && ./gradlew clean uninstallAll && ./gradlew monkeyDebug)
 }
 
-upload_to_bintray() {
-    echo "Uploading artifacts to Bintray..."
-    # Upload to bintray
-    ./gradlew bintrayUpload
+upload_to_maven_central() {
+    echo "Uploading artifacts to Maven Central..."
+    # Upload to maven central
+    ./gradlew mavenCentralUpload
 
     echo "Done."
-    echo "1. Log into BinTray(https://bintray.com) with the Realm account;"
-    echo "2. Goto https://bintray.com/realm/maven and check if there are 16 artifacts to publish."
-    echo "3. Press 'Publish'."
+    echo "1. Login into Sonatype console, you can find the credentials in Realm's LastPass account."
+    echo "2. There should be 4 stagging repositories in the console, select them all and click the Close menu option. It will take some time to process the action. Screenshot for close"
+    echo "3. After ~5min the repos would be closed, select them all and click the Release menu option. Screenshot for release"
+    echo "4. A confirmation prompt will show, select the automatically drop option and confirm. Screenshot for confirmation"
+    echo "5. Done! After some time you would be able to search for them."
+
     while true
     do
-        read -r -p "Have you published 16 artifacts on Bintray? Type 'Yes' to continue... " input
+        read -r -p "Have you published 16 artifacts on Maven central? Type 'Yes' to continue... " input
 
         case "$input" in
             [yY][eE][sS])
@@ -261,7 +264,7 @@ publish_javadoc() {
 check_env
 prepare_branch
 build
-upload_to_bintray
+upload_to_maven_central
 publish_distribution
 push_release
 publish_javadoc
