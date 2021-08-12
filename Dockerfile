@@ -42,7 +42,6 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libvirt-clients \
                           libvirt-daemon-system \
                           openjdk-11-jdk-headless \
-                          openjdk-8-jdk-headless \
                           qemu-kvm \
                           s3cmd \
                           unzip \
