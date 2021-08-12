@@ -417,6 +417,7 @@ project.afterEvaluate {
             options.compilerArgs += ["-h", file(generatedJNIHeadersPath)]
             // Add generated headers into the build cache.
             outputs.dir(generatedJNIHeadersPath)
+        }
 
         // Set javaDoc task's classpath with the project compiled classes and its dependencies
         if(variant.name == "objectServerRelease") {
