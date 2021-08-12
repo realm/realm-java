@@ -252,9 +252,8 @@ task javadoc(type: Javadoc) {
 
         links "https://docs.oracle.com/javase/7/docs/api/"
         links "http://reactivex.io/RxJava/javadoc/"
-        // TODO We probably need to add the bson.jar to the classpath for these to work
+        links "https://developer.android.com/reference"
         links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY')}/"
-        linksOffline "https://developer.android.com/reference/", "${project.android.sdkDirectory}/docs/reference"
 
         tags = [betaTag]
     }
@@ -418,6 +417,14 @@ project.afterEvaluate {
             options.compilerArgs += ["-h", file(generatedJNIHeadersPath)]
             // Add generated headers into the build cache.
             outputs.dir(generatedJNIHeadersPath)
+
+        // Set javaDoc task's classpath with the project compiled classes and its dependencies
+        if(variant.name == "objectServerRelease") {
+            def javaCompile = variant.javaCompileProvider.get()
+            javadoc.classpath += files(
+                    javaCompile.destinationDir, // All intermediate Realm compiled classes
+                    javaCompile.classpath.files // Dependencies
+            )
         }
     }
 }
