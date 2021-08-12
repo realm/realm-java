@@ -264,15 +264,12 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         step([$class: 'LintPublisher'])
       }
     },
-    'JVM8 Examples check' : {
-      try {
-        sh "JAVA_HOME=\$JAVA8_HOME ./gradlew checkExamples ${buildFlags} --stacktrace"
-      } finally {
-        storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-        storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-        storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
-        step([$class: 'LintPublisher'])
-      }
+    'JVM8 introExample check' : {
+      // Force build with JVM8, by disabling the cache, and check introExample.
+      sh """
+        cd examples/introExample
+        JAVA_HOME=\$JAVA8_HOME ./gradlew -Dorg.gradle.caching=false check ${buildFlags} --stacktrace
+      """
     },
     'Realm Transformer' : {
       try {
