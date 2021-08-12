@@ -20,7 +20,6 @@ buildscript {
         classpath 'com.github.skhatri:gradle-s3-plugin:1.0.4'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${projectDependencies.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
-        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${projectDependencies.get('GRADLE_BINTRAY_PLUGIN')}"
         classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
         classpath "io.realm:realm-library-build-transformer:${file('../version.txt').text.trim()}"
         classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.13'
