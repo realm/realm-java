@@ -264,6 +264,16 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         step([$class: 'LintPublisher'])
       }
     },
+    'JVM8 Examples check' : {
+      try {
+        sh "JAVA_HOME=\$JAVA8_HOME ./gradlew checkExamples ${buildFlags} --stacktrace"
+      } finally {
+        storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
+        storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
+        storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
+        step([$class: 'LintPublisher'])
+      }
+    },
     'Realm Transformer' : {
       try {
         gradle('realm-transformer', 'check')
