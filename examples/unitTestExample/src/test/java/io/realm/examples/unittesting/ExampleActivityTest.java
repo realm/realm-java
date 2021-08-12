@@ -19,6 +19,7 @@ package io.realm.examples.unittesting;
 import android.content.Context;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,8 +63,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
 
-@RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(RobolectricTestRunner.class)
+@RunWith(RobolectricTestRunner.class)
 @Config(sdk = 21)
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
 @SuppressStaticInitializationFor("io.realm.internal.Util")
@@ -184,7 +184,7 @@ public class ExampleActivityTest {
         assertThat(activity.getTitle().toString(), is("Unit Test Example"));
 
         // Verify that two Realm.getInstance() calls took place.
-        verifyStatic(times(2));
+        verifyStatic(Realm.class, times(2));
         Realm.getDefaultInstance();
 
         // verify that we have four begin and commit transaction calls
@@ -227,7 +227,7 @@ public class ExampleActivityTest {
         assertThat(activity.getTitle().toString(), is("Unit Test Example"));
 
         // Verify that two Realm.getInstance() calls took place.
-        verifyStatic(times(2));
+        verifyStatic(Realm.class, times(2));
         Realm.getDefaultInstance();
 
         // verify that we have four begin and commit transaction calls
