@@ -267,8 +267,8 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     'JVM8 introExample check' : {
       // Force build with JVM8, by disabling the cache, and check introExample.
       sh """
-        cd examples/introExample
-        JAVA_HOME=\$JAVA8_HOME ../gradlew -Dorg.gradle.caching=false check ${buildFlags} --stacktrace
+        cd examples/moduleExample
+        JAVA_HOME=\$JAVA8_HOME ../gradlew check ${buildFlags} --stacktrace
       """
     },
     'Realm Transformer' : {

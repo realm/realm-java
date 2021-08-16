@@ -19,7 +19,6 @@ package io.realm.examples.unittesting;
 import android.content.Context;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
