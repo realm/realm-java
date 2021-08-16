@@ -12,7 +12,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Upgrade to JDK 11.
 
 
 ## 10.7.1 (2021-08-03)
