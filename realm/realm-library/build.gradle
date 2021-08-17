@@ -8,7 +8,7 @@ apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
-apply plugin: 'net.ltgt.errorprone'
+//apply plugin: 'net.ltgt.errorprone'
 
 def properties = new Properties()
 properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
@@ -222,7 +222,7 @@ dependencies {
     androidTestImplementation project(':kotlin-extensions')
 
     // specify error prone version to prevent sudden failure
-    errorprone 'com.google.errorprone:error_prone_core:2.1.2'
+//    errorprone 'com.google.errorprone:error_prone_core:2.8.1'
 }
 
 task sourcesJar(type: Jar) {
