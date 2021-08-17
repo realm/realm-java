@@ -118,12 +118,11 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 
-dokka {
-    outputFormat = 'html'
-    outputDirectory = "$buildDir/docs"
+tasks.dokkaHtml.configure {
+    outputDirectory.set(file("$buildDir/dokka"))
 }
 
-task javadocJar(type: Jar, dependsOn: dokka) {
+task javadocJar(type: Jar, dependsOn: dokkaHtml) {
     classifier = 'javadoc'
     from "$buildDir/dokka"
 }
