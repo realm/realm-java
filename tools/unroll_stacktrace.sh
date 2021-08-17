@@ -18,7 +18,7 @@ Usage: $0 ( <buildid> | <flavor> <version> <abi> ) <stacktrace>
  - buildid: realm java build id
 
  - flavor: base, objectServer
- - version: version number on Bintray
+ - version: version number on Maven Central
  - abi: armeabi, armeabi-v7a, arm64-v8a, x86, x86_64, mips
 
  - stacktrace: absolute or relative path to file with dump information
