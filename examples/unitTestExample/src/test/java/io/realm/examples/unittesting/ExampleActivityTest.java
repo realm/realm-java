@@ -19,6 +19,7 @@ package io.realm.examples.unittesting;
 import android.content.Context;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +68,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew;
 @PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*"})
 @SuppressStaticInitializationFor("io.realm.internal.Util")
 @PrepareForTest({Realm.class, RealmConfiguration.class, RealmQuery.class, RealmResults.class, RealmCore.class, RealmLog.class})
+@Ignore("https://github.com/realm/realm-java/issues/7550")
 public class ExampleActivityTest {
     // Robolectric, Using Power Mock https://github.com/robolectric/robolectric/wiki/Using-PowerMock
 
