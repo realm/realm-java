@@ -44,12 +44,12 @@ android {
             }
         }
 
+        buildConfigField "String", "VERSION_NAME", "\"${version}\""
+
         buildTypes {
             debug {
-                javaCompileOptions {
-                    annotationProcessorOptions {
-                        arguments += ['realm.suppressWarnings': 'false']
-                    }
+                javaCompileOptions.with {
+                    annotationProcessorOptions.arguments += ['realm.suppressWarnings': 'false']
                 }
             }
         }
