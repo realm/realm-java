@@ -8,6 +8,7 @@ apply plugin: 'pmd'
 apply plugin: 'checkstyle'
 apply plugin: 'com.github.kt3k.coveralls'
 apply plugin: 'de.undercouch.download'
+// FIXME: https://github.com/realm/realm-java/issues/7551
 //apply plugin: 'net.ltgt.errorprone'
 
 def properties = new Properties()
