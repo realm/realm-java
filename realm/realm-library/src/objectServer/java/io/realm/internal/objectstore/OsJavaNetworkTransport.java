@@ -15,7 +15,6 @@
  */
 package io.realm.internal.objectstore;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,17 +43,60 @@ public abstract class OsJavaNetworkTransport {
      * This method is being called from JNI in order to execute the network transport itself.
      * All logic around retry and parsing of results should be done by ObjectStore.
      *
-     * Warning: This method is not allowed to throw. Any exception should be wrapped in a {@link Response}
-     * and be returned as a result.
+     * Warning: This method is not allowed to throw. Any exception should be wrapped in a
+     * {@link Response} and be returned as a result.
+     *
+     * This method assumes the network request is executed in an asynchronous manner.
+     * The actual request itself should always be executed within {@link #executeRequest(String, String, long, Map, String)}
+     * as that allow sub-classes to modify the behaviour on the thread actually doing the request.
      *
      * @param method Which kind of HTTP method in lowercase.
      * @param url Url to connect to.
      * @param timeoutMs How long does the request has to complete?
      * @param headers Which headers to send?
      * @param body Which body to include?
-     * @return Result of the request. All exceptions should also be wrapped in this.
+     * @param completionBlockPtr completion block that must be called on the C++ side. Must be
+     *                           passed through {@link #handleResponse(Response, long)}.
      */
-    protected abstract Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body);
+    public abstract void sendRequestAsync(String method,
+                                     String url,
+                                     long timeoutMs,
+                                     Map<String, String> headers,
+                                     String body,
+                                     long completionBlockPtr);
+
+    /**
+     * This method is responsible for actually exucuting the network request.
+     * The thread on which this method is called should be controlled by
+     * {@link #sendRequestAsync(String, String, long, Map, String, long)}.
+     *
+     * Warning: This method is not allowed to throw. Any exception should be wrapped in a
+     * {@link Response} and be returned as a result.
+     *
+     * @param method Which kind of HTTP method in lowercase.
+     * @param url Url to connect to.
+     * @param timeoutMs How long does the request has to complete?
+     * @param headers Which headers to send?
+     * @param body Which body to include?
+     * @return the response from the server or any exception being thrown
+     */
+    public abstract Response executeRequest(String method,
+                                            String url,
+                                            long timeoutMs,
+                                            Map<String, String> headers,
+                                            String body);
+
+    /**
+     * Pass back network response back to ObjectStore. All Exceptions should also be wrapped in
+     * Response object. The {@code completionBlockPtr} is deleted by the native side and is no longer
+     * valid after calling this method.
+     *
+     * @param response the response to a given request. Including exceptions.
+     * @param completionBlockPtr The native completion block responsible for handling the response.
+     */
+    public void handleResponse(Response response, long completionBlockPtr) {
+        nativeHandleResponse(response, completionBlockPtr);
+    }
 
     /**
      * This method is being called from Java when executing streaming requests.
@@ -208,4 +250,6 @@ public abstract class OsJavaNetworkTransport {
         public void onSuccess(Object result) {}
         public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {}
     }
+
+    private static native void nativeHandleResponse(Response response, long completionBlockPtr);
 }

@@ -1,5 +1,8 @@
 package io.realm.internal.network;
 
+import android.os.Handler;
+import android.os.HandlerThread;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +12,7 @@ import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.log.RealmLog;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
@@ -32,11 +36,16 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     @Nullable
     private final HttpLogObfuscator httpLogObfuscator;
 
+    private final HandlerThread worker = new HandlerThread("RealmOkHttpWorker");
+    private Handler handler;
+
     public OkHttpNetworkTransport(@Nullable HttpLogObfuscator httpLogObfuscator) {
         this.httpLogObfuscator = httpLogObfuscator;
+        worker.start();
+        handler = new Handler(worker.getLooper());
     }
 
-    private okhttp3.Request makeRequest(String method, String url, Map<String, String> headers, String body){
+    private okhttp3.Request createRequest(String method, String url, Map<String, String> headers, String body){
         okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
 
         // Ensure that we have correct custom headers until OS handles it.
@@ -84,25 +93,42 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
-    public OsJavaNetworkTransport.Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
+    public void sendRequestAsync(String method,
+                            String url,
+                            long timeoutMs,
+                            Map<String, String> headers,
+                            String body,
+                            long completionBlockPtr) {
+        handler.post(() -> {
+            OsJavaNetworkTransport.Response response = executeRequest(method, url, timeoutMs, headers, body);
+            handleResponse(response, completionBlockPtr);
+        });
+    }
+
+    @Override
+    public OsJavaNetworkTransport.Response executeRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
         try {
-            OkHttpClient client = getClient(timeoutMs);
+            OkHttpClient client1 = getClient(timeoutMs);
 
             okhttp3.Response response = null;
             try {
-                okhttp3.Request request = makeRequest(method, url, headers, body);
+                okhttp3.Request request = createRequest(method, url, headers, body);
 
-                Call call = client.newCall(request);
+                Call call = client1.newCall(request);
                 response = call.execute();
                 ResponseBody responseBody = response.body();
                 String result = "";
                 if (responseBody != null) {
                     result = responseBody.string();
                 }
+                RealmLog.error("ResponseCode: " + response.code());
+                RealmLog.error("ResponseBody: '" + result + "'");
                 return Response.httpResponse(response.code(), parseHeaders(response.headers()), result);
             } catch (IOException ex) {
+                RealmLog.error("ioException: " + ex.toString());
                 return Response.ioError(ex.toString());
             } catch (Exception ex) {
+                RealmLog.error("exceptionException: " + ex.toString());
                 return Response.unknownError(ex.toString());
             } finally {
                 if (response != null) {
@@ -118,7 +144,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     public OsJavaNetworkTransport.Response sendStreamingRequest(Request request) throws IOException, AppException {
         OkHttpClient client = getStreamClient();
 
-        okhttp3.Request okRequest = makeRequest(request.getMethod(), request.getUrl(), request.getHeaders(), request.getBody());
+        okhttp3.Request okRequest = createRequest(request.getMethod(), request.getUrl(), request.getHeaders(), request.getBody());
 
         Call call = client.newCall(okRequest);
         okhttp3.Response response = call.execute();

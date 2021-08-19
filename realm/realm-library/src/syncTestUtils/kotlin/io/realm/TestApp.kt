@@ -44,7 +44,6 @@ class TestApp(
     }
 
     companion object {
-
         fun configurationBuilder(appName: String): AppConfiguration.Builder {
             return AppConfiguration.Builder(initializeMongoDbRealm(appName))
                     .baseUrl("http://127.0.0.1:9090")
@@ -56,7 +55,7 @@ class TestApp(
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
         private fun initializeMongoDbRealm(appName: String): String {
             val transport = OkHttpNetworkTransport(null)
-            val response = transport.sendRequest(
+            val response = transport.executeRequest(
                     "get",
                     "http://127.0.0.1:8888/$appName",
                     5000,

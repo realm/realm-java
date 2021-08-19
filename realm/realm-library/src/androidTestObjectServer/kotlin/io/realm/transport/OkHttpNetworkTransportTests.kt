@@ -18,7 +18,7 @@ package io.realm.transport
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
-import io.realm.internal.network.OkHttpNetworkTransport
+import io.realm.TestHelper
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -26,6 +26,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.CountDownLatch
 
 /**
  * This class is responsible for testing the OkHttp implementation of the network layer.
@@ -38,7 +39,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class OkHttpNetworkTransportTests {
 
-    private lateinit var transport: OkHttpNetworkTransport
+    private lateinit var transport: HttpNetworkTransportInterceptor
     private val baseUrl = "http://127.0.0.1:8888" // URL to command server
 
     enum class HTTPMethod(val nativeKey: String) {
@@ -48,7 +49,7 @@ class OkHttpNetworkTransportTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        transport = OkHttpNetworkTransport(null)
+        transport = HttpNetworkTransportInterceptor(false, null)
     }
 
     @Test
@@ -60,15 +61,24 @@ class OkHttpNetworkTransportTests {
                     Pair("Content-Type", "application/json;charset=utf-8"),
                     Pair("Accept", "application/json")
             )
+            val fakeCompletionPtr = 0L
 
-            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
+            val latch = CountDownLatch(1)
+            transport.observeResponses { response: OsJavaNetworkTransport.Response ->
+                assertEquals(200, response.httpResponseCode)
+                assertEquals(0, response.customResponseCode)
+                assertEquals("${method.name}-success", response.body)
+                latch.countDown()
+            }
+
+            transport.sendRequestAsync(method.nativeKey,
                     url,
                     5000,
                     headers,
-                    body)
-            assertEquals(200, response.httpResponseCode)
-            assertEquals(0, response.customResponseCode)
-            assertEquals("${method.name}-success", response.body)
+                    body,
+                    fakeCompletionPtr
+            )
+            TestHelper.awaitOrFail(latch)
         }
     }
 
@@ -81,15 +91,23 @@ class OkHttpNetworkTransportTests {
                     Pair("Content-Type", "application/json;charset=utf-8"),
                     Pair("Accept", "application/json")
             )
+            val fakeCompletionPtr = 0L
 
-            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
+            val latch = CountDownLatch(1)
+            transport.observeResponses { response: OsJavaNetworkTransport.Response ->
+                assertEquals(500, response.httpResponseCode)
+                assertEquals(0, response.customResponseCode)
+                assertEquals("${method.name}-failure", response.body)
+                latch.countDown()
+            }
+
+            transport.sendRequestAsync(method.nativeKey,
                     url,
                     5000,
                     headers,
-                    body)
-            assertEquals(500, response.httpResponseCode)
-            assertEquals(0, response.customResponseCode)
-            assertEquals("${method.name}-failure", response.body)
+                    body,
+                    fakeCompletionPtr)
+            TestHelper.awaitOrFail(latch)
         }
     }
 
@@ -105,15 +123,23 @@ class OkHttpNetworkTransportTests {
                     Pair("Content-Type", "application/json;charset=utf-8"),
                     Pair("Accept", "application/json")
             )
+            val fakeCompletionPtr = 0L
 
-            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
+            val latch = CountDownLatch(1)
+            transport.observeResponses { response: OsJavaNetworkTransport.Response ->
+                assertEquals(200, response.httpResponseCode)
+                assertEquals(0, response.customResponseCode)
+                assertEquals("${method.name}-success", response.body)
+                latch.countDown()
+            }
+
+            transport.sendRequestAsync(method.nativeKey,
                     url,
                     5000,
                     headers,
-                    body)
-            assertEquals(200, response.httpResponseCode)
-            assertEquals(0, response.customResponseCode)
-            assertEquals("${method.name}-success", response.body)
+                    body,
+                    fakeCompletionPtr)
+            TestHelper.awaitOrFail(latch)
         }
     }
 
@@ -148,16 +174,23 @@ class OkHttpNetworkTransportTests {
                     Pair("Content-Type", "application/json;charset=utf-8"),
                     Pair("Accept", "application/json")
             )
+            val fakeCompletionPtr = 0L
 
-            Thread.currentThread().interrupt()
-            val response: OsJavaNetworkTransport.Response = transport.sendRequest(method.nativeKey,
+            val latch = CountDownLatch(1)
+            transport.observeResponses { response ->
+                assertEquals(0, response.httpResponseCode)
+                assertEquals(OsJavaNetworkTransport.ERROR_IO, response.customResponseCode)
+                assertTrue(response.body.contains("interrupted"))
+                latch.countDown()
+            }
+
+            transport.sendRequestAsync(method.nativeKey,
                     url,
                     5000,
                     headers,
-                    body)
-            assertEquals(0, response.httpResponseCode)
-            assertEquals(OsJavaNetworkTransport.ERROR_IO, response.customResponseCode)
-            assertTrue(response.body.contains("interrupted"))
+                    body,
+                    fakeCompletionPtr)
+            TestHelper.awaitOrFail(latch)
         }
     }
 

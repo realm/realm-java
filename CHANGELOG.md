@@ -4,7 +4,7 @@
 * None.
 
 ### Fixed
-* None.
+* [RealmApp] Refreshing the access token after 30 minutes would fail silently, causing infinite retries every 10 seconds. This would also block opening Realms when opening an app with an already logged in user. (Issue [#7501](https://github.com/realm/realm-java/issues/7501), since 10.0.0)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
