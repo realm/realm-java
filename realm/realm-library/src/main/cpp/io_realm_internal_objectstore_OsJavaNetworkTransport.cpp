@@ -21,11 +21,7 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
 
-#include <realm/object-store/binding_callback_thread_observer.hpp>
 #include <realm/object-store/sync/app.hpp>
-#include <realm/object-store/sync/sync_manager.hpp>
-
-#include <jni_util/bson_util.hpp>
 
 using namespace realm;
 using namespace realm::app;

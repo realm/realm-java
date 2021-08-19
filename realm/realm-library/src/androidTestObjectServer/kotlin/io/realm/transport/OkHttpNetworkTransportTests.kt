@@ -177,11 +177,16 @@ class OkHttpNetworkTransportTests {
             val fakeCompletionPtr = 0L
 
             val latch = CountDownLatch(1)
+
             transport.observeResponses { response ->
                 assertEquals(0, response.httpResponseCode)
                 assertEquals(OsJavaNetworkTransport.ERROR_IO, response.customResponseCode)
                 assertTrue(response.body.contains("interrupted"))
                 latch.countDown()
+            }
+
+            transport.preExecuteAction = {
+                Thread.currentThread().interrupt()
             }
 
             transport.sendRequestAsync(method.nativeKey,
@@ -190,6 +195,7 @@ class OkHttpNetworkTransportTests {
                     headers,
                     body,
                     fakeCompletionPtr)
+
             TestHelper.awaitOrFail(latch)
         }
     }

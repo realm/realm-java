@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.log.RealmLog;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
@@ -108,27 +107,23 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     @Override
     public OsJavaNetworkTransport.Response executeRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
         try {
-            OkHttpClient client1 = getClient(timeoutMs);
+            OkHttpClient client = getClient(timeoutMs);
 
             okhttp3.Response response = null;
             try {
                 okhttp3.Request request = createRequest(method, url, headers, body);
 
-                Call call = client1.newCall(request);
+                Call call = client.newCall(request);
                 response = call.execute();
                 ResponseBody responseBody = response.body();
                 String result = "";
                 if (responseBody != null) {
                     result = responseBody.string();
                 }
-                RealmLog.error("ResponseCode: " + response.code());
-                RealmLog.error("ResponseBody: '" + result + "'");
                 return Response.httpResponse(response.code(), parseHeaders(response.headers()), result);
             } catch (IOException ex) {
-                RealmLog.error("ioException: " + ex.toString());
                 return Response.ioError(ex.toString());
             } catch (Exception ex) {
-                RealmLog.error("exceptionException: " + ex.toString());
                 return Response.unknownError(ex.toString());
             } finally {
                 if (response != null) {

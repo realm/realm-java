@@ -29,7 +29,8 @@ typealias Observer = (response: OsJavaNetworkTransport.Response) -> Unit
 class HttpNetworkTransportInterceptor(private val passOnToObjectStore: Boolean = false,
                                       obfuscator: HttpLogObfuscator?) : OkHttpNetworkTransport(obfuscator) {
 
-    var observer: Observer? = null
+    private var observer: Observer? = null
+    var preExecuteAction : (() -> Unit)? = null
 
     override fun handleResponse(
         response: OsJavaNetworkTransport.Response,
@@ -42,6 +43,19 @@ class HttpNetworkTransportInterceptor(private val passOnToObjectStore: Boolean =
             super.handleResponse(response, completionBlockPtr)
         }
     }
+
+    override fun executeRequest(
+        method: String,
+        url: String,
+        timeoutMs: Long,
+        headers: MutableMap<String, String>,
+        body: String
+    ): OsJavaNetworkTransport.Response {
+        preExecuteAction?.let { it() }
+        return super.executeRequest(method, url, timeoutMs, headers, body)
+    }
+
+
 
     fun observeResponses(callback: (response: OsJavaNetworkTransport.Response) -> Unit) {
         observer = callback
