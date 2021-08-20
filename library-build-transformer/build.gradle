@@ -23,7 +23,6 @@ group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim()
 
 apply plugin: 'kotlin'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply from: "${rootDir}/../mavencentral-publications.gradle"
 

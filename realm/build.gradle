@@ -3,7 +3,7 @@ buildscript {
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
     ext.kotlin_version = projectDependencies.get('KOTLIN')
     ext.coroutines_android_version = projectDependencies.get('KOTLIN_COROUTINES')
-    ext.dokka_version = '0.10.1'
+    ext.dokka_version = '1.5.0'
     repositories {
         mavenLocal()
         google()
@@ -23,7 +23,7 @@ buildscript {
         classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:${projectDependencies.get('GRADLE_BINTRAY_PLUGIN')}"
         classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
         classpath "io.realm:realm-library-build-transformer:${file('../version.txt').text.trim()}"
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.13'
+        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:2.0.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
         classpath "gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.5.0"

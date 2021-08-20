@@ -13,6 +13,7 @@
 
 ### Internal
 * Upgrade to JDK 11.
+* Updated to Gradle 7.1.1.
 
 
 ## 10.7.1 (2021-08-03)
