@@ -96,7 +96,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         return [callback = JavaGlobalRefByCopy(env, j_callback), success_mapper](T result, util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
-            static JavaClass java_callback_class(env, "io/realm/internal/jni/OsJNIResultCallback");
+            static JavaClass java_callback_class(env, "io/realm/internal/network/NetworkRequest");
             static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(Ljava/lang/String;ILjava/lang/String;)V");
             static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
 
@@ -120,7 +120,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         return [callback = JavaGlobalRefByCopy(env, j_callback)](util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
-            static JavaClass java_callback_class(env, "io/realm/internal/jni/OsJNIVoidResultCallback");
+            static JavaClass java_callback_class(env, "io/realm/internal/network/NetworkRequest");
             static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(Ljava/lang/String;ILjava/lang/String;)V");
             static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
 

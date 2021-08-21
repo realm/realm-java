@@ -22,16 +22,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
 import io.realm.internal.async.RealmResultTaskImpl;
 import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.jni.OsJNIResultCallback;
-import io.realm.internal.network.ResultHandler;
+import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.objectstore.OsMongoCollection;
-import io.realm.mongodb.AppException;
 import io.realm.mongodb.RealmResultTask;
 
 /**
@@ -61,7 +58,7 @@ public abstract class MongoIterable<ResultT> {
         this.resultClass = resultClass;
     }
 
-    abstract void callNative(OsJNIResultCallback<?> callback);
+    abstract void callNative(NetworkRequest<?> callback);
 
     /**
      * Returns a cursor of the operation represented by this iterable.
@@ -90,41 +87,39 @@ public abstract class MongoIterable<ResultT> {
      * @return a task containing the first item or null.
      */
     public RealmResultTask<ResultT> first() {
-        final AtomicReference<ResultT> success = new AtomicReference<>(null);
-        final AtomicReference<AppException> error = new AtomicReference<>(null);
-        OsJNIResultCallback<ResultT> callback = new OsJNIResultCallback<ResultT>(success, error) {
+        NetworkRequest<ResultT> task = new NetworkRequest<ResultT>() {
             @Override
             protected ResultT mapSuccess(Object result) {
                 Collection<ResultT> decodedCollection = mapCollection(result);
                 Iterator<ResultT> iter = decodedCollection.iterator();
                 return iter.hasNext() ? iter.next() : null;
             }
+            @Override
+            protected void execute(NetworkRequest<ResultT> callback) {
+                callNative(callback);
+            }
         };
-
-        callNative(callback);
 
         return new RealmResultTaskImpl<>(threadPoolExecutor, new RealmResultTaskImpl.Executor<ResultT>() {
             @Nullable
             @Override
             public ResultT run() {
-                return ResultHandler.handleResult(success, error);
+                return task.resultOrThrow();
             }
         });
     }
 
     private Collection<ResultT> getCollection() {
-        AtomicReference<Collection<ResultT>> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        OsJNIResultCallback<Collection<ResultT>> callback = new OsJNIResultCallback<Collection<ResultT>>(success, error) {
+        return new NetworkRequest<Collection<ResultT>>() {
             @Override
             protected Collection<ResultT> mapSuccess(Object result) {
                 return mapCollection(result);
             }
-        };
-
-        callNative(callback);
-
-        return ResultHandler.handleResult(success, error);
+            @Override
+            protected void execute(NetworkRequest<Collection<ResultT>> callback) {
+                callNative(callback);
+            }
+        }.resultOrThrow();
     }
 
     private Collection<ResultT> mapCollection(Object result) {

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoCollection;
 
@@ -46,7 +46,7 @@ public class AggregateIterable<ResultT> extends MongoIterable<ResultT> {
     }
 
     @Override
-    void callNative(final OsJNIResultCallback<?> callback) {
+    void callNative(final NetworkRequest<?> callback) {
         String pipelineString = JniBsonProtocol.encode(pipeline, codecRegistry);
         nativeAggregate(osMongoCollection.getNativePtr(), pipelineString, callback);
     }

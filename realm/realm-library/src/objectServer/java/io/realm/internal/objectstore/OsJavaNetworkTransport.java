@@ -245,6 +245,7 @@ public abstract class OsJavaNetworkTransport {
      * The callback will happen on the thread running the network request, not the intended receiver thread.
      */
     // Abstract because these methods needs to be called from JNI and we cannot look up interface methods.
+    // NOTE: This class is called from JNI. If renamed, adjust callbacks in App.cpp
     @Keep
     public abstract static class NetworkTransportJNIResultCallback {
         public void onSuccess(Object result) {}

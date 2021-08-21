@@ -20,7 +20,6 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
@@ -28,11 +27,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
-import io.realm.internal.jni.OsJNIResultCallback;
-import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.mongodb.Request;
-import io.realm.internal.network.ResultHandler;
+import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.network.StreamNetworkTransport;
+import io.realm.internal.network.VoidNetworkRequest;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoClient;
 import io.realm.internal.objectstore.OsPush;
@@ -294,16 +292,24 @@ public class User {
     public User linkCredentials(Credentials credentials) {
         Util.checkNull(credentials, "credentials");
         checkLoggedIn();
-        AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeLinkUser(app.osApp.getNativePtr(), osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
+
+        return new NetworkRequest<User>() {
             @Override
             protected User mapSuccess(Object result) {
                 osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
                 return User.this;
             }
-        });
-        return ResultHandler.handleResult(success, error);
+
+            @Override
+            protected void execute(NetworkRequest<User> callback) {
+                nativeLinkUser(
+                        app.osApp.getNativePtr(),
+                        osUser.getNativePtr(),
+                        credentials.osCredentials.getNativePtr(),
+                        callback
+                );
+            }
+        }.resultOrThrow();
     }
 
     /**
@@ -342,15 +348,16 @@ public class User {
 
     User remove() throws AppException {
         boolean loggedIn = isLoggedIn();
-        AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeRemoveUser(app.osApp.getNativePtr(), osUser.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
+        new VoidNetworkRequest() {
             @Override
-            protected User mapSuccess(Object result) {
-                return User.this;
+            protected void execute(NetworkRequest<Void> callback) {
+                nativeRemoveUser(
+                        app.osApp.getNativePtr(),
+                        osUser.getNativePtr(),
+                        callback
+                );
             }
-        });
-        ResultHandler.handleResult(success, error);
+        }.run();
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }
@@ -386,9 +393,12 @@ public class User {
      */
     public void logOut() throws AppException {
         boolean loggedIn = isLoggedIn();
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeLogOut(app.osApp.getNativePtr(), osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                nativeLogOut(app.osApp.getNativePtr(), osUser.getNativePtr(), callback);
+            }
+        }.run();
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }

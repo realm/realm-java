@@ -1,0 +1,100 @@
+package io.realm.internal.network;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
+
+import io.realm.internal.Keep;
+import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.log.RealmLog;
+import io.realm.mongodb.AppException;
+import io.realm.mongodb.ErrorCode;
+
+/**
+ * Class wrapping the back-and-forth required by the Network Transport layer in ObjectStore
+ *
+ * This class wraps the request itself as well as handles the completion block triggered by
+ * ObjectStore.
+ *
+ * That API exposed by this class is synchronous but the callbacks from ObjectStore will happen
+ * on a determined by the {@link OsJavaNetworkTransport} implementation. In production this is
+ * {@link OkHttpNetworkTransport} which run on a special Looper thread.
+ */
+@Keep
+public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
+
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<T> success = new AtomicReference<>(null);
+    AtomicReference<AppException> error = new AtomicReference<>(null);
+
+    /**
+     * In the case of a successful request. Map the return value back to the type
+     * expected by top-level consumers.
+     */
+    protected abstract T mapSuccess(Object result);
+
+    /**
+     * Responsible for doing the network request by calling the relevant ObjectStore method.
+     */
+    protected abstract void execute(NetworkRequest<T> callback);
+
+    /**
+     * Request was successful. Will be called by the ObjectStore completion handler.
+     */
+    @SuppressWarnings("unused") // Called by JNI
+    @Override
+    public void onSuccess(Object result) {
+        RealmLog.error("OnSuccess: " + ((result != null) ? result.toString() : "null"));
+        T mappedResult = mapSuccess(result);
+        if (success != null) {
+            success.set(mappedResult);
+        }
+        latch.countDown();
+    }
+
+    /**
+     * Request failed. Will be called by the ObjectStore completion handler.
+     */
+    @SuppressWarnings("unused")  // Called by JNI
+    @Override
+    public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
+        RealmLog.error("onError: " + nativeErrorCategory + ", " + nativeErrorCode + ", " + errorMessage);
+        ErrorCode code = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+        if (code == ErrorCode.UNKNOWN) {
+            // In case of UNKNOWN errors parse as much error information on as possible.
+            String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
+            error.set(new AppException(code, detailedErrorMessage));
+        } else {
+            error.set(new AppException(code, errorMessage));
+        }
+        latch.countDown();
+    }
+
+    /**
+     * Run the network request and wait for the result.
+     * If the request was a success, the result is returned. 
+     * 
+     * If not, an error occured and it will be thrown as an AppException.
+     */
+    public T resultOrThrow() {
+        execute(this);
+        try {
+            // Wait indefinitely. Timeouts should be handled by the Network layer,
+            // so will eventually bubble up as an exception.
+            latch.await();
+        } catch (InterruptedException e) {
+            RealmLog.debug("Network request interrupted.");
+        }
+
+        // Result of request should be available. Throw if an error happened, otherwise return
+        // the result.
+        if (error.get() != null) {
+            throw error.get();
+        } else {
+            if (success != null) {
+                return success.get();
+            } else {
+                return null;
+            }
+        }
+    }
+}

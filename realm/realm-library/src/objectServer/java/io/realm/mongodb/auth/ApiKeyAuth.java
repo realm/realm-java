@@ -15,27 +15,25 @@
  */
 package io.realm.mongodb.auth;
 
+import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
+
 import org.bson.types.ObjectId;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
-import io.realm.annotations.Beta;
-import io.realm.internal.mongodb.Request;
-import io.realm.mongodb.AppException;
 import io.realm.RealmAsyncTask;
-import io.realm.internal.network.ResultHandler;
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
-import io.realm.internal.jni.OsJNIResultCallback;
-import io.realm.internal.jni.OsJNIVoidResultCallback;
+import io.realm.internal.mongodb.Request;
+import io.realm.internal.network.NetworkRequest;
+import io.realm.internal.network.VoidNetworkRequest;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.App;
+import io.realm.mongodb.AppException;
 import io.realm.mongodb.User;
-
-import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 
 /**
  * This class exposes functionality for a user to manage API keys under their control.
@@ -92,16 +90,16 @@ public abstract class ApiKeyAuth {
      */
     public ApiKey create(String name) throws AppException {
         Util.checkEmpty(name, "name");
-        AtomicReference<ApiKey> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        OsJNIResultCallback<ApiKey> callback = new OsJNIResultCallback<ApiKey>(success, error) {
+        return new NetworkRequest<ApiKey>() {
             @Override
             protected ApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
             }
-        };
-        call(TYPE_CREATE, name, callback);
-        return ResultHandler.handleResult(success, error);
+            @Override
+            protected void execute(NetworkRequest<ApiKey> callback) {
+                call(TYPE_CREATE, name, callback);
+            }
+        }.resultOrThrow();
     }
 
     /**
@@ -134,15 +132,16 @@ public abstract class ApiKeyAuth {
      */
     public ApiKey fetch(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
-        AtomicReference<ApiKey> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_FETCH_SINGLE, id.toHexString(), new OsJNIResultCallback<ApiKey>(success, error) {
+        return new NetworkRequest<ApiKey>() {
             @Override
             protected ApiKey mapSuccess(Object result) {
                 return createKeyFromNative((Object[]) result);
             }
-        });
-        return ResultHandler.handleResult(success, error);
+            @Override
+            protected void execute(NetworkRequest<ApiKey> callback) {
+                call(TYPE_FETCH_SINGLE, id.toHexString(), callback);
+            }
+        }.resultOrThrow();
     }
 
     /**
@@ -169,9 +168,7 @@ public abstract class ApiKeyAuth {
      * @throws AppException if the server failed to fetch the API keys.
      */
     public List<ApiKey> fetchAll() throws AppException {
-        AtomicReference<List<ApiKey>> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_FETCH_ALL, null, new OsJNIResultCallback<List<ApiKey>>(success, error) {
+        return new NetworkRequest<List<ApiKey>>() {
             @Override
             protected List<ApiKey> mapSuccess(Object result) {
                 Object[] keyData = (Object[]) result;
@@ -181,8 +178,11 @@ public abstract class ApiKeyAuth {
                 }
                 return list;
             }
-        });
-        return ResultHandler.handleResult(success, error);
+            @Override
+            protected void execute(NetworkRequest<List<ApiKey>> callback) {
+                call(TYPE_FETCH_ALL, null, callback);
+            }
+        }.resultOrThrow();
     }
 
 
@@ -211,9 +211,12 @@ public abstract class ApiKeyAuth {
      */
     public void delete(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_DELETE, id.toHexString(), new OsJNIVoidResultCallback(error));
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_DELETE, id.toHexString(), callback);
+            }
+        }.run();
     }
 
     /**
@@ -243,9 +246,12 @@ public abstract class ApiKeyAuth {
      */
     public void disable(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_DISABLE, id.toHexString(), new OsJNIVoidResultCallback(error));
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_DISABLE, id.toHexString(), callback);
+            }
+        }.run();
     }
 
     /**
@@ -275,9 +281,11 @@ public abstract class ApiKeyAuth {
      */
     public void enable(ObjectId id) throws AppException {
         Util.checkNull(id, "id");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_ENABLE, id.toHexString(), new OsJNIVoidResultCallback(error));
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_ENABLE, id.toHexString(), callback);            }
+        }.run();
     }
 
     /**

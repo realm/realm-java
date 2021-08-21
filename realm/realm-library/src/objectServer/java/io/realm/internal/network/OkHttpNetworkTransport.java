@@ -98,21 +98,10 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                             Map<String, String> headers,
                             String body,
                             long completionBlockPtr) {
-
-        // TODO: Giant work-around for most codepaths expecting this to be a synchronous call
-        //  So instead of rewriting all parts of the MongoClient API, we instead just force
-        //  the single call that actually has to be async to run on a worker thread.
-        //  The only API call that requires this is refreshing the access token as that is
-        //  triggered by ObjectStore itself.
-        if (url.endsWith("/auth/session")) {
             handler.post(() -> {
                 OsJavaNetworkTransport.Response response = executeRequest(method, url, timeoutMs, headers, body);
                 handleResponse(response, completionBlockPtr);
             });
-        } else {
-            OsJavaNetworkTransport.Response response = executeRequest(method, url, timeoutMs, headers, body);
-            handleResponse(response, completionBlockPtr);
-        }
     }
 
     @Override
