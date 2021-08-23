@@ -1,5 +1,8 @@
 package io.realm.internal.network;
 
+import android.os.Looper;
+import android.os.NetworkOnMainThreadException;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,7 +46,6 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
     @SuppressWarnings("unused") // Called by JNI
     @Override
     public void onSuccess(Object result) {
-        RealmLog.error("OnSuccess: " + ((result != null) ? result.toString() : "null"));
         T mappedResult = mapSuccess(result);
         if (success != null) {
             success.set(mappedResult);
@@ -76,6 +78,13 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
      * If not, an error occured and it will be thrown as an AppException.
      */
     public T resultOrThrow() {
+
+        // Avoid changing behavior. Old implementation would throw an exception if
+        // this method was called from the UI thread
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            throw new AppException(ErrorCode.NETWORK_UNKNOWN, new NetworkOnMainThreadException());
+        }
+
         execute(this);
         try {
             // Wait indefinitely. Timeouts should be handled by the Network layer,
