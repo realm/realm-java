@@ -6,12 +6,14 @@ import android.os.HandlerThread;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
+import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
@@ -34,14 +36,10 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     @Nullable
     private final HttpLogObfuscator httpLogObfuscator;
-
-    private final HandlerThread worker = new HandlerThread("RealmOkHttpWorker");
-    private Handler handler;
+    private final ThreadPoolExecutor threadPool = App.NETWORK_POOL_EXECUTOR;
 
     public OkHttpNetworkTransport(@Nullable HttpLogObfuscator httpLogObfuscator) {
         this.httpLogObfuscator = httpLogObfuscator;
-        worker.start();
-        handler = new Handler(worker.getLooper());
     }
 
     private okhttp3.Request createRequest(String method, String url, Map<String, String> headers, String body){
@@ -98,7 +96,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                             Map<String, String> headers,
                             String body,
                             long completionBlockPtr) {
-            handler.post(() -> {
+            threadPool.execute(() -> {
                 OsJavaNetworkTransport.Response response = executeRequest(method, url, timeoutMs, headers, body);
                 handleResponse(response, completionBlockPtr);
             });
