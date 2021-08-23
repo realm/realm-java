@@ -13,14 +13,14 @@ import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
 
 /**
- * Class wrapping the back-and-forth required by the Network Transport layer in ObjectStore
+ * Class wrapping the back-and-forth required by the Network Transport layer in ObjectStore.
  *
  * This class wraps the request itself as well as handles the completion block triggered by
  * ObjectStore.
  *
- * That API exposed by this class is synchronous but the callbacks from ObjectStore will happen
- * on a determined by the {@link OsJavaNetworkTransport} implementation. In production this is
- * {@link OkHttpNetworkTransport} which run on a special Looper thread.
+ * That API exposed by this class is synchronous, but the callbacks from ObjectStore will happen
+ * on a thread determined by the {@link OsJavaNetworkTransport} implementation. In release builds,
+ * this is {@link OkHttpNetworkTransport} which run on a special Looper thread.
  */
 @Keep
 public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTransportJNIResultCallback {
@@ -59,7 +59,6 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
     @SuppressWarnings("unused")  // Called by JNI
     @Override
     public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
-        RealmLog.error("onError: " + nativeErrorCategory + ", " + nativeErrorCode + ", " + errorMessage);
         ErrorCode code = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
         if (code == ErrorCode.UNKNOWN) {
             // In case of UNKNOWN errors parse as much error information on as possible.
@@ -75,7 +74,7 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
      * Run the network request and wait for the result.
      * If the request was a success, the result is returned. 
      * 
-     * If not, an error occured and it will be thrown as an AppException.
+     * If not, an error occurred and it will be thrown as an AppException.
      */
     public T resultOrThrow() {
 
