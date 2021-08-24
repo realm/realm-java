@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
@@ -36,7 +37,8 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     @Nullable
     private final HttpLogObfuscator httpLogObfuscator;
-    private final ThreadPoolExecutor threadPool = App.NETWORK_POOL_EXECUTOR;
+    // Cannot use App.NETWORK_POOL_EXECUTOR as they end up blocking each other.
+    private final ThreadPoolExecutor threadPool = RealmThreadPoolExecutor.newDefaultExecutor();
 
     public OkHttpNetworkTransport(@Nullable HttpLogObfuscator httpLogObfuscator) {
         this.httpLogObfuscator = httpLogObfuscator;
