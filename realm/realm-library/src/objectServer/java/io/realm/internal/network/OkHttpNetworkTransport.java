@@ -1,8 +1,5 @@
 package io.realm.internal.network;
 
-import android.os.Handler;
-import android.os.HandlerThread;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +11,6 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
-import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.AppException;
 import io.realm.mongodb.ErrorCode;
@@ -98,10 +94,14 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                             Map<String, String> headers,
                             String body,
                             long completionBlockPtr) {
-            threadPool.execute(() -> {
+        threadPool.execute(() -> {
+            try {
                 OsJavaNetworkTransport.Response response = executeRequest(method, url, timeoutMs, headers, body);
                 handleResponse(response, completionBlockPtr);
-            });
+            } catch (Exception e) {
+                handleResponse(Response.unknownError(e.toString()), completionBlockPtr);
+            }
+        });
     }
 
     @Override
