@@ -98,7 +98,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
             try {
                 OsJavaNetworkTransport.Response response = executeRequest(method, url, timeoutMs, headers, body);
                 handleResponse(response, completionBlockPtr);
-            } catch (Exception e) {
+            } catch (Error e) {
                 handleResponse(Response.unknownError(e.toString()), completionBlockPtr);
             }
         });
