@@ -136,6 +136,7 @@ public abstract class OsJavaNetworkTransport {
         customHeaders.clear();
     }
 
+    @Keep
     public abstract static class Response {
         private final int httpResponseCode;
         private final int customResponseCode;
