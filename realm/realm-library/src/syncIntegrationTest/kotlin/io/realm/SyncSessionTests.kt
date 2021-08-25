@@ -614,7 +614,7 @@ class SyncSessionTests {
             session.addConnectionChangeListener { oldState: ConnectionState?, newState: ConnectionState ->
                 if (newState == ConnectionState.DISCONNECTED) {
                     // Closing a Realm inside a connection listener doesn't work: https://github.com/realm/realm-java/issues/6249
-                    looperThread.postRunnable(Runnable { looperThread.testComplete() })
+                    looperThread.testComplete()
                 }
             }
             session.stop()

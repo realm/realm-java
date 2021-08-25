@@ -1,7 +1,9 @@
 ## 10.7.2 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* [RealmApp] `ErrorCode.INVALID_EMAIL_PASSWORD` has been added, and is now thrown instead of `ErrorCode.SERVICE_UNKNOWN` when loggin in with the wrong credentials.
+* `RealmQuery.rawPredicate()` now accepts a "BETWEEN" operator. Can be used like "age BETWEEN {20, 60}" which means "'Age' must be in the open interval ]20;60[".
+
 
 ### Fixed
 * [RealmApp] Refreshing the access token after 30 minutes would fail silently, causing infinite retries every 10 seconds. This would also block opening Realms when opening an app with an already logged in user. (Issue [#7501](https://github.com/realm/realm-java/issues/7501), since 10.0.0)
@@ -12,7 +14,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Realm Core 11.3.0, commit: 94c54c64116fb16a36834ab8e32bdb63fa622a7e.
 
 
 ## 10.7.1 (2021-08-03)
