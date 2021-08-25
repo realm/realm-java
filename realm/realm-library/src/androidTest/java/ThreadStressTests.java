@@ -183,7 +183,7 @@ public class ThreadStressTests {
                 threads.add(executor.submit(task));
             }
             for (Future task : threads) {
-                assertNull(task.get());
+                task.get();
             }
         } catch (Error e) {
             RealmLog.error(e);
