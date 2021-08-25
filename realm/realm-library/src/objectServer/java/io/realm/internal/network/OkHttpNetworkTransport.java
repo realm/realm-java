@@ -151,6 +151,16 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         return Response.httpResponse(response.code(), parseHeaders(response.headers()), response.body().source());
     }
 
+    @Override
+    public void reset() {
+        try {
+            threadPool.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("Threadpool did not terminate in time", e);
+        }
+        super.reset();
+    }
+
     // Lazily creates the client if not already created
     // TODO: timeOuts are not expected to change between requests. So for now just use the timeout first send.
     private synchronized OkHttpClient getClient(long timeoutMs) {

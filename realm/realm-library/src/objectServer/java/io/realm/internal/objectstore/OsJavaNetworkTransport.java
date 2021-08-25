@@ -128,10 +128,10 @@ public abstract class OsJavaNetworkTransport {
     }
 
     /**
-     * Reset all configured headers to their default.
+     * Reset to their default.
      * Used for testing.
      */
-    public void resetHeaders() {
+    public void reset() {
         authorizationHeaderName = AppConfiguration.DEFAULT_AUTHORIZATION_HEADER_NAME;
         customHeaders.clear();
     }
