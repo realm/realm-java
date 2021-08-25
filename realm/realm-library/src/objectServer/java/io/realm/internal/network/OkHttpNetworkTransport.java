@@ -154,6 +154,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     @Override
     public void reset() {
         try {
+            threadPool.shutdownNow();
             threadPool.awaitTermination(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             throw new IllegalStateException("Threadpool did not terminate in time", e);

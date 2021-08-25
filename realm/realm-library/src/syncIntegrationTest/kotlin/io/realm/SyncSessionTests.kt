@@ -574,9 +574,9 @@ class SyncSessionTests {
     // downloading the Realm immediately after.
     @Test
     // TODO Seems to align with tests in SessionTests, should we move them to same location
+    @Ignore // See https://github.com/realm/realm-core/issues/4873
     fun clientReset_manualTriggerAllowSessionToRestart() = looperThread.runBlocking {
         val resources = ResourceContainer()
-
         val configRef = AtomicReference<SyncConfiguration?>(null)
         val config: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
                 .testSchema(SyncStringOnly::class.java)
