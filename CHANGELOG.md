@@ -6,6 +6,7 @@
 
 
 ### Fixed
+* [RealmApp] Crash when integrating a schema from the server with a `RealmAny` property to a Realm File that already had that property defined locally. ([Realm Core #4873](https://github.com/realm/realm-core/issues/4873), since 10.0.0)
 * [RealmApp] Refreshing the access token after 30 minutes would fail silently, causing infinite retries every 10 seconds. This would also block opening Realms when opening an app with an already logged in user. (Issue [#7501](https://github.com/realm/realm-java/issues/7501), since 10.0.0)
 
 ### Compatibility
@@ -14,7 +15,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core 11.3.0, commit: 94c54c64116fb16a36834ab8e32bdb63fa622a7e.
+* Updated to Realm Core 11.3.0, commit: 321c79a67119db8177af13eefd5378586648ba73.
 
 
 ## 10.7.1 (2021-08-03)
