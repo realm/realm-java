@@ -1,4 +1,4 @@
-## 10.8.0 (YYYY-MM-DD)
+## 10.8.0 (2021-08-27)
 
 ### Enhancements
 * [RealmApp] `ErrorCode.INVALID_EMAIL_PASSWORD` has been added, and is now thrown instead of `ErrorCode.SERVICE_UNKNOWN` when loggin in with the wrong credentials.
