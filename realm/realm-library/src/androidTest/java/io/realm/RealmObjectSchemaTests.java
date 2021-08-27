@@ -996,7 +996,10 @@ public class RealmObjectSchemaTests {
                 fail();
             } catch (IllegalStateException expected) {
                 assertThat(expected.getMessage(),
-                        CoreMatchers.containsString("The primary key field 'primaryKey' has 'null' values stored."));
+                        CoreMatchers.containsString(
+                                String.format("Objects in 'class_%s' has null value(s) in property '%s'", className, fieldName)
+                        )
+                );
             }
             realmSchema.remove(className);
         }
