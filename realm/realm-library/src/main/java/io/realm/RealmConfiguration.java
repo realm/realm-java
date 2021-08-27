@@ -199,20 +199,22 @@ public class RealmConfiguration {
     }
 
     /**
-     * Indicates if there is available asset file for copy action.
+     * Indicates if an asset file has configured for this configuration.
      *
      * @return {@code true} if there is asset file, {@code false} otherwise.
      */
-    boolean hasAssetFile() {
+    public boolean hasAssetFile() {
         return !Util.isEmptyString(assetFilePath);
     }
 
     /**
      * Returns the path to the Realm asset file.
      *
-     * @return path to the asset file relative to the asset directory.
+     * @return path to the asset file relative to the asset directory or {@code null} if not asset
+     * file was specified.
      */
-    String getAssetFilePath() {
+    @Nullable
+    public String getAssetFilePath() {
         return assetFilePath;
     }
 

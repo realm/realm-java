@@ -477,6 +477,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private Realm.Transaction initialDataTransaction;
         @Nullable
         private String filename;
+        private String assetFilePath;
         private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
         private boolean readOnly = false;
         private boolean waitForServerChanges = false;
@@ -955,6 +956,34 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * When opening the Realm for the first time, instead of creating an empty file,
+         * the Realm file will be copied from the provided asset file and used instead.
+         * <p>
+         * This can be used to pre-populate the Realm with data, so it doesn't have to be
+         * downloaded from the server.
+         * <p>
+         * The provided Realm file must be a valid synced Realm for the given user, and it must
+         * have been created using the {@link Realm#writeCopyTo(File)} API.
+         * <p>
+         * WARNING: This could potentially be a lengthy operation and should ideally be done on a background thread.
+         *
+         * @param assetFile path to the asset database file.
+         * @throws IllegalStateException if this Realm is also marked as {@link #inMemory()}.
+         */
+        public SyncConfiguration.Builder assetFile(String assetFile) {
+            if (Util.isEmptyString(assetFile)) {
+                throw new IllegalArgumentException("A non-empty asset file path must be provided");
+            }
+            if (durability == OsRealmConfig.Durability.MEM_ONLY) {
+                throw new IllegalStateException("Realm can not use in-memory configuration if asset file is present.");
+            }
+            this.assetFilePath = assetFile;
+
+            return this;
+        }
+
+
+        /**
          * The prefix that is prepended to the path in the WebSocket request that initiates a sync
          * connection to MongoDB Realm. The value specified must match the server’s configuration
          * otherwise the device will not be able to create a connection. This value is optional
@@ -1116,7 +1145,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
             return new SyncConfiguration(
                     realmFile,
-                    null, // assetFile not supported by Sync. See https://github.com/realm/realm-sync/issues/241
+                    assetFilePath,
                     key,
                     schemaVersion,
                     null, // Custom migrations not supported
