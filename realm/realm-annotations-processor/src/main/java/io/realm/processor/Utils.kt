@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
 package io.realm.processor
 
 import com.sun.tools.javac.code.Attribute
+import com.sun.tools.javac.code.Scope
 import com.sun.tools.javac.code.Symbol
 import com.sun.tools.javac.code.Type
 import com.sun.tools.javac.util.Pair
@@ -36,6 +36,17 @@ import javax.tools.Diagnostic
  * Utility methods working with the Realm processor.
  */
 object Utils {
+
+    // API for retrieving symbols differs between JDK 8 and 9, so retrieve symbol information by
+    // reflection
+    private val classSymbolMembersMethod = Symbol.ClassSymbol::class.java.getMethod("members")
+    private val scopeElementsMethod = try {
+        // JDK 8
+        Scope::class.java.getMethod("getElements")
+    } catch (e: NoSuchMethodException) {
+        // JDK 9+
+        Scope::class.java.getMethod("getSymbols")
+    }
 
     private lateinit var typeUtils: Types
     private lateinit var messager: Messager
@@ -666,5 +677,31 @@ object Utils {
         }
 
         return isEmbedded
+    }
+
+    // Returns whether a type has primary key field
+    // For types which are part of this processing round we can look it up immediately from
+    // the metadata in the `classCollection`. For types defined in other modules we will
+    // have to use the slower approach of inspecting the variable member `embedded` property of the
+    // RealmClass annotation using the compiler tool api.
+    fun fieldTypeHasPrimaryKey(type: TypeMirror, classCollection: ClassCollection): Boolean {
+        val fieldType = QualifiedClassName(type)
+        val fieldTypeMetaData: ClassMetaData? =
+            classCollection.getClassFromQualifiedNameOrNull(fieldType)
+        return fieldTypeMetaData?.hasPrimaryKey() ?: type.hasPrimaryKey()
+    }
+
+    private fun TypeMirror.hasPrimaryKey(): Boolean {
+        if (this is Type.ClassType) {
+            val scope = classSymbolMembersMethod.invoke(tsym)
+            val elements: Iterable<Symbol> = scopeElementsMethod.invoke(scope) as Iterable<Symbol>
+            val symbols = elements.filter { it is Symbol.VarSymbol }
+            return symbols.any {
+                it.declarationAttributes.any { attribute ->
+                    attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.PrimaryKey"
+                }
+            }
+        }
+        return false
     }
 }
