@@ -25,7 +25,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.Nullable;
 
 import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoCollection;
 import io.realm.mongodb.mongo.options.FindOptions;
@@ -56,7 +56,7 @@ public class FindIterable<ResultT> extends MongoIterable<ResultT> {
     }
 
     @Override
-    void callNative(final OsJNIResultCallback<?> callback) {
+    void callNative(final NetworkRequest<?> callback) {
         String filterString = JniBsonProtocol.encode(filter, codecRegistry);
         String projectionString = encodedEmptyDocument;
         String sortString = encodedEmptyDocument;

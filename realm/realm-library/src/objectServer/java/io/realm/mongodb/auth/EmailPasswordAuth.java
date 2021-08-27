@@ -15,23 +15,22 @@
  */
 package io.realm.mongodb.auth;
 
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
+import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 
-import io.realm.annotations.Beta;
-import io.realm.internal.mongodb.Request;
-import io.realm.mongodb.AppException;
+import java.util.Arrays;
+
 import io.realm.RealmAsyncTask;
-import io.realm.internal.network.ResultHandler;
+import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.jni.OsJNIVoidResultCallback;
+import io.realm.internal.mongodb.Request;
+import io.realm.internal.network.NetworkRequest;
+import io.realm.internal.network.VoidNetworkRequest;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.App;
+import io.realm.mongodb.AppException;
 import io.realm.mongodb.Credentials;
 import io.realm.mongodb.User;
-
-import static io.realm.mongodb.App.NETWORK_POOL_EXECUTOR;
 
 /**
  * Class encapsulating functionality provided when {@link User}'s are logged in through the
@@ -70,9 +69,12 @@ public abstract class EmailPasswordAuth {
     public void registerUser(String email, String password) throws AppException {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(password, "password");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_REGISTER_USER, new OsJNIVoidResultCallback(error), email, password);
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_REGISTER_USER, this, email, password);
+            }
+        }.execute();
     }
 
     /**
@@ -108,9 +110,12 @@ public abstract class EmailPasswordAuth {
     public void confirmUser(String token, String tokenId) throws AppException {
         Util.checkEmpty(token, "token");
         Util.checkEmpty(tokenId, "tokenId");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_CONFIRM_USER, new OsJNIVoidResultCallback(error), token, tokenId);
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_CONFIRM_USER, callback, token, tokenId);
+            }
+        }.execute();
     }
 
     /**
@@ -141,9 +146,12 @@ public abstract class EmailPasswordAuth {
      */
     public void resendConfirmationEmail(String email) throws AppException {
         Util.checkEmpty(email, "email");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_RESEND_CONFIRMATION_EMAIL, new OsJNIVoidResultCallback(error), email);
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_RESEND_CONFIRMATION_EMAIL, callback, email);
+            }
+        }.execute();
     }
 
     /**
@@ -173,9 +181,12 @@ public abstract class EmailPasswordAuth {
      */
     public void retryCustomConfirmation(String email) throws AppException {
         Util.checkEmpty(email, "email");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_RETRY_CUSTOM_CONFIRMATION, new OsJNIVoidResultCallback(error), email);
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_RETRY_CUSTOM_CONFIRMATION, callback, email);
+            }
+        }.execute();
     }
 
     /**
@@ -205,9 +216,12 @@ public abstract class EmailPasswordAuth {
      */
     public void sendResetPasswordEmail(String email) throws AppException {
         Util.checkEmpty(email, "email");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_SEND_RESET_PASSWORD_EMAIL, new OsJNIVoidResultCallback(error), email);
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_SEND_RESET_PASSWORD_EMAIL, callback, email);
+            }
+        }.execute();
     }
 
     /**
@@ -243,9 +257,12 @@ public abstract class EmailPasswordAuth {
         Util.checkEmpty(email, "email");
         Util.checkEmpty(newPassword, "newPassword");
         String encodedArgs = JniBsonProtocol.encode(Arrays.asList(args), app.getConfiguration().getDefaultCodecRegistry());
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        call(TYPE_CALL_RESET_PASSWORD_FUNCTION, new OsJNIVoidResultCallback(error), email, newPassword, encodedArgs);
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                call(TYPE_CALL_RESET_PASSWORD_FUNCTION, callback, email, newPassword, encodedArgs);
+            }
+        }.execute();
     }
 
     /**
@@ -284,11 +301,14 @@ public abstract class EmailPasswordAuth {
         Util.checkEmpty(token, "token");
         Util.checkEmpty(tokenId, "tokenId");
         Util.checkEmpty(newPassword, "newPassword");
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        // The order of arguments in ObjectStore is different than the order of arguments in the
-        // Java API. The Java API order came from the old Stitch API.
-        call(TYPE_RESET_PASSWORD, new OsJNIVoidResultCallback(error), newPassword, token, tokenId);
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                // The order of arguments in ObjectStore is different than the order of arguments in the
+                // Java API. The Java API order came from the old Stitch API.
+                call(TYPE_RESET_PASSWORD, callback, newPassword, token, tokenId);
+            }
+        }.execute();
     }
 
     /**

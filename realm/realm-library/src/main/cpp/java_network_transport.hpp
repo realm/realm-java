@@ -36,8 +36,8 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         JNIEnv* env = JniUtils::get_env(true);
         m_java_network_transport_impl = env->NewGlobalRef(java_network_transport_impl);
         jclass cls = env->GetObjectClass(m_java_network_transport_impl);
-        auto method_name = "sendRequest";
-        auto signature = "(Ljava/lang/String;Ljava/lang/String;JLjava/util/Map;Ljava/lang/String;)Lio/realm/internal/objectstore/OsJavaNetworkTransport$Response;";
+        auto method_name = "sendRequestAsync";
+        auto signature = "(Ljava/lang/String;Ljava/lang/String;JLjava/util/Map;Ljava/lang/String;J)V";
         m_send_request_method = env->GetMethodID(cls, method_name, signature);
         REALM_ASSERT_RELEASE_EX(m_send_request_method != nullptr, method_name, signature);
     }
@@ -74,46 +74,20 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         jstring jmethod = to_jstring(env, method);
         jstring jurl = to_jstring(env, request.url);
         jstring jbody = to_jstring(env, request.body);
-        jobject response = env->CallObjectMethod(
+        env->CallVoidMethod(
                 m_java_network_transport_impl,
                 m_send_request_method,
                 jmethod,
                 jurl,
                 static_cast<jlong>(request.timeout_ms),
                 request_headers,
-                jbody
+                jbody,
+                new std::function<void(const app::Response)>(std::move(completionBlock))
         );
         env->DeleteLocalRef(jmethod);
         env->DeleteLocalRef(jurl);
         env->DeleteLocalRef(jbody);
         env->DeleteLocalRef(request_headers);
-
-        if (env->ExceptionCheck()) {
-            // This should not happen. All exceptions should ideally have been caught by Java
-            // and turned into a realm::app::Response object. If this happened just
-            // let the Java exception bubble up.
-            return;
-        } else {
-            // Read response
-            static const JavaClass& response_class(JavaClassGlobalDef::network_transport_response_class());
-            static JavaMethod get_http_code_method(env, response_class, "getHttpResponseCode", "()I");
-            static JavaMethod get_custom_code_method(env, response_class, "getCustomResponseCode", "()I");
-            static JavaMethod get_headers_method(env, response_class, "getJNIFriendlyHeaders", "()[Ljava/lang/String;");
-            static JavaMethod get_body_method(env, response_class, "getBody", "()Ljava/lang/String;");
-
-            jint http_code = env->CallIntMethod(response, get_http_code_method);
-            jint custom_code = env->CallIntMethod(response, get_custom_code_method);
-            JStringAccessor java_body(env, (jstring) env->CallObjectMethod(response, get_body_method), true);
-            JObjectArrayAccessor<JStringAccessor, jstring> java_headers(env, static_cast<jobjectArray>(env->CallObjectMethod(response, get_headers_method)));
-            auto response_headers = std::map<std::string, std::string>();
-            for (int i = 0; i < java_headers.size(); i = i + 2) {
-                JStringAccessor key = java_headers[i];
-                JStringAccessor value = java_headers[i+1];
-                response_headers.insert(std::pair<std::string,std::string>(key,value));
-            }
-            std::string body = java_body;
-            completionBlock(Response{(int) http_code, (int) custom_code, response_headers, body});
-        }
     }
 
     // Helper method for constructing callbacks for REST calls that must return an actual result to Java
@@ -122,7 +96,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         return [callback = JavaGlobalRefByCopy(env, j_callback), success_mapper](T result, util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
-            static JavaClass java_callback_class(env, "io/realm/internal/jni/OsJNIResultCallback");
+            static JavaClass java_callback_class(env, "io/realm/internal/network/NetworkRequest");
             static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(Ljava/lang/String;ILjava/lang/String;)V");
             static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
 
@@ -146,7 +120,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         return [callback = JavaGlobalRefByCopy(env, j_callback)](util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 
-            static JavaClass java_callback_class(env, "io/realm/internal/jni/OsJNIVoidResultCallback");
+            static JavaClass java_callback_class(env, "io/realm/internal/network/NetworkRequest");
             static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(Ljava/lang/String;ILjava/lang/String;)V");
             static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
 

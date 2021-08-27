@@ -105,6 +105,15 @@ class BlockingLooperThread {
     }
 
     /**
+     * Run the test on a Looper Thread. This override is mostly here for easy JVM interop
+     */
+    fun runBlocking(test: Runnable) {
+        runBlocking(test = {
+            test.run()
+        })
+    }
+
+    /**
      * Runs the test on a Looper thread. Returns an object that can be used to wait for the test to complete
      */
     fun runDetached(threadName: String = "TestLooperThread", emulateMainThread: Boolean = false, test: () -> Unit): Condition {

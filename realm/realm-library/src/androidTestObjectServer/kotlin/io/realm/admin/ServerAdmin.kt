@@ -23,7 +23,7 @@ class ServerAdmin(private val app: App) {
     private val json = MediaType.parse("application/json; charset=utf-8")
     private val baseUrl = "http://127.0.0.1:9090/api/admin/v3.0"
     private val client: OkHttpClient = OkHttpClient.Builder()
-            .callTimeout(10, TimeUnit.SECONDS)
+            .callTimeout(30, TimeUnit.SECONDS)
             .followRedirects(true)
             .addInterceptor { chain ->
                 val request: Request = chain.request()

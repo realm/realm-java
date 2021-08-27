@@ -162,27 +162,32 @@ public class ThreadStressTests {
     public void threadStressTest() throws ExecutionException, InterruptedException {
         Realm realm = Realm.getInstance(realmConfig);
         populateTestRealm(realm);
-        for (int i = 0; i < MAX_THREADS; i++) {
-            CRUDAction action = CRUDAction.values()[random.nextInt(4)];
-            Runnable task = null;
-            switch(action) {
-                case CREATE:
-                    task = createObjects(random.nextInt(MAX_CREATE), random.nextBoolean());
-                    break;
-                case READ:
-                    task = readObjects(random.nextBoolean());
-                    break;
-                case UPDATE:
-                    task = updateObjects(random.nextBoolean(), random.nextBoolean());
-                    break;
-                case DELETE:
-                    task = deleteObjects(random.nextBoolean(), random.nextBoolean());
-                    break;
+        try {
+            for (int i = 0; i < MAX_THREADS; i++) {
+                CRUDAction action = CRUDAction.values()[random.nextInt(4)];
+                Runnable task = null;
+                switch(action) {
+                    case CREATE:
+                        task = createObjects(random.nextInt(MAX_CREATE), random.nextBoolean());
+                        break;
+                    case READ:
+                        task = readObjects(random.nextBoolean());
+                        break;
+                    case UPDATE:
+                        task = updateObjects(random.nextBoolean(), random.nextBoolean());
+                        break;
+                    case DELETE:
+                        task = deleteObjects(random.nextBoolean(), random.nextBoolean());
+                        break;
+                }
+                threads.add(executor.submit(task));
             }
-            threads.add(executor.submit(task));
-        }
-        for (Future task : threads) {
-            assertNull(task.get());
+            for (Future task : threads) {
+                task.get();
+            }
+        } catch (Error e) {
+            RealmLog.error(e);
+            throw e;
         }
         realm.close();
     }

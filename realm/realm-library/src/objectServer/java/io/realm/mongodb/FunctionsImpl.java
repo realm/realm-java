@@ -19,13 +19,11 @@ import org.bson.codecs.Decoder;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
 import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.jni.OsJNIResultCallback;
-import io.realm.internal.network.ResultHandler;
+import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.functions.Functions;
 
@@ -48,20 +46,23 @@ class FunctionsImpl extends Functions {
     @Override
     public <T> T invoke(String name, List<?> args, CodecRegistry codecRegistry, Decoder<T> resultDecoder) {
         Util.checkEmpty(name, "name");
-
-        String encodedArgs = JniBsonProtocol.encode(args, codecRegistry);
-
-        // NativePO calling scheme is actually synchronous
-        AtomicReference<String> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        OsJNIResultCallback<String> callback = new OsJNIResultCallback<String>(success, error) {
+        String encodedResponse = new NetworkRequest<String>() {
             @Override
             protected String mapSuccess(Object result) {
                 return (String) result;
             }
-        };
-        nativeCallFunction(user.getApp().osApp.getNativePtr(), user.osUser.getNativePtr(), name, encodedArgs, callback);
-        String encodedResponse = ResultHandler.handleResult(success, error);
+            @Override
+            protected void execute(NetworkRequest<String> callback) {
+                String encodedArgs = JniBsonProtocol.encode(args, codecRegistry);
+                nativeCallFunction(
+                        user.getApp().osApp.getNativePtr(),
+                        user.osUser.getNativePtr(),
+                        name,
+                        encodedArgs,
+                        callback
+                );
+            }
+        }.resultOrThrow();
         return JniBsonProtocol.decode(encodedResponse, resultDecoder);
     }
 

@@ -576,7 +576,6 @@ class SyncSessionTests {
     // TODO Seems to align with tests in SessionTests, should we move them to same location
     fun clientReset_manualTriggerAllowSessionToRestart() = looperThread.runBlocking {
         val resources = ResourceContainer()
-
         val configRef = AtomicReference<SyncConfiguration?>(null)
         val config: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
                 .testSchema(SyncStringOnly::class.java)
@@ -614,7 +613,7 @@ class SyncSessionTests {
             session.addConnectionChangeListener { oldState: ConnectionState?, newState: ConnectionState ->
                 if (newState == ConnectionState.DISCONNECTED) {
                     // Closing a Realm inside a connection listener doesn't work: https://github.com/realm/realm-java/issues/6249
-                    looperThread.postRunnable(Runnable { looperThread.testComplete() })
+                    looperThread.testComplete()
                 }
             }
             session.stop()

@@ -1,10 +1,13 @@
 ## 10.7.2 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* [RealmApp] `ErrorCode.INVALID_EMAIL_PASSWORD` has been added, and is now thrown instead of `ErrorCode.SERVICE_UNKNOWN` when loggin in with the wrong credentials.
+* `RealmQuery.rawPredicate()` now accepts a "BETWEEN" operator. Can be used like "age BETWEEN {20, 60}" which means "'Age' must be in the open interval ]20;60[".
+
 
 ### Fixed
-* None.
+* [RealmApp] Crash when integrating a schema from the server with a `RealmAny` property to a Realm File that already had that property defined locally. ([Realm Core #4873](https://github.com/realm/realm-core/issues/4873), since 10.0.0)
+* [RealmApp] Refreshing the access token after 30 minutes would fail silently, causing infinite retries every 10 seconds. This would also block opening Realms when opening an app with an already logged in user. (Issue [#7501](https://github.com/realm/realm-java/issues/7501), since 10.0.0)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -12,7 +15,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Realm Core 11.3.0, commit: 321c79a67119db8177af13eefd5378586648ba73.
 
 
 ## 10.7.1 (2021-08-03)
