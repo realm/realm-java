@@ -216,7 +216,7 @@ public abstract class ApiKeyAuth {
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_DELETE, id.toHexString(), callback);
             }
-        }.run();
+        }.execute();
     }
 
     /**
@@ -251,7 +251,7 @@ public abstract class ApiKeyAuth {
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_DISABLE, id.toHexString(), callback);
             }
-        }.run();
+        }.execute();
     }
 
     /**
@@ -285,7 +285,7 @@ public abstract class ApiKeyAuth {
             @Override
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_ENABLE, id.toHexString(), callback);            }
-        }.run();
+        }.execute();
     }
 
     /**

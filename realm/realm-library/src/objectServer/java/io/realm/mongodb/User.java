@@ -357,7 +357,7 @@ public class User {
                         callback
                 );
             }
-        }.run();
+        }.execute();
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }
@@ -398,7 +398,7 @@ public class User {
             protected void execute(NetworkRequest<Void> callback) {
                 nativeLogOut(app.osApp.getNativePtr(), osUser.getNativePtr(), callback);
             }
-        }.run();
+        }.execute();
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }

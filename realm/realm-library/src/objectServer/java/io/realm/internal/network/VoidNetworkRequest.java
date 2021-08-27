@@ -24,9 +24,9 @@ public abstract class VoidNetworkRequest extends NetworkRequest<Void> {
      * Run the network request and wait for confirmation that it succeded.
      * This method will block until this confirmation arrives after which it will return.
      *
-     * If an error occurred, an {@link AppException} is thrown instead.
+     * @throws {@link AppException} if an error occurred.
      */
-    public void run() {
+    public void execute() {
         super.resultOrThrow();
     }
 }

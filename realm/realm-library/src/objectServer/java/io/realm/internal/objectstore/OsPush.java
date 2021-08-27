@@ -50,7 +50,7 @@ public class OsPush implements NativeObject {
             protected void execute(NetworkRequest<Void> callback) {
                 nativeRegisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, registrationToken, callback);
             }
-        }.run();
+        }.execute();
     }
 
     public void deregisterDevice() {
@@ -59,7 +59,7 @@ public class OsPush implements NativeObject {
             protected void execute(NetworkRequest<Void> callback) {
                 nativeDeregisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, callback);
             }
-        }.run();
+        }.execute();
     }
 
     private static native long nativeCreate(long nativeAppPtr, String serviceName);

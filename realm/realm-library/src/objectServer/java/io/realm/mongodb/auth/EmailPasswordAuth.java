@@ -74,7 +74,7 @@ public abstract class EmailPasswordAuth {
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_REGISTER_USER, this, email, password);
             }
-        }.run();
+        }.execute();
     }
 
     /**
@@ -115,7 +115,7 @@ public abstract class EmailPasswordAuth {
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_CONFIRM_USER, callback, token, tokenId);
             }
-        }.run();
+        }.execute();
     }
 
     /**
@@ -151,7 +151,7 @@ public abstract class EmailPasswordAuth {
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_RESEND_CONFIRMATION_EMAIL, callback, email);
             }
-        }.run();
+        }.execute();
     }
 
     /**
@@ -186,7 +186,7 @@ public abstract class EmailPasswordAuth {
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_RETRY_CUSTOM_CONFIRMATION, callback, email);
             }
-        }.run();
+        }.execute();
     }
 
     /**
@@ -221,7 +221,7 @@ public abstract class EmailPasswordAuth {
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_SEND_RESET_PASSWORD_EMAIL, callback, email);
             }
-        }.run();
+        }.execute();
     }
 
     /**
@@ -262,7 +262,7 @@ public abstract class EmailPasswordAuth {
             protected void execute(NetworkRequest<Void> callback) {
                 call(TYPE_CALL_RESET_PASSWORD_FUNCTION, callback, email, newPassword, encodedArgs);
             }
-        }.run();
+        }.execute();
     }
 
     /**
@@ -308,7 +308,7 @@ public abstract class EmailPasswordAuth {
                 // Java API. The Java API order came from the old Stitch API.
                 call(TYPE_RESET_PASSWORD, callback, newPassword, token, tokenId);
             }
-        }.run();
+        }.execute();
     }
 
     /**

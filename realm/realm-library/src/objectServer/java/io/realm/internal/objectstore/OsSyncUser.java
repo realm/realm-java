@@ -132,7 +132,7 @@ public class OsSyncUser implements NativeObject {
             protected void execute(NetworkRequest<Void> callback) {
                 nativeRefreshCustomData(nativePtr, callback);
             }
-        }.run();
+        }.execute();
     }
 
     public void invalidate() {

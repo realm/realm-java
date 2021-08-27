@@ -54,9 +54,7 @@ class HttpNetworkTransportInterceptor(private val passOnToObjectStore: Boolean =
         preExecuteAction?.let { it() }
         return super.executeRequest(method, url, timeoutMs, headers, body)
     }
-
-
-
+    
     fun observeResponses(callback: (response: OsJavaNetworkTransport.Response) -> Unit) {
         observer = callback
     }
