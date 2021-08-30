@@ -80,54 +80,71 @@ class UserProfileTests {
         setDefaultProfile();
 
         app = TestApp(object : OsJavaNetworkTransport() {
-            override fun sendRequest(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String): Response {
+            override fun sendRequestAsync(method: String, url: String, timeoutMs: Long, headers: MutableMap<String, String>, body: String, completionBlockPtr: Long) {
+                val response = executeRequest(method, url, timeoutMs, headers, body)
+                handleResponse(response, completionBlockPtr)
+            }
+
+            override fun executeRequest(
+                method: String,
+                url: String,
+                timeoutMs: Long,
+                headers: MutableMap<String, String>,
+                body: String
+            ): Response {
                 var result = ""
-                if (url.endsWith("/providers/${Credentials.Provider.EMAIL_PASSWORD.id}/login")) {
-                    result = """
-                        {
-                            "access_token": "$ACCESS_TOKEN",
-                            "refresh_token": "$REFRESH_TOKEN",
-                            "user_id": "$USER_ID",
-                            "device_id": "$DEVICE_ID"
-                        }            
-                    """.trimIndent()
-                } else if (url.endsWith("/auth/profile")) {
-                    result = """
-                        {
-                            "user_id": "5e6964e0afea63254581c1a1",
-                            "domain_id": "000000000000000000000000",
-                            "identities": [
-                                {
-                                    "id": "5e68f51ade5ba998bb17500d",
-                                    "provider_type": "local-userpass",
-                                    "provider_id": "000000000000000000000003",
-                                    "provider_data": {
-                                        "email": "unique_user@domain.com"
+                when {
+                    url.endsWith("/providers/${Credentials.Provider.EMAIL_PASSWORD.id}/login") -> {
+                        result = """
+                                    {
+                                        "access_token": "$ACCESS_TOKEN",
+                                        "refresh_token": "$REFRESH_TOKEN",
+                                        "user_id": "$USER_ID",
+                                        "device_id": "$DEVICE_ID"
+                                    }            
+                                """.trimIndent()
+                    }
+                    url.endsWith("/auth/profile") -> {
+                        result = """
+                                    {
+                                        "user_id": "5e6964e0afea63254581c1a1",
+                                        "domain_id": "000000000000000000000000",
+                                        "identities": [
+                                            {
+                                                "id": "5e68f51ade5ba998bb17500d",
+                                                "provider_type": "local-userpass",
+                                                "provider_id": "000000000000000000000003",
+                                                "provider_data": {
+                                                    "email": "unique_user@domain.com"
+                                                }
+                                            }
+                                        ],
+                                        "data": $profileBody,
+                                        "type": "normal",
+                                        "roles": [
+                                            {
+                                                "role_name": "GROUP_OWNER",
+                                                "group_id": "5e68f51e087b1b33a53f56d5"
+                                            }
+                                        ]
                                     }
-                                }
-                            ],
-                            "data": $profileBody,
-                            "type": "normal",
-                            "roles": [
-                                {
-                                    "role_name": "GROUP_OWNER",
-                                    "group_id": "5e68f51e087b1b33a53f56d5"
-                                }
-                            ]
-                        }
-                    """.trimIndent()
-                } else if (url.endsWith("/location")) {
-                    return OkHttpNetworkTransport.Response.httpResponse(200, mapOf(), """
-                        { "deployment_model" : "GLOBAL",
-                          "location": "US-VA", 
-                          "hostname": "http://localhost:9090",
-                          "ws_hostname": "ws://localhost:9090"
-                        }
-                        """.trimIndent())
-                } else if (url.endsWith("/providers/${Credentials.Provider.EMAIL_PASSWORD.id}/register")) {
-                    result = ""
-                } else {
-                    fail("Unexpected request url: $url")
+                                """.trimIndent()
+                    }
+                    url.endsWith("/location") -> {
+                        result = """
+                                    { "deployment_model" : "GLOBAL",
+                                      "location": "US-VA", 
+                                      "hostname": "http://localhost:9090",
+                                      "ws_hostname": "ws://localhost:9090"
+                                    }
+                                    """.trimIndent()
+                    }
+                    url.endsWith("/providers/${Credentials.Provider.EMAIL_PASSWORD.id}/register") -> {
+                        result = ""
+                    }
+                    else -> {
+                        fail("Unexpected request url: $url")
+                    }
                 }
                 return OkHttpNetworkTransport.Response.httpResponse(200, mapOf(Pair("Content-Type", "application/json")), result)
             }

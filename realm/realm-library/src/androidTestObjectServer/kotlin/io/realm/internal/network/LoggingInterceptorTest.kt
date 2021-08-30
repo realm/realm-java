@@ -268,6 +268,10 @@ class LoggingInterceptorTest {
                     || testLogger.message.contains(entry)
                     || testLogger.previousMessage.contains(entry)
         }
-        assertTrue(patternExists)
+        assertTrue(
+            patternExists,
+            "Pattern expected: ${entries}, was: (${testLogger.message}, ${testLogger.previousMessage}"
+
+        )
     }
 }

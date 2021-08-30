@@ -3,11 +3,13 @@ package io.realm.internal.network;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.AppException;
@@ -31,12 +33,14 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     @Nullable
     private final HttpLogObfuscator httpLogObfuscator;
+    // Cannot use App.NETWORK_POOL_EXECUTOR as they end up blocking each other.
+    private final ThreadPoolExecutor threadPool = RealmThreadPoolExecutor.newDefaultExecutor();
 
     public OkHttpNetworkTransport(@Nullable HttpLogObfuscator httpLogObfuscator) {
         this.httpLogObfuscator = httpLogObfuscator;
     }
 
-    private okhttp3.Request makeRequest(String method, String url, Map<String, String> headers, String body){
+    private okhttp3.Request createRequest(String method, String url, Map<String, String> headers, String body){
         okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
 
         // Ensure that we have correct custom headers until OS handles it.
@@ -84,13 +88,30 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
 
     @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     @Override
-    public OsJavaNetworkTransport.Response sendRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
+    public void sendRequestAsync(String method,
+                            String url,
+                            long timeoutMs,
+                            Map<String, String> headers,
+                            String body,
+                            long completionBlockPtr) {
+        threadPool.execute(() -> {
+            try {
+                OsJavaNetworkTransport.Response response = executeRequest(method, url, timeoutMs, headers, body);
+                handleResponse(response, completionBlockPtr);
+            } catch (Error e) {
+                handleResponse(Response.unknownError(e.toString()), completionBlockPtr);
+            }
+        });
+    }
+
+    @Override
+    public OsJavaNetworkTransport.Response executeRequest(String method, String url, long timeoutMs, Map<String, String> headers, String body) {
         try {
             OkHttpClient client = getClient(timeoutMs);
 
             okhttp3.Response response = null;
             try {
-                okhttp3.Request request = makeRequest(method, url, headers, body);
+                okhttp3.Request request = createRequest(method, url, headers, body);
 
                 Call call = client.newCall(request);
                 response = call.execute();
@@ -118,7 +139,7 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     public OsJavaNetworkTransport.Response sendStreamingRequest(Request request) throws IOException, AppException {
         OkHttpClient client = getStreamClient();
 
-        okhttp3.Request okRequest = makeRequest(request.getMethod(), request.getUrl(), request.getHeaders(), request.getBody());
+        okhttp3.Request okRequest = createRequest(request.getMethod(), request.getUrl(), request.getHeaders(), request.getBody());
 
         Call call = client.newCall(okRequest);
         okhttp3.Response response = call.execute();
@@ -128,6 +149,17 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
         }
 
         return Response.httpResponse(response.code(), parseHeaders(response.headers()), response.body().source());
+    }
+
+    @Override
+    public void reset() {
+        try {
+            threadPool.shutdownNow();
+            threadPool.awaitTermination(30, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new IllegalStateException("Threadpool did not terminate in time", e);
+        }
+        super.reset();
     }
 
     // Lazily creates the client if not already created

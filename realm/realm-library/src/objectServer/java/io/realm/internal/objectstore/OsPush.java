@@ -16,13 +16,9 @@
 
 package io.realm.internal.objectstore;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 import io.realm.internal.NativeObject;
-import io.realm.internal.jni.OsJNIVoidResultCallback;
-import io.realm.internal.network.ResultHandler;
-import io.realm.mongodb.AppException;
-import io.realm.mongodb.User;
+import io.realm.internal.network.NetworkRequest;
+import io.realm.internal.network.VoidNetworkRequest;
 
 public class OsPush implements NativeObject {
 
@@ -49,19 +45,25 @@ public class OsPush implements NativeObject {
     }
 
     public void registerDevice(String registrationToken) {
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeRegisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, registrationToken, new OsJNIVoidResultCallback(error));
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                nativeRegisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, registrationToken, callback);
+            }
+        }.execute();
     }
 
     public void deregisterDevice() {
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeDeregisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, new OsJNIVoidResultCallback(error));
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                nativeDeregisterDevice(nativePtr, osSyncUser.getNativePtr(), serviceName, callback);
+            }
+        }.execute();
     }
 
     private static native long nativeCreate(long nativeAppPtr, String serviceName);
     private static native long nativeGetFinalizerMethodPtr();
-    private static native void nativeRegisterDevice(long nativePtr, long nativeUserPtr, String serviceName, String registrationToken, OsJNIVoidResultCallback callback);
-    private static native void nativeDeregisterDevice(long nativePtr, long nativeUserPtr, String serviceName, OsJNIVoidResultCallback callback);
+    private static native void nativeRegisterDevice(long nativePtr, long nativeUserPtr, String serviceName, String registrationToken, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeDeregisterDevice(long nativePtr, long nativeUserPtr, String serviceName, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
 }

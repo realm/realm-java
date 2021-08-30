@@ -20,7 +20,6 @@ import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
@@ -28,11 +27,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.RealmAsyncTask;
 import io.realm.annotations.Beta;
 import io.realm.internal.Util;
-import io.realm.internal.jni.OsJNIResultCallback;
-import io.realm.internal.jni.OsJNIVoidResultCallback;
 import io.realm.internal.mongodb.Request;
-import io.realm.internal.network.ResultHandler;
+import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.network.StreamNetworkTransport;
+import io.realm.internal.network.VoidNetworkRequest;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.internal.objectstore.OsMongoClient;
 import io.realm.internal.objectstore.OsPush;
@@ -294,16 +292,24 @@ public class User {
     public User linkCredentials(Credentials credentials) {
         Util.checkNull(credentials, "credentials");
         checkLoggedIn();
-        AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeLinkUser(app.osApp.getNativePtr(), osUser.getNativePtr(), credentials.osCredentials.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
+
+        return new NetworkRequest<User>() {
             @Override
             protected User mapSuccess(Object result) {
                 osUser = new OsSyncUser((long) result); // OS returns the updated user as a new one.
                 return User.this;
             }
-        });
-        return ResultHandler.handleResult(success, error);
+
+            @Override
+            protected void execute(NetworkRequest<User> callback) {
+                nativeLinkUser(
+                        app.osApp.getNativePtr(),
+                        osUser.getNativePtr(),
+                        credentials.osCredentials.getNativePtr(),
+                        callback
+                );
+            }
+        }.resultOrThrow();
     }
 
     /**
@@ -340,24 +346,46 @@ public class User {
         }.start();
     }
 
-    User remove() throws AppException {
+    /**
+     * Calling this will remove the user and any Realms the user has from the device. No data
+     * is removed from the server.
+     *
+     * If the user is logged in when calling this method, the user is logged out before any data
+     * is deleted.
+     *
+     * @throws AppException if an error occurred while trying to remove the user.
+     * @return the user that was removed.
+     */
+    public User remove() throws AppException {
         boolean loggedIn = isLoggedIn();
-        AtomicReference<User> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeRemoveUser(app.osApp.getNativePtr(), osUser.getNativePtr(), new OsJNIResultCallback<User>(success, error) {
+        new VoidNetworkRequest() {
             @Override
-            protected User mapSuccess(Object result) {
-                return User.this;
+            protected void execute(NetworkRequest<Void> callback) {
+                nativeRemoveUser(
+                        app.osApp.getNativePtr(),
+                        osUser.getNativePtr(),
+                        callback
+                );
             }
-        });
-        ResultHandler.handleResult(success, error);
+        }.execute();
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }
         return this;
     }
 
-    RealmAsyncTask removeAsync(App.Callback<User> callback) {
+    /**
+     * Calling this will asynchronously remove the user and any Realms the user has from the device.
+     * No data is removed from the server.
+     *
+     * If the user is logged in when calling this method, the user is logged out before any data
+     * is deleted.
+     *
+     * @param callback callback when removing the user has completed or failed. The callback will
+     *                 always happen on the same thread as this method is called on.
+     * @throws IllegalStateException if called from a non-looper thread.
+     */
+    public RealmAsyncTask removeAsync(App.Callback<User> callback) {
         Util.checkLooperThread("Asynchronous removal of users is only possible from looper threads.");
         return new Request<User>(App.NETWORK_POOL_EXECUTOR, callback) {
             @Override
@@ -368,45 +396,50 @@ public class User {
     }
 
     /**
-     * Log the user out of the Realm App. This will unregister them on the device, stop any
-     * synchronization to and from the users' Realms, and those Realms will be deleted next time
-     * the app restarts. Therefor logging out should not be done until all changes to Realms have
-     * been uploaded to the server.
+     * Log the user out of the Realm App. This will unregister them on the device and stop any
+     * synchronization to and from the users' Realms. Any Realms owned by the user will
+     * not be deleted from the device before {@link User#remove()} is called.
+     *
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
      * <p>
      * Logging out anonymous users will remove them immediately instead of marking them as
-     * {@link User.State#LOGGED_OUT}. All other users will be marked as {@link User.State#LOGGED_OUT}
-     * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
-     * {@link App#removeUser(User} ()}.
+     * {@link User.State#LOGGED_OUT}.
+     * <p>
+     * All other users will be marked as {@link User.State#LOGGED_OUT}
+     * and will still be returned by {@link App#allUsers()}. They can be removed completely by
+     * calling {@link User#remove()}.
      *
      * @throws AppException if an error occurred while trying to log the user out of the Realm
      *                      App.
      */
     public void logOut() throws AppException {
         boolean loggedIn = isLoggedIn();
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-        nativeLogOut(app.osApp.getNativePtr(), osUser.getNativePtr(), new OsJNIVoidResultCallback(error));
-        ResultHandler.handleResult(null, error);
+        new VoidNetworkRequest() {
+            @Override
+            protected void execute(NetworkRequest<Void> callback) {
+                nativeLogOut(app.osApp.getNativePtr(), osUser.getNativePtr(), callback);
+            }
+        }.execute();
         if (loggedIn) {
             app.notifyUserLoggedOut(this);
         }
     }
 
     /**
-     * Log the user out of the Realm App asynchronously. This will unregister them on the device, stop any
-     * synchronization to and from the users' Realms, and those Realms will be deleted next time
-     * the app restarts. Therefor logging out should not be done until all changes to Realms have
-     * been uploaded to the server.
+     * Log the user out of the Realm App asynchronously. This will unregister them on the device and
+     * stop any synchronization to and from the users' Realms. Any Realms owned by the user will
+     * not be deleted from the device before {@link User#remove()} is called.
      * <p>
      * Once the Realm App has confirmed the logout any registered {@link AuthenticationListener}
      * will be notified and user credentials will be deleted from this device.
      * <p>
      * Logging out anonymous users will remove them immediately instead of marking them as
-     * {@link User.State#LOGGED_OUT}. All other users will be marked as {@link User.State#LOGGED_OUT}
-     * and will still be returned by {@link App#allUsers()}. They can be removed completely by calling
-     * {@link App#removeUser(User)} ()}.
+     * {@link User.State#LOGGED_OUT}.
+     * <p>
+     * All other users will be marked as {@link User.State#LOGGED_OUT} and will still be returned
+     * by {@link App#allUsers()}. They can be removed completely by calling {@link User#remove()}.
      *
      * @param callback callback when logging out has completed or failed. The callback will always
      *                 happen on the same thread as this method is called on.

@@ -29,7 +29,7 @@ import io.realm.testClearApplicationContext
 fun App.close() {
     ServerAdmin(this).deleteAllUsers()
     this.syncManager.testReset()
-    this.osApp.networkTransport.resetHeaders()
+    this.osApp.networkTransport.reset()
     RealmExt.testClearApplicationContext()
 }
 
