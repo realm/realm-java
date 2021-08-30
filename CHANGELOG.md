@@ -12,7 +12,8 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Disable analytics for any value of the `REALM_DISABLE_ANALYTICS` environment variable, not just `true`.
+* Disable analytics whenever the `CI` environment variable is set.
 
 
 ## 10.8.0 (2021-08-27)
@@ -221,9 +222,9 @@ This release combines all changes from 10.6.0-BETA.1 and 10.6.0-BETA.2.
 
 ### Fixes
 * [RealmApp] Errors related to "uncaught exception in notifier thread: N5realm11KeyNotFoundE: No such object". This could happen in a sync'd app when a linked object was deleted by another client.
-* [RealmApp] Replacing a referenced embedded object could result in a "ERROR: ArrayInsert: Invalid" error. (Issue [#7480](https://github.com/realm/realm-java/issues/7480)) 
-* Notifications now trigger correctly on Linux kernel 5.5 and above. So far this only impacted the preview emulator image for Android 12. (Issue[#7321](https://github.com/realm/realm-java/issues/7321))  
-* Raw query predicates not supporting integer constants above 32 bits on a 32 bit platform. 
+* [RealmApp] Replacing a referenced embedded object could result in a "ERROR: ArrayInsert: Invalid" error. (Issue [#7480](https://github.com/realm/realm-java/issues/7480))
+* Notifications now trigger correctly on Linux kernel 5.5 and above. So far this only impacted the preview emulator image for Android 12. (Issue[#7321](https://github.com/realm/realm-java/issues/7321))
+* Raw query predicates not supporting integer constants above 32 bits on a 32 bit platform.
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -245,7 +246,7 @@ This release combines all changes from 10.6.0-BETA.1 and 10.6.0-BETA.2.
 
 ### Fixes
 * [RealmApp] Client Reset errors now correctly forward the server error message. (Issue [#7363](https://github.com/realm/realm-java/issues/7363), since 10.0.0)
-* [RealmApp] All `AppException`s now correctly report the error message through `RuntimeException.getMessage()` instead of only through `AppException.getErrorMessage()`. 
+* [RealmApp] All `AppException`s now correctly report the error message through `RuntimeException.getMessage()` instead of only through `AppException.getErrorMessage()`.
 * [RealmApp] Proactively check the expiry time on the access token and refresh it before attempting to initiate a sync session. This prevents some error logs from appearing on the client such as: "ERROR: Connection[1]: Websocket: Expected HTTP response 101 Switching Protocols, but received: HTTP/1.1 401 Unauthorized" (RCORE-473, since v10.0.0).
 * Fix name aliasing not working in sort/distinct clauses of raw string predicates.
 * Fix collection notification reporting for modifications. This could be observed by receiving the wrong indices of modifications on sorted or distinct results, or notification sometimes not being called when only modifications have occured. (since v7.0.0).
@@ -355,7 +356,7 @@ for more information.
 * None.
 
 ### Enhancements
-* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm now supports multiple ways of logging into Google Accounts.  
+* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm now supports multiple ways of logging into Google Accounts.
 
 ### Fixes
 * [RealmApp] Bug that would prevent eventual consistency during conflict resolution. Affected clients would experience data divergence and potentially consistency errors as a result if they experienced conflict resolution between cycles of Create-Erase-Create for objects with primary keys.
@@ -488,7 +489,7 @@ NOTE: This version upgrades the Realm file format to version 20. It is not possi
 * Added support for `distinct` queries on non-index and linked fields. (Issue [#1906](https://github.com/realm/realm-java/issues/1906))
 * Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
 * Added support for `org.bson.types.ObjectId` as a primary key.
-* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://docs.mongodb.com/realm/android/embedded-objects/). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://docs.mongodb.com/realm/android/embedded-objects/). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))
 
 
 ### Fixes
@@ -511,7 +512,7 @@ NOTE: This version upgrades the Realm file format to version 20. It is not possi
 
 ### Fixed
 * [RealmApp] It is now possible to use types different than `ObjectId` for the `_id` field in documents inserted with `MongoCollection.insertOne` and `MongoCollection.insertMany`.
-* [RealmApp] Lossy round trip of Double and Timestamps through functions when using Bson. (ObjectStore issue (#1106)[https://github.com/realm/realm-object-store/issues/1106])  
+* [RealmApp] Lossy round trip of Double and Timestamps through functions when using Bson. (ObjectStore issue (#1106)[https://github.com/realm/realm-object-store/issues/1106])
 
 ### Compatibility
 * File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
@@ -647,7 +648,7 @@ The old Realm Cloud legacy APIs have undergone significant refactoring. The new 
 * [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1)
 * [RealmApp] Leaking objects when registering session listeners. (Issue [#6916](https://github.com/realm/realm-java/issues/6916))
 * Added support for Json-import of objects containing embedded objects. (Issue [#6896](https://github.com/realm/realm-java/issues/6896))
-* Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)  
+* Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)
 * Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Realm Core PR [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
 * It was possible to use `RealmObjectSchema` to mark a Class as embedded even if some of the objects broke the constraints for being embedded.
 
@@ -766,7 +767,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 
 ### Breaking Changes
 * [RealmApp] Removed all references and API's releated to permissions. These are now managed through MongoDB Realm.
-* [RealmApp] Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partitionKey()` has been added as a replacement.  
+* [RealmApp] Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partitionKey()` has been added as a replacement.
 * [RealmApp] Removed support for Client Resync. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
 * [RealmApp] Removed suppport for custom SSL certificates. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
 * [RealmApp] Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)`
@@ -774,7 +775,7 @@ The old Realm Cloud legacy API's have undergone significant refactoring. The new
 ### Enhancements
 * Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
 * Added support for `org.bson.types.ObjectId` as a primary key.
-* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))  
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))
 
 ### Fixed
 * After upgrading a Realm file, you may at some point receive a 'NoSuchTable' exception. (Issue [Core#3701](https://github.com/realm/realm-core/issues/3701), since 7.0.0)
@@ -931,7 +932,7 @@ Note: Fileformat has been bumped from 10 to 11. This means that downgrading to a
 
 ### Fixes
 * [ObjectServer] Calling `SyncManager.refreshConnections()` did not correctly refresh connections in all cases, which could delay reconnects up to 5 minutes. (Issue [#7003](https://github.com/realm/realm-java/issues/7003))
-* Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)  
+* Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)
 * Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Issue [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
 * Crash when retrieving `null` valued primitive fields from dynamic realm. (Issue [#7025](https://github.com/realm/realm-java/issues/7025))
 
@@ -2181,7 +2182,7 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 
 ### Enhancements
 
-* Added support for reverse relationships through the `@LinkingObjects` annotation. See `io.realm.annotations.LinkingObjects` for documentation.  
+* Added support for reverse relationships through the `@LinkingObjects` annotation. See `io.realm.annotations.LinkingObjects` for documentation.
   * This feature is in `@Beta`.
   * Queries on linking objects do not work.  Queries like `where(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
