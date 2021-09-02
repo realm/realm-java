@@ -373,11 +373,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             }
         }
 
-        if (!config.encryption_key.empty()) {
-            config.sync_config->realm_encryption_key = std::array<char, 64>();
-            std::copy_n(config.encryption_key.begin(), 64, config.sync_config->realm_encryption_key->begin());
-        }
-
         // return to_jstring(env, config.sync_config->realm_url.c_str());
         // FIXME: We must return the realm url here for proxy support to work
         return to_jstring(env, "");

@@ -12,7 +12,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Realm Core 11.3.1, commit: 15219f3b4b31b565c6a312cfa52f98821cafe798.
 
 
 ## 10.8.0 (2021-08-27)
