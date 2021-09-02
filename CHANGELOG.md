@@ -4,7 +4,7 @@
 * None.
 
 ### Fixed
-* None.
+* Exceptions inside change listeners running on background looper threads would crash the Looper with a native `JNI DETECTED ERROR IN APPLICATION: JNI NewLocalRef called with pending exception` instead of the original Java exception. This could also happen when canceling a corutine using a background looper as a Dispatcher.
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
