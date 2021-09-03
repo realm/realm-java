@@ -218,6 +218,11 @@ public abstract class Sync {
         RealmLog.debug("Removing session for: %s", syncConfiguration.getPath());
         SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
         if (syncSession != null) {
+            if (syncConfiguration.getSessionStopPolicy() == OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY) {
+                // Attempt to work around IMMEDIATELY being slightly delayed on the native side,
+                // so instead we manually stop the session before closing the Realm.
+                syncSession.stop();
+            }
             syncSession.close();
         }
         if (sessions.isEmpty()) {
