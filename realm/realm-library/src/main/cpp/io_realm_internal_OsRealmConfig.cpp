@@ -310,7 +310,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
             jstring jclient_reset_path_info = to_jstring(env, client_reset_path_info);
-            jstring jsession_path = to_jstring(env, session.get()->path());
+            jstring jsession_path = to_jstring(env, session->path());
             env->CallVoidMethod(sync_service_object.get(),
                                 java_error_callback_method,
                                 jerror_category,

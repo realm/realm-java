@@ -228,7 +228,6 @@ class SyncedRealmTests {
     }
 
     @Test
-    @Ignore // FIXME: Seems to be a problem with Synced Realm lifecycles for logged out users
     fun compactOnLaunch_shouldCompact() {
         val user = createTestUser(app)
 

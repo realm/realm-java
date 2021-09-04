@@ -179,8 +179,8 @@ public abstract class Sync {
             // does not work when using `Realm.getInstanceAsync()` in combination with AsyncOpen.
             //
             // So instead we manually create the underlying native session.
-            OsRealmConfig config = new OsRealmConfig.Builder(syncConfiguration).build();
-            nativeCreateSession(config.getNativePtr());
+//            OsRealmConfig config = new OsRealmConfig.Builder(syncConfiguration).build();
+//            nativeCreateSession(config.getNativePtr());
         }
 
         return session;
