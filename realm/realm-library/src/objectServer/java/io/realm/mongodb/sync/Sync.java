@@ -175,12 +175,6 @@ public abstract class Sync {
                 RealmLog.debug("First session created. Adding network listener.");
                 NetworkStateReceiver.addListener(networkListener);
             }
-            // The underlying session will be created as part of opening the Realm, but this approach
-            // does not work when using `Realm.getInstanceAsync()` in combination with AsyncOpen.
-            //
-            // So instead we manually create the underlying native session.
-//            OsRealmConfig config = new OsRealmConfig.Builder(syncConfiguration).build();
-//            nativeCreateSession(config.getNativePtr());
         }
 
         return session;
@@ -218,11 +212,6 @@ public abstract class Sync {
         RealmLog.debug("Removing session for: %s", syncConfiguration.getPath());
         SyncSession syncSession = sessions.remove(syncConfiguration.getPath());
         if (syncSession != null) {
-            if (syncConfiguration.getSessionStopPolicy() == OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY) {
-                // Attempt to work around IMMEDIATELY being slightly delayed on the native side,
-                // so instead we manually stop the session before closing the Realm.
-                syncSession.stop();
-            }
             syncSession.close();
         }
         if (sessions.isEmpty()) {
@@ -319,6 +308,5 @@ public abstract class Sync {
     private static native void nativeReset(long appNativePointer);
     private static native void nativeSimulateSyncError(long appNativePointer, String realmPath, int errorCode, String errorMessage, boolean isFatal);
     private static native void nativeReconnect(long appNativePointer);
-    private static native void nativeCreateSession(long nativeConfigPtr);
     private static native String nativeGetPathForRealm(long appNativePointer, String userId, String partitionValue, @Nullable String overrideFileName);
 }

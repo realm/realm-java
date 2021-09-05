@@ -625,7 +625,7 @@ class SyncSessionTests {
                 }
             }
             if (session.connectionState == ConnectionState.CONNECTED) {
-                // Failsafe in case, the connection is actually established before
+                // Failsafe in case the connection is actually established before
                 // we can attach the connection listener. Manual testing shows
                 // that this is highly unlikely.
                 looperThread.testComplete()

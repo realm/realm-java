@@ -73,15 +73,6 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReconnect(JNIEnv* e
     CATCH_STD()
 }
 
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeCreateSession(JNIEnv* env, jclass, jlong j_native_config_ptr)
-{
-    try {
-        auto& config = *reinterpret_cast<Realm::Config*>(j_native_config_ptr);
-        _impl::RealmCoordinator::get_coordinator(config)->create_session(config);
-    }
-    CATCH_STD()
-}
-
 JNIEXPORT jstring JNICALL Java_io_realm_mongodb_sync_Sync_nativeGetPathForRealm(JNIEnv* env,
                                                                                 jclass,
                                                                                 jlong j_app_ptr,
