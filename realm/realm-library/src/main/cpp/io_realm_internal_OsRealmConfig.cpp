@@ -310,7 +310,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
             jstring jclient_reset_path_info = to_jstring(env, client_reset_path_info);
-            jstring jsession_path = to_jstring(env, session.get()->path());
+            jstring jsession_path = to_jstring(env, session->path());
             env->CallVoidMethod(sync_service_object.get(),
                                 java_error_callback_method,
                                 jerror_category,
@@ -371,11 +371,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                 JStringAccessor value(env, (jstring) env->GetObjectArrayElement(j_custom_headers_array, i + 1));
                 config.sync_config->custom_http_headers[std::string(key)] = std::string(value);
             }
-        }
-
-        if (!config.encryption_key.empty()) {
-            config.sync_config->realm_encryption_key = std::array<char, 64>();
-            std::copy_n(config.encryption_key.begin(), 64, config.sync_config->realm_encryption_key->begin());
         }
 
         // return to_jstring(env, config.sync_config->realm_url.c_str());

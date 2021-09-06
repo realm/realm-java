@@ -43,8 +43,7 @@ void JavaBindingContext::did_change(std::vector<BindingContext::ObserverState> c
                                     bool version_changed)
 {
     auto env = JniUtils::get_env();
-
-    if (JniUtils::get_env()->ExceptionCheck()) {
+    if (env->ExceptionCheck()) {
         return;
     }
     if (version_changed) {
@@ -62,6 +61,9 @@ void JavaBindingContext::schema_did_change(Schema const&)
         return;
     }
     auto env = JniUtils::get_env(false);
+    if (env->ExceptionCheck()) {
+        return;
+    }
     static JavaMethod on_schema_changed_method(env, JavaClassGlobalDef::shared_realm_schema_change_callback(),
                                                "onSchemaChanged", "()V");
     m_schema_changed_callback.call_with_local_ref(
@@ -75,6 +77,9 @@ void JavaBindingContext::set_schema_changed_callback(JNIEnv* env, jobject schema
 
 void JavaBindingContext::will_send_notifications() {
     auto env = JniUtils::get_env();
+    if (env->ExceptionCheck()) {
+        return;
+    }
     m_java_notifier.call_with_local_ref(env, [&](JNIEnv*, jobject notifier_obj) {
         static JavaMethod realm_notifier_will_send_notifications(env, JavaClassGlobalDef::realm_notifier(),
                                                            "willSendNotifications", "()V");
@@ -84,6 +89,9 @@ void JavaBindingContext::will_send_notifications() {
 
 void JavaBindingContext::did_send_notifications() {
     auto env = JniUtils::get_env();
+    if (env->ExceptionCheck()) {
+        return;
+    }
     m_java_notifier.call_with_local_ref(env, [&](JNIEnv*, jobject notifier_obj) {
         static JavaMethod realm_notifier_did_send_notifications(env, JavaClassGlobalDef::realm_notifier(),
                                                                  "didSendNotifications", "()V");

@@ -428,6 +428,17 @@ public class SyncSession {
     }
 
     synchronized void close() {
+        // Clear any running listeners as they might prevent the underlying session
+        // from correctly closing.
+        if (!connectionListeners.isEmpty()) {
+            connectionListeners.clear();
+            nativeRemoveConnectionListener(appNativePointer, nativeConnectionListenerToken, configuration.getPath());
+        }
+        for (Long token : progressListenerToOsTokenMap.values()) {
+            nativeRemoveProgressListener(appNativePointer, configuration.getPath(), token);
+        }
+        listenerIdToProgressListenerMap.clear();
+        progressListenerToOsTokenMap.clear();
         isClosed = true;
     }
 
