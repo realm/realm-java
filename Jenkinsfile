@@ -26,7 +26,7 @@ mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
 currentBranch = (env.CHANGE_BRANCH == null) ? env.BRANCH_NAME : env.CHANGE_BRANCH
-isReleaseBranch = releaseBranches.contains(currentBranch)
+isReleaseBranch = true // FIXME After testing releaseBranches.contains(currentBranch)
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 // nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
@@ -82,7 +82,7 @@ try {
         def useEmulator = false
         def emulatorImage = ""
         def buildFlags = ""
-        def instrumentationTestTarget = "connectedAndroidTest"
+        def instrumentationTestTarget = ['connectedBaseDebugAndroidTest', 'connectedObjectServerDebugAndroidTest']
         def deviceSerial = ""
 
         if (!isReleaseBranch) {
@@ -91,7 +91,7 @@ try {
           emulatorImage = "system-images;android-29;default;x86"
           // Build core from source instead of doing it from binary
           buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
-          instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
+          instrumentationTestTargets = ['connectedObjectServerDebugAndroidTest']
           deviceSerial = "emulator-5554"
         } else {
           // Build main/release branch
@@ -100,7 +100,7 @@ try {
           useEmulator = true
           emulatorImage = "system-images;android-29;default;x86"
           buildFlags = "-PenableLTO=true -PbuildCore=true"
-          instrumentationTestTarget = "connectedAndroidTest"
+          instrumentationTestTargets = ['connectedBaseDebugAndroidTest', 'connectedObjectServerDebugAndroidTest']
           deviceSerial = "emulator-5554"
         }
 
@@ -161,12 +161,12 @@ try {
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
                 try {
-                  runBuild(buildFlags, instrumentationTestTarget)
+                  runBuild(buildFlags, instrumentationTestTargets)
                 } finally {
                   sh "adb emu kill"
                 }
               } else {
-                runBuild(buildFlags, instrumentationTestTarget)
+                runBuild(buildFlags, instrumentationTestTargets)
               }
 
               // Release the library if needed
@@ -224,7 +224,7 @@ try {
 }
 
 // Runs all build steps
-def runBuild(buildFlags, instrumentationTestTarget) {
+def runBuild(buildFlags, instrumentationTestTargets) {
 
   stage('Build') {
     withCredentials([
@@ -321,7 +321,12 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         try {
           backgroundPid = startLogCatCollector()
           forwardAdbPorts()
-          gradle('realm', "${instrumentationTestTarget} ${buildFlags}")
+          instrumentationTestTargets.each { target ->
+             // Attempt to work around com.android.ddmlib.InstallException, which installing
+             // multiple variants for tests.
+            sh "adb uninstall io.realm.test || true"
+            gradle('realm', "${target} ${buildFlags}")
+          }
         } finally {
           stopLogCatCollector(backgroundPid)
           storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
