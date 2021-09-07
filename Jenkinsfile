@@ -157,7 +157,9 @@ try {
                 // TODO: We should wait until the emulator is online. For now assume it starts fast enough
                 //  before the tests will run, since the library needs to build first.
                 sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
+                sh "adb kill-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
                 sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
+                sh "adb root"
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
                 sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4098 &"
                 try {
@@ -395,8 +397,7 @@ String startLogCatCollector() {
   timeout(time: 1, unit: 'MINUTES') {
     // Need ADB as root to clear all buffers: https://stackoverflow.com/a/47686978/1389357
     sh 'adb devices'
-    sh """adb root
-      adb logcat -b all -c
+    sh """adb logcat -b all -c
       adb logcat -v time > 'logcat.txt' &
       echo \$! > pid
     """
