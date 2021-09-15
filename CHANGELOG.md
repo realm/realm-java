@@ -1,7 +1,7 @@
 ## 10.8.1 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* The Realm transformer now supports the Gradle Configuration Cache. (Isse [#7299](https://github.com/realm/realm-java/issues/7299)) 
 
 ### Fixed
 * [RealmApp] Failing to refresh the access token due to a 401/403 error will now correctly emit an error with `ErrorCode.BAD_AUTHENTICATION` rather than `ErrorCode.PERMISSION_DENIED`. (Realm Core [#4881](https://github.com/realm/realm-core/issues/4881), since 10.6.1)
