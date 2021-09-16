@@ -130,7 +130,8 @@ class RealmTransformer(val project: Project) : Transform() {
      */
     private fun sendAnalytics(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>) {
         try {
-            val disableAnalytics: Boolean = project.gradle.startParameter.isOffline || "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"], ignoreCase = true)
+            val env = System.getenv()
+            val disableAnalytics: Boolean = project.gradle.startParameter.isOffline || env["REALM_DISABLE_ANALYTICS"] != null || env["CI"] != null
             if (inputs.isEmpty() || disableAnalytics) {
                 // Don't send analytics for incremental builds or if they have been explicitly disabled.
                 return
