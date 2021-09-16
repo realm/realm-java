@@ -1,6 +1,11 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.project.ProjectInternal
+
 buildscript {
     def properties = new Properties()
     properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
+    ext.kotlin_version = properties.get('KOTLIN')
 
     repositories {
         jcenter()
@@ -11,6 +16,7 @@ buildscript {
     dependencies {
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
         classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -64,10 +70,20 @@ dependencies {
     testImplementation gradleTestKit()
     testImplementation 'junit:junit:4.12'
     testImplementation "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
+
+    // See https://github.com/gradle/gradle/issues/16774#issuecomment-893493869
+    def toolingApiBuildersJar = (project as ProjectInternal).services.get(ModuleRegistry.class)
+            .getModule("gradle-tooling-api-builders")
+            .classpath
+            .asFiles
+            .first()
+    testRuntimeOnly(files(toolingApiBuildersJar))
 }
 
-//for Ant filter
-import org.apache.tools.ant.filters.ReplaceTokens
+compileGroovy {
+    dependsOn tasks.getByPath('compileKotlin')
+    classpath += files(compileKotlin.destinationDir)
+}
 
 task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'

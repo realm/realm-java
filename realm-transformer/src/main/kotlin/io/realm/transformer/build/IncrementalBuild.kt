@@ -23,17 +23,17 @@ import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import io.realm.annotations.RealmClass
 import io.realm.transformer.BytecodeModifier
+import io.realm.transformer.ProjectMetaData
 import io.realm.transformer.RealmTransformer
 import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
 import javassist.NotFoundException
-import org.gradle.api.Project
 import java.io.File
 import java.util.jar.JarFile
 
-class IncrementalBuild(project: Project, outputProvider: TransformOutputProvider, transform: RealmTransformer)
-    : BuildTemplate(project, outputProvider, transform) {
+class IncrementalBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvider, transform: RealmTransformer)
+    : BuildTemplate(metadata, outputProvider, transform) {
 
     override fun prepareOutputClasses(inputs: MutableCollection<TransformInput>) {
         this.inputs = inputs;

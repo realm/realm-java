@@ -17,17 +17,16 @@
 package io.realm.transformer
 
 import com.android.build.api.transform.*
+import io.realm.analytics.RealmAnalytics
 import io.realm.transformer.build.BuildTemplate
 import io.realm.transformer.build.FullBuild
 import io.realm.transformer.build.IncrementalBuild
-import io.realm.transformer.ext.getMinSdk
-import io.realm.transformer.ext.getTargetSdk
+import io.realm.transformer.ext.getBootClasspath
 import javassist.CtClass
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
+import java.io.File
 
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
@@ -35,13 +34,36 @@ val logger: Logger = LoggerFactory.getLogger("realm-logger")
 val CONNECT_TIMEOUT = 4000L;
 val READ_TIMEOUT = 2000L;
 
+// Wrapper for storing data from org.gradle.api.Project as we cannot store a class variable to it
+// as that conflict with the Configuration Cache.
+data class ProjectMetaData(
+    val isOffline: Boolean,
+    val bootClassPath: List<File>)
+
 /**
  * This class implements the Transform API provided by the Android Gradle plugin.
  */
-class RealmTransformer(val project: Project) : Transform() {
+class RealmTransformer(project: Project) : Transform() {
+    private val logger: Logger = LoggerFactory.getLogger("realm-logger")
+    private val metadata: ProjectMetaData
+    private lateinit var analytics: RealmAnalytics
 
-    val logger: Logger = LoggerFactory.getLogger("realm-logger")
+    init {
+        // Fetch project metadata when registering the transformer, as the Project is not
+        // available during execution time when using the Configuration Cache.
+        metadata = ProjectMetaData(
+            // Plugin requirements
+            project.gradle.startParameter.isOffline,
+            project.getBootClasspath()
+        )
 
+        // We need to fetch analytics data at evaluation time as the Project class is not
+        // available at execution time when using the Configuration Cache
+        project.afterEvaluate {
+            this.analytics = RealmAnalytics()
+            this.analytics.calculateAnalyticsData(project)
+        }
+    }
     override fun getName(): String {
         return "RealmTransformer"
     }
@@ -94,8 +116,8 @@ class RealmTransformer(val project: Project) : Transform() {
         val timer = Stopwatch()
         timer.start("Realm Transform time")
 
-        val build: BuildTemplate = if (isIncremental) IncrementalBuild(project, outputProvider!!, this)
-        else FullBuild(project, outputProvider!!, this)
+        val build: BuildTemplate = if (isIncremental) IncrementalBuild(metadata, outputProvider!!, this)
+        else FullBuild(metadata, outputProvider!!, this)
 
         build.prepareOutputClasses(inputs!!)
         timer.splitTime("Prepare output classes")
@@ -119,63 +141,6 @@ class RealmTransformer(val project: Project) : Transform() {
 
     private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>, timer: Stopwatch) {
         timer.stop()
-        this.sendAnalytics(inputs, outputModelClasses)
+        analytics.execute()
     }
-
-    /**
-     * Sends the analytics
-     *
-     * @param inputs the inputs provided by the Transform API
-     * @param inputModelClasses a list of ctClasses describing the Realm models
-     */
-    private fun sendAnalytics(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>) {
-        try {
-            val env = System.getenv()
-            val disableAnalytics: Boolean = project.gradle.startParameter.isOffline || env["REALM_DISABLE_ANALYTICS"] != null || env["CI"] != null
-            if (inputs.isEmpty() || disableAnalytics) {
-                // Don't send analytics for incremental builds or if they have been explicitly disabled.
-                return
-            }
-
-            var containsKotlin = false
-            // Should be safe to iterate the configurations as we are way beyond the configuration
-            // phase
-            outer@
-            for (configuration in project.configurations) {
-                for (dependency in configuration.dependencies) {
-                    if (dependency.name.startsWith("kotlin-stdlib")) {
-                        containsKotlin = true
-                        break@outer
-                    }
-                }
-            }
-
-            val packages: Set<String> = outputModelClasses.map { it.packageName }.toSet()
-            val targetSdk: String? = project.getTargetSdk()
-            val minSdk: String?  = project.getMinSdk()
-            val sync: Boolean = Utils.isSyncEnabled(project)
-            val target =
-                    if (project.plugins.findPlugin("com.android.application") != null) {
-                        "app"
-                    } else if (project.plugins.findPlugin("com.android.library") != null) {
-                        "library"
-                    } else {
-                        "unknown"
-                    }
-
-            val analytics = RealmAnalytics(packages, containsKotlin, sync, targetSdk, minSdk, target)
-
-            val pool = Executors.newFixedThreadPool(1);
-            try {
-                pool.execute { UrlEncodedAnalytics.Segment().execute(analytics) }
-                pool.awaitTermination(CONNECT_TIMEOUT + READ_TIMEOUT, TimeUnit.MILLISECONDS);
-            } catch (e: InterruptedException) {
-                pool.shutdownNow()
-            }
-        } catch (e: Exception) {
-            // Analytics failing for any reason should not crash the build
-            logger.debug("Could not send analytics: $e")
-        }
-    }
-
 }

@@ -21,10 +21,7 @@ import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import com.google.common.io.Files
-import io.realm.transformer.BytecodeModifier
-import io.realm.transformer.ManagedClassPool
-import io.realm.transformer.logger
-import io.realm.transformer.Utils
+import io.realm.transformer.*
 import io.realm.transformer.ext.getBootClasspath
 import javassist.ClassPool
 import javassist.CtClass
@@ -36,7 +33,7 @@ import java.util.regex.Pattern
  * Abstract class defining the structure of doing different types of builds.
  *
  */
-abstract class BuildTemplate(val project: Project, val outputProvider: TransformOutputProvider, val transform: Transform) {
+abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: TransformOutputProvider, val transform: Transform) {
 
     protected lateinit var inputs: MutableCollection<TransformInput>
     protected lateinit var classPool: ManagedClassPool
@@ -161,7 +158,7 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
      */
     private fun addBootClassesToClassPool(classPool: ClassPool) {
         try {
-            project.getBootClasspath().forEach {
+            metadata.bootClassPath.forEach {
                 val path: String = it.absolutePath
                 logger.debug("Add boot class $path to class pool.")
                 classPool.appendClassPath(path)

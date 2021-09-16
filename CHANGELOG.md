@@ -1,7 +1,7 @@
 ## 10.9.0 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Isse [#7299](https://github.com/realm/realm-java/issues/7299)) 
 
 ### Fixed
 * None.
