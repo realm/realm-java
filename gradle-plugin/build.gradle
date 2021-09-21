@@ -5,7 +5,6 @@ import org.gradle.api.internal.project.ProjectInternal
 buildscript {
     def properties = new Properties()
     properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
-    ext.kotlin_version = properties.get('KOTLIN')
 
     repositories {
         jcenter()
@@ -16,11 +15,9 @@ buildscript {
     dependencies {
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
         classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
-apply plugin: 'kotlin'
 apply plugin: 'groovy-gradle-plugin'
 apply plugin: 'maven-publish'
 
@@ -79,11 +76,6 @@ dependencies {
             .asFiles
             .first()
     testRuntimeOnly(files(toolingApiBuildersJar))
-}
-
-compileGroovy {
-    dependsOn tasks.getByPath('compileKotlin')
-    classpath += files(compileKotlin.destinationDir)
 }
 
 task generateVersionClass(type: Copy) {
