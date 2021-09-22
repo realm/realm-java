@@ -1,7 +1,3 @@
-import org.apache.tools.ant.filters.ReplaceTokens
-import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.api.internal.project.ProjectInternal
-
 buildscript {
     def properties = new Properties()
     properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
@@ -68,15 +64,9 @@ dependencies {
     testImplementation gradleTestKit()
     testImplementation 'junit:junit:4.12'
     testImplementation "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
-
-    // See https://github.com/gradle/gradle/issues/16774#issuecomment-893493869
-    def toolingApiBuildersJar = (project as ProjectInternal).services.get(ModuleRegistry.class)
-            .getModule("gradle-tooling-api-builders")
-            .classpath
-            .asFiles
-            .first()
-    testRuntimeOnly(files(toolingApiBuildersJar))
 }
+
+import org.apache.tools.ant.filters.ReplaceTokens
 
 task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'
