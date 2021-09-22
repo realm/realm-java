@@ -18,12 +18,12 @@ ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 
 android {
-    compileSdkVersion rootProject.compileSdkVersion
-    buildToolsVersion rootProject.buildToolsVersion
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion rootProject.minSdkVersion
-        targetSdkVersion rootProject.compileSdkVersion
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.compileSdkVersion
         versionName version
         project.archivesBaseName = "realm-android-library"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -141,7 +141,6 @@ android {
     }
 }
 
-
 project.afterEvaluate {
     tasks.withType(JavaCompile) {
         options.compilerArgs << '-Werror'
@@ -164,19 +163,6 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 }
 
 coveralls.jacocoReportPath = "${buildDir}/reports/coverage/debug/report.xml"
-
-android.registerTransform(new io.realm.transformer.RealmTransformer(project))
-android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
-        "base",
-        "io.realm.internal.annotations.ObjectServer",
-        [
-            "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
-            "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
-            "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
-            "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
-            "io_realm_sync_permissions_RoleRealmProxyInterface.class"
-        ].toSet()
-))
 
 repositories {
     maven { url "https://jitpack.io" }
@@ -445,3 +431,16 @@ static def getValueFromPropertiesFile(File propFile, String key) {
     }
     return prop.get(key)
 }
+
+android.registerTransform(new io.realm.transformer.RealmTransformer(project))
+android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
+        "base",
+        "io.realm.internal.annotations.ObjectServer",
+        [
+                "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
+                "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
+                "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
+                "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
+                "io_realm_sync_permissions_RoleRealmProxyInterface.class"
+        ].toSet()
+))

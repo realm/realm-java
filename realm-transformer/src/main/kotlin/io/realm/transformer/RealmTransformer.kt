@@ -46,7 +46,7 @@ data class ProjectMetaData(
 class RealmTransformer(project: Project) : Transform() {
     private val logger: Logger = LoggerFactory.getLogger("realm-logger")
     private val metadata: ProjectMetaData
-    private lateinit var analytics: RealmAnalytics
+    private var analytics: RealmAnalytics? = null
 
     init {
         // Fetch project metadata when registering the transformer, as the Project is not
@@ -60,9 +60,9 @@ class RealmTransformer(project: Project) : Transform() {
         // We need to fetch analytics data at evaluation time as the Project class is not
         // available at execution time when using the Configuration Cache
         project.afterEvaluate {
-            this.analytics = RealmAnalytics()
             try {
-                this.analytics.calculateAnalyticsData(project)
+                this.analytics = RealmAnalytics()
+                this.analytics!!.calculateAnalyticsData(project)
             } catch (e: Exception) {
                 // Analytics should never crash the build.
                 logger.debug("Could not calculate Realm analytics data:\n$e" )
@@ -146,6 +146,6 @@ class RealmTransformer(project: Project) : Transform() {
 
     private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>, timer: Stopwatch) {
         timer.stop()
-        analytics.execute()
+        analytics?.execute()
     }
 }
