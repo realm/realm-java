@@ -45,21 +45,20 @@ data class ProjectMetaData(
  */
 class RealmTransformer(project: Project) : Transform() {
     private val logger: Logger = LoggerFactory.getLogger("realm-logger")
-    private val metadata: ProjectMetaData
+    private lateinit var metadata: ProjectMetaData
     private var analytics: RealmAnalytics? = null
 
     init {
-        // Fetch project metadata when registering the transformer, as the Project is not
-        // available during execution time when using the Configuration Cache.
-        metadata = ProjectMetaData(
-            // Plugin requirements
-            project.gradle.startParameter.isOffline,
-            project.getBootClasspath()
-        )
-
-        // We need to fetch analytics data at evaluation time as the Project class is not
-        // available at execution time when using the Configuration Cache
+        // Fetch project metadata when registering the transformer, but as some of the properties
+        // we need to read might not be initialized yet (e.g. the Android extension), we need
+        // to wait until after the build files have been evaluated.
         project.afterEvaluate {
+            metadata = ProjectMetaData(
+                // Plugin requirements
+                project.gradle.startParameter.isOffline,
+                project.getBootClasspath()
+            )
+
             try {
                 this.analytics = RealmAnalytics()
                 this.analytics!!.calculateAnalyticsData(project)
