@@ -50,13 +50,13 @@ sourceSets {
 }
 
 dependencies {
-    compile gradleApi()
-    compile "io.realm:realm-annotations:${version}"
+    implementation gradleApi()
+    implementation "io.realm:realm-annotations:${version}"
     compileOnly "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
-    compile 'org.javassist:javassist:3.25.0-GA'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    implementation 'org.javassist:javassist:3.25.0-GA'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
 
 // for Ant filter

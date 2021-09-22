@@ -32,13 +32,13 @@ repositories {
 }
 
 dependencies {
-    compile gradleApi()
+    implementation gradleApi()
     compileOnly 'com.android.tools.build:gradle:3.1.1'
-    compile 'org.ow2.asm:asm:6.2'
-    compile 'org.ow2.asm:asm-util:6.2'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    implementation 'org.ow2.asm:asm:6.2'
+    implementation 'org.ow2.asm:asm-util:6.2'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
 
-    testCompile group:'junit', name:'junit', version:'4.12'
+    testImplementation group:'junit', name:'junit', version:'4.12'
 }
 
 compileKotlin {
