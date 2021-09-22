@@ -46,7 +46,6 @@ class UrlEncodedAnalytics private constructor(private val prefix: String, privat
         UnsupportedEncodingException::class
     )
     private fun getUrl(analytics: AnalyticsData): URL {
-        logger.error("Sending: \n${analytics.generateJson()}")
         return URL(prefix + Utils.base64Encode(analytics.generateJson()) + suffix)
     }
 
