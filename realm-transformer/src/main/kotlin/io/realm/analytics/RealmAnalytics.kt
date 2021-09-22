@@ -23,6 +23,7 @@ import io.realm.transformer.ext.getAppId
 import io.realm.transformer.ext.getMinSdk
 import io.realm.transformer.ext.getTargetSdk
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
@@ -83,7 +84,7 @@ class RealmAnalytics {
             }
         } catch (e: Exception) {
             // Analytics failing for any reason should not crash the build
-            logger.debug("Error happened when evaluating Realm Analytics: $e")
+            logger.debug("Error happened when sending Realm analytics data: $e")
         }
     }
 
@@ -98,11 +99,15 @@ class RealmAnalytics {
         var containsKotlin = false
         outer@
         for (conf in project.configurations) {
-            for (artifact in conf.resolvedConfiguration.resolvedArtifacts) {
-                if (artifact.name.startsWith("kotlin-stdlib")) {
-                    containsKotlin = true
-                    break@outer
+            try {
+                for (artifact: ResolvedArtifact in conf.resolvedConfiguration.resolvedArtifacts) {
+                    if (artifact.name.startsWith("kotlin-stdlib")) {
+                        containsKotlin = true
+                        break@outer
+                    }
                 }
+            } catch (ignore: Exception) {
+                // Some artifacts might not be able to resolve, in this case, just ignore them.
             }
         }
 

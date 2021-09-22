@@ -61,7 +61,12 @@ class RealmTransformer(project: Project) : Transform() {
         // available at execution time when using the Configuration Cache
         project.afterEvaluate {
             this.analytics = RealmAnalytics()
-            this.analytics.calculateAnalyticsData(project)
+            try {
+                this.analytics.calculateAnalyticsData(project)
+            } catch (e: Exception) {
+                // Analytics should never crash the build.
+                logger.debug("Could not calculate Realm analytics data:\n$e" )
+            }
         }
     }
     override fun getName(): String {
