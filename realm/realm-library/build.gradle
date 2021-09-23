@@ -17,6 +17,10 @@ properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 ext.ccachePath = project.findProperty('ccachePath') ?: System.getenv('NDK_CCACHE')
 ext.lcachePath = project.findProperty('lcachePath') ?: System.getenv('NDK_LCACHE')
 
+kapt {
+    correctErrorTypes = true
+}
+
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -90,10 +94,10 @@ android {
             java.srcDirs += ['src/androidTest/kotlin', 'src/testUtils/java', 'src/testUtils/kotlin']
         }
         androidTestObjectServer {
-            java.srcDirs += [/* FIXME 'src/syncIntegrationTest/java', */
-                             'src/syncIntegrationTest/kotlin',
-                             'src/androidTestObjectServer/kotlin', 'src/syncTestUtils/java'
-                             , 'src/syncTestUtils/kotlin']
+            java.srcDirs += [ 'src/syncIntegrationTest/kotlin',
+                              'src/androidTestObjectServer/kotlin',
+                              'src/syncTestUtils/java',
+                              'src/syncTestUtils/kotlin' ]
             assets.srcDirs += ['src/syncIntegrationTest/assets/']
         }
     }
@@ -141,6 +145,19 @@ android {
     }
 }
 
+android.registerTransform(new io.realm.transformer.RealmTransformer(project))
+android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
+        "base",
+        "io.realm.internal.annotations.ObjectServer",
+        [
+                "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
+                "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
+                "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
+                "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
+                "io_realm_sync_permissions_RoleRealmProxyInterface.class"
+        ].toSet()
+))
+
 project.afterEvaluate {
     tasks.withType(JavaCompile) {
         options.compilerArgs << '-Werror'
@@ -172,14 +189,14 @@ repositories {
 dependencies {
     compileOnly "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
     compileOnly 'com.github.spotbugs:spotbugs-annotations:4.1.2'
-    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
     compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
 
     testImplementation 'junit:junit:4.12'
-    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 
     api "io.realm:realm-annotations:${version}"
@@ -203,7 +220,7 @@ dependencies {
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
     androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2'
     androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
-    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     androidTestImplementation "org.skyscreamer:jsonassert:1.5.0"
     androidTestImplementation project(':kotlin-extensions')
@@ -431,16 +448,3 @@ static def getValueFromPropertiesFile(File propFile, String key) {
     }
     return prop.get(key)
 }
-
-android.registerTransform(new io.realm.transformer.RealmTransformer(project))
-android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
-        "base",
-        "io.realm.internal.annotations.ObjectServer",
-        [
-                "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
-                "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
-                "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
-                "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
-                "io_realm_sync_permissions_RoleRealmProxyInterface.class"
-        ].toSet()
-))
