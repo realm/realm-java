@@ -4,7 +4,7 @@ The Realm team is here to help you with your Realm-related issues!
 
 ## Documentation
 
-Before asking questions, please familiarize yourself with our [Java](https://realm.io/docs/java/latest) documentation. We also have a number of [Tech Notes](https://realm.io/docs/tech-notes/) which cover various topics that may be of interest.
+Before asking questions, please familiarize yourself with our [Java](https://docs.mongodb.com/realm/sdk/android/) documentation. We also have a number of [Tech Notes](https://realm.io/docs/tech-notes/) which cover various topics that may be of interest.
 
 ## Stack Overflow
 
