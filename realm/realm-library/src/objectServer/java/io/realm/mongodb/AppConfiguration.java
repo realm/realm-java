@@ -502,7 +502,6 @@ public class AppConfiguration {
          *
          * @param headerName name of the header.
          * @throws IllegalArgumentException if a null or empty header is provided.
-         * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
          */
         public Builder authorizationHeaderName(String headerName) {
             Util.checkEmpty(headerName, "headerName");

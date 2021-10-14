@@ -281,7 +281,7 @@ abstract class BaseRealm implements Closeable {
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
      * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     public abstract Flowable asFlowable();
 
@@ -497,7 +497,7 @@ abstract class BaseRealm implements Closeable {
      * Returns the current number of active versions currently being held by this Realm.
      * <p>
      * Having a large number of active versions have a negative impact on the size of the
-     * Realm file. See <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">the FAQ</a>
+     * Realm file. See <a href="https://docs.mongodb.com/realm/sdk/android/fundamentals/realms/#realm-file-size">the FAQ</a>
      * for more information.
      *
      * @return number of active versions currently being held by the Realm.

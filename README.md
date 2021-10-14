@@ -23,8 +23,8 @@ Please see the [detailed instructions in our docs](https://docs.mongodb.com/real
 
 ## Documentation
 
-Documentation for Realm can be found at [realm.io/docs/java](https://realm.io/docs/java).
-The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/java/api).
+Documentation for Realm can be found at [docs.mongodb.com/realm/sdk/android/](https://docs.mongodb.com/realm/sdk/android/).
+The API reference is located at [docs.mongodb.com/realm-sdks/java/](https://docs.mongodb.com/realm-sdks/java/latest/).
 
 ## Getting Help
 
