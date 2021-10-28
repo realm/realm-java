@@ -7,6 +7,7 @@
 * [RealmApp] Failing to refresh the access token due to a 401/403 error will now correctly emit an error with `ErrorCode.BAD_AUTHENTICATION` rather than `ErrorCode.PERMISSION_DENIED`. (Realm Core [#4881](https://github.com/realm/realm-core/issues/4881), since 10.6.1)
 * [RealmApp] If an object with a null primary key was deleted by another sync client, the exception `KeyNotFound: No such object` could be triggered. ([Realm Core #4885](https://github.com/realm/realm-core/issues/4885), since 10.0.0)
 * Exceptions inside change listeners running on background looper threads would crash the Looper with a native `JNI DETECTED ERROR IN APPLICATION: JNI NewLocalRef called with pending exception` instead of the original Java exception. This could also happen when canceling a corutine using a background looper as a Dispatcher.
+* [RealmApp] Out of memory crashes when syncing on 32 bit platforms.
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -14,7 +15,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core 11.4.0, commit: 9b2f67c24581503486d8e1d2066fd7e8c5fd1491.
+* Updated to Realm Core 11.4.1, commit: 23f60515a00f076a9e3f2dc672fe1ae07601ee90.
 
 
 ## 10.8.0 (2021-08-27)
