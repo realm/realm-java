@@ -12,7 +12,7 @@ releaseBranches = ['master', 'next-major', 'support-new-datatypes', 'releases']
 slackNotificationBranches = [ 'master', 'releases', 'next-major', 'support-new-datatypes' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
 // tests.
-enableIntegrationTests = true
+enableIntegrationTests = false
 
 // RUNTIME PROPERTIES
 
