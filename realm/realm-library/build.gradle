@@ -114,6 +114,10 @@ android {
         abortOnError false
     }
 
+    adbOptions {
+        timeOutInMs 5 * 60 * 1000  // 5 minutes
+    }
+
     flavorDimensions 'api'
 
     productFlavors {
