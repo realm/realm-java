@@ -37,6 +37,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReset(JNIEnv* env, 
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
+        app->sync_manager()->wait_for_sessions_to_terminate();
         app->sync_manager()->reset_for_testing();
         app::App::clear_cached_apps();
     }
@@ -68,15 +69,6 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReconnect(JNIEnv* e
     try {
         auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         app->sync_manager()->reconnect();
-    }
-    CATCH_STD()
-}
-
-JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeCreateSession(JNIEnv* env, jclass, jlong j_native_config_ptr)
-{
-    try {
-        auto& config = *reinterpret_cast<Realm::Config*>(j_native_config_ptr);
-        _impl::RealmCoordinator::get_coordinator(config)->create_session(config);
     }
     CATCH_STD()
 }

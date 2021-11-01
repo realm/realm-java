@@ -93,8 +93,8 @@ import io.realm.rx.RxObservableFactory;
  * Synchronized Realms are created by using {@link Realm#getInstance(RealmConfiguration)} and
  * {@link Realm#getDefaultInstance()} like ordinary unsynchronized Realms.
  *
- * @see <a href="https://docs.realm.io/platform/using-synced-realms/syncing-data">The docs</a> for
- * more information about the two types of synchronization.
+ * @see <a href="https://docs.mongodb.com/realm/sync/">The docs</a> for
+ * more information about synchronization.
  */
 @Beta
 public class SyncConfiguration extends RealmConfiguration {
@@ -961,7 +961,6 @@ public class SyncConfiguration extends RealmConfiguration {
          * and should only be set if a specific firewall rule requires it.
          *
          * @param urlPrefix The prefix to append to the sync connection url.
-         * @see <a href="https://docs.realm.io/platform/guides/learn-realm-sync-and-integrate-with-a-proxy#adding-a-custom-proxy">Adding a custom proxy</a>
          */
         public SyncConfiguration.Builder urlPrefix(String urlPrefix) {
             if (Util.isEmptyString(urlPrefix)) {
@@ -1038,7 +1037,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * so the number of active versions will also depend on what other devices writing to the same Realm are doing.
          *
          * @param number the maximum number of active versions before an exception is thrown.
-         * @see <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">FAQ</a>
+         * @see <a href="https://docs.mongodb.com/realm/sdk/android/fundamentals/realms/#realm-file-size">FAQ</a>
          */
         public Builder maxNumberOfActiveVersions(long number) {
             this.maxNumberOfActiveVersions = number;
