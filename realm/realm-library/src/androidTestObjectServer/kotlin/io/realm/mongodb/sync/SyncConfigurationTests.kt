@@ -322,9 +322,9 @@ class SyncConfigurationTests {
 
         // Manually set the mode
         config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-                .clientResyncMode(ClientResyncMode.DISCARD_LOCAL_REALM)
+                .clientResyncMode(ClientResyncMode.SEAMLESS_LOSS)
                 .build()
-        assertEquals(ClientResyncMode.DISCARD_LOCAL_REALM, config.clientResyncMode)
+        assertEquals(ClientResyncMode.SEAMLESS_LOSS, config.clientResyncMode)
     }
 
     @Test
