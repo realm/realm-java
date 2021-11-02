@@ -1,7 +1,7 @@
 ## 10.9.0 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Isse [#7299](https://github.com/realm/realm-java/issues/7299)) 
 
 ### Fixed
 * None.
@@ -13,7 +13,10 @@
 
 ### Internal
 * Upgrade to JDK 11.
-* Updated to Gradle 7.1.1.
+* Updated to Gradle 7.2.
+* Updated to Android Gradle Plugin 4.1.3.
+* Updated to Kotlin 1.5.31.
+* Updated to Kotlin Coroutines 1.5.2.
 * Disable analytics for any value of the `REALM_DISABLE_ANALYTICS` environment variable, not just `true`.
 * Disable analytics whenever the `CI` environment variable is set.
 

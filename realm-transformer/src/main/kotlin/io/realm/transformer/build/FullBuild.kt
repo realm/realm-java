@@ -21,6 +21,7 @@ import com.android.build.api.transform.Format
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import io.realm.transformer.BytecodeModifier
+import io.realm.transformer.ProjectMetaData
 import io.realm.transformer.RealmTransformer
 import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
@@ -30,8 +31,8 @@ import org.gradle.api.Project
 import java.io.File
 import java.util.jar.JarFile
 
-class FullBuild(project: Project, outputProvider: TransformOutputProvider, transformer: RealmTransformer)
-    : BuildTemplate(project, outputProvider, transformer) {
+class FullBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvider, transformer: RealmTransformer)
+    : BuildTemplate(metadata, outputProvider, transformer) {
 
     private val allModelClasses: ArrayList<CtClass> = arrayListOf()
 

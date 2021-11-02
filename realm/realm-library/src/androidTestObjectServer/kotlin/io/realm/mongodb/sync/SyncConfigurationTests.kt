@@ -39,8 +39,10 @@ import kotlinx.coroutines.flow.flowOf
 import org.bson.BsonString
 import org.bson.types.ObjectId
 import org.junit.*
+import org.junit.Assert.*
+import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.test.*
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class SyncConfigurationTests {
