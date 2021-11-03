@@ -28,6 +28,13 @@ public class OsApp implements NativeObject {
 
     public OsApp(AppConfiguration config, String userAgentBindingInfo, String appDefinedUserAgent, String syncDir) {
         synchronized (OsApp.class) { // We need to synchronize access as OS caches the App instance
+            // Network transport must be created before the C++ App instance as it is used
+            // as part of setting it up.
+            this.networkTransport = new OkHttpNetworkTransport(config.getHttpLogObfuscator());
+            networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
+            for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
+                networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
+            }
             nativePtr = nativeCreate(
                     config.getAppId(),
                     config.getBaseUrl().toString(),
@@ -41,12 +48,6 @@ public class OsApp implements NativeObject {
                     "android",
                     android.os.Build.VERSION.RELEASE,
                     io.realm.BuildConfig.VERSION_NAME);
-        }
-
-        this.networkTransport = new OkHttpNetworkTransport(config.getHttpLogObfuscator());
-        networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
-        for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
-            networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
         }
     }
 
