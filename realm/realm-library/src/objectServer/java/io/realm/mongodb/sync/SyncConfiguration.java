@@ -564,7 +564,6 @@ public class SyncConfiguration extends RealmConfiguration {
                 this.modules.add(Realm.getDefaultModule());
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
-            this.clientResetHandler = user.getApp().getConfiguration().getDefaultClientResetHandler();
             this.allowQueriesOnUiThread = true;
             this.allowWritesOnUiThread = false;
         }
@@ -1002,25 +1001,6 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
         */
-
-        /**
-         * TODO: Removed from the public API until MongoDB Realm correctly supports anything byt MANUAL mode again.
-         *
-         * Configure the behavior in case of a Client Resync.
-         * <p>
-         * The default mode is {@link ClientResyncMode#RECOVER_LOCAL_REALM}.
-         *
-         * @param mode what should happen when a Client Resync happens
-         * @see ClientResyncMode for more information about what a Client Resync is.
-         */
-        Builder clientResyncMode(ClientResyncMode mode) {
-            //noinspection ConstantConditions
-            if (mode == null) {
-                throw new IllegalArgumentException("Non-null 'mode' required.");
-            }
-            clientResyncMode = mode;
-            return this;
-        }
 
         /**
          * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException} is thrown when

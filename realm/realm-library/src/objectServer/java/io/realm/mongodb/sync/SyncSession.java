@@ -730,14 +730,13 @@ public class SyncSession {
      */
     public interface ClientResetHandler {
         /**
-         * Callback that indicates a Client Reset has happened. This should be handled as quickly as
-         * possible as any further changes to the Realm will not be synchronized with the server and
-         * must be moved manually from the backup Realm to the new one.
-         * 
-         * @param session {@link SyncSession} this error happened on.
-         * @param error {@link ClientResetRequiredError} the specific Client Reset error.
+         * Callback that indicates a Client Reset has happened. It allows to manually recover any
+         * data from the backed up Realm into the new reset Realm.
+         *
+         * @param before {@link Realm} read-only backup Realm in its state before the reset.
+         * @param now {@link Realm} Realm instance after the reset.
          */
-        void onClientReset(SyncSession session, ClientResetRequiredError error);
+        void onClientReset(Realm before, Realm now);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling
