@@ -123,8 +123,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
         // Create Network Transport
         static JavaMethod get_network_transport_method(env, obj, "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
         jobject network_transport_impl = env->CallObjectMethod(obj, get_network_transport_method);
-        auto java_transport = new JavaNetworkTransport(network_transport_impl);
-        auto network_transport = std::make_shared<JavaNetworkTransport>(*java_transport);
+        auto network_transport = std::make_shared<JavaNetworkTransport>(network_transport_impl);
 
         auto app_config = App::Config{
                 app_id,
