@@ -37,4 +37,14 @@ public class MockableNetworkTransport extends OsJavaNetworkTransport {
         else
             this.networkTransport = networkTransport;
     }
+
+    @Override
+    public void setAuthorizationHeaderName(String headerName) {
+        this.networkTransport.setAuthorizationHeaderName(headerName);
+    }
+
+    @Override
+    public void addCustomRequestHeader(String headerName, String headerValue) {
+        this.networkTransport.addCustomRequestHeader(headerName, headerValue);
+    }
 }
