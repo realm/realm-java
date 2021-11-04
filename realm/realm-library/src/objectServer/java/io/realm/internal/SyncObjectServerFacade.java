@@ -84,6 +84,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = user.getId();
             String syncRealmAuthUrl = user.getApp().getConfiguration().getBaseUrl().toString();
+            String rosUserProvider = user.getProviderType().getId();
             String syncUserRefreshToken = user.getRefreshToken();
             String syncUserAccessToken = user.getAccessToken();
             String deviceId = user.getDeviceId();
@@ -131,6 +132,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             int i = 0;
             Object[] configObj = new Object[SYNC_CONFIG_OPTIONS];
             configObj[i++] = rosUserIdentity;
+            configObj[i++] = rosUserProvider;
             configObj[i++] = rosServerUrl;
             configObj[i++] = syncRealmAuthUrl;
             configObj[i++] = syncUserRefreshToken;
