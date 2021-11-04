@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import io.realm.internal.KeepMember;
 import io.realm.internal.NativeObject;
+import io.realm.internal.network.MockableNetworkTransport;
 import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.mongodb.AppConfiguration;
@@ -13,7 +14,7 @@ import io.realm.mongodb.AppConfiguration;
 public class OsApp implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
-    private OsJavaNetworkTransport networkTransport;
+    private MockableNetworkTransport networkTransport;
     private final long nativePtr;
 
     @Override
@@ -30,7 +31,7 @@ public class OsApp implements NativeObject {
         synchronized (OsApp.class) { // We need to synchronize access as OS caches the App instance
             // Network transport must be created before the C++ App instance as it is used
             // as part of setting it up.
-            this.networkTransport = new OkHttpNetworkTransport(config.getHttpLogObfuscator());
+            this.networkTransport = new MockableNetworkTransport(new OkHttpNetworkTransport(config.getHttpLogObfuscator()));
             networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
             for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
                 networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
@@ -51,8 +52,8 @@ public class OsApp implements NativeObject {
         }
     }
 
-    public void setNetworkTransport(OsJavaNetworkTransport transport) {
-        networkTransport = transport;
+    public void setNetworkTransport(@Nullable OsJavaNetworkTransport transport) {
+        networkTransport.setMockNetworkTransport(transport);
     }
 
     /**

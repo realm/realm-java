@@ -55,7 +55,6 @@ class SyncTestUtils {
         @JvmStatic
         @JvmOverloads
         fun createTestUser(app: App, userIdentifier: String = UUID.randomUUID().toString()): User {
-            val transportBackup = app.osApp.networkTransport
             app.osApp.networkTransport = object : OsJavaNetworkTransport() {
                 override fun sendRequestAsync(method: String,
                                          url: String,
@@ -133,7 +132,7 @@ class SyncTestUtils {
                 }
             }
             val user = app.login(Credentials.emailPassword(TestHelper.getRandomEmail(), "123456"))
-            app.osApp.networkTransport = transportBackup
+            app.osApp.networkTransport = null
             return user
         }
 
