@@ -227,6 +227,7 @@ class SyncSessionTests {
     }
 
     @Test
+    @Ignore("Should not throw on logged out users")
     fun session_throwOnLogoutUser() {
         user.logOut()
         assertFailsWith<IllegalStateException> {
