@@ -16,6 +16,13 @@ public class MockableNetworkTransport extends OsJavaNetworkTransport {
         this.networkTransport = networkTransport;
     }
 
+    public void setMockNetworkTransport(OsJavaNetworkTransport networkTransport) {
+        if (networkTransport == null)
+            this.networkTransport = this.originalNetworkTransport;
+        else
+            this.networkTransport = networkTransport;
+    }
+
     @Override
     public void sendRequestAsync(String method, String url, long timeoutMs, Map<String, String> headers, String body, long completionBlockPtr) {
         this.networkTransport.sendRequestAsync(method, url, timeoutMs, headers, body, completionBlockPtr);
@@ -31,13 +38,6 @@ public class MockableNetworkTransport extends OsJavaNetworkTransport {
         return this.networkTransport.sendStreamingRequest(request);
     }
 
-    public void setMockNetworkTransport(OsJavaNetworkTransport networkTransport) {
-        if (networkTransport == null)
-            this.networkTransport = this.originalNetworkTransport;
-        else
-            this.networkTransport = networkTransport;
-    }
-
     @Override
     public void setAuthorizationHeaderName(String headerName) {
         this.networkTransport.setAuthorizationHeaderName(headerName);
@@ -51,6 +51,5 @@ public class MockableNetworkTransport extends OsJavaNetworkTransport {
     @Override
     public void reset() {
         this.networkTransport.reset();
-        super.reset();
     }
 }

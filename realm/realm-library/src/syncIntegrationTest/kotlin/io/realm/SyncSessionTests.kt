@@ -227,15 +227,6 @@ class SyncSessionTests {
     }
 
     @Test
-    @Ignore("Should not throw on logged out users")
-    fun session_throwOnLogoutUser() {
-        user.logOut()
-        assertFailsWith<IllegalStateException> {
-            Realm.getInstance(syncConfiguration).use { }
-        }
-    }
-
-    @Test
     fun uploadDownloadAllChanges() {
         Realm.getInstance(syncConfiguration).use { realm ->
             realm.executeTransaction {
