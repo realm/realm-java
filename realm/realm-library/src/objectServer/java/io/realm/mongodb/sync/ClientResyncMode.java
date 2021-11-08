@@ -29,8 +29,18 @@ import io.realm.internal.OsRealmConfig;
  * <p>
  * <b>IMPORTANT:</b> Just having the device offline will not trigger a Client Resync.
  */
-@Beta
 enum ClientResyncMode {
+
+    /**
+     * All data in the local Realm will be discarded and replaced with data from
+     * the server side Realm. All local changes will be lost.
+     *
+     * From an end user perspective, this will just look like any other local
+     * change. All changes will be reported through change listeners like any
+     * other change.
+     */
+    SEAMLESS_LOSS(OsRealmConfig.CLIENT_RESYNC_MODE_SEAMLESS_LOSS),
+
     /**
      * A manual Client Resync is also known as a Client Reset.
      * <p>
@@ -54,4 +64,4 @@ enum ClientResyncMode {
         return value;
     }
 
-}
+    }
