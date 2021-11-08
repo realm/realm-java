@@ -16,7 +16,6 @@
 
 package io.realm.mongodb.sync;
 
-import io.realm.annotations.Beta;
 import io.realm.mongodb.AppException;
 import io.realm.internal.OsRealmConfig;
 

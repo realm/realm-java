@@ -70,7 +70,7 @@ public class SyncSession {
     private final long appNativePointer;
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
-    private final ClientResetHandler clientResetHandler;
+    private final ClientResetHandlerInterface clientResetHandler;
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
 
@@ -219,8 +219,16 @@ public class SyncSession {
                 throw new IllegalStateException("Missing Client Reset info.");
             }
             RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(clientResetPathInfo);
-            clientResetHandler.onClientReset(this, new ClientResetRequiredError(appNativePointer,
-                    errCode, errorMessage, configuration, backupRealmConfiguration));
+
+            if (clientResetHandler instanceof ManualClientResetHandler) {
+                ((ManualClientResetHandler) clientResetHandler).onClientReset(this,
+                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
+                                configuration, backupRealmConfiguration));
+            } else if (clientResetHandler instanceof SeamlessLossClientResetHandler) {
+                ((SeamlessLossClientResetHandler) clientResetHandler).onClientResetError(this,
+                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
+                                configuration, backupRealmConfiguration));
+            }
         } else {
             AppException wrappedError;
             if (errCode == ErrorCode.UNKNOWN) {
@@ -691,6 +699,18 @@ public class SyncSession {
     }
 
     /**
+     * FIXME: Document
+     */
+    public interface ClientResetHandlerInterface { }
+
+    /**
+     * FIXME: Document
+     */
+    @Deprecated
+    public interface ClientResetHandler extends ManualClientResetHandler{
+    }
+
+    /**
      * Callback for the specific error event known as a Client Reset, determined by the error code
      * {@link ErrorCode#CLIENT_RESET}.
      * <p>
@@ -728,16 +748,45 @@ public class SyncSession {
      * synchronized to MongoDB Realm. Those changes will only be present in the backed up file. It is therefore
      * recommended to close all open Realm instances as soon as possible.
      */
-    public interface ClientResetHandler {
+    public interface ManualClientResetHandler extends ClientResetHandlerInterface {
         /**
          * Callback that indicates a Client Reset has happened. This should be handled as quickly as
          * possible as any further changes to the Realm will not be synchronized with the server and
          * must be moved manually from the backup Realm to the new one.
-         * 
+         *
          * @param session {@link SyncSession} this error happened on.
          * @param error {@link ClientResetRequiredError} the specific Client Reset error.
          */
         void onClientReset(SyncSession session, ClientResetRequiredError error);
+    }
+
+    /**
+     * FIXME: Document
+     */
+    public interface SeamlessLossClientResetHandler extends ClientResetHandlerInterface {
+        /**
+         * Callback that indicates a Client Reset is about to happen. You can use this call to
+         * manually migrate any data and prevent its loss.
+         *
+         * @param before {@link Realm} read-only backup Realm in its state before the reset.
+         * @param after {@link Realm} Realm state to become after the reset.
+         */
+        void onBeforeReset(Realm before, Realm after);
+
+        /**
+         * Callback that indicates a Client Reset just happened.
+         *
+         * @param realm {@link Realm} reset Realm.
+         */
+        void onAfterReset(Realm realm);
+
+        /**
+         * Callback that indicates the seamless Client reset couldn't complete.
+         *
+         * @param session {@link SyncSession} this error happened on.
+         * @param error {@link ClientResetRequiredError} the specific Client Reset error.
+         */
+        void onClientResetError(SyncSession session, ClientResetRequiredError error);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling

@@ -137,7 +137,7 @@ public class AppConfiguration {
     private final String appVersion;
     private final URL baseUrl;
     private final SyncSession.ErrorHandler defaultErrorHandler;
-    private final SyncSession.ClientResetHandler defaultClientResetHandler;
+    private final SyncSession.ClientResetHandlerInterface defaultClientResetHandler;
     @Nullable
     private final byte[] encryptionKey;
     private final long requestTimeoutMs;
@@ -153,7 +153,7 @@ public class AppConfiguration {
                              String appVersion,
                              URL baseUrl,
                              SyncSession.ErrorHandler defaultErrorHandler,
-                             SyncSession.ClientResetHandler defaultClientResetHandler,
+                             SyncSession.ClientResetHandlerInterface defaultClientResetHandler,
                              @Nullable byte[] encryptionKey,
                              long requestTimeoutMs,
                              String authorizationHeaderName,
@@ -272,7 +272,7 @@ public class AppConfiguration {
      *
      * @return the app default error handler.
      */
-    public SyncSession.ClientResetHandler getDefaultClientResetHandler() {
+    public SyncSession.ClientResetHandlerInterface getDefaultClientResetHandler() {
         return defaultClientResetHandler;
     }
 
@@ -388,10 +388,20 @@ public class AppConfiguration {
                 }
             }
         };
-        private SyncSession.ClientResetHandler defaultClientResetHandler = new SyncSession.ClientResetHandler() {
+        private SyncSession.ClientResetHandlerInterface defaultClientResetHandler = new SyncSession.SeamlessLossClientResetHandler() {
             @Override
-            public void onClientReset(SyncSession session, ClientResetRequiredError error) {
-                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
+            public void onBeforeReset(Realm before, Realm after) {
+                RealmLog.debug("Client Reset is about to happen on Realm: " + before.getPath());
+            }
+
+            @Override
+            public void onAfterReset(Realm realm) {
+                RealmLog.debug("Client Reset complete on Realm: " + realm.getPath());
+            }
+
+            @Override
+            public void onClientResetError(SyncSession session, ClientResetRequiredError error) {
+                RealmLog.fatal("Seamless Client Reset failed on: " + session.getConfiguration().getServerUrl());
             }
         };
         private byte[] encryptionKey;
@@ -557,12 +567,12 @@ public class AppConfiguration {
          * session.
          * <p>
          * This default can be overridden by calling
-         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ClientResetHandler)} when creating
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ClientResetHandlerInterface)} when creating
          * the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param handler the default Client Reset handler.
          */
-        public Builder defaultClientResetHandler(SyncSession.ClientResetHandler handler) {
+        public Builder defaultClientResetHandler(SyncSession.ClientResetHandlerInterface handler) {
             Util.checkNull(handler, "handler");
             defaultClientResetHandler = handler;
             return this;
