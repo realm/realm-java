@@ -24,6 +24,7 @@ import org.bson.codecs.MapCodecProvider;
 import org.bson.codecs.ValueCodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -35,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -390,17 +392,17 @@ public class AppConfiguration {
         };
         private SyncSession.ClientResetHandlerInterface defaultClientResetHandler = new SyncSession.SeamlessLossClientResetHandler() {
             @Override
-            public void onBeforeReset(Realm before, Realm after) {
+            public void onBeforeReset(@NotNull Realm before, @NotNull Realm after) {
                 RealmLog.debug("Client Reset is about to happen on Realm: " + before.getPath());
             }
 
             @Override
-            public void onAfterReset(Realm realm) {
+            public void onAfterReset(@NotNull Realm realm) {
                 RealmLog.debug("Client Reset complete on Realm: " + realm.getPath());
             }
 
             @Override
-            public void onClientResetError(SyncSession session, ClientResetRequiredError error) {
+            public void onClientResetError(@NotNull SyncSession session, @NotNull ClientResetRequiredError error) {
                 RealmLog.fatal("Seamless Client Reset failed on: " + session.getConfiguration().getServerUrl());
             }
         };
@@ -567,12 +569,30 @@ public class AppConfiguration {
          * session.
          * <p>
          * This default can be overridden by calling
-         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ClientResetHandlerInterface)} when creating
-         * the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ManualClientResetHandler)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.SeamlessLossClientResetHandler)}
+         * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param handler the default Client Reset handler.
          */
-        public Builder defaultClientResetHandler(SyncSession.ClientResetHandlerInterface handler) {
+        public Builder defaultClientResetHandler(@Nonnull SyncSession.ManualClientResetHandler handler) {
+            Util.checkNull(handler, "handler");
+            defaultClientResetHandler = handler;
+            return this;
+        }
+
+        /**
+         * Sets the default Client Reset handler used by Synced Realms when they report a Client Reset.
+         * session.
+         * <p>
+         * This default can be overridden by calling
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ManualClientResetHandler)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.SeamlessLossClientResetHandler)}
+         * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         *
+         * @param handler the default Client Reset handler.
+         */
+        public Builder defaultClientResetHandler(@Nonnull SyncSession.SeamlessLossClientResetHandler handler) {
             Util.checkNull(handler, "handler");
             defaultClientResetHandler = handler;
             return this;

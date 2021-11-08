@@ -94,9 +94,7 @@ class SyncConfigurationTests {
     @Test
     fun clientResetHandler() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
-        val handler = object : SyncSession.ClientResetHandler {
-            override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {}
-        }
+        val handler = SyncSession.ManualClientResetHandler { _, _ -> }
         val config = builder.clientResetHandler(handler).build()
         assertEquals(handler, config.clientResetHandler)
     }
@@ -112,7 +110,7 @@ class SyncConfigurationTests {
     fun clientResetHandler_nullThrows() {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        assertFailsWith<IllegalArgumentException> { builder.clientResetHandler(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { builder.clientResetHandler(TestHelper.getNull<SyncSession.ManualClientResetHandler>()) }
     }
 
     @Test
@@ -313,16 +311,60 @@ class SyncConfigurationTests {
     }
 
     @Test
-    fun clientResyncMode() {
+    fun defaultClientResyncMode() {
         val user: User = createTestUser(app)
 
-        // Default mode for full Realms
         var config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
-        assertEquals(ClientResyncMode.MANUAL, config.clientResyncMode)
+        assertEquals(ClientResyncMode.SEAMLESS_LOSS, config.clientResyncMode)
+    }
 
-        // Manually set the mode
-        config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-                .clientResyncMode(ClientResyncMode.SEAMLESS_LOSS)
+    @Test
+    fun legacyClientResyncMode() {
+        val user: User = createTestUser(app)
+
+        val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+                .clientResetHandler(object : SyncSession.ClientResetHandler {
+                    override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
+                        fail("Should not be called")
+                    }
+                })
+                .build()
+        assertEquals(ClientResyncMode.MANUAL, config.clientResyncMode)
+    }
+
+    @Test
+    fun manualClientResyncMode() {
+        val user: User = createTestUser(app)
+
+        val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+                .clientResetHandler(object : SyncSession.ManualClientResetHandler {
+                    override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
+                        fail("Should not be called")
+                    }
+                })
+                .build()
+        assertEquals(ClientResyncMode.MANUAL, config.clientResyncMode)
+    }
+
+    @Test
+    fun seamlessLossClientResyncMode() {
+        val user: User = createTestUser(app)
+
+        val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+                .clientResetHandler(object : SyncSession.SeamlessLossClientResetHandler {
+                    override fun onBeforeReset(before: Realm, after: Realm) {
+                        fail("Should not be called")
+                    }
+
+                    override fun onAfterReset(realm: Realm) {
+                        fail("Should not be called")
+                    }
+
+                    override fun onClientResetError(session: SyncSession, error: ClientResetRequiredError) {
+                        fail("Should not be called")
+                    }
+
+                })
                 .build()
         assertEquals(ClientResyncMode.SEAMLESS_LOSS, config.clientResyncMode)
     }
@@ -331,10 +373,12 @@ class SyncConfigurationTests {
     fun clientResyncMode_throwsOnNull() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration.Builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        try {
-            config.clientResyncMode(TestHelper.getNull())
-            fail()
-        } catch (ignore: IllegalArgumentException) {
+
+        assertFailsWith<IllegalArgumentException> {
+            config.clientResetHandler(TestHelper.getNull<SyncSession.ManualClientResetHandler>())
+        }
+        assertFailsWith<IllegalArgumentException> {
+            config.clientResetHandler(TestHelper.getNull<SyncSession.SeamlessLossClientResetHandler>())
         }
     }
 

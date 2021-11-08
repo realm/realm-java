@@ -862,7 +862,19 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param handler custom handler in case of a Client Reset.
          */
-        public Builder clientResetHandler(SyncSession.ClientResetHandlerInterface handler) {
+        public Builder clientResetHandler(SyncSession.ManualClientResetHandler handler) {
+            Util.checkNull(handler, "handler");
+            this.clientResetHandler = handler;
+            return this;
+        }
+
+        /**
+         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * @param handler custom handler in case of a Client Reset.
+         */
+        public Builder clientResetHandler(SyncSession.SeamlessLossClientResetHandler handler) {
             Util.checkNull(handler, "handler");
             this.clientResetHandler = handler;
             return this;

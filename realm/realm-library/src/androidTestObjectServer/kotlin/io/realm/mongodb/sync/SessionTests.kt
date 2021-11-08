@@ -41,6 +41,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
@@ -123,9 +124,71 @@ class SessionTests {
         }
     }
 
+    // Check that a Seamless Client Reset is correctly reported.
+    @Test
+    fun errorHandler_seamlessLossClientResetReported() = looperThread.runBlocking {
+        val counter = AtomicInteger()
+
+        val incrementAndValidate = {
+            if(2 == counter.incrementAndGet()) {
+                looperThread.testComplete()
+            }
+        }
+
+        val config = configFactory.createSyncConfigurationBuilder(user)
+                .testSchema(SyncStringOnly::class.java)
+                .clientResetHandler(object: SyncSession.SeamlessLossClientResetHandler{
+                    override fun onBeforeReset(before: Realm, after: Realm) {
+                        incrementAndValidate()
+                    }
+
+                    override fun onAfterReset(realm: Realm) {
+                        incrementAndValidate()
+                    }
+
+                    override fun onClientResetError(session: SyncSession, error: ClientResetRequiredError) {
+                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::ClientResetError()")
+                    }
+                })
+                .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        // Trigger error
+        user.app.sync.simulateClientReset(realm.syncSession)
+    }
+
+    // Check that a if Seamless loss Client Reset fails the error is correctly reported.
+    @Test
+    fun errorHandler_seamlessLossClientReset_resetErrorHandled() = looperThread.runBlocking {
+        val config = configFactory.createSyncConfigurationBuilder(user)
+                .testSchema(SyncStringOnly::class.java)
+                .clientResetHandler(object: SyncSession.SeamlessLossClientResetHandler{
+                    override fun onBeforeReset(before: Realm, after: Realm) {
+                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::onBeforeReset()")
+                    }
+
+                    override fun onAfterReset(realm: Realm) {
+                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::onAfterReset()")
+                    }
+
+                    override fun onClientResetError(session: SyncSession, error: ClientResetRequiredError) {
+                        looperThread.testComplete()
+                    }
+                })
+                .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        // Trigger error
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.INVALID_SCHEMA_CHANGE)
+    }
+
     // Check that a Client Reset is correctly reported.
     @Test
-    fun errorHandler_clientResetReported() = looperThread.runBlocking {
+    fun errorHandler_manualClientResetReported() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .testSchema(SyncStringOnly::class.java)
                 .clientResetHandler { session: SyncSession, error: ClientResetRequiredError ->
@@ -156,7 +219,6 @@ class SessionTests {
 
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .testSchema(SyncStringOnly::class.java)
-                .clientResyncMode(ClientResyncMode.MANUAL)
                 .clientResetHandler { _: SyncSession, error: ClientResetRequiredError ->
                     try {
                         error.executeClientReset()
@@ -186,7 +248,6 @@ class SessionTests {
     fun errorHandler_useBackupSyncConfigurationForClientReset() = looperThread.runBlocking {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
-                .clientResyncMode(ClientResyncMode.MANUAL)
                 .schema(SyncStringOnly::class.java)
                 .clientResetHandler { _: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
@@ -234,7 +295,6 @@ class SessionTests {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .modules(SyncStringOnlyModule())
-                .clientResyncMode(ClientResyncMode.MANUAL)
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
                     resources.close()
@@ -297,7 +357,6 @@ class SessionTests {
 
         val randomKey = TestHelper.getRandomKey()
         val config = configFactory.createSyncConfigurationBuilder(user)
-                .clientResyncMode(ClientResyncMode.MANUAL)
                 .encryptionKey(randomKey)
                 .modules(SyncStringOnlyModule())
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->

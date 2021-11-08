@@ -250,7 +250,7 @@ class AppConfigurationTests {
 
     @Test
     fun defaultClientResetHandler() {
-        val handler = SyncSession.ClientResetHandler { _, _ -> }
+        val handler = SyncSession.ManualClientResetHandler { _, _ -> }
 
         val config = AppConfiguration.Builder("app-id")
                 .defaultClientResetHandler(handler)
@@ -262,7 +262,7 @@ class AppConfigurationTests {
     fun defaultClientResetHandler_invalidValuesThrows() {
         val builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> {
-            builder.defaultClientResetHandler(TestHelper.getNull())
+            builder.defaultClientResetHandler(TestHelper.getNull<SyncSession.ManualClientResetHandler>())
         }
     }
 

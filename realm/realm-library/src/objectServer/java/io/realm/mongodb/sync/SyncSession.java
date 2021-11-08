@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
@@ -757,7 +757,7 @@ public class SyncSession {
          * @param session {@link SyncSession} this error happened on.
          * @param error {@link ClientResetRequiredError} the specific Client Reset error.
          */
-        void onClientReset(SyncSession session, ClientResetRequiredError error);
+        void onClientReset(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
     }
 
     /**
@@ -771,14 +771,14 @@ public class SyncSession {
          * @param before {@link Realm} read-only backup Realm in its state before the reset.
          * @param after {@link Realm} Realm state to become after the reset.
          */
-        void onBeforeReset(Realm before, Realm after);
+        void onBeforeReset(@Nonnull Realm before, @Nonnull Realm after);
 
         /**
          * Callback that indicates a Client Reset just happened.
          *
          * @param realm {@link Realm} reset Realm.
          */
-        void onAfterReset(Realm realm);
+        void onAfterReset(@Nonnull Realm realm);
 
         /**
          * Callback that indicates the seamless Client reset couldn't complete.
@@ -786,7 +786,7 @@ public class SyncSession {
          * @param session {@link SyncSession} this error happened on.
          * @param error {@link ClientResetRequiredError} the specific Client Reset error.
          */
-        void onClientResetError(SyncSession session, ClientResetRequiredError error);
+        void onClientResetError(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling

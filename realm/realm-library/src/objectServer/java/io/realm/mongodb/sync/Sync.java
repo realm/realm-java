@@ -18,11 +18,7 @@ package io.realm.mongodb.sync;
 
 import org.bson.BsonValue;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,16 +27,12 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.annotations.Beta;
 import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.ErrorCode;
 import io.realm.internal.Keep;
-import io.realm.internal.OsRealmConfig;
-import io.realm.internal.Util;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.App;
-import io.realm.mongodb.User;
 
 /**
  * A <i>sync</i> manager handling synchronization of local Realms with remote Realm Apps.
@@ -299,8 +291,20 @@ public abstract class Sync {
      * @param session Session to trigger Client Reset for.
      */
     void simulateClientReset(SyncSession session) {
+        simulateClientReset(session, ErrorCode.DIVERGING_HISTORIES);
+    }
+
+    /**
+     * Simulate a Client Reset by triggering the Object Store error handler with Sync Error Code that will be
+     * converted to a Client Reset (211 - Diverging Histories).
+     *
+     * Only call this method when testing.
+     *
+     * @param session Session to trigger Client Reset for.
+     */
+    void simulateClientReset(SyncSession session, ErrorCode errorCode) {
         nativeSimulateSyncError(appNativePointer, session.getConfiguration().getPath(),
-                ErrorCode.DIVERGING_HISTORIES.intValue(),
+                errorCode.intValue(),
                 "Simulate Client Reset",
                 true);
     }
