@@ -56,6 +56,10 @@ public class OsApp implements NativeObject {
         networkTransport.setMockNetworkTransport(transport);
     }
 
+    public void setOriginalNetworkTransport() {
+        networkTransport.setOriginalNetworkTransport();
+    }
+
     /**
      * Creates a request for a streaming function
      *
