@@ -1008,7 +1008,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * Configure the behavior in case of a Client Resync.
          * <p>
-         * The default mode is {@link ClientResyncMode#RECOVER_LOCAL_REALM}.
+         * The default mode is {@link ClientResyncMode#MANUAL}.
          *
          * @param mode what should happen when a Client Resync happens
          * @see ClientResyncMode for more information about what a Client Resync is.
@@ -1093,8 +1093,6 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             // Set the default Client Resync Mode based on the current type of Realm.
-            // Eventually RECOVER_LOCAL_REALM should be the default for all types.
-            // FIXME: We should add support back for this.
             if (clientResyncMode == null) {
                 clientResyncMode = ClientResyncMode.MANUAL;
             }
