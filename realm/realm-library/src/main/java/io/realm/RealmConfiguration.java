@@ -78,7 +78,7 @@ public class RealmConfiguration {
             if (!mediator.transformerApplied()) {
                 throw new ExceptionInInitializerError("RealmTransformer doesn't seem to be applied." +
                         " Please update the project configuration to use the Realm Gradle plugin." +
-                        " See https://realm.io/news/android-installation-change/");
+                        " See https://docs.mongodb.com/realm/sdk/android/install/#customize-dependecies-defined-by-the-realm-gradle-plugin");
             }
             DEFAULT_MODULE_MEDIATOR = mediator;
         } else {
