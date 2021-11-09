@@ -37,14 +37,14 @@ using namespace realm::jni_util;
 using namespace realm::sync;
 using namespace realm::_impl;
 
-static_assert(SyncSession::PublicState::Active ==
-                  static_cast<SyncSession::PublicState>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_ACTIVE),
+static_assert(SyncSession::State::Active ==
+                  static_cast<SyncSession::State>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_ACTIVE),
               "");
-static_assert(SyncSession::PublicState::Dying ==
-                  static_cast<SyncSession::PublicState>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_DYING),
+static_assert(SyncSession::State::Dying ==
+                  static_cast<SyncSession::State>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_DYING),
               "");
-static_assert(SyncSession::PublicState::Inactive ==
-                  static_cast<SyncSession::PublicState>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_INACTIVE),
+static_assert(SyncSession::State::Inactive ==
+                  static_cast<SyncSession::State>(io_realm_mongodb_sync_SyncSession_STATE_VALUE_INACTIVE),
               "");
 
 static_assert(SyncSession::ConnectionState::Disconnected ==
@@ -76,7 +76,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgress
             return 0;
         }
 
-        SyncSession::NotifierType type = (direction == 1) ? SyncSession::NotifierType::download : SyncSession::NotifierType::upload;
+        SyncSession::ProgressDirection type = (direction == 1) ? SyncSession::ProgressDirection::download : SyncSession::ProgressDirection::upload;
 
         static JavaClass java_syncsession_class(env, "io/realm/mongodb/sync/SyncSession");
         static JavaMethod java_notify_progress_listener(env, java_syncsession_class, "notifyProgressListener", "(JJJ)V");
@@ -206,13 +206,13 @@ JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetState(JN
 
         if (session) {
             switch (session->state()) {
-                case SyncSession::PublicState::Active:
+                case SyncSession::State::Active:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_ACTIVE;
-                case SyncSession::PublicState::Dying:
+                case SyncSession::State::Dying:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_DYING;
-                case SyncSession::PublicState::Inactive:
+                case SyncSession::State::Inactive:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_INACTIVE;
-                case SyncSession::PublicState::WaitingForAccessToken:
+                case SyncSession::State::WaitingForAccessToken:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
             }
         }
@@ -270,7 +270,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnecti
         static JavaClass java_syncmanager_class(env, "io/realm/mongodb/sync/SyncSession");
         static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(JJ)V");
 
-        std::function<SyncSession::ConnectionStateCallback > callback = [session_ref = JavaGlobalRefByCopy(env, j_session_object)](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
+        std::function<SyncSession::ConnectionStateChangeCallback > callback = [session_ref = JavaGlobalRefByCopy(env, j_session_object)](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             jlong old_connection_value = get_connection_value(old_state);

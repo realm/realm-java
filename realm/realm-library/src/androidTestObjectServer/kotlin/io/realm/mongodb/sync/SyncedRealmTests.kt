@@ -26,11 +26,8 @@ import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
-import io.realm.mongodb.App
-import io.realm.mongodb.Credentials
+import io.realm.mongodb.*
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
-import io.realm.mongodb.User
-import io.realm.mongodb.close
 import org.bson.BsonNull
 import org.bson.BsonString
 import org.bson.types.Decimal128
@@ -229,7 +226,7 @@ class SyncedRealmTests {
 
     @Test
     fun compactOnLaunch_shouldCompact() {
-        val user = createTestUser(app)
+        var user = createTestUser(app)
 
         // Fill Realm with data and record size
         val config1 = configFactory.createSyncConfigurationBuilder(user)
@@ -247,6 +244,8 @@ class SyncedRealmTests {
             originalSize = File(realm.path).length()
         }
 
+        // Recreate mock user as it is automatically logged out
+        user = createTestUser(app)
         // Open Realm with CompactOnLaunch
         val config2 = configFactory.createSyncConfigurationBuilder(user)
                 .compactOnLaunch { totalBytes, usedBytes -> true }

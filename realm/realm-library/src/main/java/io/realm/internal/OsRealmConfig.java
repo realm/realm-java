@@ -174,8 +174,8 @@ public class OsRealmConfig implements NativeObject {
     private static final byte PROXYCONFIG_TYPE_VALUE_HTTP = 0;
 
     // Public to be usable from the io.realm package
-    public static final byte CLIENT_RESYNC_MODE_DISCARD = 0;
-    public static final byte CLIENT_RESYNC_MODE_MANUAL = 1;
+    public static final byte CLIENT_RESYNC_MODE_MANUAL = 0;
+    public static final byte CLIENT_RESYNC_MODE_SEAMLESS_LOSS = 1;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
@@ -212,6 +212,7 @@ public class OsRealmConfig implements NativeObject {
         int j = 0;
         Object[] syncConfigurationOptions = ObjectServerFacade.getSyncFacadeIfPossible().getSyncConfigurationOptions(realmConfiguration);
         String syncUserIdentifier = (String) syncConfigurationOptions[j++];
+        String syncUserProvider = (String) syncConfigurationOptions[j++];
         String syncRealmUrl = (String) syncConfigurationOptions[j++];
         String syncRealmAuthUrl = (String) syncConfigurationOptions[j++];
         String syncRefreshToken = (String) syncConfigurationOptions[j++];
@@ -286,8 +287,8 @@ public class OsRealmConfig implements NativeObject {
                     appPtr,
                     nativePtr,
                     syncRealmUrl,
-                    syncRealmAuthUrl,
                     syncUserIdentifier,
+                    syncUserProvider,
                     syncRefreshToken,
                     syncAccessToken,
                     deviceId,
@@ -389,8 +390,8 @@ public class OsRealmConfig implements NativeObject {
 
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
-    private static native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl, String authUrl,
-                                                              String userId, String refreshToken, String accessToken,
+    private static native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl,
+                                                              String userId, String userProvider, String refreshToken, String accessToken,
                                                               String deviceId, byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
                                                               String[] customHeaders, byte clientResetMode,

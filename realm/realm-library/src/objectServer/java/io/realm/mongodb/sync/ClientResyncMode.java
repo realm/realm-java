@@ -31,13 +31,6 @@ import io.realm.internal.OsRealmConfig;
  */
 @Beta
 enum ClientResyncMode {
-
-    /**
-     * The local Realm will be discarded and replaced with the server side Realm.
-     * All local changes will be lost.
-     */
-    DISCARD_LOCAL_REALM(OsRealmConfig.CLIENT_RESYNC_MODE_DISCARD),
-
     /**
      * A manual Client Resync is also known as a Client Reset.
      * <p>
@@ -61,4 +54,4 @@ enum ClientResyncMode {
         return value;
     }
 
-    }
+}

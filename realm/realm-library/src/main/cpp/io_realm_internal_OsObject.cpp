@@ -16,10 +16,6 @@
 
 #include "io_realm_internal_OsObject.h"
 
-#if REALM_ENABLE_SYNC
-#include <realm/sync/object.hpp>
-#endif
-
 #include <realm/object-store/object_schema.hpp>
 #include <realm/object-store/object.hpp>
 #include <realm/object-store/shared_realm.hpp>
