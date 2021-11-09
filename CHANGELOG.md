@@ -18,11 +18,13 @@
 
 ### Internal
 * Updated to Realm Core 11.6.0, commit: b170db6a47789ff5f2fbc3eeed0220b4b0a3f6b7.
-* Upgrade to JDK 11.
+* Building the SDK now requires JDK 11.
 * Updated to Gradle 7.2.
 * Updated to Android Gradle Plugin 4.1.3.
 * Updated to Kotlin 1.5.31.
 * Updated to Kotlin Coroutines 1.5.2.
+* Updated to CMake 3.21.4.
+* Updated to NDK 23.1.7779620.
 * Disable analytics for any value of the `REALM_DISABLE_ANALYTICS` environment variable, not just `true`.
 * Disable analytics whenever the `CI` environment variable is set.
 
