@@ -22,6 +22,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 
 import org.bson.BsonValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -29,10 +30,12 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.Realm;
 import io.realm.internal.objectstore.OsApp;
 import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
 import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.sync.ClientResyncMode;
 import io.realm.mongodb.sync.Sync;
 import io.realm.mongodb.User;
 import io.realm.mongodb.sync.SyncConfiguration;
@@ -42,6 +45,7 @@ import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
+import io.realm.mongodb.sync.SyncSession;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -53,14 +57,16 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     private static Context applicationContext;
     private static volatile Method removeSessionMethod;
     private static volatile Field osAppField;
+    RealmCacheAccessor accessor;
 
     @Override
-    public void initialize(Context context, String userAgent) {
+    public void initialize(Context context, String userAgent, RealmCacheAccessor accessor) {
         if (applicationContext == null) {
             applicationContext = context;
             applicationContext.registerReceiver(new NetworkStateReceiver(),
                     new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
+        this.accessor = accessor;
     }
 
     @Override
@@ -92,6 +98,25 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
+            ClientResyncMode clientResetMode = syncConfig.getClientResyncMode();
+
+            OsRealmConfig.BeforeClientResetHandler beforeClientResetHandler = new OsRealmConfig.BeforeClientResetHandler() {
+                @Override
+                public void onBeforeReset(@NotNull OsSharedRealm.VersionID before, @NotNull OsSharedRealm.VersionID after) {
+                    Realm beforeRealm = accessor.createRealmOrGetFromCache(syncConfig, before);
+                    Realm afterRealm = accessor.createRealmOrGetFromCache(syncConfig, after);
+                    ((SyncSession.SeamlessLossClientResetHandler) syncConfig.getClientResetHandler()).onBeforeReset(beforeRealm, afterRealm);
+                }
+            };
+
+            OsRealmConfig.AfterClientResetHandler afterClientResetHandler = new OsRealmConfig.AfterClientResetHandler(){
+                @Override
+                public void onAfterReset(@NotNull OsSharedRealm.VersionID after) {
+                    Realm afterRealm = accessor.createRealmOrGetFromCache(syncConfig, after);
+                    ((SyncSession.SeamlessLossClientResetHandler) syncConfig.getClientResetHandler()).onAfterReset(afterRealm);
+                }
+            };
+
             long appNativePointer;
 
             // We cannot get the app native pointer without exposing it in the public API due to
@@ -142,7 +167,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = urlPrefix;
             configObj[i++] = customAuthorizationHeaderName;
             configObj[i++] = customHeaders;
-            configObj[i++] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
+            configObj[i++] = clientResetMode.getNativeValue();
+            configObj[i++] = beforeClientResetHandler;
+            configObj[i++] = afterClientResetHandler;
             configObj[i++] = encodedPartitionValue;
             configObj[i++] = app.getSync();
             configObj[i++] = appNativePointer;

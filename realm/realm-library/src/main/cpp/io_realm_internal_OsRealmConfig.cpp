@@ -248,7 +248,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
     JNIEnv* env, jclass, jlong j_app_ptr, jlong j_config_ptr, jstring j_sync_realm_url, jstring j_user_id, jstring j_user_provider,
     jstring j_refresh_token, jstring j_access_token, jstring j_device_id, jbyte j_session_stop_policy, jstring j_url_prefix,
-    jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode,
+    jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode, jobject j_on_before_client_reset_handler, jobject j_on_after_client_reset_handler,
     jstring j_partion_key_value, jobject j_java_sync_service)
 {
     auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
@@ -349,7 +349,36 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->error_handler = std::move(error_handler);
         switch (j_client_reset_mode) {
-            case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_SEAMLESS_LOSS: config.sync_config->client_resync_mode = realm::ClientResyncMode::SeamlessLoss; break;
+            case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_SEAMLESS_LOSS: {
+                config.sync_config->client_resync_mode = realm::ClientResyncMode::SeamlessLoss;
+
+                static JavaClass before_client_reset_handler_class(env, "io/realm/internal/OsRealmConfig$BeforeClientResetHandler");
+                static JavaClass after_client_reset_handler_class(env, "io/realm/internal/OsRealmConfig$AfterClientResetHandler");
+                static JavaMethod on_before_client_reset_method(env, before_client_reset_handler_class, "onBeforeReset","(Lio/realm/internal/OsSharedRealm$VersionID;Lio/realm/internal/OsSharedRealm$VersionID;)V", false);
+                static JavaMethod on_after_client_reset_method(env, after_client_reset_handler_class, "onAfterReset","(Lio/realm/internal/OsSharedRealm$VersionID;)V", false);
+
+                JavaGlobalWeakRef j_on_before_client_reset_handler_weak(env, j_on_before_client_reset_handler);
+                JavaGlobalWeakRef j_on_after_client_reset_handler_weak(env, j_on_after_client_reset_handler);
+                config.sync_config->notify_before_client_reset = [j_on_before_client_reset_handler_weak](const TransactionRef& local, const TransactionRef& remote) {
+                    JNIEnv* env = JniUtils::get_env(false);
+                    j_on_before_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                        jobject localVersion = JavaClassGlobalDef::new_version_id(env, local->get_version_of_current_transaction());
+                        jobject remoteVersion = JavaClassGlobalDef::new_version_id(env, remote->get_version_of_current_transaction());
+                        env->CallVoidMethod(obj, on_before_client_reset_method, localVersion, remoteVersion);
+                    });
+                    TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
+                };
+
+                config.sync_config->notify_after_client_reset = [j_on_after_client_reset_handler_weak](const TransactionRef& local) {
+                    JNIEnv* env = JniUtils::get_env(false);
+                    j_on_after_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                        jobject localVersion = JavaClassGlobalDef::new_version_id(env, local->get_version_of_current_transaction());
+                        env->CallVoidMethod(obj, on_after_client_reset_method, localVersion);
+                    });
+                    TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
+                };
+            }
+            break;
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_MANUAL: config.sync_config->client_resync_mode = realm::ClientResyncMode::Manual; break;
             default: throw std::logic_error(util::format("Unsupported value for ClientResyncMode: %1", j_client_reset_mode));
         }

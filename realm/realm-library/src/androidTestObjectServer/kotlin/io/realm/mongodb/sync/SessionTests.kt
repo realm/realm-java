@@ -139,6 +139,8 @@ class SessionTests {
                 .testSchema(SyncStringOnly::class.java)
                 .clientResetHandler(object: SyncSession.SeamlessLossClientResetHandler{
                     override fun onBeforeReset(before: Realm, after: Realm) {
+                        assertTrue(before.sharedRealm.versionID > after.sharedRealm.versionID,
+                                "After Realm instance version should come before the Before one.")
                         incrementAndValidate()
                     }
 
@@ -153,6 +155,9 @@ class SessionTests {
                 .build()
 
         val realm = Realm.getInstance(config)
+        realm.executeTransaction {
+            realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo"
+        }
         looperThread.closeAfterTest(realm)
 
         // Trigger error
@@ -162,19 +167,28 @@ class SessionTests {
     // Check that a if Seamless loss Client Reset fails the error is correctly reported.
     @Test
     fun errorHandler_seamlessLossClientReset_resetErrorHandled() = looperThread.runBlocking {
+        val counter = AtomicInteger()
+
+        val incrementAndValidate = {
+            if(2 == counter.incrementAndGet()) {
+                looperThread.testComplete()
+            }
+        }
+
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .testSchema(SyncStringOnly::class.java)
                 .clientResetHandler(object: SyncSession.SeamlessLossClientResetHandler{
                     override fun onBeforeReset(before: Realm, after: Realm) {
-                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::onBeforeReset()")
+                        incrementAndValidate()
                     }
 
                     override fun onAfterReset(realm: Realm) {
-                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::onAfterReset()")
+                        incrementAndValidate()
+//                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::onAfterReset()")
                     }
 
                     override fun onClientResetError(session: SyncSession, error: ClientResetRequiredError) {
-                        looperThread.testComplete()
+                        incrementAndValidate()
                     }
                 })
                 .build()

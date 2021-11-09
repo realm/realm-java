@@ -315,9 +315,14 @@ public class Realm extends BaseRealm {
                 throw new IllegalArgumentException("Non-null context required.");
             }
             checkFilesDirAvailable(context);
+
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
-            ObjectServerFacade.getSyncFacadeIfPossible().initialize(context, userAgent);
+
+            ObjectServerFacade.getSyncFacadeIfPossible().initialize(context, userAgent,
+                    (configuration, versionID) -> RealmCache
+                            .createRealmOrGetFromCache(configuration, Realm.class, versionID));
+
             if (context.getApplicationContext() != null) {
                 BaseRealm.applicationContext = context.getApplicationContext();
             } else {

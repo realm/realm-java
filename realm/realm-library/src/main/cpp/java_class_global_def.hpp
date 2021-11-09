@@ -57,6 +57,7 @@ private:
         , m_bson_object_id(env, "org/bson/types/ObjectId", false)
         , m_java_util_uuid(env, "java/util/UUID", false)
         , m_io_realm_internal_core_native_mixed(env, "io/realm/internal/core/NativeRealmAny", false)
+        , m_io_realm_internal_version_id(env, "io/realm/internal/OsSharedRealm$VersionID", false)
 #if REALM_ENABLE_SYNC
         , m_network_transport_response(env, "io/realm/internal/objectstore/OsJavaNetworkTransport$Response", false)
 #endif
@@ -77,6 +78,7 @@ private:
     jni_util::JavaClass m_bson_object_id;
     jni_util::JavaClass m_java_util_uuid;
     jni_util::JavaClass m_io_realm_internal_core_native_mixed;
+    jni_util::JavaClass m_io_realm_internal_version_id;
 
 #if REALM_ENABLE_SYNC
     jni_util::JavaClass m_network_transport_response;
@@ -178,6 +180,8 @@ public:
     static jobject new_uuid(JNIEnv* env, const UUID& uuid);
 
     static jobject new_mixed(JNIEnv* env, const Mixed& mixed);
+
+    static jobject new_version_id(JNIEnv* env, const VersionID& versionId);
 
     // io.realm.internal.OsSharedRealm.SchemaChangedCallback
     inline static const jni_util::JavaClass& shared_realm_schema_change_callback()

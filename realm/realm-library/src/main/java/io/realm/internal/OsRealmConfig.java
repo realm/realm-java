@@ -23,11 +23,14 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.CompactOnLaunchCallback;
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.sync.SyncSession;
 
 /**
  * Java wrapper of Object Store's Realm::Config.
@@ -81,6 +84,14 @@ public class OsRealmConfig implements NativeObject {
         public byte getNativeValue() {
             return value;
         }
+    }
+
+    interface BeforeClientResetHandler {
+        void onBeforeReset(@Nonnull OsSharedRealm.VersionID before, @Nonnull OsSharedRealm.VersionID after);
+    }
+
+    interface AfterClientResetHandler {
+        void onAfterReset(@Nonnull OsSharedRealm.VersionID after);
     }
 
     /**
@@ -224,6 +235,8 @@ public class OsRealmConfig implements NativeObject {
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
+        BeforeClientResetHandler beforeClientResetHandler = (BeforeClientResetHandler) syncConfigurationOptions[j++];
+        AfterClientResetHandler afterClientResetHandler = (AfterClientResetHandler) syncConfigurationOptions[j++];
         String encodedPartitionValue = (String) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
         Long appPtr = (Long) syncConfigurationOptions[j++];
@@ -297,6 +310,8 @@ public class OsRealmConfig implements NativeObject {
                     customAuthorizationHeaderName,
                     customHeaders,
                     clientResyncMode,
+                    beforeClientResetHandler,
+                    afterClientResetHandler,
                     encodedPartitionValue,
                     syncService);
             try {
@@ -394,7 +409,7 @@ public class OsRealmConfig implements NativeObject {
                                                               String userId, String userProvider, String refreshToken, String accessToken,
                                                               String deviceId, byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
-                                                              String[] customHeaders, byte clientResetMode,
+                                                              String[] customHeaders, byte clientResetMode, Object beforeClientResetHandler, Object afterClientResetHandler,
                                                               String partionKeyValue, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,

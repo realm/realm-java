@@ -28,7 +28,7 @@ import io.realm.internal.OsRealmConfig;
  * <p>
  * <b>IMPORTANT:</b> Just having the device offline will not trigger a Client Resync.
  */
-enum ClientResyncMode {
+public enum ClientResyncMode {
 
     /**
      * All data in the local Realm will be discarded and replaced with data from
@@ -62,5 +62,4 @@ enum ClientResyncMode {
     public byte getNativeValue() {
         return value;
     }
-
-    }
+}

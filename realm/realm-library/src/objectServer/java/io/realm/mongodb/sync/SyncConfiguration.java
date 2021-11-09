@@ -438,7 +438,7 @@ public class SyncConfiguration extends RealmConfiguration {
     /**
      * Returns what happens in case of a Client Resync.
      */
-    ClientResyncMode getClientResyncMode() {
+    public ClientResyncMode getClientResyncMode() {
         return clientResyncMode;
     }
 
@@ -856,13 +856,7 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
-        /**
-         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
-         * logged when a Client Reset occurs.
-         *
-         * @param handler custom handler in case of a Client Reset.
-         */
-        public Builder clientResetHandler(SyncSession.ManualClientResetHandler handler) {
+        Builder clientResetHandlerInternal(SyncSession.ClientResetHandlerInterface handler) {
             Util.checkNull(handler, "handler");
             this.clientResetHandler = handler;
             return this;
@@ -872,12 +866,20 @@ public class SyncConfiguration extends RealmConfiguration {
          * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
          * logged when a Client Reset occurs.
          *
-         * @param handler custom handler in case of a Client Reset.
+         * @param handler custom manual handler in case of a Client Reset.
+         */
+        public Builder clientResetHandler(SyncSession.ManualClientResetHandler handler) {
+            return clientResetHandlerInternal(handler);
+        }
+
+        /**
+         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * @param handler custom seamless loss handler in case of a Client Reset.
          */
         public Builder clientResetHandler(SyncSession.SeamlessLossClientResetHandler handler) {
-            Util.checkNull(handler, "handler");
-            this.clientResetHandler = handler;
-            return this;
+            return clientResetHandlerInternal(handler);
         }
 
         /**
@@ -1086,8 +1088,10 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             // Set the default Client Resync Mode based on the current type of Realm.
-            if (clientResyncMode == null) {
+            if (clientResetHandler instanceof SyncSession.ManualClientResetHandler) {
                 clientResyncMode = ClientResyncMode.MANUAL;
+            } else if (clientResetHandler instanceof SyncSession.SeamlessLossClientResetHandler) {
+                clientResyncMode = ClientResyncMode.SEAMLESS_LOSS;
             }
 
             if (rxFactory == null && Util.isRxJavaAvailable()) {
