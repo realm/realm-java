@@ -8,6 +8,7 @@
 * [RealmApp] User being left in the logged in state when the user's refresh token expires. (Issue [Realm Core #4882](https://github.com/realm/realm-core/issues/4882), since v10)
 * Using "sort", "distinct", or "limit" as field name in query expression would cause an "Invalid predicate" error. (Issue [#7545](), since v10.X.X)
 * Crash when quering with 'Not()' followed by empty group. (Issue [Realm Core #4168]() since v1.0.0)
+* Streaming download notifiers reported incorrect values for transferrable bytes. (Issue [Realm Core #5008]() since v11.5.2)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.

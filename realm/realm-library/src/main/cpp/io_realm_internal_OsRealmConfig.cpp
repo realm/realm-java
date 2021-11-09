@@ -327,6 +327,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         JStringAccessor user_id(env, j_user_id);
         JStringAccessor user_provider(env, j_user_provider);
         std::shared_ptr<SyncUser> user = app->sync_manager()->get_existing_logged_in_user(user_id);
+
+        // FIXME: Investigate we shall be get the user https://github.com/realm/realm-java/issues/7591
         if (!user) {
             JStringAccessor refresh_token(env, j_refresh_token);
             JStringAccessor access_token(env, j_access_token);
