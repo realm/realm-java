@@ -1999,9 +1999,9 @@ public class Realm extends BaseRealm {
     /**
      * Encapsulates a Realm transaction.
      * <p>
-     * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()}
-     * If any exception is thrown during the transaction {@link #cancelTransaction()} will be called instead of
-     * {@link #commitTransaction()}.
+     * Using this class will automatically handle {@link io.realm.Realm#beginTransaction()} and {@link io.realm.Realm#commitTransaction()}
+     * If any exception is thrown during the transaction {@link io.realm.Realm#cancelTransaction()} will be called instead of
+     * {@link io.realm.Realm#commitTransaction()}.
      */
     public interface Transaction {
         void execute(Realm realm);
