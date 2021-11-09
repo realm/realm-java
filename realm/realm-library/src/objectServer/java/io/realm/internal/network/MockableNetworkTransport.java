@@ -3,6 +3,8 @@ package io.realm.internal.network;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.mongodb.AppException;
 
@@ -16,11 +18,12 @@ public class MockableNetworkTransport extends OsJavaNetworkTransport {
         this.networkTransport = networkTransport;
     }
 
-    public void setMockNetworkTransport(OsJavaNetworkTransport networkTransport) {
-        if (networkTransport == null)
-            this.networkTransport = this.originalNetworkTransport;
-        else
-            this.networkTransport = networkTransport;
+    public void setMockNetworkTransport(@Nonnull OsJavaNetworkTransport networkTransport) {
+        this.networkTransport = networkTransport;
+    }
+
+    public void setOriginalNetworkTransport() {
+        this.networkTransport = this.originalNetworkTransport;
     }
 
     @Override

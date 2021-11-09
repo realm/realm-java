@@ -15,7 +15,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core 11.5.3, commit: 74f26c3ab869cc31f7706ed94361c8602a5ea12a.
+* Updated to Realm Core 11.6.0, commit: b170db6a47789ff5f2fbc3eeed0220b4b0a3f6b7.
 * Disable analytics for any value of the `REALM_DISABLE_ANALYTICS` environment variable, not just `true`.
 * Disable analytics whenever the `CI` environment variable is set.
 

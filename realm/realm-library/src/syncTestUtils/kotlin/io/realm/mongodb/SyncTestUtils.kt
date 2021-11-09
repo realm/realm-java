@@ -132,7 +132,7 @@ class SyncTestUtils {
                 }
             }
             val user = app.login(Credentials.emailPassword(TestHelper.getRandomEmail(), "123456"))
-            app.osApp.networkTransport = null
+            app.osApp.setOriginalNetworkTransport()
             return user
         }
 
