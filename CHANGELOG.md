@@ -1,10 +1,15 @@
 ## 10.9.0 (YYYY-MM-DD)
 
 ### Enhancements
-* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Isse [#7299](https://github.com/realm/realm-java/issues/7299)) 
+* [RealmApp] Reduced native memory usage when working with synchronized Realms.
+* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
 
 ### Fixed
-* None.
+* [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919)) 
+* [RealmApp] User being left in the logged in state when the user's refresh token expires. (Issue [Realm Core #4882](https://github.com/realm/realm-core/issues/4882), since v10)
+* Using "sort", "distinct", or "limit" as field name in query expression would cause an "Invalid predicate" error. (Issue [#7545](), since v10.X.X)
+* Crash when quering with 'Not()' followed by empty group. (Issue [Realm Core #4168]() since v1.0.0)
+* Streaming download notifiers reported incorrect values for transferrable bytes. (Issue [Realm Core #5008]() since v11.5.2)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -12,6 +17,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
+* Updated to Realm Core 11.6.0, commit: b170db6a47789ff5f2fbc3eeed0220b4b0a3f6b7.
 * Upgrade to JDK 11.
 * Updated to Gradle 7.2.
 * Updated to Android Gradle Plugin 4.1.3.

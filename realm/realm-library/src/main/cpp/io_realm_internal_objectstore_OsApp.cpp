@@ -75,16 +75,6 @@ private:
     JavaClass m_realm_exception_class;
 };
 
-struct AndroidSyncLoggerFactory : public realm::SyncLoggerFactory {
-    // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
-    std::unique_ptr<util::Logger> make_logger(util::Logger::Level) override
-    {
-        auto logger = std::make_unique<CoreLoggerBridge>(std::string("REALM_SYNC"));
-        // Cast to std::unique_ptr<util::Logger>
-        return std::move(logger);
-    }
-} s_sync_logger_factory;
-
 static void finalize_client(jlong ptr) {
     delete reinterpret_cast<App*>(ptr);
 }
@@ -122,13 +112,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
         }
 
         // App Config
-        std::function<std::unique_ptr<GenericNetworkTransport>()> transport_generator = [java_app_ref = JavaGlobalRefByCopy(env, obj)] {
-            JNIEnv* env = JniUtils::get_env(true);
-            static JavaMethod get_network_transport_method(env, java_app_ref.get(), "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
-            jobject network_transport_impl = env->CallObjectMethod(java_app_ref.get(), get_network_transport_method);
-            return std::unique_ptr<GenericNetworkTransport>(new JavaNetworkTransport(network_transport_impl));
-        };
-
         JStringAccessor base_url(env, j_base_url);
         JStringAccessor app_name(env, j_app_name);
         JStringAccessor app_version(env, j_app_version);
@@ -137,9 +120,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
         JStringAccessor sdk_version(env, j_sdk_version);
         JByteArrayAccessor encryption_key(env, j_encryption_key);
 
+        // Create Network Transport
+        static JavaMethod get_network_transport_method(env, obj, "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
+        jobject network_transport_impl = env->CallObjectMethod(obj, get_network_transport_method);
+        auto network_transport = std::make_shared<JavaNetworkTransport>(network_transport_impl);
+
         auto app_config = App::Config{
                 app_id,
-                transport_generator,
+                network_transport,
                 util::Optional<std::string>(base_url),
                 util::Optional<std::string>(app_name),
                 util::Optional<std::string>(app_version),
@@ -168,7 +156,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
 
         SharedApp app = App::get_shared_app(app_config, client_config);
         // Init logger. Must be called after .configure()
-        app->sync_manager()->set_logger_factory(s_sync_logger_factory);
+        SyncClientConfig::LoggerFactory factory = [](util::Logger::Level) {
+            // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
+            return std::make_unique<CoreLoggerBridge>(std::string("REALM_SYNC"));
+        };
+        app->sync_manager()->set_logger_factory(factory);
         // Register Sync Client thread start/stop callback. Must be called after .configure()
         static AndroidClientListener client_thread_listener(env);
         g_binding_callback_thread_observer = &client_thread_listener;

@@ -321,12 +321,6 @@ class SyncConfigurationTests {
         // Default mode for full Realms
         var config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
         assertEquals(ClientResyncMode.MANUAL, config.clientResyncMode)
-
-        // Manually set the mode
-        config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-                .clientResyncMode(ClientResyncMode.DISCARD_LOCAL_REALM)
-                .build()
-        assertEquals(ClientResyncMode.DISCARD_LOCAL_REALM, config.clientResyncMode)
     }
 
     @Test

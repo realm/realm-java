@@ -272,9 +272,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsResults_nativeWhere(JNIEnv* env
 {
     try {
         auto wrapper = reinterpret_cast<ResultsWrapper*>(native_ptr);
-
-        auto table_view = wrapper->collection().get_tableview();
-        Query* query = new Query(table_view.get_parent(), std::unique_ptr<ConstTableView>(new TableView(std::move(table_view))));
+        TableView table_view = wrapper->collection().get_tableview();
+        Query* query = new Query(table_view.get_parent(), std::unique_ptr<TableView>(new TableView(std::move(table_view))));
         query->set_ordering(std::make_unique<DescriptorOrdering>());
         return reinterpret_cast<jlong>(query);
     }
