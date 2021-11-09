@@ -226,6 +226,13 @@ class SyncSessionTests {
         }
     }
 
+    // FIXME: Investigate if this behavior is correct https://github.com/realm/realm-java/issues/7591
+    @Test
+    fun session_throwOnLogoutUser() {
+        user.logOut()
+        Realm.getInstance(syncConfiguration).use { }
+    }
+
     @Test
     fun uploadDownloadAllChanges() {
         Realm.getInstance(syncConfiguration).use { realm ->
