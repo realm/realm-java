@@ -94,7 +94,7 @@ import java.lang.annotation.Target;
  * <p>
  * Querying inverse relationship is like querying any {@code RealmResults}. This means that an inverse relationship
  * cannot be {@code null} but it can be empty (length is 0). It is possible to query fields in the source class. This is
- * equivalent to link queries. Please read <a href="https://realm.io/docs/java/latest/#link-queries">for more
+ * equivalent to link queries. Please read <a href="https://docs.mongodb.com/realm/sdk/android/examples/define-a-realm-object-model/#std-label-android-field-relationships-inverse">for more
  * information</a>.
  */
 @Retention(RetentionPolicy.RUNTIME)

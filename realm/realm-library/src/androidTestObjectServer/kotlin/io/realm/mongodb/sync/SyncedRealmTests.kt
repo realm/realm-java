@@ -230,7 +230,7 @@ class SyncedRealmTests {
 
     @Test
     fun compactOnLaunch_shouldCompact() {
-        val user = createTestUser(app)
+        var user = createTestUser(app)
 
         // Fill Realm with data and record size
         val config1 = configFactory.createSyncConfigurationBuilder(user)
@@ -248,6 +248,8 @@ class SyncedRealmTests {
             originalSize = File(realm.path).length()
         }
 
+        // Recreate mock user as it is automatically logged out
+        user = createTestUser(app)
         // Open Realm with CompactOnLaunch
         val config2 = configFactory.createSyncConfigurationBuilder(user)
                 .compactOnLaunch { totalBytes, usedBytes -> true }

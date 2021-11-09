@@ -126,8 +126,11 @@ class SyncedRealmIntegrationTests {
     @Test
     @UiThreadTest
     fun waitForInitialRemoteData_mainThreadThrows() {
-        val user: User = SyncTestUtils.createTestUser(app)
-        val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
+        var user: User? = null
+        val t = Thread { user = SyncTestUtils.createTestUser(app) }
+        t.start()
+        t.join()
+        val config: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user!!, user!!.id)
                 .waitForInitialRemoteData()
                 .build()
         assertFailsWith<java.lang.IllegalStateException> {

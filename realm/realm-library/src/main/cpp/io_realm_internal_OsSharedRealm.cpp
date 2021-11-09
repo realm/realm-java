@@ -17,7 +17,6 @@
 #include "io_realm_internal_OsSharedRealm.h"
 #if REALM_ENABLE_SYNC
 #include <realm/sync/config.hpp>
-#include <realm/sync/object.hpp>
 #include <realm/object-store/sync/sync_manager.hpp>
 #include <realm/object-store/sync/sync_session.hpp>
 #include <realm/object-store/results.hpp>
@@ -259,7 +258,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTable(J
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  util::format(c_table_name_exists_exception_msg, table_name.substr(TABLE_PREFIX.length())));
         }
-        table = sync::create_table(static_cast<Transaction&>(group), table_name); // throws
+        table = static_cast<Transaction&>(group).add_table(table_name); // throws
 #else
         table = group.add_table(table_name); // throws
 #endif
@@ -296,8 +295,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeCreateTableWi
             THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalArgument,
                                  util::format(c_table_name_exists_exception_msg, class_name_str));
         }
-        table =
-            sync::create_table_with_primary_key(static_cast<Transaction&>(group), table_name, pkType, field_name, is_nullable);
+        table = static_cast<Transaction&>(group).add_table_with_primary_key(table_name, pkType, field_name, is_nullable);
 #else
         table = group.add_table_with_primary_key(table_name, pkType, field_name,
                                                          is_nullable);

@@ -1,22 +1,20 @@
 package io.realm.internal.objectstore;
 
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 
 import io.realm.internal.KeepMember;
 import io.realm.internal.NativeObject;
-import io.realm.internal.jni.OsJNIResultCallback;
+import io.realm.internal.network.MockableNetworkTransport;
+import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.network.OkHttpNetworkTransport;
-import io.realm.internal.network.ResultHandler;
 import io.realm.mongodb.AppConfiguration;
-import io.realm.mongodb.AppException;
 
 public class OsApp implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
 
-    private OsJavaNetworkTransport networkTransport;
+    private MockableNetworkTransport networkTransport;
     private final long nativePtr;
 
     @Override
@@ -31,6 +29,13 @@ public class OsApp implements NativeObject {
 
     public OsApp(AppConfiguration config, String userAgentBindingInfo, String appDefinedUserAgent, String syncDir) {
         synchronized (OsApp.class) { // We need to synchronize access as OS caches the App instance
+            // Network transport must be created before the C++ App instance as it is used
+            // as part of setting it up.
+            this.networkTransport = new MockableNetworkTransport(new OkHttpNetworkTransport(config.getHttpLogObfuscator()));
+            networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
+            for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
+                networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
+            }
             nativePtr = nativeCreate(
                     config.getAppId(),
                     config.getBaseUrl().toString(),
@@ -45,16 +50,14 @@ public class OsApp implements NativeObject {
                     android.os.Build.VERSION.RELEASE,
                     io.realm.BuildConfig.VERSION_NAME);
         }
-
-        this.networkTransport = new OkHttpNetworkTransport(config.getHttpLogObfuscator());
-        networkTransport.setAuthorizationHeaderName(config.getAuthorizationHeaderName());
-        for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
-            networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
-        }
     }
 
-    public void setNetworkTransport(OsJavaNetworkTransport transport) {
-        networkTransport = transport;
+    public void setNetworkTransport(@Nullable OsJavaNetworkTransport transport) {
+        networkTransport.setMockNetworkTransport(transport);
+    }
+
+    public void setOriginalNetworkTransport() {
+        networkTransport.setOriginalNetworkTransport();
     }
 
     /**
@@ -93,18 +96,17 @@ public class OsApp implements NativeObject {
     }
 
     public OsSyncUser login(OsAppCredentials credentials) {
-        AtomicReference<OsSyncUser> success = new AtomicReference<>(null);
-        AtomicReference<AppException> error = new AtomicReference<>(null);
-
-        nativeLogin(nativePtr, credentials.getNativePtr(), new OsJNIResultCallback<OsSyncUser>(success, error) {
+        return new NetworkRequest<OsSyncUser>() {
             @Override
-            protected OsSyncUser mapSuccess(Object result) {
+            public OsSyncUser mapSuccess(Object result) {
                 Long nativePtr = (Long) result;
                 return new OsSyncUser(nativePtr);
             }
-        });
-
-        return ResultHandler.handleResult(success, error);
+            @Override
+            public void execute(NetworkRequest<OsSyncUser> callback) {
+                nativeLogin(nativePtr, credentials.getNativePtr(), callback);
+            }
+        }.resultOrThrow();
     }
 
     // Called from JNI
@@ -126,7 +128,7 @@ public class OsApp implements NativeObject {
                                      String platformVersion,
                                      String sdkVersion);
 
-    private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, OsJavaNetworkTransport.NetworkTransportJNIResultCallback callback);
+    private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, NetworkRequest callback);
 
     @Nullable
     private static native Long nativeCurrentUser(long nativePtr);

@@ -79,7 +79,7 @@ import static junit.framework.Assert.fail;
 public class TestHelper {
     public static final int VERY_SHORT_WAIT_SECS = 1;
     public static final int SHORT_WAIT_SECS = 10;
-    public static final int STANDARD_WAIT_SECS = 200;
+    public static final int STANDARD_WAIT_SECS = 300;
 
     private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final SecureRandom RANDOM = new SecureRandom();

@@ -62,7 +62,7 @@ public enum ImportFlag {
      * unit, then this flag should not be set as it will ensure that all fields are set and thus have
      * the same "age" when data are sent to the server.
      *
-     * @see <a href="https://docs.realm.io/platform/self-hosted/customize/conflict-resolution">Docs on conflict resolution</a>
+     * @see <a href="https://docs.mongodb.com/realm/sync/conflict-resolution/">Docs on conflict resolution</a>
      */
     CHECK_SAME_VALUES_BEFORE_SET,
 

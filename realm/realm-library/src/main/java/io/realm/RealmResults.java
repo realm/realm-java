@@ -828,7 +828,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
      * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
     public Flowable<RealmResults<E>> asFlowable() {
@@ -874,7 +874,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
      * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     public Observable<CollectionChange<RealmResults<E>>> asChangesetObservable() {
         if (baseRealm instanceof Realm) {

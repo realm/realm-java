@@ -950,7 +950,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
     public Flowable<RealmList<E>> asFlowable() {
@@ -992,7 +992,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
      * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     public Observable<CollectionChange<RealmList<E>>> asChangesetObservable() {
         if (baseRealm instanceof Realm) {

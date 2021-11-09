@@ -78,7 +78,7 @@ public class RealmConfiguration {
             if (!mediator.transformerApplied()) {
                 throw new ExceptionInInitializerError("RealmTransformer doesn't seem to be applied." +
                         " Please update the project configuration to use the Realm Gradle plugin." +
-                        " See https://realm.io/news/android-installation-change/");
+                        " See https://docs.mongodb.com/realm/sdk/android/install/#customize-dependecies-defined-by-the-realm-gradle-plugin");
             }
             DEFAULT_MODULE_MEDIATOR = mediator;
         } else {
@@ -270,7 +270,7 @@ public class RealmConfiguration {
         if (rxObservableFactory == null) {
             throw new UnsupportedOperationException("RxJava seems to be missing from the classpath. " +
                     "Remember to add it as an implementation dependency." +
-                    " See https://realm.io/docs/java/latest/#rxjava for more details.");
+                    " See https://github.com/realm/realm-java/tree/master/examples/rxJavaExample for more details.");
         }
         return rxObservableFactory;
     }
@@ -302,7 +302,7 @@ public class RealmConfiguration {
 
     /**
      * @return {@code true} if this configuration is intended to open a backup Realm (as a result of a client reset).
-     * @see <a href="https://realm.io/docs/java/latest/api/io/realm/ClientResetRequiredError.html">ClientResetRequiredError</a>
+     * @see {@link ClientResetRequiredError}
      */
     public boolean isRecoveryConfiguration() {
         return isRecoveryConfiguration;
@@ -842,7 +842,7 @@ public class RealmConfiguration {
          * Realm that can result in very large Realms.
          *
          * @param number the maximum number of active versions before an exception is thrown.
-         * @see <a href="https://realm.io/docs/java/latest/#faq-large-realm-file-size">FAQ</a>
+         * @see <a href="https://docs.mongodb.com/realm/sdk/android/fundamentals/realms/#realm-file-size">FAQ</a>
          */
         public Builder maxNumberOfActiveVersions(long number) {
             if (number < 1) {

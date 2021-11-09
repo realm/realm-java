@@ -57,7 +57,7 @@ import java.lang.annotation.Target;
  * they now has the option of adding the library project classes to their schema using
  * {@code RealmConfiguration.addModule()}.
  *
- * @see <a href="https://github.com/realm/realm-java/tree/master/examples/realmModuleAppExample">Example of a project using modules</a>
+ * @see <a href="https://github.com/realm/realm-java/tree/master/examples/moduleExample">Example of a project using modules</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
