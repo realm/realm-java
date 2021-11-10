@@ -14,7 +14,7 @@ KOTLIN_COROUTINES=1.5.2
 
 # Common classpath dependencies
 gradle=7.2
-ndkVersion=23.1.7779620
+ndkVersion=22.0.7026061
 BUILD_INFO_EXTRACTOR_GRADLE=4.17.0
 GRADLE_NEXUS_PLUGIN=1.0.0
 CMAKE=3.21.4
