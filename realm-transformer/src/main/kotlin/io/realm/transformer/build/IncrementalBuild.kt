@@ -16,7 +16,6 @@
 
 package io.realm.transformer.build
 
-import com.android.SdkConstants
 import com.android.build.api.transform.Format
 import com.android.build.api.transform.Status
 import com.android.build.api.transform.TransformInput
@@ -77,9 +76,9 @@ class IncrementalBuild(metadata: ProjectMetaData, outputProvider: TransformOutpu
                         return@forEach
                     }
                     val filePath: String = it.key.absolutePath
-                    if (filePath.endsWith(SdkConstants.DOT_CLASS)) {
+                    if (filePath.endsWith(DOT_CLASS)) {
                         val className = filePath
-                                .substring(dirPath.length + 1, filePath.length - SdkConstants.DOT_CLASS.length)
+                                .substring(dirPath.length + 1, filePath.length - DOT_CLASS.length)
                                 .replace(File.separatorChar, '.')
                         directoryFiles.add(className)
                     }
@@ -95,7 +94,7 @@ class IncrementalBuild(metadata: ProjectMetaData, outputProvider: TransformOutpu
                 jarFile.entries()
                         .toList()
                         .filter {
-                            !it.isDirectory && it.name.endsWith(SdkConstants.DOT_CLASS)
+                            !it.isDirectory && it.name.endsWith(DOT_CLASS)
                         }
                         .forEach {
                             val path: String = it.name
@@ -103,7 +102,7 @@ class IncrementalBuild(metadata: ProjectMetaData, outputProvider: TransformOutpu
                             // `/`. It depends on how the jar file was created.
                             // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
                             val className: String = path
-                                    .substring(0, path.length - SdkConstants.DOT_CLASS.length)
+                                    .substring(0, path.length - DOT_CLASS.length)
                                     .replace('/', '.')
                                     .replace('\\', '.')
                             jarFiles.add(className)

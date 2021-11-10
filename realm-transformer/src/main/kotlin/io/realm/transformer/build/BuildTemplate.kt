@@ -15,19 +15,21 @@
  */
 package io.realm.transformer.build
 
-import com.android.SdkConstants
+import com.android.build.api.transform.DirectoryInput
 import com.android.build.api.transform.Format
+import com.android.build.api.transform.JarInput
 import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import com.google.common.io.Files
 import io.realm.transformer.*
-import io.realm.transformer.ext.getBootClasspath
 import javassist.ClassPool
 import javassist.CtClass
-import org.gradle.api.Project
 import java.io.File
 import java.util.regex.Pattern
+
+public const val DOT_CLASS = ".class"
+public const val DOT_JAR = ".jar"
 
 /**
  * Abstract class defining the structure of doing different types of builds.
@@ -116,31 +118,31 @@ abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: 
     }
 
     private fun copyResourceFiles(inputs: MutableCollection<TransformInput>) {
-        inputs.forEach {
-            it.directoryInputs.forEach {
-                val dirPath: String = it.file.absolutePath
-                it.file.walkTopDown().forEach {
-                    if (it.isFile) {
-                        if (!it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                            logger.debug("  Copying resource file: $it")
-                            val dest = File(getOutputFile(outputProvider, Format.DIRECTORY), it.absolutePath.substring(dirPath.length))
+        inputs.forEach { input: TransformInput ->
+            input.directoryInputs.forEach { directory: DirectoryInput ->
+                val dirPath: String = directory.file.absolutePath
+                directory.file.walkTopDown().forEach { file: File ->
+                    if (file.isFile) {
+                        if (!file.absolutePath.endsWith(DOT_CLASS)) {
+                            logger.debug("  Copying resource file: $file")
+                            val dest = File(getOutputFile(outputProvider, Format.DIRECTORY), file.absolutePath.substring(dirPath.length))
                             dest.parentFile.mkdirs()
-                            Files.copy(it, dest)
+                            Files.copy(file, dest)
                         }
                     }
                 }
             }
-
-            it.jarInputs.forEach {
-                logger.debug("Found JAR file: ${it.file.absolutePath}")
-                val dirPath: String = it.file.absolutePath
-                it.file.walkTopDown().forEach {
-                    if (it.isFile) {
-                        if (it.absolutePath.endsWith(SdkConstants.DOT_JAR)) {
-                            logger.debug("  Copying jar file: $it")
-                            val dest = File(getOutputFile(outputProvider, Format.JAR), it.absolutePath.substring(dirPath.length))
+,
+            input.jarInputs.forEach { jar: JarInput ->
+                logger.debug("Found JAR file: ${jar.file.absolutePath}")
+                val dirPath: String = jar.file.absolutePath
+                jar.file.walkTopDown().forEach { file: File ->
+                    if (file.isFile) {
+                        if (file.absolutePath.endsWith(DOT_JAR)) {
+                            logger.debug("  Copying jar file: $file")
+                            val dest = File(getOutputFile(outputProvider, Format.JAR), file.absolutePath.substring(dirPath.length))
                             dest.parentFile.mkdirs()
-                            Files.copy(it, dest)
+                            Files.copy(file, dest)
                         }
                     }
                 }

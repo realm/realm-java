@@ -55,6 +55,10 @@ dependencies {
     compileOnly "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
     implementation 'org.javassist:javassist:3.25.0-GA'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    implementation "com.google.guava:guava:31.0.1-jre"
+    // JAX-B dependencies for JDK 9+ (this is not available in JVM env 'java.lang.NoClassDefFoundError: javax/xml/bind/DatatypeConverter'
+    // and it was removed in Java 11 https://stackoverflow.com/a/43574427
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
 
     testImplementation 'junit:junit:4.12'
 }

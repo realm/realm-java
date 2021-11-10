@@ -16,7 +16,6 @@
 
 package io.realm.transformer.build
 
-import com.android.SdkConstants
 import com.android.build.api.transform.Format
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
@@ -27,7 +26,6 @@ import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
 import javassist.CtField
-import org.gradle.api.Project
 import java.io.File
 import java.util.jar.JarFile
 
@@ -51,9 +49,9 @@ class FullBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvid
                 // Non-incremental build: Include all files
                 it.file.walkTopDown().forEach {
                     if (it.isFile) {
-                        if (it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
+                        if (it.absolutePath.endsWith(DOT_CLASS)) {
                             val className: String = it.absolutePath
-                                    .substring(dirPath.length + 1, it.absolutePath.length - SdkConstants.DOT_CLASS.length)
+                                    .substring(dirPath.length + 1, it.absolutePath.length - DOT_CLASS.length)
                                     .replace(File.separatorChar, '.')
                             directoryFiles.add(className)
                         }
@@ -66,7 +64,7 @@ class FullBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvid
                 jarFile.entries()
                         .toList()
                         .filter {
-                            !it.isDirectory && it.name.endsWith(SdkConstants.DOT_CLASS)
+                            !it.isDirectory && it.name.endsWith(DOT_CLASS)
                         }
                         .forEach {
                             val path: String = it.name
@@ -74,7 +72,7 @@ class FullBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvid
                             // `/`. It depends on how the jar file was created.
                             // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
                             val className: String = path
-                                    .substring(0, path.length - SdkConstants.DOT_CLASS.length)
+                                    .substring(0, path.length - DOT_CLASS.length)
                                     .replace('/', '.')
                                     .replace('\\', '.')
                             jarFiles.add(className)
