@@ -1,0 +1,1 @@
+this file purpose is to test opening a Realm with a wrong asset file

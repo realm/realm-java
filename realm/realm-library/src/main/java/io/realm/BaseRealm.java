@@ -300,7 +300,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Writes a compacted copy of the Realm to the given destination File.
+     * Writes a compacted copy of the Realm to the given destination File. On a synced Realm it will
+     * write a copy stripping the client file identifier that will allow to reuse the Realm without
+     * redownloading the data.
      * <p>
      * The destination file cannot already exist.
      * <p>
@@ -321,7 +323,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Writes a compacted and encrypted copy of the Realm to the given destination File.
+     * Writes a compacted and encrypted copy of the Realm to the given destination File. On a synced
+     * Realm it will write a copy stripping the client file identifier that will allow to reuse the
+     * Realm without redownloading the data.
      * <p>
      * The destination file cannot already exist.
      * <p>
