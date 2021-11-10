@@ -43,7 +43,6 @@ android {
                     abiFilters 'x86', 'x86_64', 'armeabi-v7a', 'arm64-v8a'
                 }
 
-                arguments "-DCMAKE_MAKE_PROGRAM=/usr/bin/ninja"
                 arguments "-DREALM_JAVA_BUILD_CORE_FROM_SOURCE=${project.hasProperty('buildCore') && project.getProperty('buildCore').toBoolean()}"
                 arguments "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=${!project.hasProperty('enableLTO') || project.getProperty('enableLTO').toBoolean()}"
                 targets "realm-jni"

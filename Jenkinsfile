@@ -248,7 +248,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         cd ../gradle-plugin
         ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
         cd ../realm
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
+        ./gradlew assemble publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
       """
     }
   }
