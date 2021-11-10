@@ -132,7 +132,7 @@ abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: 
                     }
                 }
             }
-,
+
             input.jarInputs.forEach { jar: JarInput ->
                 logger.debug("Found JAR file: ${jar.file.absolutePath}")
                 val dirPath: String = jar.file.absolutePath
