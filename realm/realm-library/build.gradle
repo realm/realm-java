@@ -163,13 +163,13 @@ project.afterEvaluate {
         options.compilerArgs << '-Werror'
     }
 
-    tasks.all { task ->
-        android.productFlavors.all { flavor ->
-            if (task.name == "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal") {
-                task.dependsOn "assemble${flavor.name.capitalize()}"
-            }
-        }
-    }
+//    tasks.all { task ->
+//        android.productFlavors.all { flavor ->
+//            if (task.name == "publish${flavor.name.capitalize()}PublicationPublicationToMavenLocal") {
+//                task.dependsOn "assemble${flavor.name.capitalize()}"
+//            }
+//        }
+//    }
 }
 
 // enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/09/kotlin-1-1-50-is-out/
