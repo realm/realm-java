@@ -150,6 +150,8 @@ try {
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${mongoDbRealmContainer.id} ") {
 
+            sh "type ninja"
+
             // Lock required around all usages of Gradle as it isn't
             // able to share its cache between builds.
             lock("${env.NODE_NAME}-android") {
