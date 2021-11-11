@@ -225,7 +225,7 @@ public class SyncSession {
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
             } else if (clientResetHandler instanceof SeamlessLossClientResetHandler) {
-                ((SeamlessLossClientResetHandler) clientResetHandler).onClientResetError(this,
+                ((SeamlessLossClientResetHandler) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
             }
@@ -786,7 +786,7 @@ public class SyncSession {
          * @param session {@link SyncSession} this error happened on.
          * @param error {@link ClientResetRequiredError} the specific Client Reset error.
          */
-        void onClientResetError(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
+        void onError(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling

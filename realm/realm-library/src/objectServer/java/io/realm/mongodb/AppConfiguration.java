@@ -402,7 +402,7 @@ public class AppConfiguration {
             }
 
             @Override
-            public void onClientResetError(@NotNull SyncSession session, @NotNull ClientResetRequiredError error) {
+            public void onError(@NotNull SyncSession session, @NotNull ClientResetRequiredError error) {
                 RealmLog.fatal("Seamless Client Reset failed on: " + session.getConfiguration().getServerUrl());
             }
         };

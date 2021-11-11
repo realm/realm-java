@@ -360,7 +360,7 @@ class SyncConfigurationTests {
                         fail("Should not be called")
                     }
 
-                    override fun onClientResetError(session: SyncSession, error: ClientResetRequiredError) {
+                    override fun onError(session: SyncSession, error: ClientResetRequiredError) {
                         fail("Should not be called")
                     }
 
