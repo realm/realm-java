@@ -965,7 +965,7 @@ class SyncedRealmTests {
     fun assetFile_wrongFileType() {
         val user = createNewUser()
         val config = SyncConfiguration.Builder(user, "foo")
-                .assetFile("document.txt")
+                .assetFile("versionTest.realm")
                 .schema(SyncColor::class.java)
                 .build()
 
