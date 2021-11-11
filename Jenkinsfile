@@ -239,16 +239,8 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         signingFlags = "-PsignBuild=true -PsignSecretRingFile=\"${SIGN_KEY}\" -PsignPassword=${SIGN_KEY_PASSWORD}"
       }
       sh """
-        cd realm-annotations
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../realm-transformer
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../library-build-transformer
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../gradle-plugin
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../realm
-        ./gradlew realm-library:configureCMakeDebug ${buildFlags} ${signingFlags} --info --stacktrace
+        cd examples/NDKConfigureCrash
+        ./gradlew assemble
       """
     }
   }
