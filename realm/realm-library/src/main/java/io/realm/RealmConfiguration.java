@@ -199,7 +199,7 @@ public class RealmConfiguration {
     }
 
     /**
-     * Indicates if an asset file has configured for this configuration.
+     * Indicates if an asset file has been configured for this configuration.
      *
      * @return {@code true} if there is asset file, {@code false} otherwise.
      */
