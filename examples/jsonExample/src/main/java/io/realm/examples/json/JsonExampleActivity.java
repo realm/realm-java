@@ -29,6 +29,7 @@ import java.util.Map;
 
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
+import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 
 /**
@@ -50,10 +51,14 @@ public class JsonExampleActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_example);
+        RealmConfiguration config = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(true)
+                .allowQueriesOnUiThread(true)
+                .build();
 
-        Realm.deleteRealm(Realm.getDefaultConfiguration());
+        Realm.deleteRealm(config);
 
-        realm = Realm.getDefaultInstance();
+        realm = Realm.getInstance(config);
 
         gridView = findViewById(R.id.cities_list);
 
