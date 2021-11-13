@@ -150,8 +150,6 @@ try {
                   "-e REALM_CORE_DOWNLOAD_DIR=/tmp/.gradle " +
                   "--network container:${mongoDbRealmContainer.id} ") {
 
-            sh "type ninja"
-
             // Lock required around all usages of Gradle as it isn't
             // able to share its cache between builds.
             lock("${env.NODE_NAME}-android") {
@@ -238,18 +236,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
       if (isReleaseBranch) {
         signingFlags = "-PsignBuild=true -PsignSecretRingFile=\"${SIGN_KEY}\" -PsignPassword=${SIGN_KEY_PASSWORD}"
       }
-      sh """
-        cd realm-annotations
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../realm-transformer
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../library-build-transformer
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../gradle-plugin
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../realm
-        ./gradlew realm-library:configureCMakeDebug ${buildFlags} ${signingFlags} --info --stacktrace
-      """
+      sh "./gradlew assemble ${buildFlags} ${signingFlags} --stacktrace"
     }
   }
 
