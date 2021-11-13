@@ -92,4 +92,7 @@ RUN cd /opt \
     && wget -nv https://cmake.org/files/v3.21/cmake-3.21.4-linux-x86_64.tar.gz \
     && tar zxf cmake-3.21.4-linux-x86_64.tar.gz
 
+# Workaround for https://issuetracker.google.com/issues/206099937
+RUN ln -s /usr/bin/ninja /opt/cmake-3.21.4-linux-x86_64/bin/ninja
+
 ENV PATH "/opt/cmake-3.21.4-linux-x86_64/bin:$PATH"
