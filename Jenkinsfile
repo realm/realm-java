@@ -251,13 +251,14 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         step([$class: 'LintPublisher'])
       }
     },
-    'JVM8 introExample check' : {
-      // Force build with JVM8, by disabling the cache, and check introExample.
-      sh """
-        cd examples/moduleExample
-        JAVA_HOME=\$JAVA8_HOME ../gradlew check ${buildFlags} --stacktrace
-      """
-    },
+    // FIXME Temporarely disable this while figuring out the correct setup
+    // 'JVM8 introExample check' : {
+    //   // Force build with JVM8, by disabling the cache, and check introExample.
+    //   sh """
+    //     cd examples/moduleExample
+    //     JAVA_HOME=\$JAVA8_HOME ../gradlew check ${buildFlags} --stacktrace
+    //   """
+    // },
     'Realm Transformer' : {
       try {
         gradle('realm-transformer', 'check')
