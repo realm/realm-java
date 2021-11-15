@@ -2,6 +2,7 @@
 
 ### Enhancements
 * [RealmApp] Reduced native memory usage when working with synchronized Realms.
+* [RealmApp] Make it possible to bundle synchronized Realms in apps using `Realm.writeCopyTo()` and `SyncConfiguration.Builder.assetFile()`.
 
 ### Fixed
 * [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919)) 

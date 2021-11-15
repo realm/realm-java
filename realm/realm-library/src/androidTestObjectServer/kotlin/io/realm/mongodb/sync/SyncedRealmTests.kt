@@ -15,11 +15,13 @@
  */
 package io.realm.mongodb.sync
 
+import androidx.annotation.UiThread
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.entities.*
 import io.realm.entities.embedded.*
+import io.realm.exceptions.RealmFileException
 import io.realm.kotlin.createEmbeddedObject
 import io.realm.kotlin.createObject
 import io.realm.kotlin.syncSession
@@ -28,6 +30,7 @@ import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
+import io.realm.rule.BlockingLooperThread
 import org.bson.BsonNull
 import org.bson.BsonString
 import org.bson.types.Decimal128
@@ -36,12 +39,10 @@ import org.junit.*
 import org.junit.Assert.assertNotEquals
 import org.junit.runner.RunWith
 import java.io.File
+import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
-import kotlin.test.fail
+import kotlin.test.*
 
 /**
  * Testing sync specific methods on [Realm].
@@ -52,6 +53,7 @@ class SyncedRealmTests {
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
 
+    private val looperThread = BlockingLooperThread()
     private lateinit var app: App
     private lateinit var partitionValue: String
 
@@ -803,6 +805,174 @@ class SyncedRealmTests {
     // FIXME Missing test, maybe fitting better in SyncSessionTest.kt...when migrated
     @Ignore("Not implemented yet")
     fun refreshConnections() = Unit
+
+
+    @Test
+    @UiThread
+    fun writeCopyTo_syncedRealmThrowsOnMainThread() {
+        lateinit var user: User
+        val t = Thread { user = createNewUser() }
+        t.start()
+        t.join()
+        val config: SyncConfiguration = createCustomConfig(user, "foo")
+        val realm = Realm.getInstance(config)
+        realm.use { r: Realm ->
+            assertFailsWith<IllegalStateException> { r.writeCopyTo(File("dummy.realm")) }
+        }
+    }
+
+    @Test
+    fun writeCopyTo_syncedRealmThrowsIfLocalChangesNotUploaded() {
+        val user = createNewUser()
+        val config: SyncConfiguration = createCustomConfig(user, "foo")
+        val realm = Realm.getInstance(config)
+        realm.syncSession.stop()
+        realm.executeTransaction {
+            it.insert(SyncColor())
+        }
+        realm.use { r: Realm ->
+            assertFailsWith<IllegalStateException> {
+                r.writeCopyTo(File("dummy.realm"))
+            }
+        }
+    }
+
+    @Test
+    fun writeCopyTo() {
+        val user = createNewUser()
+        val partitionValue = UUID.randomUUID().toString()
+        val config: SyncConfiguration = createCustomConfig(user, partitionValue)
+        val copy = File(Realm.getApplicationContext()!!.filesDir,"copy.realm")
+        Realm.getInstance(config).use { realm: Realm ->
+            realm.executeTransaction {
+                it.insert(SyncColor())
+            }
+
+            // Create copy of file
+            if (copy.exists()) {
+                copy.delete()
+            }
+            realm.syncSession.uploadAllLocalChanges()
+            realm.syncSession.downloadAllServerChanges() // Work around for https://github.com/realm/realm-core/issues/4865
+            realm.writeCopyTo(copy)
+        }
+
+        // Manually move the file into the place of another user.
+        // and verify that the user can sync with the Realm.
+        // We cannot use the "assetFile" API that users do, as terminating
+        // Sync renders the file invalid, so we cannot package a test file
+        // for later use.
+        val user2 = createNewUser()
+        val config2: SyncConfiguration = createCustomConfig(user2, partitionValue)
+        val destination = File(config2.path)
+        destination.delete()
+        assertTrue(copy.renameTo(destination))
+
+        Realm.getInstance(config2).use { realm: Realm ->
+            // Check that the copy contains data
+            assertEquals(1, realm.where<SyncColor>().count())
+            realm.executeTransaction {
+                realm.createObject(SyncColor::class.java, ObjectId())
+            }
+            // Check that we can synchronize with the server
+            realm.syncSession.downloadAllServerChanges()
+            realm.syncSession.uploadAllLocalChanges()
+        }
+    }
+
+    @Test
+    fun writeCopyEncryptedTo() {
+        val key = TestHelper.getRandomKey()
+
+        val user = createNewUser()
+        val partitionValue = UUID.randomUUID().toString()
+        val config: SyncConfiguration = createCustomConfig(user, partitionValue)
+        val copy = File(Realm.getApplicationContext()!!.filesDir,"copy.realm")
+        Realm.getInstance(config).use { realm: Realm ->
+            realm.executeTransaction {
+                it.insert(SyncColor())
+            }
+
+            // Create copy of file
+            if (copy.exists()) {
+                copy.delete()
+            }
+            realm.syncSession.uploadAllLocalChanges()
+            realm.syncSession.downloadAllServerChanges() // Work around for https://github.com/realm/realm-core/issues/4865
+            realm.writeEncryptedCopyTo(copy, key)
+        }
+
+        // Manually move the file into the place of another user.
+        // and verify that the user can sync with the Realm.
+        // We cannot use the "assetFile" API that users do, as terminating
+        // Sync renders the file invalid, so we cannot package a test file
+        // for later use.
+        val user2 = createNewUser()
+        val config2: SyncConfiguration = SyncConfiguration.Builder(user2, partitionValue)
+                .schema(SyncColor::class.java)
+                .encryptionKey(key)
+                .build()
+        val destination = File(config2.path)
+        destination.delete()
+        assertTrue(copy.renameTo(destination))
+
+        Realm.getInstance(config2).use { realm: Realm ->
+            // Check that the copy contains data
+            assertEquals(1, realm.where<SyncColor>().count())
+            realm.executeTransaction {
+                realm.createObject(SyncColor::class.java, ObjectId())
+            }
+
+            // Check that we can synchronize with the server
+            realm.syncSession.downloadAllServerChanges()
+            realm.syncSession.uploadAllLocalChanges()
+        }
+    }
+
+    @Test
+    fun assetFile() {
+        val user = createNewUser()
+        val config = SyncConfiguration.Builder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
+            .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
+            .schema(SyncColor::class.java)
+            .build()
+
+        Realm.getInstance(config).use { realm: Realm ->
+            assertEquals(1, realm.where<SyncColor>().count())
+        }
+    }
+
+    @Test
+    fun assetFile_wrongPartitionValue() = looperThread.runBlocking {
+        val user = createNewUser()
+        val config = SyncConfiguration.Builder(user, "foo")
+                .clientResetHandler { _, error ->
+                    // Client reset expected when connecting with wrong partition value
+                    assertEquals(ErrorCode.CLIENT_RESET, error.errorCode)
+                    looperThread.testComplete()
+                }
+                .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
+                .schema(SyncColor::class.java)
+                .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.keepStrongReference(realm)
+        looperThread.closeAfterTest(realm)
+        assertEquals(1, realm.where<SyncColor>().count())
+    }
+
+    @Test
+    fun assetFile_wrongFileType() {
+        val user = createNewUser()
+        val config = SyncConfiguration.Builder(user, "foo")
+                .assetFile("versionTest.realm")
+                .schema(SyncColor::class.java)
+                .build()
+
+        assertFailsWith<RealmFileException> {
+            Realm.getInstance(config)
+        }
+    }
 
     private fun createDefaultConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
