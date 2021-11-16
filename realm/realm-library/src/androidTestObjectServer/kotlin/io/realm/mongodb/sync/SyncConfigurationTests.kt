@@ -43,6 +43,7 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
+import java.lang.IllegalStateException
 
 @RunWith(AndroidJUnit4::class)
 class SyncConfigurationTests {
@@ -615,5 +616,27 @@ class SyncConfigurationTests {
         val configuration2 = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
                 .build()
         assertNotEquals(factory, configuration2.flowFactory)
+    }
+
+    @Test
+    fun assetFile() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val configuration: SyncConfiguration = builder
+            .assetFile("data/synced-data.realm")
+            .build()
+        assertEquals("data/synced-data.realm", configuration.assetFilePath);
+    }
+
+    @Test
+    fun assetFile_nullThrows() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        assertFailsWith<IllegalArgumentException> { builder.assetFile(TestHelper.getNull()) }
+    }
+
+    @Test
+    fun assetFile_inMemoryThrows() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+            .inMemory()
+        assertFailsWith<IllegalStateException> { builder.assetFile("foo.bar") }
     }
 }
