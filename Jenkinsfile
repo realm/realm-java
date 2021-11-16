@@ -251,7 +251,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         step([$class: 'LintPublisher'])
       }
     },
-    // FIXME Temporarely disable this while figuring out the correct setup
+    // FIXME https://github.com/realm/realm-java/issues/7593
     // 'JVM8 introExample check' : {
     //   // Force build with JVM8, by disabling the cache, and check introExample.
     //   sh """
