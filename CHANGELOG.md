@@ -21,7 +21,7 @@
 * Updated to Realm Core 11.6.0, commit: b170db6a47789ff5f2fbc3eeed0220b4b0a3f6b7.
 * Building the SDK now requires JDK 11.
 * Updated to Gradle 7.2.
-* Updated to Android Gradle Plugin 4.1.3.
+* Updated to Android Gradle Plugin 7.1.0-beta03.
 * Updated to Kotlin 1.5.31.
 * Updated to Kotlin Coroutines 1.5.2.
 * Updated to CMake 3.21.4.
