@@ -19,7 +19,6 @@ package io.realm.gradle
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
 import com.neenbedankt.gradle.androidapt.AndroidAptPlugin
-import io.realm.gradle.RealmPluginExtension
 import io.realm.transformer.RealmTransformer
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -70,6 +69,10 @@ class Realm implements Plugin<Project> {
             usesAptPlugin = true
         }
 
+        // Register transformer during the evaluations phase, so the Android Plugin
+        // is able to pick it up. The project is passed in in order to gather various
+        // metadata in `project.afterEvaluate { }`, but the transformer is not allowed
+        // to store a reference to it if we want to support the Gradle Configuration Cache.
         project.android.registerTransform(new RealmTransformer(project))
 
         project.dependencies.add(dependencyConfigurationName, "io.realm:realm-annotations:${Version.VERSION}")

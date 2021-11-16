@@ -94,12 +94,15 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
                             Map<String, String> headers,
                             String body,
                             long completionBlockPtr) {
-        threadPool.execute(() -> {
-            try {
-                OsJavaNetworkTransport.Response response = executeRequest(method, url, timeoutMs, headers, body);
-                handleResponse(response, completionBlockPtr);
-            } catch (Error e) {
-                handleResponse(Response.unknownError(e.toString()), completionBlockPtr);
+        threadPool.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OsJavaNetworkTransport.Response response = OkHttpNetworkTransport.this.executeRequest(method, url, timeoutMs, headers, body);
+                    OkHttpNetworkTransport.this.handleResponse(response, completionBlockPtr);
+                } catch (Error e) {
+                    OkHttpNetworkTransport.this.handleResponse(Response.unknownError(e.toString()), completionBlockPtr);
+                }
             }
         });
     }

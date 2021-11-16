@@ -36,13 +36,13 @@ import org.bson.BsonString
 import org.bson.types.Decimal128
 import org.bson.types.ObjectId
 import org.junit.*
-import org.junit.Assert.assertNotEquals
+import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.io.File
 import java.lang.IllegalStateException
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.test.*
+import kotlin.test.assertFailsWith
 
 /**
  * Testing sync specific methods on [Realm].

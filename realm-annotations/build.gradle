@@ -15,7 +15,7 @@ buildscript {
 }
 
 apply plugin: 'java'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
