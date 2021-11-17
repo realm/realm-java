@@ -276,6 +276,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             if (error.is_client_reset_requested()) {
                 client_reset_path_info = error.user_info[SyncError::c_recovery_file_path_key];
                 error_code = 7; // See ErrorCode.java
+                error_category = "custom";
             }
 
             // System/Connection errors are defined by constants in

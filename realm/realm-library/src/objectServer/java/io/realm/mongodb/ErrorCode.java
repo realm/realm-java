@@ -55,7 +55,7 @@ public enum ErrorCode {
     EVENT_DESERIALIZING(Type.JAVA, 1200),
 
     // Custom Object Store errors
-    CLIENT_RESET(Type.PROTOCOL, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp
+    CLIENT_RESET(Type.CUSTOM, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp
 
     // Connection level and protocol errors from the native Sync Client
     CONNECTION_CLOSED(Type.PROTOCOL, 100, Category.RECOVERABLE),    // Connection closed (no error)
@@ -138,6 +138,7 @@ public enum ErrorCode {
     CLIENT_BAD_SERIAL_TRANSACT_STATUS(Type.SESSION, 129),   // Bad status of serialized transaction (TRANSACT)
     CLIENT_BAD_OBJECT_ID_SUBSTITUTIONS(Type.SESSION, 130),  // Bad encoded object identifier substitutions (TRANSACT)
     CLIENT_HTTP_TUNNEL_FAILED(Type.SESSION, 131),           // Failed to establish HTTP tunnel with configured proxy
+    AUTO_CLIENT_RESET_FAILURE(Type.SESSION, 132),           // Automatic client reset failed
 
 
     // 300 - 599 Reserved for Standard HTTP error codes
@@ -343,8 +344,9 @@ public enum ErrorCode {
         public static final String SERVICE = "realm::app::ServiceError"; // MongoDB Realm Response errors
         public static final String JSON = "realm::app::JSONError"; // Errors when parsing JSON
         public static final String PROTOCOL = "realm::sync::ProtocolError"; // Protocol level errors from the native Sync Client
-        public static final String SESSION = "realm::sync::Client::Error"; // Session level errors from the native Sync Client
+        public static final String SESSION = "realm::sync::ClientError"; // Session level errors from the native Sync Client
         public static final String UNKNOWN = "unknown"; // Catch-all category
+        public static final String CUSTOM = "custom"; // Java custom error codes
     }
 
     public enum Category {

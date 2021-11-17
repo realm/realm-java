@@ -167,37 +167,29 @@ class SessionTests {
     // Check that a if Seamless loss Client Reset fails the error is correctly reported.
     @Test
     fun errorHandler_seamlessLossClientReset_resetErrorHandled() = looperThread.runBlocking {
-        val counter = AtomicInteger()
-
-        val incrementAndValidate = {
-            if(2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
+        val email = TestHelper.getRandomEmail()
+        val user: User = app.registerUserAndLogin(email, "123456")
 
         val config = configFactory.createSyncConfigurationBuilder(user)
-                .testSchema(SyncStringOnly::class.java)
+            .testSchema(SyncStringOnly::class.java)
                 .clientResetHandler(object: SyncSession.SeamlessLossClientResetHandler{
                     override fun onBeforeReset(before: Realm, after: Realm) {
-                        incrementAndValidate()
+                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::onBeforeReset()")
                     }
 
                     override fun onAfterReset(realm: Realm) {
-                        incrementAndValidate()
-//                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::onAfterReset()")
+                        fail("This test case was not supposed to trigger SeamlessLossClientResetHandler::onAfterReset()")
                     }
 
                     override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                        incrementAndValidate()
+                        looperThread.testComplete()
                     }
                 })
-                .build()
+            .build()
 
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-
-        // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.INVALID_SCHEMA_CHANGE)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
     }
 
     // Check that a Client Reset is correctly reported.

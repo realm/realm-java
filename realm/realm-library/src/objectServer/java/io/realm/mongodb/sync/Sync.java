@@ -301,16 +301,19 @@ public abstract class Sync {
      * Only call this method when testing.
      *
      * @param session Session to trigger Client Reset for.
+     * @param errorCode error code to simulate.
      */
     void simulateClientReset(SyncSession session, ErrorCode errorCode) {
-        nativeSimulateSyncError(appNativePointer, session.getConfiguration().getPath(),
+        nativeSimulateSyncError(appNativePointer,
+                session.getConfiguration().getPath(),
                 errorCode.intValue(),
+                errorCode.getType(),
                 "Simulate Client Reset",
                 true);
     }
 
     private static native void nativeReset(long appNativePointer);
-    private static native void nativeSimulateSyncError(long appNativePointer, String realmPath, int errorCode, String errorMessage, boolean isFatal);
+    private static native void nativeSimulateSyncError(long appNativePointer, String realmPath, int errorCode, String type, String errorMessage, boolean isFatal);
     private static native void nativeReconnect(long appNativePointer);
     private static native String nativeGetPathForRealm(long appNativePointer, String userId, String partitionValue, @Nullable String overrideFileName);
 }
