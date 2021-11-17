@@ -105,7 +105,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 public void onBeforeReset(@NotNull OsSharedRealm.VersionID before, @NotNull OsSharedRealm.VersionID after) {
                     Realm beforeRealm = accessor.createRealmOrGetFromCache(syncConfig, before);
                     Realm afterRealm = accessor.createRealmOrGetFromCache(syncConfig, after);
-                    ((SyncSession.SeamlessLossClientResetHandler) syncConfig.getClientResetHandler()).onBeforeReset(beforeRealm, afterRealm);
+                    ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onBeforeReset(beforeRealm, afterRealm);
                 }
             };
 
@@ -113,7 +113,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 @Override
                 public void onAfterReset(@NotNull OsSharedRealm.VersionID after) {
                     Realm afterRealm = accessor.createRealmOrGetFromCache(syncConfig, after);
-                    ((SyncSession.SeamlessLossClientResetHandler) syncConfig.getClientResetHandler()).onAfterReset(afterRealm);
+                    ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onAfterReset(afterRealm);
                 }
             };
 

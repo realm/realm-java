@@ -102,7 +102,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final URI serverUrl;
     private final User user;
     private final SyncSession.ErrorHandler errorHandler;
-    private final SyncSession.ClientResetHandlerInterface clientResetHandler;
+    private final SyncSession.SyncClientResetStrategy syncClientResetStrategy;
     private final boolean deleteRealmOnLogout;
     private final boolean waitForInitialData;
     private final long initialDataTimeoutMillis;
@@ -129,7 +129,7 @@ public class SyncConfiguration extends RealmConfiguration {
                               User user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
-                              SyncSession.ClientResetHandlerInterface clientResetHandler,
+                              SyncSession.SyncClientResetStrategy syncClientResetStrategy,
                               boolean deleteRealmOnLogout,
                               boolean waitForInitialData,
                               long initialDataTimeoutMillis,
@@ -160,7 +160,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.user = user;
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
-        this.clientResetHandler = clientResetHandler;
+        this.syncClientResetStrategy = syncClientResetStrategy;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
         this.waitForInitialData = waitForInitialData;
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
@@ -374,8 +374,18 @@ public class SyncConfiguration extends RealmConfiguration {
      *
      * @return the Client Reset handler.
      */
-    public SyncSession.ClientResetHandlerInterface getClientResetHandler() {
-        return clientResetHandler;
+    @Deprecated
+    public SyncSession.ClientResetHandler getClientResetHandler() {
+        return (SyncSession.ClientResetHandler) syncClientResetStrategy;
+    }
+
+    /**
+     * Returns the sync client reset strategy for this <i>SyncConfiguration</i>.
+     *
+     * @return the sync client reset strategy.
+     */
+    public SyncSession.SyncClientResetStrategy getSyncClientResetStrategy() {
+        return syncClientResetStrategy;
     }
 
     /**
@@ -486,7 +496,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private URI serverUrl;
         private User user = null;
         private SyncSession.ErrorHandler errorHandler;
-        private SyncSession.ClientResetHandlerInterface clientResetHandler;
+        private SyncSession.SyncClientResetStrategy syncClientResetStrategy;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
@@ -564,7 +574,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 this.modules.add(Realm.getDefaultModule());
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
-            this.clientResetHandler = user.getApp().getConfiguration().getDefaultClientResetHandler();
+            this.syncClientResetStrategy = user.getApp().getConfiguration().getDefaultSyncClientResetStrategy();
             this.allowQueriesOnUiThread = true;
             this.allowWritesOnUiThread = false;
         }
@@ -856,10 +866,21 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
-        Builder clientResetHandlerInternal(SyncSession.ClientResetHandlerInterface handler) {
+        Builder clientResetHandlerInternal(SyncSession.SyncClientResetStrategy handler) {
             Util.checkNull(handler, "handler");
-            this.clientResetHandler = handler;
+            this.syncClientResetStrategy = handler;
             return this;
+        }
+
+        /**
+         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * @param handler custom handler in case of a Client Reset.
+         */
+        @Deprecated
+        public Builder clientResetHandler(SyncSession.ClientResetHandler handler) {
+            return clientResetHandlerInternal(handler);
         }
 
         /**
@@ -868,7 +889,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param handler custom manual handler in case of a Client Reset.
          */
-        public Builder clientResetHandler(SyncSession.ManualClientResetHandler handler) {
+        public Builder setSyncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy handler) {
             return clientResetHandlerInternal(handler);
         }
 
@@ -878,7 +899,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param handler custom seamless loss handler in case of a Client Reset.
          */
-        public Builder clientResetHandler(SyncSession.SeamlessLossClientResetHandler handler) {
+        public Builder setSyncClientResetStrategy(SyncSession.DiscardUnsyncedChangesStrategy handler) {
             return clientResetHandlerInternal(handler);
         }
 
@@ -1088,9 +1109,9 @@ public class SyncConfiguration extends RealmConfiguration {
             }
 
             // Set the default Client Resync Mode based on the current type of Realm.
-            if (clientResetHandler instanceof SyncSession.ManualClientResetHandler) {
+            if (syncClientResetStrategy instanceof SyncSession.ManuallyRecoverUnsyncedChangesStrategy) {
                 clientResyncMode = ClientResyncMode.MANUAL;
-            } else if (clientResetHandler instanceof SyncSession.SeamlessLossClientResetHandler) {
+            } else if (syncClientResetStrategy instanceof SyncSession.DiscardUnsyncedChangesStrategy) {
                 clientResyncMode = ClientResyncMode.SEAMLESS_LOSS;
             }
 
@@ -1129,7 +1150,7 @@ public class SyncConfiguration extends RealmConfiguration {
                     user,
                     resolvedServerUrl,
                     errorHandler,
-                    clientResetHandler,
+                    syncClientResetStrategy,
                     deleteRealmOnLogout,
                     waitForServerChanges,
                     initialDataTimeoutMillis,

@@ -70,7 +70,7 @@ public class SyncSession {
     private final long appNativePointer;
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
-    private final ClientResetHandlerInterface clientResetHandler;
+    private final SyncClientResetStrategy clientResetHandler;
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
 
@@ -175,7 +175,7 @@ public class SyncSession {
     SyncSession(SyncConfiguration configuration, long appNativePointer) {
         this.configuration = configuration;
         this.errorHandler = configuration.getErrorHandler();
-        this.clientResetHandler = configuration.getClientResetHandler();
+        this.clientResetHandler = configuration.getSyncClientResetStrategy();
         this.appNativePointer = appNativePointer;
     }
 
@@ -220,12 +220,12 @@ public class SyncSession {
             }
             RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(clientResetPathInfo);
 
-            if (clientResetHandler instanceof ManualClientResetHandler) {
-                ((ManualClientResetHandler) clientResetHandler).onClientReset(this,
+            if (clientResetHandler instanceof ManuallyRecoverUnsyncedChangesStrategy) {
+                ((ManuallyRecoverUnsyncedChangesStrategy) clientResetHandler).onClientReset(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof SeamlessLossClientResetHandler) {
-                ((SeamlessLossClientResetHandler) clientResetHandler).onError(this,
+            } else if (clientResetHandler instanceof DiscardUnsyncedChangesStrategy) {
+                ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
             }
@@ -701,13 +701,14 @@ public class SyncSession {
     /**
      * FIXME: Document
      */
-    public interface ClientResetHandlerInterface { }
+    public interface SyncClientResetStrategy {
+    }
 
     /**
      * FIXME: Document
      */
     @Deprecated
-    public interface ClientResetHandler extends ManualClientResetHandler{
+    public interface ClientResetHandler extends ManuallyRecoverUnsyncedChangesStrategy {
     }
 
     /**
@@ -748,14 +749,14 @@ public class SyncSession {
      * synchronized to MongoDB Realm. Those changes will only be present in the backed up file. It is therefore
      * recommended to close all open Realm instances as soon as possible.
      */
-    public interface ManualClientResetHandler extends ClientResetHandlerInterface {
+    public interface ManuallyRecoverUnsyncedChangesStrategy extends SyncClientResetStrategy {
         /**
          * Callback that indicates a Client Reset has happened. This should be handled as quickly as
          * possible as any further changes to the Realm will not be synchronized with the server and
          * must be moved manually from the backup Realm to the new one.
          *
          * @param session {@link SyncSession} this error happened on.
-         * @param error {@link ClientResetRequiredError} the specific Client Reset error.
+         * @param error   {@link ClientResetRequiredError} the specific Client Reset error.
          */
         void onClientReset(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
     }
@@ -763,7 +764,7 @@ public class SyncSession {
     /**
      * FIXME: Document
      */
-    public interface SeamlessLossClientResetHandler extends ClientResetHandlerInterface {
+    public interface DiscardUnsyncedChangesStrategy extends SyncClientResetStrategy {
         /**
          * Callback that indicates a Client Reset is about to happen. You can use this call to
          * manually migrate any data and prevent its loss.

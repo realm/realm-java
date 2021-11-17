@@ -35,6 +35,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
+import java.lang.ClassCastException
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -249,20 +250,58 @@ class AppConfigurationTests {
     }
 
     @Test
+    @Deprecated("defaultClientResetHandler deprecated in favor of defaultSyncClientResetStrategy")
     fun defaultClientResetHandler() {
-        val handler = SyncSession.ManualClientResetHandler { _, _ -> }
-
         val config = AppConfiguration.Builder("app-id")
-                .defaultClientResetHandler(handler)
-                .build()
-        assertEquals(config.defaultClientResetHandler, handler)
+            .build()
+
+        assertFailsWith<ClassCastException> {
+            config.defaultClientResetHandler
+        }
     }
 
     @Test
+    @Deprecated("defaultClientResetHandler deprecated in favor of defaultSyncClientResetStrategy")
+    fun setDefaultClientResetHandler() {
+        val handler = SyncSession.ClientResetHandler { _, _ -> }
+        val config = AppConfiguration.Builder("app-id")
+            .defaultClientResetHandler(handler)
+            .build()
+        assertEquals(config.defaultSyncClientResetStrategy, handler)
+    }
+
+    @Test
+    @Deprecated("defaultClientResetHandler deprecated in favor of defaultSyncClientResetStrategy")
     fun defaultClientResetHandler_invalidValuesThrows() {
         val builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> {
-            builder.defaultClientResetHandler(TestHelper.getNull<SyncSession.ManualClientResetHandler>())
+            builder.defaultClientResetHandler(TestHelper.getNull<SyncSession.ClientResetHandler>())
+        }
+    }
+
+    @Test
+    fun defaultSyncClientStrategy() {
+        val config = AppConfiguration.Builder("app-id")
+            .build()
+
+        assertTrue(config.defaultSyncClientResetStrategy is SyncSession.DiscardUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun setDefaultSyncClientStrategy() {
+        val handler = SyncSession.ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+
+        val config = AppConfiguration.Builder("app-id")
+                .defaultSyncClientResetStrategy(handler)
+                .build()
+        assertEquals(config.defaultSyncClientResetStrategy, handler)
+    }
+
+    @Test
+    fun setDefaultSyncClientStrategy_invalidValuesThrows() {
+        val builder = AppConfiguration.Builder("app-id")
+        assertFailsWith<IllegalArgumentException> {
+            builder.defaultSyncClientResetStrategy(TestHelper.getNull<SyncSession.ManuallyRecoverUnsyncedChangesStrategy>())
         }
     }
 
