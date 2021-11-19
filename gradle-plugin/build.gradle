@@ -1,3 +1,7 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.project.ProjectInternal
+
 buildscript {
     def properties = new Properties()
     properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
@@ -14,8 +18,8 @@ buildscript {
     }
 }
 
-apply plugin: 'groovy'
-apply plugin: 'maven'
+apply plugin: 'groovy-gradle-plugin'
+apply plugin: 'maven-publish'
 
 def props = new Properties()
 props.load(new FileInputStream("${rootDir}/../dependencies.list"))
@@ -51,23 +55,27 @@ sourceSets {
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    compile "io.realm:realm-transformer:${version}"
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation "io.realm:realm-transformer:${version}"
     /*Note: the latest Android Gradle plugin has now built in support for annotation processors and warns and/or blocks android-apt,
      see this https://bitbucket.org/hvisser/android-apt/wiki/Migration page on how to migrate
      and this https://www.littlerobots.nl/blog/Whats-next-for-android-apt/ for more info.
    */
-    compile 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
+    implementation 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
     compileOnly "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
 
-    testCompile gradleTestKit()
-    testCompile 'junit:junit:4.12'
-    testCompile "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
+    testImplementation gradleTestKit()
+    testImplementation 'junit:junit:4.12'
+    testImplementation "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
+    // See https://github.com/gradle/gradle/issues/16774#issuecomment-893493869
+    def toolingApiBuildersJar = (project as ProjectInternal).services.get(ModuleRegistry.class)
+            .getModule("gradle-tooling-api-builders")
+            .classpath
+            .asFiles
+            .first()
+    testRuntimeOnly(files(toolingApiBuildersJar))
 }
-
-//for Ant filter
-import org.apache.tools.ant.filters.ReplaceTokens
 
 task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'

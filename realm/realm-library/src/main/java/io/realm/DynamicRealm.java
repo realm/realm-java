@@ -577,9 +577,9 @@ public class DynamicRealm extends BaseRealm {
     /**
      * Encapsulates a Realm transaction.
      * <p>
-     * Using this class will automatically handle {@link #beginTransaction()} and {@link #commitTransaction()}
-     * If any exception is thrown during the transaction {@link #cancelTransaction()} will be called
-     * instead of {@link #commitTransaction()}.
+     * Using this class will automatically handle {@link io.realm.DynamicRealm#beginTransaction()} and {@link io.realm.DynamicRealm#commitTransaction()}
+     * If any exception is thrown during the transaction {@link io.realm.DynamicRealm#cancelTransaction()} will be called
+     * instead of {@link io.realm.DynamicRealm#commitTransaction()}.
      */
     public interface Transaction {
         void execute(DynamicRealm realm);

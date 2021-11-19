@@ -16,13 +16,10 @@
 
 package io.realm.transformer;
 
-import com.android.build.gradle.BaseExtension;
 import io.realm.gradle.RealmPluginExtension;
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.List;
 import javax.xml.bind.DatatypeConverter;
 import org.gradle.api.Project;
 

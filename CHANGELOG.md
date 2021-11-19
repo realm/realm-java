@@ -2,6 +2,8 @@
 
 ### Enhancements
 * [RealmApp] Reduced native memory usage when working with synchronized Realms.
+* [RealmApp] Make it possible to bundle synchronized Realms in apps using `Realm.writeCopyTo()` and `SyncConfiguration.Builder.assetFile()`.
+* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
 
 ### Fixed
 * [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919)) 
@@ -17,6 +19,13 @@
 
 ### Internal
 * Updated to Realm Core 11.6.0, commit: b170db6a47789ff5f2fbc3eeed0220b4b0a3f6b7.
+* Building the SDK now requires JDK 11.
+* Updated to Gradle 7.2.
+* Updated to Android Gradle Plugin 7.1.0-beta03.
+* Updated to Kotlin 1.5.31.
+* Updated to Kotlin Coroutines 1.5.2.
+* Updated to CMake 3.21.4.
+* Updated to NDK 23.1.7779620.
 * Disable analytics for any value of the `REALM_DISABLE_ANALYTICS` environment variable, not just `true`.
 * Disable analytics whenever the `CI` environment variable is set.
 

@@ -14,8 +14,6 @@ apply plugin: 'org.jetbrains.dokka'
 def properties = new Properties()
 properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 
-android.registerTransform(new io.realm.transformer.RealmTransformer(project))
-
 android {
     compileSdkVersion rootProject.compileSdkVersion
     buildToolsVersion rootProject.buildToolsVersion
@@ -83,7 +81,7 @@ android {
 dependencies {
     implementation project(':realm-library')
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_android_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_android_version"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_android_version"
@@ -111,19 +109,17 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     }
 }
 
-
 task sourcesJar(type: Jar) {
     from android.sourceSets.objectServer.java.srcDirs
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
 
-dokka {
-    outputFormat = 'html'
-    outputDirectory = "$buildDir/docs"
+tasks.dokkaHtml.configure {
+    outputDirectory.set(file("$buildDir/dokka"))
 }
 
-task javadocJar(type: Jar, dependsOn: dokka) {
+task javadocJar(type: Jar, dependsOn: dokkaHtml) {
     classifier = 'javadoc'
     from "$buildDir/dokka"
 }
@@ -174,3 +170,5 @@ artifacts {
 }
 
 publishToMavenLocal.dependsOn assemble
+
+android.registerTransform(new io.realm.transformer.RealmTransformer(project))

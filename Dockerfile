@@ -9,7 +9,8 @@ ENV TZ=Europe/Copenhagen
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Set the environment variables
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64
+ENV JAVA8_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV ANDROID_HOME /opt/android-sdk-linux
 # Need by cmake
 ENV ANDROID_NDK_HOME /opt/android-ndk
@@ -18,6 +19,7 @@ ENV PATH ${PATH}:${ANDROID_HOME}/emulator:${ANDROID_HOME}/cmdline-tools/latest:$
 ENV PATH ${PATH}:${NDK_HOME}
 ENV NDK_CCACHE /usr/bin/ccache
 ENV CCACHE_CPP2 yes
+ENV REALM_DISABLE_ANALYTICS true
 
 # Keep the packages in alphabetical order to make it easy to avoid duplication
 # tzdata needs to be installed first. See https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
@@ -41,6 +43,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libz1 \
                           libvirt-clients \
                           libvirt-daemon-system \
+                          openjdk-11-jdk-headless \
                           openjdk-8-jdk-headless \
                           qemu-kvm \
                           s3cmd \
@@ -77,7 +80,7 @@ RUN yes | sdkmanager \
     'extras;android;m2repository' \
     'platforms;android-30' \
     'platform-tools' \
-    'ndk;22.0.7026061' \
+    'ndk;23.1.7779620' \
     'system-images;android-29;default;x86'
 
 # Make the SDK universally writable
@@ -85,7 +88,10 @@ RUN chmod -R a+rwX ${ANDROID_HOME}
 
 # Ensure a new enough version of CMake is available.
 RUN cd /opt \
-    && wget -nv https://cmake.org/files/v3.18/cmake-3.18.4-Linux-x86_64.tar.gz \
-    && tar zxf cmake-3.18.4-Linux-x86_64.tar.gz
+    && wget -nv https://cmake.org/files/v3.21/cmake-3.21.4-linux-x86_64.tar.gz \
+    && tar zxf cmake-3.21.4-linux-x86_64.tar.gz
 
-ENV PATH "/opt/cmake-3.18.4-Linux-x86_64/bin:$PATH"
+# Workaround for https://issuetracker.google.com/issues/206099937
+RUN ln -s /usr/bin/ninja /opt/cmake-3.21.4-linux-x86_64/bin/ninja
+
+ENV PATH "/opt/cmake-3.21.4-linux-x86_64/bin:$PATH"

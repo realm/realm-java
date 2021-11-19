@@ -395,7 +395,21 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         if (file.isFile() && file.exists()) {
             throw new IllegalArgumentException("The destination file must not exist");
         }
-        nativeWriteCopy(nativePtr, file.getAbsolutePath(), key);
+        if (isSyncRealm()) {
+            Util.checkNotOnMainThread("writeCopyTo() cannot be called from the main " +
+                    "thread when using synchronized Realms.");
+        }
+        try {
+            nativeWriteCopy(nativePtr, file.getAbsolutePath(), key);
+        } catch (RuntimeException e) {
+            // Remap Core vague exception type to better IllegalStateException
+            String msg = e.getMessage();
+            if (msg.contains("Could not write file as not all client changes are integrated in server")) {
+                throw new IllegalStateException(msg);
+            } else {
+                throw e;
+            }
+        }
     }
 
     public boolean compact() {

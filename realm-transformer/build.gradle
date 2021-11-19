@@ -17,7 +17,7 @@ buildscript {
 
 apply plugin: 'kotlin'
 apply plugin: 'java'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim()
@@ -50,14 +50,17 @@ sourceSets {
 }
 
 dependencies {
-    compile gradleApi()
-    compile "io.realm:realm-annotations:${version}"
+    implementation gradleApi()
+    implementation "io.realm:realm-annotations:${version}"
     compileOnly "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
-    compileOnly 'com.android.tools.build:gradle:3.1.1'
-    compile 'org.javassist:javassist:3.25.0-GA'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    implementation 'org.javassist:javassist:3.25.0-GA'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    implementation "com.google.guava:guava:31.0.1-jre"
+    // JAX-B dependencies for JDK 9+ (this is not available in JVM env 'java.lang.NoClassDefFoundError: javax/xml/bind/DatatypeConverter'
+    // and it was removed in Java 11 https://stackoverflow.com/a/43574427
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
 
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
 
 // for Ant filter
@@ -70,7 +73,7 @@ task generateVersionClass(type: Copy) {
     outputs.upToDateWhen { false }
 }
 
-compileJava.dependsOn generateVersionClass
+compileKotlin.dependsOn generateVersionClass
 
 apply from: "${rootDir}/../mavencentral-publications.gradle"
 apply from: "${rootDir}/../mavencentral-publish.gradle"
@@ -93,4 +96,10 @@ publishing {
 java {
     withSourcesJar()
     withJavadocJar()
+}
+
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xinline-classes"]
+    }
 }

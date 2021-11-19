@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// Most of com.sun.tools.javac content has been marked internal with JDK 9
+@file:Suppress("JAVA_MODULE_DOES_NOT_EXPORT_PACKAGE")
+
 package io.realm.processor
 
 import com.sun.tools.javac.code.Attribute

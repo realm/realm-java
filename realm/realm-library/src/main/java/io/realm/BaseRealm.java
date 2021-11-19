@@ -300,7 +300,8 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Writes a compacted copy of the Realm to the given destination File.
+     * Writes a compacted copy of the Realm to the given destination File. The resulting file can be
+     * used as initial dataset to bootstrap a local or synced Realm in other devices.
      * <p>
      * The destination file cannot already exist.
      * <p>
@@ -308,8 +309,11 @@ abstract class BaseRealm implements Closeable {
      * the last transaction was committed.
      *
      * @param destination file to save the Realm to.
+     * @throws IllegalArgumentException if destination argument is null.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file or writing to the
      * destination file.
+     * @throws IllegalStateException if called from the UI thread.
+     * @throws IllegalStateException if not all client changes are integrated in server.
      */
     public void writeCopyTo(File destination) {
         //noinspection ConstantConditions
@@ -321,7 +325,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Writes a compacted and encrypted copy of the Realm to the given destination File.
+     * Writes a compacted and encrypted copy of the Realm to the given destination File. The
+     * resulting file can be used as initial dataset to bootstrap a local or synced Realm in other
+     * devices.
      * <p>
      * The destination file cannot already exist.
      * <p>
@@ -334,6 +340,8 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalArgumentException if destination argument is null.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file or writing to the
      * destination file.
+     * @throws IllegalStateException if called from the UI thread.
+     * @throws IllegalStateException if not all client changes are integrated in server.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) {
         //noinspection ConstantConditions

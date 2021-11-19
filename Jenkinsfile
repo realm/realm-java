@@ -236,20 +236,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
       if (isReleaseBranch) {
         signingFlags = "-PsignBuild=true -PsignSecretRingFile=\"${SIGN_KEY}\" -PsignPassword=${SIGN_KEY_PASSWORD}"
       }
-      // Work around https://github.com/realm/realm-java/issues/7476 by building each artifact independantly instead 
-      // of using Gradle to call down into sub projects (which seems to trigger a bug somewhere).
-      sh """
-        cd realm-annotations
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../realm-transformer
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../library-build-transformer
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../gradle-plugin
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-        cd ../realm
-        ./gradlew publishToMavenLocal ${buildFlags} ${signingFlags} --stacktrace
-      """
+      sh "./gradlew assemble ${buildFlags} ${signingFlags} --stacktrace"
     }
   }
 
@@ -264,6 +251,14 @@ def runBuild(buildFlags, instrumentationTestTarget) {
         step([$class: 'LintPublisher'])
       }
     },
+    // FIXME https://github.com/realm/realm-java/issues/7593
+    // 'JVM8 introExample check' : {
+    //   // Force build with JVM8, by disabling the cache, and check introExample.
+    //   sh """
+    //     cd examples/moduleExample
+    //     JAVA_HOME=\$JAVA8_HOME ../gradlew check ${buildFlags} --stacktrace
+    //   """
+    // },
     'Realm Transformer' : {
       try {
         gradle('realm-transformer', 'check')
