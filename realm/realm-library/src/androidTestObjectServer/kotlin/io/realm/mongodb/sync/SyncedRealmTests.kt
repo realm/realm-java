@@ -30,6 +30,7 @@ import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
+import io.realm.rule.BlockingLooperThread
 import org.bson.BsonNull
 import org.bson.BsonString
 import org.bson.types.Decimal128
@@ -59,7 +60,6 @@ class SyncedRealmTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        RealmLog.setLevel(LogLevel.TRACE)
         app = TestApp()
         partitionValue = UUID.randomUUID().toString()
     }

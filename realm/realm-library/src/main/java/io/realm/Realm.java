@@ -319,9 +319,15 @@ public class Realm extends BaseRealm {
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
 
-            ObjectServerFacade.getSyncFacadeIfPossible().initialize(context, userAgent,
-                    (configuration, versionID) -> RealmCache
-                            .createRealmOrGetFromCache(configuration, Realm.class, versionID));
+            ObjectServerFacade.getSyncFacadeIfPossible().initialize(
+                    context,
+                    userAgent,
+                    (configuration, versionID) -> RealmCache.createRealmOrGetFromCache(
+                            configuration,
+                            Realm.class,
+                            versionID
+                    ),
+                    Realm::createInstance);
 
             if (context.getApplicationContext() != null) {
                 BaseRealm.applicationContext = context.getApplicationContext();

@@ -22,7 +22,6 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 
 import org.bson.BsonValue;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -58,15 +57,17 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     private static volatile Method removeSessionMethod;
     private static volatile Field osAppField;
     RealmCacheAccessor accessor;
+    RealmInstanceFactory realmInstanceFactory;
 
     @Override
-    public void initialize(Context context, String userAgent, RealmCacheAccessor accessor) {
+    public void initialize(Context context, String userAgent, RealmCacheAccessor accessor, RealmInstanceFactory realmInstanceFactory) {
         if (applicationContext == null) {
             applicationContext = context;
             applicationContext.registerReceiver(new NetworkStateReceiver(),
                     new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
         this.accessor = accessor;
+        this.realmInstanceFactory = realmInstanceFactory;
     }
 
     @Override
@@ -79,6 +80,16 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
         }
+    }
+
+    @Keep
+    public interface BeforeClientResetHandler {
+        void onBeforeReset(long localPtr, long remotePtr, OsRealmConfig config);
+    }
+
+    @Keep
+    public interface AfterClientResetHandler {
+        void onAfterReset(long localPtr, OsRealmConfig config);
     }
 
     @Override
@@ -99,22 +110,14 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
             ClientResyncMode clientResetMode = syncConfig.getClientResyncMode();
-
-            OsRealmConfig.BeforeClientResetHandler beforeClientResetHandler = new OsRealmConfig.BeforeClientResetHandler() {
-                @Override
-                public void onBeforeReset(@NotNull OsSharedRealm.VersionID before, @NotNull OsSharedRealm.VersionID after) {
-                    Realm beforeRealm = accessor.createRealmOrGetFromCache(syncConfig, before);
-                    Realm afterRealm = accessor.createRealmOrGetFromCache(syncConfig, after);
-                    ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onBeforeReset(beforeRealm, afterRealm);
-                }
+            BeforeClientResetHandler beforeClientResetHandler = (localPtr, remotePtr, osRealmConfig) -> {
+                Realm beforeRealm = realmInstanceFactory.createInstance(OsSharedRealm.getInstance(localPtr, osRealmConfig));
+                Realm afterRealm = realmInstanceFactory.createInstance(OsSharedRealm.getInstance(remotePtr, osRealmConfig));
+                ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onBeforeReset(beforeRealm, afterRealm);
             };
-
-            OsRealmConfig.AfterClientResetHandler afterClientResetHandler = new OsRealmConfig.AfterClientResetHandler(){
-                @Override
-                public void onAfterReset(@NotNull OsSharedRealm.VersionID after) {
-                    Realm afterRealm = accessor.createRealmOrGetFromCache(syncConfig, after);
-                    ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onAfterReset(afterRealm);
-                }
+            AfterClientResetHandler afterClientResetHandler = (localPtr, osRealmConfig) -> {
+                Realm localRealm = realmInstanceFactory.createInstance(OsSharedRealm.getInstance(localPtr, osRealmConfig));
+                ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onAfterReset(localRealm);
             };
 
             long appNativePointer;

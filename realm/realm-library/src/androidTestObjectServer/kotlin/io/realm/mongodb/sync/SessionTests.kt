@@ -21,11 +21,13 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.TestHelper.TestLogger
 import io.realm.entities.DefaultSyncSchema
+import io.realm.entities.SyncColor
 import io.realm.entities.SyncStringOnly
 import io.realm.entities.SyncStringOnlyModule
 import io.realm.exceptions.RealmFileException
 import io.realm.exceptions.RealmMigrationNeededException
 import io.realm.kotlin.syncSession
+import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
@@ -34,9 +36,7 @@ import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage
 import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
+import org.junit.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
@@ -135,33 +135,31 @@ class SessionTests {
             }
         }
 
-        val config = configFactory.createSyncConfigurationBuilder(user)
-                .testSchema(SyncStringOnly::class.java)
-                .setSyncClientResetStrategy(object: SyncSession.DiscardUnsyncedChangesStrategy {
+        val config = SyncConfiguration.Builder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
+                .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
+                .setSyncClientResetStrategy(object: SyncSession.DiscardUnsyncedChangesStrategy{
                     override fun onBeforeReset(before: Realm, after: Realm) {
-                        assertTrue(before.sharedRealm.versionID > after.sharedRealm.versionID,
-                                "After Realm instance version should come before the Before one.")
+                        Assert.assertEquals(1, before.where<SyncColor>().count())
+                        Assert.assertEquals(0, after.where<SyncColor>().count())
                         incrementAndValidate()
                     }
 
                     override fun onAfterReset(realm: Realm) {
+                        Assert.assertEquals(0, realm.where<SyncColor>().count())
                         incrementAndValidate()
                     }
 
                     override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                        fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onError()")
+                        TODO("Not yet implemented")
                     }
+
                 })
+                .schema(SyncColor::class.java)
                 .build()
 
         val realm = Realm.getInstance(config)
-        realm.executeTransaction {
-            realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo"
-        }
+        Assert.assertEquals(1, realm.where<SyncColor>().count())
         looperThread.closeAfterTest(realm)
-
-        // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
     }
 
     // Check that a if Seamless loss Client Reset fails the error is correctly reported.

@@ -71,9 +71,3 @@ jobject JavaClassGlobalDef::new_mixed(JNIEnv* env, const Mixed& mixed)
     static jni_util::JavaMethod init(env, instance()->m_io_realm_internal_core_native_mixed, "<init>", "(J)V");
     return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, new JavaValue(from_mixed(mixed)));
 }
-
-jobject JavaClassGlobalDef::new_version_id(JNIEnv* env, const VersionID& versionId)
-{
-    static jni_util::JavaMethod init(env, instance()->m_io_realm_internal_version_id, "<init>", "(JJ)V");
-    return env->NewObject(instance()->m_io_realm_internal_version_id, init, versionId.version, versionId.index);
-}

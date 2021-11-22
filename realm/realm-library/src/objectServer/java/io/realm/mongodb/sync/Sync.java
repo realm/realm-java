@@ -295,8 +295,7 @@ public abstract class Sync {
     }
 
     /**
-     * Simulate a Client Reset by triggering the Object Store error handler with Sync Error Code that will be
-     * converted to a Client Reset (211 - Diverging Histories).
+     * Simulate a Client Reset by triggering the Object Store error handler
      *
      * Only call this method when testing.
      *

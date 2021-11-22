@@ -34,6 +34,10 @@ public class ObjectServerFacade {
         Realm createRealmOrGetFromCache(RealmConfiguration configuration, OsSharedRealm.VersionID versionID);
     }
 
+    public interface RealmInstanceFactory {
+        Realm createInstance(OsSharedRealm sharedRealm);
+    }
+
     public static final int SYNC_CONFIG_OPTIONS = 17;
 
     private static final ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
@@ -61,7 +65,7 @@ public class ObjectServerFacade {
     /**
      * Initializes the Object Server library
      */
-    public void initialize(Context context, String userAgent, RealmCacheAccessor accessor) {
+    public void initialize(Context context, String userAgent, RealmCacheAccessor accessor, RealmInstanceFactory instantiator) {
     }
 
     /**

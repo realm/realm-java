@@ -56,6 +56,7 @@ import io.realm.coroutines.FlowFactory;
 import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
 import io.realm.mongodb.App;
@@ -867,7 +868,7 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
-        Builder clientResetHandlerInternal(SyncSession.SyncClientResetStrategy handler) {
+        Builder syncClientResetStrategyInternal(SyncSession.SyncClientResetStrategy handler) {
             Util.checkNull(handler, "handler");
             this.syncClientResetStrategy = handler;
             return this;
@@ -881,7 +882,7 @@ public class SyncConfiguration extends RealmConfiguration {
          */
         @Deprecated
         public Builder clientResetHandler(SyncSession.ClientResetHandler handler) {
-            return clientResetHandlerInternal(handler);
+            return syncClientResetStrategyInternal(handler);
         }
 
         /**
@@ -891,7 +892,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param handler custom manual handler in case of a Client Reset.
          */
         public Builder setSyncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy handler) {
-            return clientResetHandlerInternal(handler);
+            return syncClientResetStrategyInternal(handler);
         }
 
         /**
@@ -901,7 +902,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param handler custom seamless loss handler in case of a Client Reset.
          */
         public Builder setSyncClientResetStrategy(SyncSession.DiscardUnsyncedChangesStrategy handler) {
-            return clientResetHandlerInternal(handler);
+            return syncClientResetStrategyInternal(handler);
         }
 
         /**

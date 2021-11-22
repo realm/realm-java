@@ -30,7 +30,6 @@ import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
-import io.realm.internal.objectstore.OsKeyPathMapping;
 
 
 @Keep
@@ -203,7 +202,19 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
      * to be the same one to ensure core's destructor thread safety.
      */
-    private OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
+    static OsSharedRealm getInstanceUnderConstruction(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
+        return new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig, true);
+    }
+
+    /**
+     * Creates a {@code OsSharedRealm} instance from a given Object Store's {@code OsSharedRealm} pointer. This is used to
+     * create {@code OsSharedRealm} from the callback functions. This method does not ensure core's destructor thread safety.
+     */
+    static OsSharedRealm getInstance(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
+        return new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig, false);
+    }
+
+    private OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, boolean checkParentExists) {
         this.nativePtr = nativeSharedRealmPtr;
         this.osRealmConfig = osRealmConfig;
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
@@ -215,16 +226,18 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         this.realmNotifier = null;
         nativeSetAutoRefresh(nativePtr, false);
 
-        boolean foundParentSharedRealm = false;
-        for (OsSharedRealm sharedRealm : sharedRealmsUnderConstruction) {
-            if (sharedRealm.context == osRealmConfig.getContext())  {
-                foundParentSharedRealm = true;
-                sharedRealm.tempSharedRealmsForCallback.add(this);
-                break;
+        if(checkParentExists){
+            boolean foundParentSharedRealm = false;
+            for (OsSharedRealm sharedRealm : sharedRealmsUnderConstruction) {
+                if (sharedRealm.context == osRealmConfig.getContext())  {
+                    foundParentSharedRealm = true;
+                    sharedRealm.tempSharedRealmsForCallback.add(this);
+                    break;
+                }
             }
-        }
-        if (!foundParentSharedRealm) {
-            throw new IllegalStateException("Cannot find the parent 'OsSharedRealm' which is under construction.");
+            if (!foundParentSharedRealm) {
+                throw new IllegalStateException("Cannot find the parent 'OsSharedRealm' which is under construction.");
+            }
         }
     }
 
@@ -572,7 +585,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     @SuppressWarnings("unused")
     private static void runMigrationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, MigrationCallback callback,
                                              long oldVersion) {
-        callback.onMigrationNeeded(new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig), oldVersion,
+        callback.onMigrationNeeded(OsSharedRealm.getInstanceUnderConstruction(nativeSharedRealmPtr, osRealmConfig), oldVersion,
                 osRealmConfig.getRealmConfiguration().getSchemaVersion());
     }
 
@@ -583,7 +596,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      */
     @SuppressWarnings("unused")
     private static void runInitializationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, InitializationCallback callback) {
-        callback.onInit(new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig));
+        callback.onInit(OsSharedRealm.getInstanceUnderConstruction(nativeSharedRealmPtr, osRealmConfig));
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);
