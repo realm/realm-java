@@ -278,7 +278,12 @@ public class AppConfiguration {
      */
     @Deprecated
     public SyncSession.ClientResetHandler getDefaultClientResetHandler() {
-        return (SyncSession.ClientResetHandler) defaultSyncClientResetStrategy;
+        try {
+            return (SyncSession.ClientResetHandler) defaultSyncClientResetStrategy;
+        } catch (ClassCastException exception) {
+            throw new ClassCastException(exception.getMessage() + ": getDefaultClientResetHandler() " +
+                    "is deprecated and has been replaced by getDefaultSyncClientResetStrategy()");
+        }
     }
 
     /**

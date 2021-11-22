@@ -379,8 +379,11 @@ public class SyncConfiguration extends RealmConfiguration {
      */
     @Deprecated
     public SyncSession.ClientResetHandler getClientResetHandler() {
-        // FIXME Shall we throw or return null?
-        return (SyncSession.ClientResetHandler) syncClientResetStrategy;
+        try {
+            return (SyncSession.ClientResetHandler) syncClientResetStrategy;
+        } catch (ClassCastException exception) {
+            throw new ClassCastException(exception.getMessage() + ": getClientResetHandler() is deprecated and has been replaced by getSyncClientResetStrategy()");
+        }
     }
 
     /**

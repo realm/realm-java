@@ -251,9 +251,9 @@ class AppConfigurationTests {
 
     @Test
     @Deprecated("defaultClientResetHandler deprecated in favor of defaultSyncClientResetStrategy")
-    fun defaultClientResetHandler() {
+    fun defaultClientResetHandler_throws() {
         val config = AppConfiguration.Builder("app-id")
-            .build()
+                .build()
 
         assertFailsWith<ClassCastException> {
             config.defaultClientResetHandler

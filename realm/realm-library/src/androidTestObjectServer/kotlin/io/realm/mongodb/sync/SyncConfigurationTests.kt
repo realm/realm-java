@@ -42,6 +42,7 @@ import org.junit.*
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.ClassCastException
 import kotlin.test.assertFailsWith
 import java.lang.IllegalStateException
 
@@ -114,6 +115,24 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
         assertFailsWith<IllegalArgumentException> { builder.setSyncClientResetStrategy(TestHelper.getNull<SyncSession.ManuallyRecoverUnsyncedChangesStrategy>()) }
+    }
+
+    @Test
+    fun clientResetHandler_deprecated() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val handler = SyncSession.ClientResetHandler { _, _ -> }
+        val config = builder.setSyncClientResetStrategy(handler).build()
+        assertEquals(handler, config.syncClientResetStrategy)
+    }
+
+    @Test
+    fun clientResetHandler_deprecatedThrows() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val handler = SyncSession.ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+        val config = builder.setSyncClientResetStrategy(handler).build()
+        assertFailsWith<ClassCastException> {
+            config.clientResetHandler
+        }
     }
 
     @Test
