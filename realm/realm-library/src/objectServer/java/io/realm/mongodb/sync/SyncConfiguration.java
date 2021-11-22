@@ -56,7 +56,6 @@ import io.realm.coroutines.FlowFactory;
 import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
-import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
 import io.realm.mongodb.App;
@@ -1150,7 +1149,7 @@ public class SyncConfiguration extends RealmConfiguration {
             if (syncClientResetStrategy instanceof SyncSession.ManuallyRecoverUnsyncedChangesStrategy) {
                 clientResyncMode = ClientResyncMode.MANUAL;
             } else if (syncClientResetStrategy instanceof SyncSession.DiscardUnsyncedChangesStrategy) {
-                clientResyncMode = ClientResyncMode.SEAMLESS_LOSS;
+                clientResyncMode = ClientResyncMode.DISCARD_UNSYNCED_CHANGES;
             }
 
             if (rxFactory == null && Util.isRxJavaAvailable()) {

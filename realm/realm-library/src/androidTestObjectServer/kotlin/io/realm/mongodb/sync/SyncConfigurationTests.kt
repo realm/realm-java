@@ -337,7 +337,7 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         var config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
-        assertEquals(ClientResyncMode.SEAMLESS_LOSS, config.clientResyncMode)
+        assertEquals(ClientResyncMode.DISCARD_UNSYNCED_CHANGES, config.clientResyncMode)
     }
 
     @Test
@@ -369,7 +369,7 @@ class SyncConfigurationTests {
     }
 
     @Test
-    fun seamlessLossClientResyncMode() {
+    fun discardUnsyncedChangesStrategyMode() {
         val user: User = createTestUser(app)
 
         val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
@@ -388,7 +388,7 @@ class SyncConfigurationTests {
 
                 })
                 .build()
-        assertEquals(ClientResyncMode.SEAMLESS_LOSS, config.clientResyncMode)
+        assertEquals(ClientResyncMode.DISCARD_UNSYNCED_CHANGES, config.clientResyncMode)
     }
 
     @Test

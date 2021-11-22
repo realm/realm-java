@@ -366,37 +366,37 @@ class SessionTests {
 
         val randomKey = TestHelper.getRandomKey()
         val config = configFactory.createSyncConfigurationBuilder(user)
-            .encryptionKey(randomKey)
-            .modules(SyncStringOnlyModule())
-            .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
-                // Execute Client Reset
-                resources.close()
-                error.executeClientReset()
-                var backupRealmConfiguration = error.backupRealmConfiguration
+                .encryptionKey(randomKey)
+                .modules(SyncStringOnlyModule())
+                .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
+                    // Execute Client Reset
+                    resources.close()
+                    error.executeClientReset()
+                    var backupRealmConfiguration = error.backupRealmConfiguration
 
-                // can open encrypted backup Realm
-                Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
-                    assertEquals(1, backupEncryptedRealm.where(SyncStringOnly::class.java).count())
-                    val allSorted = backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
-                    assertEquals("Foo", allSorted[0]!!.chars)
-                }
-                val backupFile = error.backupFile.absolutePath
+                    // can open encrypted backup Realm
+                    Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
+                        assertEquals(1, backupEncryptedRealm.where(SyncStringOnly::class.java).count())
+                        val allSorted = backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
+                        assertEquals("Foo", allSorted[0]!!.chars)
+                    }
+                    val backupFile = error.backupFile.absolutePath
 
-                // build a conf to open a DynamicRealm
-                backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, randomKey, SyncStringOnlyModule())
-                Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
-                    assertEquals(1, backupEncryptedRealm.where(SyncStringOnly::class.java).count())
-                    val allSorted = backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
-                    assertEquals("Foo", allSorted[0]!!.chars)
-                }
+                    // build a conf to open a DynamicRealm
+                    backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, randomKey, SyncStringOnlyModule())
+                    Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
+                        assertEquals(1, backupEncryptedRealm.where(SyncStringOnly::class.java).count())
+                        val allSorted = backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
+                        assertEquals("Foo", allSorted[0]!!.chars)
+                    }
 
-                // using wrong key throw
-                assertFailsWith<RealmFileException> {
-                    Realm.getInstance(SyncConfiguration.forRecovery(backupFile, TestHelper.getRandomKey(), SyncStringOnlyModule()))
+                    // using wrong key throw
+                    assertFailsWith<RealmFileException> {
+                        Realm.getInstance(SyncConfiguration.forRecovery(backupFile, TestHelper.getRandomKey(), SyncStringOnlyModule()))
+                    }
+                    looperThread.testComplete()
                 }
-                looperThread.testComplete()
-            }
-            .build()
+                .build()
 
         val realm = Realm.getInstance(config)
         realm.executeTransaction {

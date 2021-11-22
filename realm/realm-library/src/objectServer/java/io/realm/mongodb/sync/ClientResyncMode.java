@@ -38,7 +38,7 @@ public enum ClientResyncMode {
      * change. All changes will be reported through change listeners like any
      * other change.
      */
-    SEAMLESS_LOSS(OsRealmConfig.CLIENT_RESYNC_MODE_SEAMLESS_LOSS),
+    DISCARD_UNSYNCED_CHANGES(OsRealmConfig.DISCARD_UNSYNCED_CHANGES),
 
     /**
      * A manual Client Resync is also known as a Client Reset.
