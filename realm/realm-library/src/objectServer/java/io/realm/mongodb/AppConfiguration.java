@@ -273,6 +273,8 @@ public class AppConfiguration {
      * {@link SyncSession}.
      *
      * @return the app default error handler.
+     *
+     * @deprecated replaced by {@link #getDefaultSyncClientResetStrategy()}
      */
     @Deprecated
     public SyncSession.ClientResetHandler getDefaultClientResetHandler() {
@@ -584,6 +586,8 @@ public class AppConfiguration {
          * the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param handler the default Client Reset handler.
+         *                
+         * @deprecated replaced by {@link #defaultSyncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy)}
          */
         @Deprecated
         public Builder defaultClientResetHandler(SyncSession.ClientResetHandler handler) {

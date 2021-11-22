@@ -374,9 +374,12 @@ public class SyncConfiguration extends RealmConfiguration {
      * Returns the Client Reset handler for this <i>SyncConfiguration</i>.
      *
      * @return the Client Reset handler.
+     *
+     * @deprecated replaced by {@link #getSyncClientResetStrategy()}
      */
     @Deprecated
     public SyncSession.ClientResetHandler getClientResetHandler() {
+        // FIXME Shall we throw or return null?
         return (SyncSession.ClientResetHandler) syncClientResetStrategy;
     }
 
@@ -879,6 +882,8 @@ public class SyncConfiguration extends RealmConfiguration {
          * logged when a Client Reset occurs.
          *
          * @param handler custom handler in case of a Client Reset.
+         *
+         * @deprecated replaced by {@link #setSyncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy)}
          */
         @Deprecated
         public Builder clientResetHandler(SyncSession.ClientResetHandler handler) {
