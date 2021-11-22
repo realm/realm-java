@@ -292,7 +292,7 @@ class AppConfigurationTests {
         val handler = SyncSession.ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
 
         val config = AppConfiguration.Builder("app-id")
-                .defaultSyncClientResetStrategy(handler)
+                .setDefaultSyncClientResetStrategy(handler)
                 .build()
         assertEquals(config.defaultSyncClientResetStrategy, handler)
     }
@@ -301,7 +301,7 @@ class AppConfigurationTests {
     fun setDefaultSyncClientStrategy_invalidValuesThrows() {
         val builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> {
-            builder.defaultSyncClientResetStrategy(TestHelper.getNull<SyncSession.ManuallyRecoverUnsyncedChangesStrategy>())
+            builder.setDefaultSyncClientResetStrategy(TestHelper.getNull<SyncSession.ManuallyRecoverUnsyncedChangesStrategy>())
         }
     }
 

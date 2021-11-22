@@ -4,6 +4,14 @@
 * [RealmApp] Reduced native memory usage when working with synchronized Realms.
 * [RealmApp] Make it possible to bundle synchronized Realms in apps using `Realm.writeCopyTo()` and `SyncConfiguration.Builder.assetFile()`.
 * The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
+* [RealmApp] Introduced `SyncSession.DiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that discards any unsynced data from the client. 
+
+### Deprecated
+* [RealmApp] `SyncSession.ClientResetHandler()`. Use `SyncSession.ManuallyRecoverUnsyncedChangesStrategy()` instead.
+* [RealmApp] `AppConfiguration.Builder.defaultClientResetHandler()`. Use `AppConfiguration.Builder.setDefaultSyncClientResetStrategy()` instead.
+* [RealmApp] `AppConfiguration.getDefaultClientResetHandler()`. Use `AppConfiguration.getDefaultSyncClientResetStrategy()` instead.
+* [RealmApp] `SyncConfiguration.Builder.clientResetHandler()`. Use `SyncConfiguration.Builder.setSyncClientResetStrategy()` instead.
+* [RealmApp] `SyncConfiguration.getClientResetHandler()`. Use `SyncConfiguration.getSyncClientResetStrategy()` instead.
 
 ### Fixed
 * [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919)) 
@@ -11,6 +19,9 @@
 * Using "sort", "distinct", or "limit" as field name in query expression would cause an "Invalid predicate" error. (Issue [#7545](), since v10.X.X)
 * Crash when quering with 'Not()' followed by empty group. (Issue [Realm Core #4168]() since v1.0.0)
 * Streaming download notifiers reported incorrect values for transferrable bytes. (Issue [Realm Core #5008]() since v11.5.2)
+
+### Breaking Changes
+* [RealmApp] The default client reset strategy has been changed from `ManuallyRecoverUnsyncedChangesStrategy`, formerly named `ClientResetHandler`, to `DiscardUnsyncedChangesStrategy`.
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.

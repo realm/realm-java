@@ -592,7 +592,7 @@ public class AppConfiguration {
          *
          * @param handler the default Client Reset handler.
          *                
-         * @deprecated replaced by {@link #defaultSyncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy)}
+         * @deprecated replaced by {@link #setDefaultSyncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy)}
          */
         @Deprecated
         public Builder defaultClientResetHandler(SyncSession.ClientResetHandler handler) {
@@ -612,7 +612,7 @@ public class AppConfiguration {
          *
          * @param strategy the default sync client reset strategy.
          */
-        public Builder defaultSyncClientResetStrategy(@Nonnull SyncSession.ManuallyRecoverUnsyncedChangesStrategy strategy) {
+        public Builder setDefaultSyncClientResetStrategy(@Nonnull SyncSession.ManuallyRecoverUnsyncedChangesStrategy strategy) {
             Util.checkNull(strategy, "strategy");
             defaultSyncClientResetStrategy = strategy;
             return this;
@@ -627,9 +627,9 @@ public class AppConfiguration {
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#setSyncClientResetStrategy(SyncSession.DiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
-         * @param handler the default sync client reset strategy.
+         * @param strategy the default sync client reset strategy.
          */
-        public Builder defaultSyncClientResetStrategy(@Nonnull SyncSession.DiscardUnsyncedChangesStrategy strategy) {
+        public Builder setDefaultSyncClientResetStrategy(@Nonnull SyncSession.DiscardUnsyncedChangesStrategy strategy) {
             Util.checkNull(strategy, "strategy");
             defaultSyncClientResetStrategy = strategy;
             return this;
