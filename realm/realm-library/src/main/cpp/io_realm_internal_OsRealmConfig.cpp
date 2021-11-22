@@ -352,7 +352,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->error_handler = std::move(error_handler);
         switch (j_client_reset_mode) {
-            case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_SEAMLESS_LOSS: {
+            case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_DISCARD_UNSYNCED_CHANGES: {
                 config.sync_config->client_resync_mode = realm::ClientResyncMode::DiscardLocal;
 
                 static JavaClass before_client_reset_handler_class(env, "io/realm/internal/SyncObjectServerFacade$BeforeClientResetHandler");
@@ -374,9 +374,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     SharedRealm* remote_version_ptr = new SharedRealm(remote_version);
                     j_on_before_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                         env->CallVoidMethod(obj, on_before_client_reset_method, reinterpret_cast<jlong>(local_version_ptr), reinterpret_cast<jlong>(remote_version_ptr), config_global.get());
-                        // Fixme before merging, closing the realms should be handled by core?
-                        local_version->close();
-//                        remote_version->close();
                     });
                     TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
                 };
@@ -391,8 +388,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     SharedRealm* local_version_ptr = new SharedRealm(local_version);
                     j_on_after_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                         env->CallVoidMethod(obj, on_after_client_reset_method, reinterpret_cast<jlong>(local_version_ptr), config_global.get());
-                        // Fixme before merging, closing the realms should be handled by core?
-                        local_version->close();
                     });
                     TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
                 };

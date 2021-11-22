@@ -202,43 +202,38 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
      * to be the same one to ensure core's destructor thread safety.
      */
-    static OsSharedRealm getInstanceUnderConstruction(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
-        return new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig, true);
+    OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
+        this(nativeSharedRealmPtr, osRealmConfig, osRealmConfig.getContext());
+
+        boolean foundParentSharedRealm = false;
+        for (OsSharedRealm sharedRealm : sharedRealmsUnderConstruction) {
+            if (sharedRealm.context == osRealmConfig.getContext())  {
+                foundParentSharedRealm = true;
+                sharedRealm.tempSharedRealmsForCallback.add(this);
+                break;
+            }
+        }
+        if (!foundParentSharedRealm) {
+            throw new IllegalStateException("Cannot find the parent 'OsSharedRealm' which is under construction.");
+        }
     }
 
     /**
-     * Creates a {@code OsSharedRealm} instance from a given Object Store's {@code OsSharedRealm} pointer. This is used to
-     * create {@code OsSharedRealm} from the callback functions. This method does not ensure core's destructor thread safety.
+     * Creates a {@code OsSharedRealm} instance from a given Object Store's {@code OsSharedRealm}
+     * pointer with a given NativeContext. This is used to create {@code OsSharedRealm} from the
+     * callback functions.
      */
-    static OsSharedRealm getInstance(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
-        return new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig, false);
-    }
-
-    private OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, boolean checkParentExists) {
+    OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, NativeContext nativeContext) {
         this.nativePtr = nativeSharedRealmPtr;
         this.osRealmConfig = osRealmConfig;
         this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
-        this.context = osRealmConfig.getContext();
+        this.context = nativeContext;
         this.context.addReference(this);
 
         this.capabilities = new AndroidCapabilities();
         // This instance should never need notifications.
         this.realmNotifier = null;
         nativeSetAutoRefresh(nativePtr, false);
-
-        if(checkParentExists){
-            boolean foundParentSharedRealm = false;
-            for (OsSharedRealm sharedRealm : sharedRealmsUnderConstruction) {
-                if (sharedRealm.context == osRealmConfig.getContext())  {
-                    foundParentSharedRealm = true;
-                    sharedRealm.tempSharedRealmsForCallback.add(this);
-                    break;
-                }
-            }
-            if (!foundParentSharedRealm) {
-                throw new IllegalStateException("Cannot find the parent 'OsSharedRealm' which is under construction.");
-            }
-        }
     }
 
     /**
@@ -585,7 +580,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     @SuppressWarnings("unused")
     private static void runMigrationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, MigrationCallback callback,
                                              long oldVersion) {
-        callback.onMigrationNeeded(OsSharedRealm.getInstanceUnderConstruction(nativeSharedRealmPtr, osRealmConfig), oldVersion,
+        callback.onMigrationNeeded(new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig), oldVersion,
                 osRealmConfig.getRealmConfiguration().getSchemaVersion());
     }
 
@@ -596,7 +591,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      */
     @SuppressWarnings("unused")
     private static void runInitializationCallback(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, InitializationCallback callback) {
-        callback.onInit(OsSharedRealm.getInstanceUnderConstruction(nativeSharedRealmPtr, osRealmConfig));
+        callback.onInit(new OsSharedRealm(nativeSharedRealmPtr, osRealmConfig));
     }
 
     private static native void nativeInit(String temporaryDirectoryPath);

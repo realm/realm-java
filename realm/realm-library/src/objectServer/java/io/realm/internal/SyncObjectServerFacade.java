@@ -111,13 +111,17 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
             ClientResyncMode clientResetMode = syncConfig.getClientResyncMode();
             BeforeClientResetHandler beforeClientResetHandler = (localPtr, remotePtr, osRealmConfig) -> {
-                Realm beforeRealm = realmInstanceFactory.createInstance(OsSharedRealm.getInstance(localPtr, osRealmConfig));
-                Realm afterRealm = realmInstanceFactory.createInstance(OsSharedRealm.getInstance(remotePtr, osRealmConfig));
+                ManualReleaseNativeContext manualReleaseNativeContext = new ManualReleaseNativeContext();
+                Realm beforeRealm = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, manualReleaseNativeContext));
+                Realm afterRealm = realmInstanceFactory.createInstance(new OsSharedRealm(remotePtr, osRealmConfig, manualReleaseNativeContext));
                 ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onBeforeReset(beforeRealm, afterRealm);
+                manualReleaseNativeContext.release();
             };
             AfterClientResetHandler afterClientResetHandler = (localPtr, osRealmConfig) -> {
-                Realm localRealm = realmInstanceFactory.createInstance(OsSharedRealm.getInstance(localPtr, osRealmConfig));
+                ManualReleaseNativeContext manualReleaseNativeContext = new ManualReleaseNativeContext();
+                Realm localRealm = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, manualReleaseNativeContext));
                 ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onAfterReset(localRealm);
+                manualReleaseNativeContext.release();
             };
 
             long appNativePointer;
