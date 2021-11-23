@@ -699,13 +699,6 @@ public class SyncSession {
     }
 
     /**
-     * Interface that defines a generic sync client reset strategy, it could be either
-     * {@link ManuallyRecoverUnsyncedChangesStrategy} or {@link DiscardUnsyncedChangesStrategy}.
-     */
-    public interface SyncClientResetStrategy {
-    }
-
-    /**
      * Callback for the specific error event known as a Client Reset, determined by the error code
      * {@link ErrorCode#CLIENT_RESET}.
      * <p>
@@ -743,108 +736,10 @@ public class SyncSession {
      * synchronized to MongoDB Realm. Those changes will only be present in the backed up file. It is therefore
      * recommended to close all open Realm instances as soon as possible.
      *
-     * @deprecated replaced by {@link SyncSession.ManuallyRecoverUnsyncedChangesStrategy}
+     * @deprecated replaced by {@link ManuallyRecoverUnsyncedChangesStrategy}
      */
     @Deprecated
     public interface ClientResetHandler extends ManuallyRecoverUnsyncedChangesStrategy {
-    }
-
-    /**
-     * Strategy to manually resolve a Client Reset, determined by the error code
-     * {@link ErrorCode#CLIENT_RESET}.
-     * <p>
-     * A synced Realm may need to be reset because the MongoDB Realm Server encountered an error and had
-     * to be restored from a backup or because it has been too long since the client connected to the
-     * server so the server has rotated the logs.
-     * <p>
-     * The Client Reset thus occurs because the server does not have the full information required to
-     * bring the Client fully up to date.
-     * <p>
-     * The manual reset process is as follows: the local copy of the Realm is copied into a recovery directory
-     * for safekeeping, and then deleted from the original location. The next time the Realm for that
-     * URL is opened, the Realm will automatically be re-downloaded from MongoDB Realm, and
-     * can be used as normal.
-     * <p>
-     * Data written to the Realm after the local copy of the Realm diverged from the backup remote copy
-     * will be present in the local recovery copy of the Realm file. The re-downloaded Realm will
-     * initially contain only the data present at the time the Realm was backed up on the server.
-     * <p>
-     * The client reset process can be initiated in one of two ways:
-     * <ol>
-     *     <li>
-     *         Run {@link ClientResetRequiredError#executeClientReset()} manually. All Realm instances must be
-     *         closed before this method is called.
-     *     </li>
-     *     <li>
-     *         If Client Reset isn't executed manually, it will automatically be carried out the next time all
-     *         Realm instances have been closed and re-opened. This will most likely be
-     *         when the app is restarted.
-     *     </li>
-     * </ol>
-     *
-     * <b>WARNING:</b>
-     * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
-     * synchronized to MongoDB Realm. Those changes will only be present in the backed up file. It is therefore
-     * recommended to close all open Realm instances as soon as possible.
-     */
-    public interface ManuallyRecoverUnsyncedChangesStrategy extends SyncClientResetStrategy {
-        /**
-         * Callback that indicates a Client Reset has happened. This should be handled as quickly as
-         * possible as any further changes to the Realm will not be synchronized with the server and
-         * must be moved manually from the backup Realm to the new one.
-         *
-         * @param session {@link SyncSession} this error happened on.
-         * @param error   {@link ClientResetRequiredError} the specific Client Reset error.
-         */
-        void onClientReset(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
-    }
-
-    /**
-     * Strategy that automatically resolves a Client Reset by discarding any unsynced data, but otherwise keep the Realm open. Any changes will be reported through the normal collection and object notifications.
-     * <p>
-     * A synced Realm may need to be reset because the MongoDB Realm Server encountered an error and had
-     * to be restored from a backup or because it has been too long since the client connected to the
-     * server so the server has rotated the logs.
-     * <p>
-     * The Client Reset thus occurs because the server does not have the full information required to
-     * bring the Client fully up to date.
-     * <p>
-     * The discard unsynced changes reset process is as follows: when a client reset is triggered
-     * the {@link #onBeforeReset(Realm, Realm)} callback is invoked, providing an instance of the
-     * Realm before the reset and another after the reset, both read-only. Once the reset has concluded
-     * the callback {@link #onAfterReset(Realm)} would be invoked with an instance of the final Realm.
-     * <p>
-     * In the event that discarding the unsynced data is not enough to resolve the reset the
-     * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked, it allows to manually
-     * resolve the reset as it would be done in
-     * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
-     */
-    public interface DiscardUnsyncedChangesStrategy extends SyncClientResetStrategy {
-        /**
-         * Callback that indicates a Client Reset is about to happen, provides of two read-only
-         * Realm instances one of the current state and the other of the state to be.
-         *
-         * @param before {@link Realm} read-only Realm instance in its state before the reset.
-         * @param after {@link Realm} read-only Realm instance of the state to become after the reset.
-         */
-        void onBeforeReset(@Nonnull Realm before, @Nonnull Realm after);
-
-        /**
-         * Callback that indicates a Client Reset just happened, provides of a read-only Realm instance
-         * of the state after the reset.
-         *
-         * @param realm {@link Realm} read-only Realm instance in the state after the reset.
-         */
-        void onAfterReset(@Nonnull Realm realm);
-
-        /**
-         * Callback that indicates the seamless Client reset couldn't complete. It should be handled
-         * as {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
-         *
-         * @param session {@link SyncSession} this error happened on.
-         * @param error {@link ClientResetRequiredError} the specific Client Reset error.
-         */
-        void onError(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling

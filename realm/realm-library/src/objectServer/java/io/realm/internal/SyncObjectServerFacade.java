@@ -35,6 +35,7 @@ import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.sync.ClientResyncMode;
+import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.Sync;
 import io.realm.mongodb.User;
 import io.realm.mongodb.sync.SyncConfiguration;
@@ -114,13 +115,13 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 ManualReleaseNativeContext manualReleaseNativeContext = new ManualReleaseNativeContext();
                 Realm beforeRealm = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, manualReleaseNativeContext));
                 Realm afterRealm = realmInstanceFactory.createInstance(new OsSharedRealm(remotePtr, osRealmConfig, manualReleaseNativeContext));
-                ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onBeforeReset(beforeRealm, afterRealm);
+                ((DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onBeforeReset(beforeRealm, afterRealm);
                 manualReleaseNativeContext.release();
             };
             AfterClientResetHandler afterClientResetHandler = (localPtr, osRealmConfig) -> {
                 ManualReleaseNativeContext manualReleaseNativeContext = new ManualReleaseNativeContext();
                 Realm localRealm = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, manualReleaseNativeContext));
-                ((SyncSession.DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onAfterReset(localRealm);
+                ((DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onAfterReset(localRealm);
                 manualReleaseNativeContext.release();
             };
 

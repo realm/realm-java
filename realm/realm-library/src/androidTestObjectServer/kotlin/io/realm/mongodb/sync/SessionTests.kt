@@ -137,7 +137,7 @@ class SessionTests {
 
         val config = SyncConfiguration.Builder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
                 .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-                .syncClientResetStrategy(object: SyncSession.DiscardUnsyncedChangesStrategy{
+                .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy{
                     override fun onBeforeReset(before: Realm, after: Realm) {
                         Assert.assertEquals(1, before.where<SyncColor>().count())
                         Assert.assertEquals(0, after.where<SyncColor>().count())
@@ -170,7 +170,7 @@ class SessionTests {
 
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-                .syncClientResetStrategy(object: SyncSession.DiscardUnsyncedChangesStrategy {
+                .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(before: Realm, after: Realm) {
                         fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
                     }

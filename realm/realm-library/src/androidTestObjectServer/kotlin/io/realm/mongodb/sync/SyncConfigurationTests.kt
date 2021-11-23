@@ -98,7 +98,7 @@ class SyncConfigurationTests {
     @Test
     fun clientResetHandler() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
-        val handler = SyncSession.ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
         val config = builder.syncClientResetStrategy(handler).build()
         assertEquals(handler, config.syncClientResetStrategy)
     }
@@ -114,7 +114,7 @@ class SyncConfigurationTests {
     fun clientResetHandler_nullThrows() {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        assertFailsWith<IllegalArgumentException> { builder.syncClientResetStrategy(TestHelper.getNull<SyncSession.ManuallyRecoverUnsyncedChangesStrategy>()) }
+        assertFailsWith<IllegalArgumentException> { builder.syncClientResetStrategy(TestHelper.getNull<ManuallyRecoverUnsyncedChangesStrategy>()) }
     }
 
     @Test
@@ -128,7 +128,7 @@ class SyncConfigurationTests {
     @Test
     fun clientResetHandler_deprecatedThrows() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
-        val handler = SyncSession.ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
         val config = builder.syncClientResetStrategy(handler).build()
         assertFailsWith<ClassCastException> {
             config.clientResetHandler
@@ -359,7 +359,7 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-                .syncClientResetStrategy(object : SyncSession.ManuallyRecoverUnsyncedChangesStrategy {
+                .syncClientResetStrategy(object : ManuallyRecoverUnsyncedChangesStrategy {
                     override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
                         fail("Should not be called")
                     }
@@ -373,7 +373,7 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-                .syncClientResetStrategy(object : SyncSession.DiscardUnsyncedChangesStrategy {
+                .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(before: Realm, after: Realm) {
                         fail("Should not be called")
                     }
@@ -397,10 +397,10 @@ class SyncConfigurationTests {
         val config: SyncConfiguration.Builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
 
         assertFailsWith<IllegalArgumentException> {
-            config.syncClientResetStrategy(TestHelper.getNull<SyncSession.ManuallyRecoverUnsyncedChangesStrategy>())
+            config.syncClientResetStrategy(TestHelper.getNull<ManuallyRecoverUnsyncedChangesStrategy>())
         }
         assertFailsWith<IllegalArgumentException> {
-            config.syncClientResetStrategy(TestHelper.getNull<SyncSession.DiscardUnsyncedChangesStrategy>())
+            config.syncClientResetStrategy(TestHelper.getNull<DiscardUnsyncedChangesStrategy>())
         }
     }
 

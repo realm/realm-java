@@ -23,6 +23,7 @@ import io.realm.log.RealmLog
 import io.realm.log.RealmLogger
 import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
+import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy
 import io.realm.mongodb.sync.SyncSession
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
@@ -284,12 +285,12 @@ class AppConfigurationTests {
         val config = AppConfiguration.Builder("app-id")
             .build()
 
-        assertTrue(config.defaultSyncClientResetStrategy is SyncSession.DiscardUnsyncedChangesStrategy)
+        assertTrue(config.defaultSyncClientResetStrategy is DiscardUnsyncedChangesStrategy)
     }
 
     @Test
     fun setDefaultSyncClientStrategy() {
-        val handler = SyncSession.ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
 
         val config = AppConfiguration.Builder("app-id")
                 .defaultSyncClientResetStrategy(handler)
@@ -301,7 +302,7 @@ class AppConfigurationTests {
     fun setDefaultSyncClientStrategy_invalidValuesThrows() {
         val builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> {
-            builder.defaultSyncClientResetStrategy(TestHelper.getNull<SyncSession.ManuallyRecoverUnsyncedChangesStrategy>())
+            builder.defaultSyncClientResetStrategy(TestHelper.getNull<ManuallyRecoverUnsyncedChangesStrategy>())
         }
     }
 
