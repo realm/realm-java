@@ -454,7 +454,7 @@ class SyncConfigurationTests {
             SyncConfiguration.defaultConfig(user, ObjectId())
         }
         assertFailsWith<java.lang.IllegalArgumentException> {
-            SyncConfiguration.defaultConfig(app.currentUser(), ObjectId())
+            SyncConfiguration.defaultConfig(app.currentUser()!!, ObjectId())
         }
     }
 

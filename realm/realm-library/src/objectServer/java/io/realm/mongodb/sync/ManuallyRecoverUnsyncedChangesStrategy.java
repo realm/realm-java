@@ -65,5 +65,5 @@ public interface ManuallyRecoverUnsyncedChangesStrategy extends SyncClientResetS
      * @param session {@link SyncSession} this error happened on.
      * @param error   {@link ClientResetRequiredError} the specific Client Reset error.
      */
-    void onClientReset(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
+    void onClientReset(SyncSession session, ClientResetRequiredError error);
 }

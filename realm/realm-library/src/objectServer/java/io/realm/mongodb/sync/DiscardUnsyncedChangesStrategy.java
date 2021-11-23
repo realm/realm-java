@@ -46,7 +46,7 @@ public interface DiscardUnsyncedChangesStrategy extends SyncClientResetStrategy 
      * @param before {@link Realm} read-only Realm instance in its state before the reset.
      * @param after  {@link Realm} read-only Realm instance of the state to become after the reset.
      */
-    void onBeforeReset(@Nonnull Realm before, @Nonnull Realm after);
+    void onBeforeReset(Realm before, Realm after);
 
     /**
      * Callback that indicates a Client Reset just happened, provides of a read-only Realm instance
@@ -54,7 +54,7 @@ public interface DiscardUnsyncedChangesStrategy extends SyncClientResetStrategy 
      *
      * @param realm {@link Realm} read-only Realm instance in the state after the reset.
      */
-    void onAfterReset(@Nonnull Realm realm);
+    void onAfterReset(Realm realm);
 
     /**
      * Callback that indicates the seamless Client reset couldn't complete. It should be handled
@@ -63,5 +63,5 @@ public interface DiscardUnsyncedChangesStrategy extends SyncClientResetStrategy 
      * @param session {@link SyncSession} this error happened on.
      * @param error   {@link ClientResetRequiredError} the specific Client Reset error.
      */
-    void onError(@Nonnull SyncSession session, @Nonnull ClientResetRequiredError error);
+    void onError(SyncSession session, ClientResetRequiredError error);
 }
