@@ -21,7 +21,7 @@
 * Streaming download notifiers reported incorrect values for transferrable bytes. (Issue [Realm Core #5008]() since v11.5.2)
 
 ### Breaking Changes
-* [RealmApp] The default client reset strategy has been changed from `ManuallyRecoverUnsyncedChangesStrategy`, formerly named `ClientResetHandler`, to `DiscardUnsyncedChangesStrategy`.
+* [RealmApp] The default client reset strategy has been changed from `ManuallyRecoverUnsyncedChangesStrategy`, formerly named `ClientResetHandler`, to `DiscardUnsyncedChangesStrategy`. No code change is required. 
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
