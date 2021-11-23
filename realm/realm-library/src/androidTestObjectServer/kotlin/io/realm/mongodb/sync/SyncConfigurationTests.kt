@@ -337,7 +337,7 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         var config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
-        assertEquals(ClientResyncMode.DISCARD_UNSYNCED_CHANGES, config.clientResyncMode)
+        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
     }
 
     @Test
@@ -351,7 +351,7 @@ class SyncConfigurationTests {
                     }
                 })
                 .build()
-        assertEquals(ClientResyncMode.MANUAL, config.clientResyncMode)
+        assertTrue(config.syncClientResetStrategy is ManuallyRecoverUnsyncedChangesStrategy)
     }
 
     @Test
@@ -365,7 +365,7 @@ class SyncConfigurationTests {
                     }
                 })
                 .build()
-        assertEquals(ClientResyncMode.MANUAL, config.clientResyncMode)
+        assertTrue(config.syncClientResetStrategy is ManuallyRecoverUnsyncedChangesStrategy)
     }
 
     @Test
@@ -388,7 +388,7 @@ class SyncConfigurationTests {
 
                 })
                 .build()
-        assertEquals(ClientResyncMode.DISCARD_UNSYNCED_CHANGES, config.clientResyncMode)
+        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
     }
 
     @Test

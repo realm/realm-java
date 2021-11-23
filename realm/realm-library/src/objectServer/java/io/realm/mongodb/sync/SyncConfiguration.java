@@ -108,7 +108,6 @@ public class SyncConfiguration extends RealmConfiguration {
     private final long initialDataTimeoutMillis;
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     @Nullable private final String syncUrlPrefix;
-    private final ClientResyncMode clientResyncMode;
     private final BsonValue partitionValue;
 
     private SyncConfiguration(File realmPath,
@@ -136,7 +135,6 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
                               CompactOnLaunchCallback compactOnLaunch,
                               @Nullable String syncUrlPrefix,
-                              ClientResyncMode clientResyncMode,
                               BsonValue partitionValue) {
         super(realmPath,
                 assetFilePath,
@@ -166,7 +164,6 @@ public class SyncConfiguration extends RealmConfiguration {
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
         this.sessionStopPolicy = sessionStopPolicy;
         this.syncUrlPrefix = syncUrlPrefix;
-        this.clientResyncMode = clientResyncMode;
         this.partitionValue = partitionValue;
     }
 
@@ -296,7 +293,6 @@ public class SyncConfiguration extends RealmConfiguration {
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
-        if (clientResyncMode != that.clientResyncMode) return false;
         return partitionValue.equals(that.partitionValue);
     }
 
@@ -311,7 +307,6 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + (int) (initialDataTimeoutMillis ^ (initialDataTimeoutMillis >>> 32));
         result = 31 * result + sessionStopPolicy.hashCode();
         result = 31 * result + (syncUrlPrefix != null ? syncUrlPrefix.hashCode() : 0);
-        result = 31 * result + clientResyncMode.hashCode();
         result = 31 * result + partitionValue.hashCode();
         return result;
     }
@@ -335,8 +330,6 @@ public class SyncConfiguration extends RealmConfiguration {
         sb.append("sessionStopPolicy: ").append(sessionStopPolicy);
         sb.append("\n");
         sb.append("syncUrlPrefix: ").append(syncUrlPrefix);
-        sb.append("\n");
-        sb.append("clientResyncMode: ").append(clientResyncMode);
         sb.append("\n");
         sb.append("partitionValue: ").append(partitionValue);
         return sb.toString();
@@ -452,13 +445,6 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns what happens in case of a Client Resync.
-     */
-    public ClientResyncMode getClientResyncMode() {
-        return clientResyncMode;
-    }
-
-    /**
      * Returns the value this Realm is partitioned on. The partition key is a property defined in
      * MongoDB Realm. All classes with a property with this value will be synchronized to the
      * Realm.
@@ -507,8 +493,6 @@ public class SyncConfiguration extends RealmConfiguration {
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
-        @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
-        private ClientResyncMode clientResyncMode = null;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
         private boolean allowWritesOnUiThread;
         private boolean allowQueriesOnUiThread;
@@ -1145,13 +1129,6 @@ public class SyncConfiguration extends RealmConfiguration {
                 }
             }
 
-            // Set the default Client Resync Mode based on the current type of Realm.
-            if (syncClientResetStrategy instanceof ManuallyRecoverUnsyncedChangesStrategy) {
-                clientResyncMode = ClientResyncMode.MANUAL;
-            } else if (syncClientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
-                clientResyncMode = ClientResyncMode.DISCARD_UNSYNCED_CHANGES;
-            }
-
             if (rxFactory == null && Util.isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory(true);
             }
@@ -1194,7 +1171,6 @@ public class SyncConfiguration extends RealmConfiguration {
                     sessionStopPolicy,
                     compactOnLaunch,
                     syncUrlPrefix,
-                    clientResyncMode,
                     partitionValue
             );
         }

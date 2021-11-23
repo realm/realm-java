@@ -23,6 +23,7 @@ import io.realm.log.RealmLog
 import io.realm.log.RealmLogger
 import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
+import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy
 import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy
 import io.realm.mongodb.sync.SyncSession
 import io.realm.rule.BlockingLooperThread

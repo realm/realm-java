@@ -34,10 +34,11 @@ import io.realm.internal.objectstore.OsApp;
 import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
 import io.realm.mongodb.AppConfiguration;
-import io.realm.mongodb.sync.ClientResyncMode;
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.Sync;
 import io.realm.mongodb.User;
+import io.realm.mongodb.sync.SyncClientResetStrategy;
 import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
@@ -45,7 +46,6 @@ import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
-import io.realm.mongodb.sync.SyncSession;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -110,18 +110,27 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
-            ClientResyncMode clientResetMode = syncConfig.getClientResyncMode();
+            SyncClientResetStrategy clientResetStrategy = syncConfig.getSyncClientResetStrategy();
+
+
+            byte clientResetMode = -1; // undefined value
+            if (clientResetStrategy instanceof ManuallyRecoverUnsyncedChangesStrategy) {
+                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
+            } else if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
+                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_DISCARD_UNSYNCED_CHANGES;
+            }
+
             BeforeClientResetHandler beforeClientResetHandler = (localPtr, remotePtr, osRealmConfig) -> {
                 ManualReleaseNativeContext manualReleaseNativeContext = new ManualReleaseNativeContext();
                 Realm beforeRealm = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, manualReleaseNativeContext));
                 Realm afterRealm = realmInstanceFactory.createInstance(new OsSharedRealm(remotePtr, osRealmConfig, manualReleaseNativeContext));
-                ((DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onBeforeReset(beforeRealm, afterRealm);
+                ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(beforeRealm, afterRealm);
                 manualReleaseNativeContext.release();
             };
             AfterClientResetHandler afterClientResetHandler = (localPtr, osRealmConfig) -> {
                 ManualReleaseNativeContext manualReleaseNativeContext = new ManualReleaseNativeContext();
                 Realm localRealm = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, manualReleaseNativeContext));
-                ((DiscardUnsyncedChangesStrategy) syncConfig.getSyncClientResetStrategy()).onAfterReset(localRealm);
+                ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(localRealm);
                 manualReleaseNativeContext.release();
             };
 
@@ -175,7 +184,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = urlPrefix;
             configObj[i++] = customAuthorizationHeaderName;
             configObj[i++] = customHeaders;
-            configObj[i++] = clientResetMode.getNativeValue();
+            configObj[i++] = clientResetMode;
             configObj[i++] = beforeClientResetHandler;
             configObj[i++] = afterClientResetHandler;
             configObj[i++] = encodedPartitionValue;
