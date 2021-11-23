@@ -885,7 +885,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param handler custom handler in case of a Client Reset.
          *
-         * @deprecated replaced by {@link #setSyncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy)}
+         * @deprecated replaced by {@link #syncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy)}
          */
         @Deprecated
         public Builder clientResetHandler(SyncSession.ClientResetHandler handler) {
@@ -898,7 +898,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param handler custom manual handler in case of a Client Reset.
          */
-        public Builder setSyncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy handler) {
+        public Builder syncClientResetStrategy(SyncSession.ManuallyRecoverUnsyncedChangesStrategy handler) {
             return syncClientResetStrategyInternal(handler);
         }
 
@@ -908,7 +908,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param handler custom seamless loss handler in case of a Client Reset.
          */
-        public Builder setSyncClientResetStrategy(SyncSession.DiscardUnsyncedChangesStrategy handler) {
+        public Builder syncClientResetStrategy(SyncSession.DiscardUnsyncedChangesStrategy handler) {
             return syncClientResetStrategyInternal(handler);
         }
 

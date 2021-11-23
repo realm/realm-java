@@ -278,7 +278,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             if (error.is_client_reset_requested()) {
                 client_reset_path_info = error.user_info[SyncError::c_recovery_file_path_key];
                 error_code = 7; // See ErrorCode.java
-                error_category = "custom";
+                error_category = "realm::app::CustomError";
             }
 
             // System/Connection errors are defined by constants in
@@ -373,6 +373,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     SharedRealm* local_version_ptr = new SharedRealm(local_version);
                     SharedRealm* remote_version_ptr = new SharedRealm(remote_version);
                     j_on_before_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                        // The local and remote Realm lifecycles are handled in Java via a
+                        // ManualReleaseNativeContext.
                         env->CallVoidMethod(obj, on_before_client_reset_method, reinterpret_cast<jlong>(local_version_ptr), reinterpret_cast<jlong>(remote_version_ptr), config_global.get());
                     });
                     TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
@@ -387,6 +389,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
                     SharedRealm* local_version_ptr = new SharedRealm(local_version);
                     j_on_after_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                        // The local Realm lifecycle is handled in Java via a
+                        // ManualReleaseNativeContext.
                         env->CallVoidMethod(obj, on_after_client_reset_method, reinterpret_cast<jlong>(local_version_ptr), config_global.get());
                     });
                     TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);

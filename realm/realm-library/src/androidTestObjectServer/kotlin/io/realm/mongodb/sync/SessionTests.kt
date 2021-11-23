@@ -137,7 +137,7 @@ class SessionTests {
 
         val config = SyncConfiguration.Builder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
                 .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-                .setSyncClientResetStrategy(object: SyncSession.DiscardUnsyncedChangesStrategy{
+                .syncClientResetStrategy(object: SyncSession.DiscardUnsyncedChangesStrategy{
                     override fun onBeforeReset(before: Realm, after: Realm) {
                         Assert.assertEquals(1, before.where<SyncColor>().count())
                         Assert.assertEquals(0, after.where<SyncColor>().count())
@@ -170,7 +170,7 @@ class SessionTests {
 
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-                .setSyncClientResetStrategy(object: SyncSession.DiscardUnsyncedChangesStrategy {
+                .syncClientResetStrategy(object: SyncSession.DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(before: Realm, after: Realm) {
                         fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
                     }
@@ -414,7 +414,7 @@ class SessionTests {
     fun errorHandler_manuallyRecoverClientResetReported() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-            .setSyncClientResetStrategy { session: SyncSession, error: ClientResetRequiredError ->
+            .syncClientResetStrategy { session: SyncSession, error: ClientResetRequiredError ->
                 val filePathFromError = error.originalFile.absolutePath
                 val filePathFromConfig = session.configuration.path
                 assertEquals(filePathFromError, filePathFromConfig)
@@ -442,7 +442,7 @@ class SessionTests {
 
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-            .setSyncClientResetStrategy { _: SyncSession, error: ClientResetRequiredError ->
+            .syncClientResetStrategy { _: SyncSession, error: ClientResetRequiredError ->
                 try {
                     error.executeClientReset()
                     fail("All Realms should be closed before executing Client Reset can be allowed")
@@ -472,7 +472,7 @@ class SessionTests {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
             .schema(SyncStringOnly::class.java)
-            .setSyncClientResetStrategy { _: SyncSession?, error: ClientResetRequiredError ->
+            .syncClientResetStrategy { _: SyncSession?, error: ClientResetRequiredError ->
                 // Execute Client Reset
                 resources.close()
                 error.executeClientReset()
@@ -518,7 +518,7 @@ class SessionTests {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
             .modules(SyncStringOnlyModule())
-            .setSyncClientResetStrategy { session: SyncSession?, error: ClientResetRequiredError ->
+            .syncClientResetStrategy { session: SyncSession?, error: ClientResetRequiredError ->
                 // Execute Client Reset
                 resources.close()
                 error.executeClientReset()
@@ -582,7 +582,7 @@ class SessionTests {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .encryptionKey(randomKey)
             .modules(SyncStringOnlyModule())
-            .setSyncClientResetStrategy { session: SyncSession?, error: ClientResetRequiredError ->
+            .syncClientResetStrategy { session: SyncSession?, error: ClientResetRequiredError ->
                 // Execute Client Reset
                 resources.close()
                 error.executeClientReset()

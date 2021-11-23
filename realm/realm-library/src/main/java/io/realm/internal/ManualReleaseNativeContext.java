@@ -40,4 +40,3 @@ class ManualReleaseNativeContext extends NativeContext {
         }
     }
 }
-
