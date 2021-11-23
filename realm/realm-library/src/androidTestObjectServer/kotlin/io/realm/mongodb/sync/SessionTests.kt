@@ -139,12 +139,15 @@ class SessionTests {
                 .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
                 .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy{
                     override fun onBeforeReset(before: Realm, after: Realm) {
+                        assertTrue(before.isFrozen)
+                        assertTrue(after.isFrozen)
                         Assert.assertEquals(1, before.where<SyncColor>().count())
                         Assert.assertEquals(0, after.where<SyncColor>().count())
                         incrementAndValidate()
                     }
 
                     override fun onAfterReset(realm: Realm) {
+                        assertTrue(realm.isFrozen)
                         Assert.assertEquals(0, realm.where<SyncColor>().count())
                         incrementAndValidate()
                     }
@@ -180,6 +183,15 @@ class SessionTests {
                     }
 
                     override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                        val filePathFromError = error.originalFile.absolutePath
+                        val filePathFromConfig = session.configuration.path
+                        assertEquals(filePathFromError, filePathFromConfig)
+                        assertFalse(error.backupFile.exists())
+                        assertTrue(error.originalFile.exists())
+                        // Note, this error message is just the one created by ObjectStore for testing
+                        // The server will send a different message. This just ensures that we don't
+                        // accidentially modify or remove the message.
+                        assertEquals("Simulate Client Reset", error.message)
                         looperThread.testComplete()
                     }
                 })
