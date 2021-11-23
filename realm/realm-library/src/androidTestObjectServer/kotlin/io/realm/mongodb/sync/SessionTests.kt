@@ -130,7 +130,7 @@ class SessionTests {
         val counter = AtomicInteger()
 
         val incrementAndValidate = {
-            if(2 == counter.incrementAndGet()) {
+            if (2 == counter.incrementAndGet()) {
                 looperThread.testComplete()
             }
         }
