@@ -374,11 +374,11 @@ class SyncConfigurationTests {
 
         val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
                 .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
-                    override fun onBeforeReset(before: Realm, after: Realm) {
+                    override fun onBeforeReset(before: Realm) {
                         fail("Should not be called")
                     }
 
-                    override fun onAfterReset(realm: Realm) {
+                    override fun onAfterReset(before: Realm, after: Realm) {
                         fail("Should not be called")
                     }
 

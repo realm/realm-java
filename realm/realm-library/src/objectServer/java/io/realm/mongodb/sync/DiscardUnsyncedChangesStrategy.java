@@ -15,7 +15,6 @@
  */
 package io.realm.mongodb.sync;
 
-import javax.annotation.Nonnull;
 import io.realm.Realm;
 
 /**
@@ -29,9 +28,9 @@ import io.realm.Realm;
  * bring the Client fully up to date.
  * <p>
  * The discard unsynced changes reset process is as follows: when a client reset is triggered
- * the {@link #onBeforeReset(Realm, Realm)} callback is invoked, providing an instance of the
+ * the {@link #onBeforeReset(Realm)} callback is invoked, providing an instance of the
  * Realm before the reset and another after the reset, both read-only. Once the reset has concluded
- * the callback {@link #onAfterReset(Realm)} would be invoked with an instance of the final Realm.
+ * the callback {@link #onAfterReset(Realm, Realm)} would be invoked with an instance of the final Realm.
  * <p>
  * In the event that discarding the unsynced data is not enough to resolve the reset the
  * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked, it allows to manually
@@ -40,21 +39,23 @@ import io.realm.Realm;
  */
 public interface DiscardUnsyncedChangesStrategy extends SyncClientResetStrategy {
     /**
-     * Callback that indicates a Client Reset is about to happen, provides of two read-only
-     * Realm instances one of the current state and the other of the state to be.
+     * Callback that indicates a Client Reset is about to happen, provides a read-only Realm instance
+     * of the current state.
      *
-     * @param before {@link Realm} read-only Realm instance in its state before the reset.
-     * @param after  {@link Realm} read-only Realm instance of the state to become after the reset.
+     *  @param before {@link Realm} frozen Realm in its state before the reset.
+     *
      */
-    void onBeforeReset(Realm before, Realm after);
+    void onBeforeReset(Realm before);
 
     /**
-     * Callback that indicates a Client Reset just happened, provides of a read-only Realm instance
-     * of the state after the reset.
+     * Callback that indicates a Client Reset just happened. It provides of two Realm instance,
+     * a frozen one displaying the state before the reset and a regular Realm with the current state.
+     * It allows to recover any objects from the reset Realm.
      *
-     * @param realm {@link Realm} read-only Realm instance in the state after the reset.
+     * @param before {@link Realm} frozen Realm in the before after the reset.
+     * @param after  {@link Realm} Realm after the reset.
      */
-    void onAfterReset(Realm realm);
+    void onAfterReset(Realm before, Realm after);
 
     /**
      * Callback that indicates the seamless Client reset couldn't complete. It should be handled

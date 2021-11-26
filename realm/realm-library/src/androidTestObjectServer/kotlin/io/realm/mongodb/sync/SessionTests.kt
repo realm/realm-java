@@ -138,17 +138,17 @@ class SessionTests {
         val config = SyncConfiguration.Builder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
                 .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
                 .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy{
-                    override fun onBeforeReset(before: Realm, after: Realm) {
+                    override fun onBeforeReset(before: Realm) {
                         assertTrue(before.isFrozen)
-                        assertTrue(after.isFrozen)
                         Assert.assertEquals(1, before.where<SyncColor>().count())
-                        Assert.assertEquals(0, after.where<SyncColor>().count())
                         incrementAndValidate()
                     }
 
-                    override fun onAfterReset(realm: Realm) {
-                        assertTrue(realm.isFrozen)
-                        Assert.assertEquals(0, realm.where<SyncColor>().count())
+                    override fun onAfterReset(before: Realm, after: Realm) {
+                        assertTrue(before.isFrozen)
+                        assertTrue(!after.isFrozen)
+                        Assert.assertEquals(1, before.where<SyncColor>().count())
+                        Assert.assertEquals(0, after.where<SyncColor>().count())
                         incrementAndValidate()
                     }
 
@@ -174,11 +174,11 @@ class SessionTests {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
                 .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy {
-                    override fun onBeforeReset(before: Realm, after: Realm) {
+                    override fun onBeforeReset(before: Realm) {
                         fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
                     }
 
-                    override fun onAfterReset(realm: Realm) {
+                    override fun onAfterReset(before: Realm, after: Realm) {
                         fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
                     }
 

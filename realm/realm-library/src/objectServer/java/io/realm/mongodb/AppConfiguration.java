@@ -413,17 +413,17 @@ public class AppConfiguration {
         };
         private SyncClientResetStrategy defaultSyncClientResetStrategy = new DiscardUnsyncedChangesStrategy() {
             @Override
-            public void onBeforeReset(@NotNull Realm before, @NotNull Realm after) {
+            public void onBeforeReset(Realm before) {
                 RealmLog.debug("Client Reset is about to happen on Realm: " + before.getPath());
             }
 
             @Override
-            public void onAfterReset(@NotNull Realm realm) {
-                RealmLog.debug("Client Reset complete on Realm: " + realm.getPath());
+            public void onAfterReset(Realm before, Realm after) {
+                RealmLog.debug("Client Reset complete on Realm: " + after.getPath());
             }
 
             @Override
-            public void onError(@NotNull SyncSession session, @NotNull ClientResetRequiredError error) {
+            public void onError(SyncSession session, ClientResetRequiredError error) {
                 RealmLog.fatal("Seamless Client Reset failed on: " + session.getConfiguration().getServerUrl());
             }
         };
