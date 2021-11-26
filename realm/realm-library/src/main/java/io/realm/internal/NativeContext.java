@@ -44,11 +44,11 @@ public class NativeContext {
 
     /**
      * Executes a given NativeContextRunnable with a NativeContext which lifecycle is bound
-     * to the runnable scope.
+     * to a function scope.
      *
      * @param runnable function to execute.
      */
-    static void execute(ManualReleaseNativeContext.NativeContextRunnable runnable) {
+    static void execute(NativeContextRunnable runnable) {
         ManualReleaseNativeContext nativeContext = new ManualReleaseNativeContext();
         runnable.run(nativeContext);
         nativeContext.release();

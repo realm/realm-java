@@ -38,19 +38,20 @@ import io.realm.Realm;
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
 public interface DiscardUnsyncedChangesStrategy extends SyncClientResetStrategy {
-    /**
-     * Callback that indicates a Client Reset is about to happen, provides a read-only Realm instance
-     * of the current state.
-     *
-     *  @param before {@link Realm} frozen Realm in its state before the reset.
-     *
-     */
-    void onBeforeReset(Realm before);
 
     /**
-     * Callback that indicates a Client Reset just happened. It provides of two Realm instance,
-     * a frozen one displaying the state before the reset and a regular Realm with the current state.
-     * It allows to recover any objects from the reset Realm.
+     * Callback that indicates a Client Reset is about to happen. It provides with a frozen instance
+     * of the Realm that is will be reset.
+     *
+     * @param realm frozen {@link Realm} in its state before the reset.
+     *
+     */
+    void onBeforeReset(Realm realm);
+
+    /**
+     * Callback invoked once the Client Reset happens. It provides of two Realm instances,
+     * a frozen one displaying the state before the reset and a regular Realm with the current state,
+     * that can be used to recover objects from the reset.
      *
      * @param before {@link Realm} frozen Realm in the before after the reset.
      * @param after  {@link Realm} Realm after the reset.

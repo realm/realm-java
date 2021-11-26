@@ -413,8 +413,8 @@ public class AppConfiguration {
         };
         private SyncClientResetStrategy defaultSyncClientResetStrategy = new DiscardUnsyncedChangesStrategy() {
             @Override
-            public void onBeforeReset(Realm before) {
-                RealmLog.debug("Client Reset is about to happen on Realm: " + before.getPath());
+            public void onBeforeReset(Realm realm) {
+                RealmLog.debug("Client Reset is about to happen on Realm: " + realm.getPath());
             }
 
             @Override
