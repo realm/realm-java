@@ -121,17 +121,17 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             }
 
             BeforeClientResetHandler beforeClientResetHandler = (localPtr, osRealmConfig) -> {
-                ManualReleaseNativeContext manualReleaseNativeContext = new ManualReleaseNativeContext();
-                Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, manualReleaseNativeContext));
-                ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
-                manualReleaseNativeContext.release();
+                NativeContext.execute(nativeContext -> {
+                    Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
+                    ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
+                });
             };
             AfterClientResetHandler afterClientResetHandler = (localPtr, afterPtr, osRealmConfig) -> {
-                ManualReleaseNativeContext manualReleaseNativeContext = new ManualReleaseNativeContext();
-                Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, manualReleaseNativeContext));
-                Realm after = realmInstanceFactory.createInstance(new OsSharedRealm(afterPtr, osRealmConfig, manualReleaseNativeContext));
-                ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
-                manualReleaseNativeContext.release();
+                NativeContext.execute(nativeContext -> {
+                    Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
+                    Realm after = realmInstanceFactory.createInstance(new OsSharedRealm(afterPtr, osRealmConfig, nativeContext));
+                    ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
+                });
             };
 
             long appNativePointer;
