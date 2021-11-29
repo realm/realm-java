@@ -16,6 +16,7 @@
 
 package io.realm.mongodb.sync;
 
+import org.bson.BsonBinary;
 import org.bson.BsonValue;
 
 import java.io.File;
@@ -190,9 +191,13 @@ public abstract class Sync {
             case OBJECT_ID:
             case INT32:
             case INT64:
+            // Only way to here is through Realm API's which only allow UUID's. So we can safely
+            // just convert it to a Bson binary which will give it its correct UUID subtype.
+            case BINARY:
             case NULL:
                 encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
                 break;
+
             default:
                 throw new IllegalArgumentException("Unsupported type: " + partitionValue);
         }

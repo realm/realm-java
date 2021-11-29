@@ -689,7 +689,7 @@ class SyncedRealmTests {
                                 RealmFieldType.STRING -> assertEquals(expectedString, syncAllTypes.columnString)
                                 RealmFieldType.BINARY -> assertTrue(expectedBinary.contentEquals(syncAllTypes.columnBinary))
                                 RealmFieldType.DATE -> assertEquals(expectedDate, syncAllTypes.columnDate)
-                                RealmFieldType.DOUBLE -> assertEquals(expectedDouble, syncAllTypes.columnDouble)
+                                RealmFieldType.DOUBLE -> assertEquals(expectedDouble, syncAllTypes.columnDouble, 0.0)
                                 RealmFieldType.OBJECT -> assertEquals(expectedObjectId, syncAllTypes.columnRealmObject!!.id)
                                 RealmFieldType.DECIMAL128 -> assertEquals(expectedDecimal128, syncAllTypes.columnDecimal128)
                                 RealmFieldType.OBJECT_ID -> assertEquals(expectedObjectId, syncAllTypes.columnObjectId)
