@@ -37,7 +37,6 @@ import io.realm.util.assertFailsWithMessage
 import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
 import org.junit.*
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
@@ -127,7 +126,6 @@ class SessionTests {
 
     // Check that a Seamless Client Reset is correctly reported.
     @Test
-    @Ignore
     fun errorHandler_discardUnsyncedChangesStrategyReported() = looperThread.runBlocking {
         val counter = AtomicInteger()
 
@@ -176,7 +174,6 @@ class SessionTests {
 
     // Check that a if Seamless loss Client Reset fails the error is correctly reported.
     @Test
-    @Ignore
     fun errorHandler_discardUnsyncedChangesStrategy_resetErrorHandled() = looperThread.runBlocking {
         val email = TestHelper.getRandomEmail()
         val user: User = app.registerUserAndLogin(email, "123456")
