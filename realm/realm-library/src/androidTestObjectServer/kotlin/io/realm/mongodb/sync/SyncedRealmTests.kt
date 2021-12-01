@@ -974,6 +974,31 @@ class SyncedRealmTests {
         }
     }
 
+    @Test
+    fun customSyncRoot() {
+        app.close()
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+        val defaultRoot = File(Realm.getApplicationContext()!!.filesDir, "mongodb-realm")
+        val root = File(Realm.getApplicationContext()!!.filesDir, "my-custom-dir")
+        if (defaultRoot.exists()) { assertTrue(defaultRoot.deleteRecursively()) }
+        if (root.exists()) { assertTrue(root.deleteRecursively()) }
+
+        app = TestApp(builder = { it.syncRootDirectory(root) })
+        assertTrue("Root folder wasn't created", root.exists())
+        assertFalse("Default folder was created", defaultRoot.exists())
+
+        try {
+            val user: User = createNewUser()
+            val config = createDefaultConfig(user)
+            assertTrue("Wrong path: ${config.path}", config.path.contains("/my-custom-dir/mongodb-realm/"))
+            Realm.getInstance(config).close()
+            assertTrue(File(config.path).exists())
+            assertFalse("Default folder was created", defaultRoot.exists())
+        } finally {
+            assertTrue(root.deleteRecursively())
+        }
+    }
+
     private fun createDefaultConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .modules(DefaultSyncSchema())
