@@ -164,6 +164,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 case OBJECT_ID:
                 case INT32:
                 case INT64:
+                case BINARY:
                 case NULL:
                     encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
                     break;

@@ -18,6 +18,7 @@ package io.realm.mongodb.sync;
 
 import android.content.Context;
 
+import org.bson.BsonBinary;
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
 import org.bson.BsonNull;
@@ -37,6 +38,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
@@ -96,7 +98,6 @@ import io.realm.rx.RxObservableFactory;
  * @see <a href="https://docs.mongodb.com/realm/sync/">The docs</a> for
  * more information about synchronization.
  */
-@Beta
 public class SyncConfiguration extends RealmConfiguration {
 
     private final URI serverUrl;
@@ -207,7 +208,6 @@ public class SyncConfiguration extends RealmConfiguration {
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
      * @return the default configuration for the given user and partition value.
      */
-    @Beta
     public static SyncConfiguration defaultConfig(User user, @Nullable String partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
@@ -219,7 +219,6 @@ public class SyncConfiguration extends RealmConfiguration {
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
      * @return the default configuration for the given user and partition value.
      */
-    @Beta
     public static SyncConfiguration defaultConfig(User user, @Nullable Long partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
@@ -231,7 +230,6 @@ public class SyncConfiguration extends RealmConfiguration {
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
      * @return the default configuration for the given user and partition value.
      */
-    @Beta
     public static SyncConfiguration defaultConfig(User user, @Nullable Integer partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
@@ -243,8 +241,18 @@ public class SyncConfiguration extends RealmConfiguration {
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
      * @return the default configuration for the given user and partition value.
      */
-    @Beta
     public static SyncConfiguration defaultConfig(User user, @Nullable ObjectId partitionValue) {
+        return new SyncConfiguration.Builder(user, partitionValue).build();
+    }
+
+    /**
+     * Returns a default configuration for the given user and partition value.
+     *
+     * @param user The user that will be used for accessing the Realm App.
+     * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
+     * @return the default configuration for the given user and partition value.
+     */
+    public static SyncConfiguration defaultConfig(User user, @Nullable UUID partitionValue) {
         return new SyncConfiguration.Builder(user, partitionValue).build();
     }
 
@@ -540,6 +548,17 @@ public class SyncConfiguration extends RealmConfiguration {
          */
         public Builder(User user, @Nullable Long partitionValue) {
             this(user, (partitionValue == null? new BsonNull() : new BsonInt64(partitionValue)));
+        }
+
+        /**
+         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
+         * and partition value.
+         *
+         * @param user The user that will be used for accessing the Realm App.
+         * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
+         */
+        public Builder(User user, @Nullable UUID partitionValue) {
+            this(user, (partitionValue == null? new BsonNull() : new BsonBinary(partitionValue)));
         }
 
         /**

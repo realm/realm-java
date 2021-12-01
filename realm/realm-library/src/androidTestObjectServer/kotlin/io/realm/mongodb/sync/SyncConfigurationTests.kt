@@ -45,6 +45,7 @@ import org.junit.runner.RunWith
 import java.lang.ClassCastException
 import kotlin.test.assertFailsWith
 import java.lang.IllegalStateException
+import java.util.UUID
 
 @RunWith(AndroidJUnit4::class)
 class SyncConfigurationTests {
@@ -435,10 +436,12 @@ class SyncConfigurationTests {
                 SyncConfiguration.defaultConfig(user, null as Int?),
                 SyncConfiguration.defaultConfig(user, null as Long?),
                 SyncConfiguration.defaultConfig(user, null as ObjectId?),
+                SyncConfiguration.defaultConfig(user, null as UUID?),
                 SyncConfiguration.Builder(user, null as String?).build(),
                 SyncConfiguration.Builder(user, null as Int?).build(),
                 SyncConfiguration.Builder(user, null as Long?).build(),
-                SyncConfiguration.Builder(user, null as ObjectId?).build()
+                SyncConfiguration.Builder(user, null as ObjectId?).build(),
+                SyncConfiguration.Builder(user, null as UUID?).build()
         )
 
         configs.forEach { config ->
