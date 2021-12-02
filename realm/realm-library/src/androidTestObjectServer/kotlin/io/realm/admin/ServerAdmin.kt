@@ -142,16 +142,6 @@ class ServerAdmin(private val app: App) {
         SystemClock.sleep(5000)
     }
 
-    fun printEmailAuthConfig() {
-        val providerId: String = getLocalUserPassProviderId()
-        val url = "$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId"
-        var request = Request.Builder()
-            .url(url)
-            .get()
-        val authProviderConfig = JSONObject(executeRequest(request, true))
-        RealmLog.error(authProviderConfig.toString(4))
-    }
-
     /**
      * Toggle whether or not custom confirmation functions are enabled.
      */
