@@ -135,7 +135,7 @@ class SessionTests {
             }
         }
 
-        val config = SyncConfiguration.Builder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
+        val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
                 .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
                 .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy{
                     override fun onBeforeReset(realm: Realm) {
