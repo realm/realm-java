@@ -48,7 +48,7 @@ static_assert(SchemaMode::Automatic ==
 static_assert(SchemaMode::Immutable==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_IMMUTABLE),
               "");
-static_assert(SchemaMode::ReadOnlyAlternative ==
+static_assert(SchemaMode::ReadOnly ==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_READONLY),
               "");
 static_assert(SchemaMode::ResetFile ==
