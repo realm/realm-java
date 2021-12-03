@@ -634,15 +634,8 @@ public class AppConfiguration {
          */
         public AppConfiguration build() {
             // Initialize default sync root if none has been defined.
-            // Ideally this should just have been `context.getFilesDir()` since ObjectStore also
-            // creates a mongodb-realm folder, but changing it now would be a massive breaking change.
             if (syncRootDir == null) {
-                syncRootDir = new File(Realm.getApplicationContext().getFilesDir(), "mongodb-realm");
-                if (!syncRootDir.exists()) {
-                    if (!syncRootDir.mkdirs()) {
-                        throw new IllegalStateException("Could not create root folder for synchronized Realms: " + syncRootDir.getAbsolutePath());
-                    }
-                }
+                syncRootDir = Realm.getApplicationContext().getFilesDir();
             }
 
             return new AppConfiguration(appId,
