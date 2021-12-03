@@ -7,6 +7,7 @@
 * The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
 
 ### Fixed
+* [RealmApp] Setting `AppConfiguration.syncRootDirectory()` didn't have any effect beside creating the new folder. Realms were still placed in the default location. 
 * [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919)) 
 * [RealmApp] User being left in the logged in state when the user's refresh token expires. (Issue [Realm Core #4882](https://github.com/realm/realm-core/issues/4882), since v10)
 * Using "sort", "distinct", or "limit" as field name in query expression would cause an "Invalid predicate" error. (Issue [#7545](), since v10.X.X)

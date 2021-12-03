@@ -415,11 +415,6 @@ public class AppConfiguration {
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before calling this method.");
             }
-            File rootDir = new File(context.getFilesDir(), "mongodb-realm");
-            if (!rootDir.exists() && !rootDir.mkdir()) {
-                throw new IllegalStateException("Could not create Sync root dir: " + rootDir.getAbsolutePath());
-            }
-            syncRootDir = rootDir;
         }
 
         /**
@@ -638,6 +633,11 @@ public class AppConfiguration {
          * @return the AppConfiguration that can be used to create a {@link App}.
          */
         public AppConfiguration build() {
+            // Initialize default sync root if none has been defined.
+            if (syncRootDir == null) {
+                syncRootDir = Realm.getApplicationContext().getFilesDir();
+            }
+
             return new AppConfiguration(appId,
                     appName,
                     appVersion,

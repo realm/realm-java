@@ -184,12 +184,12 @@ public class App {
     private OsApp init(AppConfiguration config) {
         String userAgentBindingInfo = getBindingInfo();
         String appDefinedUserAgent = getAppInfo(config);
-        String syncDir = getSyncBaseDirectory();
+        String syncDir = getSyncBaseDirectory(config);
 
         return new OsApp(config, userAgentBindingInfo, appDefinedUserAgent, syncDir);
     }
 
-    private String getSyncBaseDirectory() {
+    private String getSyncBaseDirectory(AppConfiguration config) {
         Context context = Realm.getApplicationContext();
         if (context == null) {
             throw new IllegalStateException("Call Realm.init() first.");
@@ -213,7 +213,7 @@ public class App {
                 throw new IllegalStateException(e);
             }
         } else {
-            syncDir = context.getFilesDir().getPath();
+            syncDir = config.getSyncRootDirectory().getPath();
         }
         return syncDir;
     }
