@@ -123,14 +123,14 @@ upload_to_mavenCentral() {
 upload_debug_symbols() {
   echo "Uploading native debug symbols..."
   cd $REALM_JAVA_PATH
-  ./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_SECRET_KEY=$REALM_S3_SECRET_KEY
+  ./gradlew distribute -PREALM_S3_ACCESS_KEY=$REALM_S3_ACCESS_KEY -PREALM_S3_SECRET_KEY=$REALM_S3_SECRET_KEY --stacktrace
   cd $HERE
 }
 
 upload_javadoc() {
   echo "Uploading docs..."
   cd $REALM_JAVA_PATH
-  ./gradlew uploadJavadoc -PSDK_DOCS_AWS_ACCESS_KEY=$DOCS_S3_ACCESS_KEY -PSDK_DOCS_AWS_SECRET_KEY=$DOCS_S3_SECRET_KEY
+  ./gradlew uploadJavadoc -PSDK_DOCS_AWS_ACCESS_KEY=$DOCS_S3_ACCESS_KEY -PSDK_DOCS_AWS_SECRET_KEY=$DOCS_S3_SECRET_KEY --stacktrace
   cd $HERE
 }
 
