@@ -1,4 +1,4 @@
-## 10.9.0 (YYYY-MM-DD)
+## 10.9.0 (2021-12-06)
 
 ### Enhancements
 * [RealmApp] Add support for UUID's as partition values. (Issue [#7598](https://github.com/realm/realm-java/issues/7598))
