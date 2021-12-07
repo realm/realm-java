@@ -131,7 +131,7 @@ class AppConfigurationTests {
     @Test
     fun syncRootDirectory_default() {
         val config = AppConfiguration.Builder("app-id").build()
-        val expectedDefaultRoot = File(InstrumentationRegistry.getInstrumentation().targetContext.filesDir, "mongodb-realm")
+        val expectedDefaultRoot = InstrumentationRegistry.getInstrumentation().targetContext.filesDir
         assertEquals(expectedDefaultRoot, config.syncRootDirectory)
     }
 

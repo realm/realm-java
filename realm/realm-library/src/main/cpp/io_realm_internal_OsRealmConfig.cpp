@@ -48,7 +48,7 @@ static_assert(SchemaMode::Automatic ==
 static_assert(SchemaMode::Immutable==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_IMMUTABLE),
               "");
-static_assert(SchemaMode::ReadOnlyAlternative ==
+static_assert(SchemaMode::ReadOnly ==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_READONLY),
               "");
 static_assert(SchemaMode::ResetFile ==
@@ -352,7 +352,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->error_handler = std::move(error_handler);
         switch (j_client_reset_mode) {
-            case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_DISCARD_UNSYNCED_CHANGES: {
+            case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_DISCARD_LOCAL: {
                 config.sync_config->client_resync_mode = realm::ClientResyncMode::DiscardLocal;
 
                 static JavaClass before_client_reset_handler_class(env, "io/realm/internal/SyncObjectServerFacade$BeforeClientResetHandler");
