@@ -127,8 +127,8 @@ class SessionTests {
 
     // Check that a Seamless Client Reset is correctly reported.
     @Test
-    @Ignore
     fun errorHandler_discardUnsyncedChangesStrategyReported() = looperThread.runBlocking {
+        RealmLog.setLevel(LogLevel.TRACE)
         val counter = AtomicInteger()
 
         val incrementAndValidate = {
