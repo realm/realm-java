@@ -117,7 +117,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             if (clientResetStrategy instanceof ManuallyRecoverUnsyncedChangesStrategy) {
                 clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
             } else if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
-                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_DISCARD_UNSYNCED_CHANGES;
+                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_DISCARD_LOCAL;
             }
 
             BeforeClientResetHandler beforeClientResetHandler = (localPtr, osRealmConfig) -> {
