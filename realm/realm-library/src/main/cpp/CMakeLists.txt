@@ -212,7 +212,7 @@ add_library(realm-jni SHARED ${jni_SRC})
 target_link_libraries(realm-jni log android Realm::ObjectStore)
 
 # Strip the release so files and backup the unstripped versions
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
+if (buildTypeCap STREQUAL "Release")
     set(unstripped_SO_DIR
         "${CMAKE_SOURCE_DIR}/../../../build/outputs/jniLibs-unstripped/${REALM_FLAVOR}/${ANDROID_ABI}")
     add_custom_command(TARGET realm-jni
