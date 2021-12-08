@@ -10,6 +10,7 @@ import io.realm.entities.*
 import io.realm.exceptions.DownloadingRealmInterruptedException
 import io.realm.internal.OsRealmConfig
 import io.realm.kotlin.syncSession
+import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
@@ -30,6 +31,7 @@ import java.lang.Thread
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -112,6 +114,56 @@ class SyncSessionTests {
             app.close()
         }
         RealmLog.setLevel(LogLevel.WARN)
+    }
+
+    // Check that a Seamless Client Reset is correctly reported.
+    // Placed here instead of in SessionTests.kt because it would fails to run if executed with the
+    // whole test suite.
+    @Test
+    fun errorHandler_discardUnsyncedChangesStrategyReported() = looperThread.runBlocking {
+        val counter = AtomicInteger()
+
+        val incrementAndValidate = {
+            if (2 == counter.incrementAndGet()) {
+                looperThread.testComplete()
+            }
+        }
+        
+        val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
+                .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
+                .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy{
+                    override fun onBeforeReset(realm: Realm) {
+                        kotlin.test.assertTrue(realm.isFrozen)
+                        Assert.assertEquals(1, realm.where<SyncColor>().count())
+                        incrementAndValidate()
+                    }
+
+                    override fun onAfterReset(before: Realm, after: Realm) {
+                        kotlin.test.assertTrue(before.isFrozen)
+                        kotlin.test.assertFalse(after.isFrozen)
+
+                        Assert.assertEquals(1, before.where<SyncColor>().count())
+                        Assert.assertEquals(0, after.where<SyncColor>().count())
+
+                        //Validate we can move data to the reset Realm.
+                        after.executeTransaction{
+                            it.insert(before.where<SyncColor>().findFirst()!!)
+                        }
+                        Assert.assertEquals(1, after.where<SyncColor>().count())
+                        incrementAndValidate()
+                    }
+
+                    override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                        kotlin.test.fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onError()")
+                    }
+
+                })
+                .modules(ColorSyncSchema())
+                .build()
+
+        val realm = Realm.getInstance(config)
+        Assert.assertEquals(1, realm.where<SyncColor>().count())
+        looperThread.closeAfterTest(realm)
     }
 
     @Test

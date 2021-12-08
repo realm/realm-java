@@ -125,55 +125,6 @@ class SessionTests {
         }
     }
 
-    // Check that a Seamless Client Reset is correctly reported.
-    @Test
-    fun errorHandler_discardUnsyncedChangesStrategyReported() = looperThread.runBlocking {
-        RealmLog.setLevel(LogLevel.TRACE)
-        val counter = AtomicInteger()
-
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
-
-        val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
-                .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-                .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy{
-                    override fun onBeforeReset(realm: Realm) {
-                        assertTrue(realm.isFrozen)
-                        Assert.assertEquals(1, realm.where<SyncColor>().count())
-                        incrementAndValidate()
-                    }
-
-                    override fun onAfterReset(before: Realm, after: Realm) {
-                        assertTrue(before.isFrozen)
-                        assertFalse(after.isFrozen)
-
-                        Assert.assertEquals(1, before.where<SyncColor>().count())
-                        Assert.assertEquals(0, after.where<SyncColor>().count())
-
-                        //Validate we can move data to the reset Realm.
-                        after.executeTransaction{
-                            it.insert(before.where<SyncColor>().findFirst()!!)
-                        }
-                        Assert.assertEquals(1, after.where<SyncColor>().count())
-                        incrementAndValidate()
-                    }
-
-                    override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                        fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onError()")
-                    }
-
-                })
-                .schema(SyncColor::class.java)
-                .build()
-
-        val realm = Realm.getInstance(config)
-        Assert.assertEquals(1, realm.where<SyncColor>().count())
-        looperThread.closeAfterTest(realm)
-    }
-
     // Check that a if Seamless loss Client Reset fails the error is correctly reported.
     @Test
     fun errorHandler_discardUnsyncedChangesStrategy_resetErrorHandled() = looperThread.runBlocking {

@@ -36,3 +36,8 @@ const val defaultPartitionValue = "default"
 //    EmbeddedTreeLeaf::class
 ])
 class DefaultSyncSchema
+
+@RealmModule(classes = [
+    SyncColor::class
+])
+class ColorSyncSchema
