@@ -252,13 +252,9 @@ task uploadJavadoc {
             exec {
                 commandLine 's3cmd', 'modify', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", "--debug", '--add-header=Content-Type: text/css', "s3://realm-sdks/realm-sdks/java/${version}/stylesheet.css"
             }
-            // Dokka creates the stylesheet outside of the actual docs
-            // directory. When we upload the Dokka output into the java
-            // directory. kotlin-extensions's style.css will be placed at
-            // java/<version>/ (will not clobber javadoc's css, which is called
-            // stylesheet.css), while kotlin-extensions/ will be a subdirectory.
+            // Upload Kotlin extension docs to a subdirectory of the Javadoc. This should not conflict with the Javadoc folder layout.
             exec {
-                commandLine 's3cmd', 'put', '--recursive', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 'realm/kotlin-extensions/build/docs/', "s3://realm-sdks/realm-sdks/java/${version}/"
+                commandLine 's3cmd', 'put', '--recursive', '--acl-public', "--access_key=${awsAccessKey}", "--secret_key=${awsSecretKey}", 'realm/kotlin-extensions/build/dokka/', "s3://realm-sdks/realm-sdks/java/${version}/kotlin-extensions/"
             }
         }
     }
