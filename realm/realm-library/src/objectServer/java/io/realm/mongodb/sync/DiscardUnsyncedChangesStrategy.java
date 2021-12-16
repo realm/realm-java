@@ -18,7 +18,9 @@ package io.realm.mongodb.sync;
 import io.realm.Realm;
 
 /**
- * Strategy that automatically resolves a Client Reset by discarding any unsynced data, but otherwise keep the Realm open. Any changes will be reported through the normal collection and object notifications.
+ * Strategy that automatically resolves a Client Reset by discarding any unsynced data, but
+ * otherwise keep the Realm open. Any changes will be reported through the normal collection and
+ * object notifications.
  * <p>
  * A synced Realm may need to be reset because the MongoDB Realm Server encountered an error and had
  * to be restored from a backup or because it has been too long since the client connected to the
