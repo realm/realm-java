@@ -37,7 +37,9 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
     private val primaryKeyClasses = mutableListOf<QualifiedClassName>()
 
     init {
-        for (metadata in classesToValidate) {
+        // Sort classes to ensure deterministic output. This is relevant when e.g. using Gradle
+        // Remote Cache since the order is not guaranteed between OS and Java versions.
+        for (metadata in classesToValidate.toSortedSet(compareByDescending { it.qualifiedClassName.name })) {
             qualifiedModelClasses.add(metadata.qualifiedClassName)
             val qualifiedProxyClassName = QualifiedClassName("${Constants.REALM_PACKAGE_NAME}.${Utils.getProxyClassName(metadata.qualifiedClassName)}")
             qualifiedProxyClasses.add(qualifiedProxyClassName)

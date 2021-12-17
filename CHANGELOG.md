@@ -4,7 +4,7 @@
 * None.
 
 ### Fixed
-* None.
+* Output from the annotation processor was not deterministic, which could result in cache misses. (Issue [#7615](https://github.com/realm/realm-java/issues/7615))
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -13,6 +13,9 @@
 
 ### Internal
 * None.
+
+### Credits
+* Thanks to @jprinet for making the annotation processor output deterministic.
 
 
 ## 10.9.0 (2021-12-06)
