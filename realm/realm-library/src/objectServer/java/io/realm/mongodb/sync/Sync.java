@@ -19,11 +19,7 @@ package io.realm.mongodb.sync;
 import org.bson.BsonBinary;
 import org.bson.BsonValue;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,16 +28,12 @@ import javax.annotation.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.annotations.Beta;
 import io.realm.internal.jni.JniBsonProtocol;
-import io.realm.internal.objectstore.OsSyncUser;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.ErrorCode;
 import io.realm.internal.Keep;
-import io.realm.internal.OsRealmConfig;
-import io.realm.internal.Util;
 import io.realm.internal.network.NetworkStateReceiver;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.App;
-import io.realm.mongodb.User;
 
 /**
  * A <i>sync</i> manager handling synchronization of local Realms with remote Realm Apps.
@@ -304,14 +296,28 @@ public abstract class Sync {
      * @param session Session to trigger Client Reset for.
      */
     void simulateClientReset(SyncSession session) {
-        nativeSimulateSyncError(appNativePointer, session.getConfiguration().getPath(),
-                ErrorCode.DIVERGING_HISTORIES.intValue(),
+        simulateClientReset(session, ErrorCode.DIVERGING_HISTORIES);
+    }
+
+    /**
+     * Simulate a Client Reset by triggering the Object Store error handler
+     *
+     * Only call this method when testing.
+     *
+     * @param session Session to trigger Client Reset for.
+     * @param errorCode error code to simulate.
+     */
+    void simulateClientReset(SyncSession session, ErrorCode errorCode) {
+        nativeSimulateSyncError(appNativePointer,
+                session.getConfiguration().getPath(),
+                errorCode.intValue(),
+                errorCode.getType(),
                 "Simulate Client Reset",
                 true);
     }
 
     private static native void nativeReset(long appNativePointer);
-    private static native void nativeSimulateSyncError(long appNativePointer, String realmPath, int errorCode, String errorMessage, boolean isFatal);
+    private static native void nativeSimulateSyncError(long appNativePointer, String realmPath, int errorCode, String type, String errorMessage, boolean isFatal);
     private static native void nativeReconnect(long appNativePointer);
     private static native String nativeGetPathForRealm(long appNativePointer, String userId, String partitionValue, @Nullable String overrideFileName);
 }

@@ -60,7 +60,6 @@ class SyncedRealmTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        RealmLog.setLevel(LogLevel.TRACE)
         app = TestApp()
         partitionValue = UUID.randomUUID().toString()
     }

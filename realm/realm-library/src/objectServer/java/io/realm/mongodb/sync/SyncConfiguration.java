@@ -103,13 +103,12 @@ public class SyncConfiguration extends RealmConfiguration {
     private final URI serverUrl;
     private final User user;
     private final SyncSession.ErrorHandler errorHandler;
-    private final SyncSession.ClientResetHandler clientResetHandler;
+    private final SyncClientResetStrategy syncClientResetStrategy;
     private final boolean deleteRealmOnLogout;
     private final boolean waitForInitialData;
     private final long initialDataTimeoutMillis;
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     @Nullable private final String syncUrlPrefix;
-    private final ClientResyncMode clientResyncMode;
     private final BsonValue partitionValue;
 
     private SyncConfiguration(File realmPath,
@@ -130,14 +129,13 @@ public class SyncConfiguration extends RealmConfiguration {
                               User user,
                               URI serverUrl,
                               SyncSession.ErrorHandler errorHandler,
-                              SyncSession.ClientResetHandler clientResetHandler,
+                              SyncClientResetStrategy syncClientResetStrategy,
                               boolean deleteRealmOnLogout,
                               boolean waitForInitialData,
                               long initialDataTimeoutMillis,
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
                               CompactOnLaunchCallback compactOnLaunch,
                               @Nullable String syncUrlPrefix,
-                              ClientResyncMode clientResyncMode,
                               BsonValue partitionValue) {
         super(realmPath,
                 assetFilePath,
@@ -161,13 +159,12 @@ public class SyncConfiguration extends RealmConfiguration {
         this.user = user;
         this.serverUrl = serverUrl;
         this.errorHandler = errorHandler;
-        this.clientResetHandler = clientResetHandler;
+        this.syncClientResetStrategy = syncClientResetStrategy;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
         this.waitForInitialData = waitForInitialData;
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
         this.sessionStopPolicy = sessionStopPolicy;
         this.syncUrlPrefix = syncUrlPrefix;
-        this.clientResyncMode = clientResyncMode;
         this.partitionValue = partitionValue;
     }
 
@@ -304,7 +301,6 @@ public class SyncConfiguration extends RealmConfiguration {
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
-        if (clientResyncMode != that.clientResyncMode) return false;
         return partitionValue.equals(that.partitionValue);
     }
 
@@ -319,7 +315,6 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + (int) (initialDataTimeoutMillis ^ (initialDataTimeoutMillis >>> 32));
         result = 31 * result + sessionStopPolicy.hashCode();
         result = 31 * result + (syncUrlPrefix != null ? syncUrlPrefix.hashCode() : 0);
-        result = 31 * result + clientResyncMode.hashCode();
         result = 31 * result + partitionValue.hashCode();
         return result;
     }
@@ -343,8 +338,6 @@ public class SyncConfiguration extends RealmConfiguration {
         sb.append("sessionStopPolicy: ").append(sessionStopPolicy);
         sb.append("\n");
         sb.append("syncUrlPrefix: ").append(syncUrlPrefix);
-        sb.append("\n");
-        sb.append("clientResyncMode: ").append(clientResyncMode);
         sb.append("\n");
         sb.append("partitionValue: ").append(partitionValue);
         return sb.toString();
@@ -381,9 +374,25 @@ public class SyncConfiguration extends RealmConfiguration {
      * Returns the Client Reset handler for this <i>SyncConfiguration</i>.
      *
      * @return the Client Reset handler.
+     *
+     * @deprecated replaced by {@link #getSyncClientResetStrategy()}
      */
+    @Deprecated
     public SyncSession.ClientResetHandler getClientResetHandler() {
-        return clientResetHandler;
+        try {
+            return (SyncSession.ClientResetHandler) syncClientResetStrategy;
+        } catch (ClassCastException exception) {
+            throw new ClassCastException(exception.getMessage() + ": getClientResetHandler() is deprecated and has been replaced by getSyncClientResetStrategy()");
+        }
+    }
+
+    /**
+     * Returns the sync client reset strategy for this <i>SyncConfiguration</i>.
+     *
+     * @return the sync client reset strategy.
+     */
+    public SyncClientResetStrategy getSyncClientResetStrategy() {
+        return syncClientResetStrategy;
     }
 
     /**
@@ -444,13 +453,6 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns what happens in case of a Client Resync.
-     */
-    ClientResyncMode getClientResyncMode() {
-        return clientResyncMode;
-    }
-
-    /**
      * Returns the value this Realm is partitioned on. The partition key is a property defined in
      * MongoDB Realm. All classes with a property with this value will be synchronized to the
      * Realm.
@@ -495,12 +497,10 @@ public class SyncConfiguration extends RealmConfiguration {
         private URI serverUrl;
         private User user = null;
         private SyncSession.ErrorHandler errorHandler;
-        private SyncSession.ClientResetHandler clientResetHandler;
+        private SyncClientResetStrategy syncClientResetStrategy;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private CompactOnLaunchCallback compactOnLaunch;
         private String syncUrlPrefix = null;
-        @Nullable // null means the user hasn't explicitly set one. An appropriate default is chosen when calling build()
-        private ClientResyncMode clientResyncMode = null;
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
         private boolean allowWritesOnUiThread;
         private boolean allowQueriesOnUiThread;
@@ -584,7 +584,7 @@ public class SyncConfiguration extends RealmConfiguration {
                 this.modules.add(Realm.getDefaultModule());
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
-            this.clientResetHandler = user.getApp().getConfiguration().getDefaultClientResetHandler();
+            this.syncClientResetStrategy = user.getApp().getConfiguration().getDefaultSyncClientResetStrategy();
             this.allowQueriesOnUiThread = true;
             this.allowWritesOnUiThread = false;
         }
@@ -876,16 +876,43 @@ public class SyncConfiguration extends RealmConfiguration {
             return this;
         }
 
+        Builder syncClientResetStrategyInternal(SyncClientResetStrategy strategy) {
+            Util.checkNull(strategy, "strategy");
+            this.syncClientResetStrategy = strategy;
+            return this;
+        }
+
         /**
          * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
          * logged when a Client Reset occurs.
          *
          * @param handler custom handler in case of a Client Reset.
+         *
+         * @deprecated replaced by {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          */
+        @Deprecated
         public Builder clientResetHandler(SyncSession.ClientResetHandler handler) {
-            Util.checkNull(handler, "handler");
-            this.clientResetHandler = handler;
-            return this;
+            return syncClientResetStrategyInternal(handler);
+        }
+
+        /**
+         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * @param handler custom manual handler in case of a Client Reset.
+         */
+        public Builder syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy handler) {
+            return syncClientResetStrategyInternal(handler);
+        }
+
+        /**
+         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * @param handler custom seamless loss handler in case of a Client Reset.
+         */
+        public Builder syncClientResetStrategy(DiscardUnsyncedChangesStrategy handler) {
+            return syncClientResetStrategyInternal(handler);
         }
 
         /**
@@ -1052,25 +1079,6 @@ public class SyncConfiguration extends RealmConfiguration {
         */
 
         /**
-         * TODO: Removed from the public API until MongoDB Realm correctly supports anything byt MANUAL mode again.
-         *
-         * Configure the behavior in case of a Client Resync.
-         * <p>
-         * The default mode is {@link ClientResyncMode#MANUAL}.
-         *
-         * @param mode what should happen when a Client Resync happens
-         * @see ClientResyncMode for more information about what a Client Resync is.
-         */
-        Builder clientResyncMode(ClientResyncMode mode) {
-            //noinspection ConstantConditions
-            if (mode == null) {
-                throw new IllegalArgumentException("Non-null 'mode' required.");
-            }
-            clientResyncMode = mode;
-            return this;
-        }
-
-        /**
          * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException} is thrown when
          * attempting to write more data.
          * <p>
@@ -1140,11 +1148,6 @@ public class SyncConfiguration extends RealmConfiguration {
                 }
             }
 
-            // Set the default Client Resync Mode based on the current type of Realm.
-            if (clientResyncMode == null) {
-                clientResyncMode = ClientResyncMode.MANUAL;
-            }
-
             if (rxFactory == null && Util.isRxJavaAvailable()) {
                 rxFactory = new RealmObservableFactory(true);
             }
@@ -1180,14 +1183,13 @@ public class SyncConfiguration extends RealmConfiguration {
                     user,
                     resolvedServerUrl,
                     errorHandler,
-                    clientResetHandler,
+                    syncClientResetStrategy,
                     deleteRealmOnLogout,
                     waitForServerChanges,
                     initialDataTimeoutMillis,
                     sessionStopPolicy,
                     compactOnLaunch,
                     syncUrlPrefix,
-                    clientResyncMode,
                     partitionValue
             );
         }

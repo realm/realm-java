@@ -29,12 +29,16 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.realm.Realm;
 import io.realm.internal.objectstore.OsApp;
 import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
 import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.Sync;
 import io.realm.mongodb.User;
+import io.realm.mongodb.sync.SyncClientResetStrategy;
 import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
@@ -53,14 +57,18 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     private static Context applicationContext;
     private static volatile Method removeSessionMethod;
     private static volatile Field osAppField;
+    RealmCacheAccessor accessor;
+    RealmInstanceFactory realmInstanceFactory;
 
     @Override
-    public void initialize(Context context, String userAgent) {
+    public void initialize(Context context, String userAgent, RealmCacheAccessor accessor, RealmInstanceFactory realmInstanceFactory) {
         if (applicationContext == null) {
             applicationContext = context;
             applicationContext.registerReceiver(new NetworkStateReceiver(),
                     new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         }
+        this.accessor = accessor;
+        this.realmInstanceFactory = realmInstanceFactory;
     }
 
     @Override
@@ -73,6 +81,16 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         } else {
             throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
         }
+    }
+
+    @Keep
+    public interface BeforeClientResetHandler {
+        void onBeforeReset(long beforePtr, OsRealmConfig config);
+    }
+
+    @Keep
+    public interface AfterClientResetHandler {
+        void onAfterReset(long beforePtr, long afterPtr, OsRealmConfig config);
     }
 
     @Override
@@ -92,6 +110,30 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             String urlPrefix = syncConfig.getUrlPrefix();
             String customAuthorizationHeaderName = app.getConfiguration().getAuthorizationHeaderName();
             Map<String, String> customHeaders = app.getConfiguration().getCustomRequestHeaders();
+            SyncClientResetStrategy clientResetStrategy = syncConfig.getSyncClientResetStrategy();
+
+
+            byte clientResetMode = -1; // undefined value
+            if (clientResetStrategy instanceof ManuallyRecoverUnsyncedChangesStrategy) {
+                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
+            } else if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
+                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_DISCARD_LOCAL;
+            }
+
+            BeforeClientResetHandler beforeClientResetHandler = (localPtr, osRealmConfig) -> {
+                NativeContext.execute(nativeContext -> {
+                    Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
+                    ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
+                });
+            };
+            AfterClientResetHandler afterClientResetHandler = (localPtr, afterPtr, osRealmConfig) -> {
+                NativeContext.execute(nativeContext -> {
+                    Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
+                    Realm after = realmInstanceFactory.createInstance(new OsSharedRealm(afterPtr, osRealmConfig, nativeContext));
+                    ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
+                });
+            };
+
             long appNativePointer;
 
             // We cannot get the app native pointer without exposing it in the public API due to
@@ -143,7 +185,9 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = urlPrefix;
             configObj[i++] = customAuthorizationHeaderName;
             configObj[i++] = customHeaders;
-            configObj[i++] = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
+            configObj[i++] = clientResetMode;
+            configObj[i++] = beforeClientResetHandler;
+            configObj[i++] = afterClientResetHandler;
             configObj[i++] = encodedPartitionValue;
             configObj[i++] = app.getSync();
             configObj[i++] = appNativePointer;

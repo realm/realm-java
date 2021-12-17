@@ -246,9 +246,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsRealmConfig_nativeEnableChangeNo
 
 #if REALM_ENABLE_SYNC
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSetSyncConfig(
-    JNIEnv* env, jclass, jlong j_app_ptr, jlong j_config_ptr, jstring j_sync_realm_url, jstring j_user_id, jstring j_user_provider,
+    JNIEnv* env, jobject j_config, jlong j_app_ptr, jlong j_config_ptr, jstring j_sync_realm_url, jstring j_user_id, jstring j_user_provider,
     jstring j_refresh_token, jstring j_access_token, jstring j_device_id, jbyte j_session_stop_policy, jstring j_url_prefix,
     jstring j_custom_auth_header_name, jobjectArray j_custom_headers_array, jbyte j_client_reset_mode,
+    jobject j_on_before_client_reset_handler,
+    jobject j_on_after_client_reset_handler,
     jstring j_partion_key_value, jobject j_java_sync_service)
 {
     auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
@@ -276,6 +278,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             if (error.is_client_reset_requested()) {
                 client_reset_path_info = error.user_info[SyncError::c_recovery_file_path_key];
                 error_code = 7; // See ErrorCode.java
+                error_category = "realm::app::CustomError";
             }
 
             // System/Connection errors are defined by constants in
@@ -349,7 +352,51 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->error_handler = std::move(error_handler);
         switch (j_client_reset_mode) {
-            case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_DISCARD_LOCAL: config.sync_config->client_resync_mode = realm::ClientResyncMode::DiscardLocal; break;
+            case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_DISCARD_LOCAL: {
+                config.sync_config->client_resync_mode = realm::ClientResyncMode::DiscardLocal;
+
+                static JavaClass before_client_reset_handler_class(env, "io/realm/internal/SyncObjectServerFacade$BeforeClientResetHandler");
+                static JavaClass after_client_reset_handler_class(env, "io/realm/internal/SyncObjectServerFacade$AfterClientResetHandler");
+                static JavaMethod on_before_client_reset_method(env, before_client_reset_handler_class, "onBeforeReset","(JLio/realm/internal/OsRealmConfig;)V", false);
+                static JavaMethod on_after_client_reset_method(env, after_client_reset_handler_class, "onAfterReset","(JJLio/realm/internal/OsRealmConfig;)V", false);
+
+                JavaGlobalWeakRef j_config_weak(env, j_config);
+                JavaGlobalWeakRef j_on_before_client_reset_handler_weak(env, j_on_before_client_reset_handler);
+                JavaGlobalWeakRef j_on_after_client_reset_handler_weak(env, j_on_after_client_reset_handler);
+                config.sync_config->notify_before_client_reset = [j_on_before_client_reset_handler_weak, j_config_weak](SharedRealm before_frozen) {
+                    JNIEnv* env = JniUtils::get_env(false);
+                    JavaGlobalRefByMove config_global = j_config_weak.global_ref(env);
+                    if (!config_global) {
+                        return;
+                    }
+
+                    // The local and remote Realm lifecycles are handled in Java via a
+                    // ManualReleaseNativeContext.
+                    SharedRealm* before_frozen_ptr = new SharedRealm(before_frozen);
+                    j_on_before_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                        env->CallVoidMethod(obj, on_before_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), config_global.get());
+                    });
+                    TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
+                };
+
+                config.sync_config->notify_after_client_reset = [j_on_after_client_reset_handler_weak, j_config_weak](SharedRealm before_frozen, SharedRealm after) {
+                    JNIEnv* env = JniUtils::get_env(false);
+                    JavaGlobalRefByMove config_global = j_config_weak.global_ref(env);
+                    if (!config_global) {
+                        return;
+                    }
+
+                    // The local Realm lifecycle is handled in Java via a
+                    // ManualReleaseNativeContext.
+                    SharedRealm* before_frozen_ptr = new SharedRealm(before_frozen);
+                    SharedRealm* after_ptr = new SharedRealm(after);
+                    j_on_after_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                        env->CallVoidMethod(obj, on_after_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), reinterpret_cast<jlong>(after_ptr), config_global.get());
+                    });
+                    TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
+                };
+            }
+            break;
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_MANUAL: config.sync_config->client_resync_mode = realm::ClientResyncMode::Manual; break;
             default: throw std::logic_error(util::format("Unsupported value for ClientResyncMode: %1", j_client_reset_mode));
         }

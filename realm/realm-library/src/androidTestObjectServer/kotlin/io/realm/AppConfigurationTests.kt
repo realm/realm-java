@@ -23,6 +23,8 @@ import io.realm.log.RealmLog
 import io.realm.log.RealmLogger
 import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
+import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy
+import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy
 import io.realm.mongodb.sync.SyncSession
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
@@ -35,6 +37,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import java.io.File
+import java.lang.ClassCastException
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -249,20 +252,58 @@ class AppConfigurationTests {
     }
 
     @Test
-    fun defaultClientResetHandler() {
-        val handler = SyncSession.ClientResetHandler { _, _ -> }
-
+    @Deprecated("defaultClientResetHandler deprecated in favor of defaultSyncClientResetStrategy")
+    fun defaultClientResetHandler_throws() {
         val config = AppConfiguration.Builder("app-id")
-                .defaultClientResetHandler(handler)
                 .build()
-        assertEquals(config.defaultClientResetHandler, handler)
+
+        assertFailsWith<ClassCastException> {
+            config.defaultClientResetHandler
+        }
     }
 
     @Test
+    @Deprecated("defaultClientResetHandler deprecated in favor of defaultSyncClientResetStrategy")
+    fun setDefaultClientResetHandler() {
+        val handler = SyncSession.ClientResetHandler { _, _ -> }
+        val config = AppConfiguration.Builder("app-id")
+            .defaultClientResetHandler(handler)
+            .build()
+        assertEquals(config.defaultSyncClientResetStrategy, handler)
+    }
+
+    @Test
+    @Deprecated("defaultClientResetHandler deprecated in favor of defaultSyncClientResetStrategy")
     fun defaultClientResetHandler_invalidValuesThrows() {
         val builder = AppConfiguration.Builder("app-id")
         assertFailsWith<IllegalArgumentException> {
-            builder.defaultClientResetHandler(TestHelper.getNull())
+            builder.defaultClientResetHandler(TestHelper.getNull<SyncSession.ClientResetHandler>())
+        }
+    }
+
+    @Test
+    fun defaultSyncClientStrategy() {
+        val config = AppConfiguration.Builder("app-id")
+            .build()
+
+        assertTrue(config.defaultSyncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun setDefaultSyncClientStrategy() {
+        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+
+        val config = AppConfiguration.Builder("app-id")
+                .defaultSyncClientResetStrategy(handler)
+                .build()
+        assertEquals(config.defaultSyncClientResetStrategy, handler)
+    }
+
+    @Test
+    fun setDefaultSyncClientStrategy_invalidValuesThrows() {
+        val builder = AppConfiguration.Builder("app-id")
+        assertFailsWith<IllegalArgumentException> {
+            builder.defaultSyncClientResetStrategy(TestHelper.getNull<ManuallyRecoverUnsyncedChangesStrategy>())
         }
     }
 

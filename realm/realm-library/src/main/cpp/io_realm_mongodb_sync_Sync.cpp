@@ -25,6 +25,7 @@
 
 #include "util.hpp"
 #include <jni_util/bson_util.hpp>
+#include <realm-core/src/realm/sync/client_base.hpp>
 #include "jni_util/java_class.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
@@ -45,20 +46,25 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReset(JNIEnv* env, 
 }
 
 JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeSimulateSyncError(JNIEnv* env, jclass, jlong j_app_ptr, jstring local_realm_path,
-                                                                       jint err_code, jstring err_message,
+                                                                       jint err_code, jstring j_type, jstring err_message,
                                                                        jboolean is_fatal)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
         JStringAccessor path(env, local_realm_path);
         JStringAccessor message(env, err_message);
+        JStringAccessor type(env, j_type);
 
         auto session = app->sync_manager()->get_existing_active_session(path);
         if (!session) {
             ThrowException(env, IllegalArgument, concat_stringdata("Session not found: ", path));
             return;
         }
-        std::error_code code = std::error_code{static_cast<int>(err_code), realm::sync::protocol_error_category()};
+
+        std::error_code code = std::error_code{static_cast<int>(err_code),
+                                               type == "realm::sync::ProtocolError" ?
+                                               realm::sync::protocol_error_category() : realm::sync::client_error_category()
+        };
         SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(message), to_bool(is_fatal)});
     }
     CATCH_STD()

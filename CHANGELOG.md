@@ -25,6 +25,14 @@
 * [RealmApp] Reduced native memory usage when working with synchronized Realms.
 * [RealmApp] Make it possible to bundle synchronized Realms in apps using `Realm.writeCopyTo()` and `SyncConfiguration.Builder.assetFile()`.
 * The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
+* [RealmApp] Introduced `SyncSession.DiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that doesn't require the Realm to be closed, but discards any unsynced data from the client. This is now the default policy if not overridden.
+
+### Deprecated
+* [RealmApp] `SyncSession.ClientResetHandler()`. Use `SyncSession.ManuallyRecoverUnsyncedChangesStrategy()` instead.
+* [RealmApp] `AppConfiguration.Builder.defaultClientResetHandler()`. Use `AppConfiguration.Builder.setDefaultSyncClientResetStrategy()` instead.
+* [RealmApp] `AppConfiguration.getDefaultClientResetHandler()`. Use `AppConfiguration.getDefaultSyncClientResetStrategy()` instead.
+* [RealmApp] `SyncConfiguration.Builder.clientResetHandler()`. Use `SyncConfiguration.Builder.setSyncClientResetStrategy()` instead.
+* [RealmApp] `SyncConfiguration.getClientResetHandler()`. Use `SyncConfiguration.getSyncClientResetStrategy()` instead.
 
 ### Fixed
 * [RealmApp] Setting `AppConfiguration.syncRootDirectory()` didn't have any effect beside creating the new folder. Realms were still placed in the default location. 
