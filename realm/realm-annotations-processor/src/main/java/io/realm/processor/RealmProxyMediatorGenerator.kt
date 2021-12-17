@@ -37,7 +37,7 @@ class RealmProxyMediatorGenerator(private val processingEnvironment: ProcessingE
     private val primaryKeyClasses = mutableListOf<QualifiedClassName>()
 
     init {
-        for (metadata in classesToValidate) {
+        for (metadata in classesToValidate.toSortedSet(compareByDescending { it.qualifiedClassName.name })) {
             qualifiedModelClasses.add(metadata.qualifiedClassName)
             val qualifiedProxyClassName = QualifiedClassName("${Constants.REALM_PACKAGE_NAME}.${Utils.getProxyClassName(metadata.qualifiedClassName)}")
             qualifiedProxyClasses.add(qualifiedProxyClassName)
