@@ -84,7 +84,7 @@ function handleGenerateJWT(appName, req, resp) {
         {
             "aud": appId,
             "exp": Math.floor((Date.now() + MINUTE)/1000),
-            "sub": getRandomInt(100000),
+            "sub": getRandomInt(100000).toString(),
             "user_data": {
                 "name": "Jean Valjean",
                 "aliases": [
