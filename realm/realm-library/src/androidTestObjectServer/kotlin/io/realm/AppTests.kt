@@ -22,13 +22,12 @@ import io.realm.entities.SyncStringOnly
 import io.realm.exceptions.RealmFileException
 import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
-import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
+import io.realm.mongodb.sync.testSchema
 import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.mongodb.sync.SyncSession
-import io.realm.mongodb.sync.testSchema
 import io.realm.rule.BlockingLooperThread
 import org.bson.codecs.StringCodec
 import org.bson.codecs.configuration.CodecRegistries
@@ -36,7 +35,6 @@ import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.io.File
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.assertFailsWith
 
@@ -206,7 +204,7 @@ class AppTests {
     }
 
     @Test
-    fun currentUser_availableIfJustExpired() {
+    fun currentUser_availableIfJustExpired() = looperThread.runBlocking {
         app.close()
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp(object: OsJavaNetworkTransport() {
@@ -228,6 +226,7 @@ class AppTests {
                 body: String
             ): Response {
                 var result = ""
+                var code = 200
                 when {
                     url.endsWith("/providers/${Credentials.Provider.ANONYMOUS.id}/login") -> {
                         // This token expires on Sunday 10. May 2020 22:23:28
@@ -277,12 +276,16 @@ class AppTests {
                                     }
                                     """.trimIndent()
                     }
+                    url.endsWith("/session") -> {
+                        code = 401
+                        result = "fake: refresh token could not be refreshed"
+                    }
                     else -> {
                         fail("Unexpected request url: $url")
                     }
                 }
                 val successHeaders: Map<String, String> = mapOf(Pair("Content-Type", "application/json"))
-                return OkHttpNetworkTransport.Response.httpResponse(200, successHeaders, result)
+                return OkHttpNetworkTransport.Response.httpResponse(code, successHeaders, result)
             }
 
             override fun sendStreamingRequest(request: Request): Response {
@@ -292,14 +295,29 @@ class AppTests {
 
         val creds = Credentials.anonymous()
         val user: User = app.login(creds)
-        assertEquals(User.State.LOGGED_IN, user.state) // TODO: Should ideally be LOGGED_OUT, but only happens after interaction with server
+        assertNotNull(app.currentUser())
+        assertEquals(1, app.allUsers().size)
+
+        val syncConfig = configFactory.createSyncConfigurationBuilder(user)
+            .testSchema(SyncStringOnly::class.java)
+            .errorHandler { session: SyncSession, error: AppException ->
+                assertEquals(ErrorCode.BAD_AUTHENTICATION, error.errorCode)
+                assertEquals("Unable to refresh the user access token.", error.errorMessage)
+                assertFalse(session.user.isLoggedIn)
+                assertEquals(User.State.REMOVED, session.user.state)
+                assertNull(app.currentUser())
+                assertEquals(0, app.allUsers().size)
+                looperThread.testComplete()
+            }
+            .build()
+        val realm = Realm.getInstance(syncConfig)
+        looperThread.closeAfterTest(realm)
     }
 
     @Test
     fun currentUser_nullWhenSyncAuthenticationFails() = looperThread.runBlocking {
         val user: User = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         admin.disableUser(user)
-        val waiter = CountDownLatch(1)
         val syncConfig = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
             .errorHandler { session: SyncSession, error: AppException ->
