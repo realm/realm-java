@@ -27,7 +27,7 @@ RUN apt-get update \
 # Copy webserver script and install dependencies
 WORKDIR "/tmp"
 COPY mongodb-realm-command-server.js /tmp/
-RUN npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment is-port-available@0.1.5
+RUN npm install winston@2.4.0 temp httpdispatcher@1.0.0 fs-extra moment is-port-available@0.1.5 jsonwebtoken@8.5.1
 
 # Run integration test server
 CMD /tmp/mongodb-realm-command-server.js

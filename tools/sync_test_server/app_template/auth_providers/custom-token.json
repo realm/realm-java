@@ -1,0 +1,16 @@
+{
+    "id": "61c0a971c92b3e849885193d",
+    "name": "custom-token",
+    "type": "custom-token",
+    "config": {
+        "audience": [],
+        "signingAlgorithm": "HS256",
+        "useJWKURI": false
+    },
+    "secret_config": {
+        "signingKeys": [
+            "jwt_key"
+        ]
+    },
+    "disabled": false
+}

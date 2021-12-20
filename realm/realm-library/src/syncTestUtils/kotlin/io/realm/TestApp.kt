@@ -67,5 +67,20 @@ class TestApp(
                 else -> throw IllegalStateException(response.toString())
             }
         }
+
+        fun generateJWT(): String{
+            val transport = OkHttpNetworkTransport(null)
+            val response = transport.executeRequest(
+                    "get",
+                    "http://127.0.0.1:8888/jwt",
+                    5000,
+                    mapOf(),
+                    ""
+            )
+            return when (response.httpResponseCode) {
+                200 -> response.body
+                else -> throw IllegalStateException(response.toString())
+            }
+        }
     }
 }

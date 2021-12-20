@@ -13,6 +13,7 @@
 var winston = require('winston'); //logging
 var http = require('http');
 const fs = require('fs')
+const jwt = require('jsonwebtoken')
 
 const isPortAvailable = require('is-port-available');
 
@@ -70,6 +71,34 @@ function handleApplicationId(appName, req, resp) {
     }
 }
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
+function handleGenerateJWT(appName, req, resp) {
+    let MINUTE = 60000;
+
+    const appId = fs.readFileSync('/apps/' + appName + '/app_id', 'utf8').replace(/\n$/, '');
+
+    let token = jwt.sign(
+        {
+            "aud": appId,
+            "exp": Math.floor((Date.now() + MINUTE)/1000),
+            "sub": getRandomInt(100000),
+            "user_data": {
+                "name": "Jean Valjean",
+                "aliases": [
+                    "Monsieur Madeleine",
+                    "Ultime Fauchelevent",
+                    "Urbain Fabre"
+                ]
+            }
+        }, '1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF');
+
+    resp.writeHead(200, {'Content-Type': 'text/plain'});
+    resp.end(token);
+}
+
 //Create and start the Http server
 const PORT = 8888;
 var applicationIds = {}  // Should be updated by the Docker setup script before any tests are run.
@@ -84,6 +113,8 @@ var server = http.createServer(function(req, resp) {
             handleApplicationId('testapp2', req, resp);
         } else if (req.url.includes('/watcher')) {
             handleWatcher(req, resp);
+        } else if (req.url.includes('/jwt')) {
+            handleGenerateJWT('testapp1', req, resp);
         } else {
             handleUnknownEndPoint(req, resp);
         }
