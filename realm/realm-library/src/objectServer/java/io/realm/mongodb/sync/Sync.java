@@ -174,24 +174,35 @@ public abstract class Sync {
     }
 
     /**
-     * Returns the absolute path for the location of the Realm file on disk
+     * Returns the absolute path for the location of the Realm file on disk.
+     * Partition-based sync files will construct their name from the partition value while Flexible
+     * Sync Realms will use "default.realm" unless overriden.
      */
-    String getAbsolutePathForRealm(String userId, BsonValue partitionValue, @Nullable String overrideFileName) {
+    String getAbsolutePathForRealm(String userId, @Nullable BsonValue partitionValue, @Nullable String overrideFileName) {
         String encodedPartitionValue;
-        switch (partitionValue.getBsonType()) {
-            case STRING:
-            case OBJECT_ID:
-            case INT32:
-            case INT64:
-            // Only way to here is through Realm API's which only allow UUID's. So we can safely
-            // just convert it to a Bson binary which will give it its correct UUID subtype.
-            case BINARY:
-            case NULL:
-                encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
-                break;
-
-            default:
-                throw new IllegalArgumentException("Unsupported type: " + partitionValue);
+        if (partitionValue != null) {
+            switch (partitionValue.getBsonType()) {
+                case STRING:
+                case OBJECT_ID:
+                case INT32:
+                case INT64:
+                    // Only way to here is through Realm API's which only allow UUID's. So we can safely
+                    // just convert it to a Bson binary which will give it its correct UUID subtype.
+                case BINARY:
+                case NULL:
+                    encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported type: " + partitionValue);
+            }
+        } else {
+            // Encode a dummy value for Flexible Sync Realms, it will be ignored by the native codepaths
+            // anyway, but is currently required due to how the native code is wired together when
+            // creating the synced Realm paths.
+            encodedPartitionValue = JniBsonProtocol.encode("", AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+            if (overrideFileName == null) {
+                overrideFileName = "default";
+            }
         }
         return nativeGetPathForRealm(appNativePointer, userId, encodedPartitionValue, overrideFileName);
     }

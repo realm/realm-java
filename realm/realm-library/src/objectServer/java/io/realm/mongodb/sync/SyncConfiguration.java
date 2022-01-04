@@ -202,7 +202,17 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Flexible Sync configuration for the given user.
+     *
+     * @param user The user that will be used for accessing the Realm App.
+     * @return the default Flexible Sync configuration for the given user.
+     */
+    public static SyncConfiguration defaultConfig(User user) {
+        return new SyncConfiguration.Builder(user).build();
+    }
+
+    /**
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -213,7 +223,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -224,7 +234,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -235,7 +245,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -246,7 +256,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -301,7 +311,7 @@ public class SyncConfiguration extends RealmConfiguration {
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
-        return partitionValue.equals(that.partitionValue);
+        return partitionValue != null ? partitionValue.equals(that.partitionValue) : that.partitionValue == null;
     }
 
     @Override
@@ -315,7 +325,7 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + (int) (initialDataTimeoutMillis ^ (initialDataTimeoutMillis >>> 32));
         result = 31 * result + sessionStopPolicy.hashCode();
         result = 31 * result + (syncUrlPrefix != null ? syncUrlPrefix.hashCode() : 0);
-        result = 31 * result + partitionValue.hashCode();
+        result = 31 * result + (partitionValue != null ? partitionValue.hashCode() : 0);
         return result;
     }
 
@@ -461,12 +471,46 @@ public class SyncConfiguration extends RealmConfiguration {
      * into Realms that can be synchronized independently.
      */
     public BsonValue getPartitionValue() {
+        checkPartitionConfiguration();
         return partitionValue;
+    }
+
+    /**
+     * Returns whether or not this configuration is for opening a Realm configured for Flexible
+     * Sync.
+     * 
+     * @return {@code true} if this configuration is for a Flexible Sync Realm, {@code false} if not.
+     */
+    public boolean isFlexibleSyncConfiguration() {
+        return partitionValue == null;
+    }
+
+    /**
+     * Returns whether or not this configuration is for opening a Realm configured for Partion-based
+     * Sync.
+     *
+     * @return {@code true} if this configuration is for a Partion-based Sync Realm, {@code false}
+     * if not.
+     */
+    public boolean isPartitionBasedSyncConfiguration() {
+        return partitionValue != null;
     }
 
     @Override
     protected boolean realmExists() {
         return super.realmExists();
+    }
+
+    private void checkPartitionConfiguration() {
+        if (partitionValue == null) {
+            throw new IllegalStateException("This method is only available for Partion-based Sync configurations.");
+        }
+    }
+
+    private void checkFlexibleSyncConfiguration() {
+        if (partitionValue != null) {
+            throw new IllegalStateException("This method is only available for Flexible Sync configurations.");
+        }
     }
 
     /**
@@ -504,11 +548,23 @@ public class SyncConfiguration extends RealmConfiguration {
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
         private boolean allowWritesOnUiThread;
         private boolean allowQueriesOnUiThread;
+        @Nullable
         private final BsonValue partitionValue;
 
+
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Flexible Sync <i>SyncConfiguration</i> with the
+         * given user.
+         *
+         * @param user The user that will be used for accessing the Realm App.
+         */
+        public Builder(User user) {
+            this(user, (BsonValue) null);
+        }
+
+        /**
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -518,8 +574,8 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -529,8 +585,8 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -540,8 +596,8 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -551,8 +607,8 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -565,18 +621,17 @@ public class SyncConfiguration extends RealmConfiguration {
          * Builder used to construct instances of a SyncConfiguration in a fluent manner.
          *
          * @param user the user opening the Realm on the server.
-         * @param partitionValue te value this Realm is partitioned on. The partition key is a
+         * @param partitionValue the value this Realm is partitioned on. The partition key is a
          * property defined in MongoDB Realm. All classes with a property with this value will be
-         * synchronized to the Realm.
-         * @see <a href="FIXME">Link to docs about partions</a>
+         * synchronized to the Realm. If {@code null} is provided, the configuration is treatet
+         * as a Flexible Sync configuration.
          */
-        Builder(User user, BsonValue partitionValue) {
+        Builder(User user, @Nullable BsonValue partitionValue) {
             Context context = Realm.getApplicationContext();
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
             Util.checkNull(user, "user");
-            Util.checkNull(partitionValue, "partitionValue");
             validateAndSet(user);
             validateAndSet(user.getApp().getConfiguration().getBaseUrl());
             this.partitionValue = partitionValue;
