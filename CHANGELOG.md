@@ -1,7 +1,7 @@
 ## 10.10.0 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* [RealmApp] Add support for Flexible Synchronization. See [the docs](XXX) for more information about how to use it.
 
 ### Fixed
 * Output from the annotation processor was not deterministic, which could result in cache misses. (Issue [#7615](https://github.com/realm/realm-java/issues/7615))
