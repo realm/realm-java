@@ -1,0 +1,31 @@
+{
+    "collection": "SyncColor",
+    "database": "test_data",
+    "id": "60489e7df5d9bdc94de663cd",
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "additional_fields": {}
+        }
+    ],
+    "schema": {
+        "properties": {
+            "_id": {
+                "bsonType": "objectId"
+              },
+              "realm_id": {
+                "bsonType": "string"
+              },
+              "color": {
+                "bsonType": "string"
+              }
+        },
+        "required": [
+            "color"
+        ],
+        "title": "SyncColor"
+    }
+}

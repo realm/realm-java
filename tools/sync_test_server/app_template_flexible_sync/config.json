@@ -1,0 +1,17 @@
+{
+    "config_version": 20200603,
+    "name": "APP_NAME_PLACEHOLDER",
+    "location": "US-VA",
+    "deployment_model": "GLOBAL",
+    "security": {},
+    "custom_user_data_config": {
+        "enabled": true,
+        "mongo_service_name": "BackingDB",
+        "database_name": "test_data",
+        "collection_name": "custom_user_data",
+        "user_id_field": "userid"
+    },
+    "sync": {
+        "development_mode_enabled": true
+    }
+}

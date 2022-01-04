@@ -126,6 +126,7 @@ try {
             ]) {
               def tempDir = runCommand('mktemp -d -t app_config.XXXXXXXXXX')
               sh "tools/sync_test_server/app_config_generator.sh ${tempDir} tools/sync_test_server/app_template testapp1 testapp2"
+              sh "tools/sync_test_server/app_config_generator.sh ${tempDir} tools/sync_test_server/app_template_flexible_sync testapp3"
 
               sh "docker network create ${dockerNetworkId}"
               mongoDbRealmContainer = mdbRealmImage.run("--network ${dockerNetworkId} -v$tempDir:/apps  -e AWS_ACCESS_KEY_ID='$BAAS_AWS_ACCESS_KEY_ID' -e AWS_SECRET_ACCESS_KEY='$BAAS_AWS_SECRET_ACCESS_KEY'")

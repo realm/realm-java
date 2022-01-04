@@ -1,0 +1,16 @@
+{
+    "collection": "mongo_data_alt",
+    "database": "test_data",
+    "id": "60489e7df5d9bdc94de663cc",
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "search": true,
+            "additional_fields": {}
+        }
+    ],
+    "schema": {}
+}
