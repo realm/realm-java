@@ -16,6 +16,7 @@
 
 package io.realm.entities
 
+import io.realm.RealmAny
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.RealmResults
@@ -84,3 +85,25 @@ open class AllKotlinTypes : RealmObject() {
     @LinkingObjects("nonNullList")
     val listParents: RealmResults<AllKotlinTypes>? = null;
 }
+
+open class FirstInnerTestEntity(
+    @PrimaryKey
+    var id: Long = 0
+) : RealmObject()
+
+open class SecondInnerTestEntity(
+    @PrimaryKey
+    var id: Long = 0
+) : RealmObject()
+
+open class TestEntity(
+    @PrimaryKey
+    var id: Long = 0,
+    var items: RealmList<FirstInnerTestEntity>? = null
+) : RealmObject()
+
+open class WithRealmAnyTestEntity(
+    @PrimaryKey
+    var id: Long = 0,
+    var items: RealmList<RealmAny>? = null
+) : RealmObject()
