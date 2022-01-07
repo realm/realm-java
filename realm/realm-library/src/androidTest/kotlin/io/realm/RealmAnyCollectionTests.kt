@@ -61,7 +61,9 @@ class RealmAnyCollectionTests {
         realm.close()
     }
 
-    // Test for https://github.com/realm/realm-java/issues/7626
+    // Test for https://github.com/realm/realm-java/issues/7626. The issue was only happening
+    // on a 32 bit arm devices or with abiFilter 'armeabi-v7a', so need such or update abiFilter in
+    // build.gradle to verify it.
     @Test
     fun accessAnyElement() {
         realm.executeTransaction {
