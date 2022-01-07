@@ -1,3 +1,17 @@
+## 10.9.1 (YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* Crashes when using `RealmAny` inside `RealmList`. (Issue [#7626](https://github.com/realm/realm-java/issues/7626))
+
+### Compatibility
+* None.
+
+### Internal
+* None.
+
 ## 10.9.0 (2021-12-06)
 
 ### Enhancements
