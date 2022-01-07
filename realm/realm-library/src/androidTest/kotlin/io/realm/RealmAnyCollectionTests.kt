@@ -65,12 +65,14 @@ class RealmAnyCollectionTests {
     fun accessAnyElement() {
         realm.executeTransaction {
             realm.createObject(WithRealmAnyTestEntity::class.java, 1).apply {
-                items = RealmList<RealmAny>(RealmAny.valueOf(Random.nextLong()))
+                items = RealmList<RealmAny>(RealmAny.valueOf(1L))
             }
         }
         val results: RealmResults<WithRealmAnyTestEntity> = realm.where(WithRealmAnyTestEntity::class.java).findAll()
         val entity = results[0]!!
-        val item = entity.items[0]
+        val realmAny = entity.items[0]!!
+        assertEquals(RealmAny.Type.INTEGER, realmAny.type)
+        assertEquals(1, realmAny.asInteger())
     }
 
     @Test
