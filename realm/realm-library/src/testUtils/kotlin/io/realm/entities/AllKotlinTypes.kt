@@ -86,24 +86,8 @@ open class AllKotlinTypes : RealmObject() {
     val listParents: RealmResults<AllKotlinTypes>? = null;
 }
 
-open class FirstInnerTestEntity(
-    @PrimaryKey
-    var id: Long = 0
-) : RealmObject()
-
-open class SecondInnerTestEntity(
-    @PrimaryKey
-    var id: Long = 0
-) : RealmObject()
-
-open class TestEntity(
-    @PrimaryKey
-    var id: Long = 0,
-    var items: RealmList<FirstInnerTestEntity>? = null
-) : RealmObject()
-
 open class WithRealmAnyTestEntity(
     @PrimaryKey
     var id: Long = 0,
-    var items: RealmList<RealmAny>? = null
+    var items: RealmList<RealmAny> = RealmList<RealmAny>()
 ) : RealmObject()

@@ -48,6 +48,10 @@ android {
                 targets "realm-jni"
             }
         }
+        ndk {
+            abiFilters 'armeabi-v7a'
+//            abiFilters 'x86'
+        }
 
         buildConfigField "String", "VERSION_NAME", "\"${version}\""
 

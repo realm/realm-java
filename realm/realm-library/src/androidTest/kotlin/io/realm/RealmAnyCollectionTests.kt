@@ -50,9 +50,6 @@ class RealmAnyCollectionTests {
         realmConfiguration = configFactory.createSchemaConfiguration(
             false,
             PrimaryKeyAsString::class.java,
-            FirstInnerTestEntity::class.java,
-            SecondInnerTestEntity::class.java,
-            TestEntity::class.java,
             WithRealmAnyTestEntity::class.java
         )
 
@@ -64,57 +61,16 @@ class RealmAnyCollectionTests {
         realm.close()
     }
 
-    private inline fun <T, R> Iterable<T>.realmMap(transform: (T) -> R): RealmList<R> {
-        return mapTo(RealmList(), transform)
-    }
-
-    private fun saveEntities() {
-        val entities = (0..100).realmMap {
-            TestEntity(
-                id = it.toLong(),
-                items = (0..10).realmMap {
-                    FirstInnerTestEntity(
-                        Random.nextLong()
-                    )
-                }
-            )
-        }
-        val entities2 = (0..100).realmMap {
-            WithRealmAnyTestEntity(
-                id = it.toLong(),
-                items = (0..10).realmMap {
-                    RealmAny.valueOf(
-                        when (Random.nextBoolean()) {
-                            true -> FirstInnerTestEntity(
-                                Random.nextLong()
-                            )
-                            false -> SecondInnerTestEntity(
-                                Random.nextLong()
-                            )
-                        }
-                    )
-                }
-            )
-        }
-
-        realm.executeTransaction {
-            realm.insertOrUpdate(entities)
-            realm.insertOrUpdate(entities2)
-        }
-    }
-
-    private fun <C: RealmModel> getEntities(clazz: Class<C>): List<C> {
-        val results = realm.where(clazz).findAll()
-        return realm.copyFromRealm(results)
-    }
-
     @Test
-    fun simulateRealmAny() {
-        saveEntities()
-        val a = getEntities(FirstInnerTestEntity::class.java)
-        val b = getEntities(SecondInnerTestEntity::class.java)
-        val c = getEntities(TestEntity::class.java)
-        val d = getEntities(WithRealmAnyTestEntity::class.java)
+    fun accessAnyElement() {
+        realm.executeTransaction {
+            realm.createObject(WithRealmAnyTestEntity::class.java, 1).apply {
+                items = RealmList<RealmAny>(RealmAny.valueOf(Random.nextLong()))
+            }
+        }
+        val results: RealmResults<WithRealmAnyTestEntity> = realm.where(WithRealmAnyTestEntity::class.java).findAll()
+        val entity = results[0]!!
+        val item = entity.items[0]
     }
 
     @Test
