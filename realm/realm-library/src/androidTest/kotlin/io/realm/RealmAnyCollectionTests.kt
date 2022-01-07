@@ -61,6 +61,7 @@ class RealmAnyCollectionTests {
         realm.close()
     }
 
+    // Test for https://github.com/realm/realm-java/issues/7626
     @Test
     fun accessAnyElement() {
         realm.executeTransaction {
