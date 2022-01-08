@@ -345,10 +345,15 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // TODO Simplify. Java serialization only allows writing full documents, so the partition
         //  key is embedded in a document with key 'value'. To get is as string were we parse it
         //  and reformat with C++ bson serialization as it supports serializing single values.
-        Bson bson(JniBsonProtocol::jstring_to_bson(env, j_partion_key_value));
-        std::stringstream buffer;
-        buffer << bson;
-        config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, buffer.str()});
+        if (j_partion_key_value) {
+            Bson bson(JniBsonProtocol::jstring_to_bson(env, j_partion_key_value));
+            std::stringstream buffer;
+            buffer << bson;
+            config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, buffer.str()});
+        } else {
+            config.sync_config = std::make_shared<SyncConfig>(SyncConfig{user, SyncConfig::FLXSyncEnabled{}});
+        }
+
         config.sync_config->stop_policy = session_stop_policy;
         config.sync_config->error_handler = std::move(error_handler);
         switch (j_client_reset_mode) {

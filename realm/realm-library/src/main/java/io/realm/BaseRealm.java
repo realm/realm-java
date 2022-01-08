@@ -45,8 +45,10 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.sync.SubscriptionSet;
 
 /**
  * Base class for all Realm instances.
@@ -703,6 +705,15 @@ abstract class BaseRealm implements Closeable {
      * @return The {@link RealmSchema} for this Realm.
      */
     public abstract RealmSchema getSchema();
+
+    /**
+     * TODO
+     * @return
+     */
+    @ObjectServer
+    public SubscriptionSet getSubscriptions() {
+        return sharedRealm.getSubscriptions(configuration.getSchemaMediator());
+    }
 
     // Used by RealmList/RealmResults, to create RealmObject from a OsResults.
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject

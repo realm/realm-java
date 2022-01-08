@@ -30,7 +30,8 @@ import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
-
+import io.realm.internal.objectstore.OsSubscriptionSet;
+import io.realm.mongodb.sync.SubscriptionSet;
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
@@ -379,20 +380,11 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     @ObjectServer
-    public int getPrivileges() {
-        // FIXME: Remove
-        return 0;
-    }
-
-    @ObjectServer
-    public int getClassPrivileges(String className) {
-        // FIXME: Remove
-        return 0;
-    }
-
-    @ObjectServer
-    public int getObjectPrivileges(UncheckedRow row) {
-        return 0;
+    public SubscriptionSet getSubscriptions(RealmProxyMediator schema) {
+        ObjectServerFacade facade = ObjectServerFacade.getSyncFacadeIfPossible();
+        facade.checkFlexibleSyncEnabled(getConfiguration());
+        long ptr = nativeGetLatestSubscriptionSet(nativePtr);
+        return new OsSubscriptionSet(ptr, schema);
     }
 
     public boolean isClosed() {
@@ -661,4 +653,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native long nativeNumberOfVersions(long nativePtr);
 
+    private static native long nativeGetLatestSubscriptionSet(long realmNativePtr);
+    private static native long nativeGetActiveSubscriptionSet(long realmNativePtr);
 }

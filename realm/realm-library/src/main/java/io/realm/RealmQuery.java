@@ -70,7 +70,7 @@ public class RealmQuery<E> {
 
     private final Table table;
     private final BaseRealm realm;
-    private final TableQuery query;
+    public final TableQuery query; // FIXME Make private somehow
     private final RealmObjectSchema schema;
     private Class<E> clazz;
     private String className;

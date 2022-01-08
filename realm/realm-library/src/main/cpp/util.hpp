@@ -18,6 +18,7 @@
 #define REALM_JAVA_UTIL_HPP
 
 #include <string>
+#include <string_view>
 #include <sstream>
 #include <memory>
 
@@ -270,6 +271,15 @@ public:
         }
         return std::string(m_data.get(), m_size);
     }
+
+    operator std::string_view() const noexcept
+    {
+        if (m_is_null) {
+            return std::string_view();
+        }
+        return std::string_view(m_data.get(), m_size);
+    }
+
 
 private:
     JNIEnv* m_env;
