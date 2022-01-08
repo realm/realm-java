@@ -26,12 +26,12 @@ public class OsSubscription implements NativeObject, Subscription {
 
     @Override
     public Date getCreatedAt() {
-        return null;
+        return new Date(nativeCreatedAt(nativePtr));
     }
 
     @Override
     public Date getUpdatedAt() {
-        return null;
+        return new Date(nativeUpdatedAt(nativePtr));
     }
 
     @Override

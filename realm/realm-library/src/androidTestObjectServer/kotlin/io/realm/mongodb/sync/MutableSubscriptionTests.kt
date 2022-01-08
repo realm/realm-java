@@ -70,8 +70,8 @@ class MutableSubscriptionTests {
         assertEquals(sub.name, "test")
         assertEquals(sub.query, "TRUEPREDICATE ")
         assertEquals(sub.objectType, "SyncColor")
-        assertNull(sub.createdAt)
-        assertNull(sub.updatedAt)
+        assertTrue(sub.createdAt!!.time > 0)
+        assertTrue(sub.updatedAt == sub.createdAt)
     }
 
     @Test
@@ -85,8 +85,8 @@ class MutableSubscriptionTests {
         assertNull(sub.name)
         assertEquals(sub.query, "TRUEPREDICATE ")
         assertEquals(sub.objectType, "SyncColor")
-        assertNull(sub.createdAt)
-        assertNull(sub.updatedAt)
+        assertTrue(sub.createdAt!!.time > 0)
+        assertTrue(sub.updatedAt == sub.createdAt)
     }
 
 

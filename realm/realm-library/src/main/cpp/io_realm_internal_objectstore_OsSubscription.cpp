@@ -85,7 +85,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscription_native
 {
     try {
         auto sub = reinterpret_cast<sync::Subscription*>(j_subscription_ptr);
-        to_milliseconds(sub->created_at());
+        return to_milliseconds(sub->created_at());
     }
     CATCH_STD()
     return 0;
@@ -97,7 +97,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscription_native
 {
     try {
         auto sub = reinterpret_cast<sync::Subscription*>(j_subscription_ptr);
-        to_milliseconds(sub->updated_at());
+        return to_milliseconds(sub->updated_at());
     }
     CATCH_STD()
     return 0;
