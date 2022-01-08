@@ -3,7 +3,7 @@
     "name": "BackingDB",
     "type": "mongodb",
     "config": {
-        "sync_query": {
+        "flexible_sync": {
             "state": "enabled",
             "database_name": "test_data",
             "queryable_fields_names": [
