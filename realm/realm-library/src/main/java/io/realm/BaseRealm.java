@@ -712,6 +712,7 @@ abstract class BaseRealm implements Closeable {
      */
     @ObjectServer
     public SubscriptionSet getSubscriptions() {
+        checkIfValid();
         return sharedRealm.getSubscriptions(configuration.getSchemaMediator());
     }
 

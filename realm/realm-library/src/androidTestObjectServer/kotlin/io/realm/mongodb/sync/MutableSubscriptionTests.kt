@@ -96,7 +96,6 @@ class MutableSubscriptionTests {
         assertTrue(sub.updatedAt == sub.createdAt)
     }
 
-
     @Test
     fun removeNamed() {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
@@ -180,5 +179,4 @@ class MutableSubscriptionTests {
         assertEquals(SubscriptionSet.State.ERROR, updatedSubs.state)
         assertTrue(updatedSubs.errorMessage!!.contains("Client provided query with bad syntax"))
     }
-
 }

@@ -17,9 +17,8 @@ public class UnmanagedSubscription implements Subscription {
     private final RealmQuery query;
 
     public UnmanagedSubscription(@Nullable String name, RealmQuery query) {
-        Date now = new Date();
-        this.createdAt = now;
-        this.updatedAt = now;
+        this.createdAt = null;
+        this.updatedAt = null;
         this.name = name;
         this.objectType = query.getTypeQueried();
         this.query = query;
@@ -27,12 +26,12 @@ public class UnmanagedSubscription implements Subscription {
 
     @Override
     public Date getCreatedAt() {
-        return createdAt;
+        return null;
     }
 
     @Override
     public Date getUpdatedAt() {
-        return updatedAt;
+        return null;
     }
 
     @Override

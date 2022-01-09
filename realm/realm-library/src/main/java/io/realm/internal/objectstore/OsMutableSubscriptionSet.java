@@ -53,8 +53,11 @@ public class OsMutableSubscriptionSet extends OsSubscriptionSet implements Mutab
         return nativeRemoveAll(getNativePtr());
     }
 
-    public SubscriptionSet commit() {
-        return new OsSubscriptionSet(nativeCommit(getNativePtr()), schema);
+    /**
+     * Returns the native pointer for the updated underlying SubscriptionSet
+     */
+    public long commit() {
+        return nativeCommit(getNativePtr());
     }
 
     private static native long nativeInsertOrAssign(long mutableSubscriptionsPtr, String name, long queryPtr);

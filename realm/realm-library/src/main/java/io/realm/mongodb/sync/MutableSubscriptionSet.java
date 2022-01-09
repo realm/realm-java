@@ -9,6 +9,13 @@ import io.realm.internal.annotations.ObjectServer;
 public interface MutableSubscriptionSet extends SubscriptionSet {
 
     /**
+     *
+     * @param subscription
+     * @return
+     */
+     Subscription add(Subscription subscription);
+
+    /**
      * TODO
      * @param subscription
      * @return

@@ -36,12 +36,16 @@ using namespace realm::jni_util;
 using namespace realm::_impl;
 
 static void finalize_subscription_set(jlong ptr) {
-    delete reinterpret_cast<App*>(ptr);
+    delete reinterpret_cast<sync::SubscriptionSet*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL
 Java_io_realm_internal_objectstore_OsSubscriptionSet_nativeGetFinalizerMethodPtr(JNIEnv*, jclass) {
     return reinterpret_cast<jlong>(&finalize_subscription_set);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nativeRelease(JNIEnv*, jclass, jlong j_subscription_set_ptr) {
+    delete reinterpret_cast<sync::SubscriptionSet*>(j_subscription_set_ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nativeSize(JNIEnv* env, jclass, jlong j_subscription_set_ptr)

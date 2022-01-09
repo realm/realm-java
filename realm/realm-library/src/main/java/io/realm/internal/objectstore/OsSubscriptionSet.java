@@ -1,6 +1,7 @@
 package io.realm.internal.objectstore;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -23,7 +24,7 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
     protected final RealmProxyMediator schema;
-    private final long nativePtr;
+    private long nativePtr;
 
     public OsSubscriptionSet(long nativePtr, RealmProxyMediator schema) {
         this.nativePtr = nativePtr;
@@ -39,8 +40,6 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
     public long getNativeFinalizerPtr() {
         return nativeFinalizerPtr;
     }
-
-    private static native long nativeGetFinalizerMethodPtr();
 
     @Nullable
     @Override
@@ -104,8 +103,15 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
     public SubscriptionSet update(UpdateCallback action) {
         OsMutableSubscriptionSet mutableSubs = new OsMutableSubscriptionSet(nativeCreateMutableSubscriptionSet(nativePtr), schema);
         action.update(mutableSubs);
-        // FIXME: What about errors?
-        return mutableSubs.commit();
+        long newSubscriptionsSet = mutableSubs.commit();
+        // Once commit succeed, replace the current SubscriptionSet pointer with
+        // the new one. If the commit fails, the MutableSubscriptionSet will be
+        // GC'ed and released and the SubscriptionSet will keep the state before
+        // the UpdateCallback was called.
+        long oldPointer = nativePtr;
+        nativePtr = newSubscriptionsSet;
+        nativeRelease(oldPointer);
+        return this;
     }
 
     @Override
@@ -127,6 +133,10 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
 
             @Override
             public Subscription next() {
+                if (cursor >= size) {
+                    throw new NoSuchElementException("Iterator has no more elements. " +
+                            "Tried index " + cursor + ". Size is " + size + ".");
+                }
                 long subscriptionPtr = nativeSubscriptionAt(nativePtr, cursor);
                 cursor++;
                 return new OsSubscription(subscriptionPtr);
@@ -138,6 +148,8 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
         void onChange(byte state); // Must not throw
     }
 
+    private static native long nativeGetFinalizerMethodPtr();
+    private static native void nativeRelease(long nativePtr);
     private static native long nativeSize(long nativePtr);
     private static native byte nativeState(long nativePtr);
     private static native String nativeErrorMessage(long nativePtr);

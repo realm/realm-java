@@ -8,17 +8,23 @@ import io.realm.TestApp
 import io.realm.TestHelper
 import io.realm.TestSyncConfigurationFactory
 import io.realm.entities.SyncColor
-import io.realm.entities.SyncDog
-import io.realm.mongodb.Credentials
-import io.realm.mongodb.User
+import io.realm.kotlin.where
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
-import junit.framework.Assert.assertEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.UnsupportedOperationException
+import java.util.NoSuchElementException
+import kotlin.test.assertFailsWith
 
 /**
  * Class wrapping tests for SubscriptionSets
@@ -56,5 +62,117 @@ class SubscriptionSetTests {
         val subscriptions = realm.subscriptions
         assertEquals(0, subscriptions.size())
         assertEquals(SubscriptionSet.State.UNCOMMITTED, subscriptions.state)
+    }
+
+    @Test
+    fun find() {
+        val subscriptions = realm.subscriptions
+        assertNull(subscriptions.find(realm.where<SyncColor>()))
+        subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
+        }
+        assertNotNull(subscriptions.find(realm.where<SyncColor>()))
+    }
+
+    @Test
+    fun findByName() {
+        val subscriptions = realm.subscriptions
+        assertNull(subscriptions.findByName("foo"))
+        subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create("foo", realm.where<SyncColor>()))
+        }
+        assertNotNull(subscriptions.findByName("foo"))
+    }
+
+    @Test
+    fun getState() {
+        val subscriptions = realm.subscriptions
+        assertEquals(SubscriptionSet.State.UNCOMMITTED, subscriptions.state)
+        subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>()))
+        }
+        assertEquals(SubscriptionSet.State.PENDING, subscriptions.state)
+        subscriptions.waitForSynchronization()
+        assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
+        subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>().limit(1)))
+        }
+        subscriptions.waitForSynchronization()
+        assertEquals(SubscriptionSet.State.ERROR, subscriptions.state)
+    }
+
+    @Test
+    fun size() {
+        val subscriptions = realm.subscriptions
+        assertEquals(0, subscriptions.size())
+        subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
+        }
+        assertEquals(1, subscriptions.size())
+        subscriptions.update { mutableSubs ->
+            mutableSubs.removeAll()
+        }
+        assertEquals(0, subscriptions.size())
+    }
+
+    @Test
+    fun errorMessage() {
+        val subscriptions = realm.subscriptions
+        assertNull(subscriptions.errorMessage)
+        subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>().limit(1)))
+        }
+        subscriptions.waitForSynchronization()
+        assertTrue(subscriptions.errorMessage!!.contains("Client provided query with bad syntax"))
+        subscriptions.update { mutableSubs ->
+            mutableSubs.removeAll() // TODO Removing all queries seems to provoke an error on the server
+            mutableSubs.addOrUpdate(
+                Subscription.create(realm.where<SyncColor>())
+            )
+        }
+        subscriptions.waitForSynchronization()
+        assertNull(subscriptions.errorMessage)
+    }
+
+    @Test
+    fun iterator_zeroSize() {
+        val subscriptions = realm.subscriptions
+        val iterator: MutableIterator<Subscription> = subscriptions.iterator()
+        assertFalse(iterator.hasNext())
+        assertFailsWith<NoSuchElementException> { iterator.next() }
+        assertFailsWith<UnsupportedOperationException> { iterator.remove() }
+    }
+
+    @Test
+    fun iterator() {
+        val subscriptions = realm.subscriptions
+        subscriptions.update { mutableSub ->
+            mutableSub.addOrUpdate(Subscription.create("sub1", realm.where<SyncColor>()))
+        }
+        val iterator: MutableIterator<Subscription> = subscriptions.iterator()
+        assertTrue(iterator.hasNext())
+        assertEquals("sub1", iterator.next().name)
+        assertFalse(iterator.hasNext())
+        assertFailsWith<NoSuchElementException> { iterator.next() }
+        assertFailsWith<UnsupportedOperationException> { iterator.remove() }
+    }
+
+    @Test
+    fun subscriptions_throwsOnClosedRealm() {
+        realm.close()
+        assertFailsWith<IllegalStateException> { realm.subscriptions }
+    }
+
+    @Test
+    @Ignore
+    fun subscriptions_accessAfterRealmClosed() {
+        val subscriptions = realm.subscriptions
+        realm.close()
+        // FIXME: Results in native crash. Must check if Realm is closed.
+        subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
+        }
+        subscriptions.waitForSynchronization()
+        assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
     }
 }
