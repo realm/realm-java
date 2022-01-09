@@ -9,6 +9,7 @@ import okhttp3.*
 import okio.Buffer
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
@@ -169,6 +170,46 @@ class ServerAdmin(private val app: App) {
         val config = JSONObject(executeRequest(request, true))
         RealmLog.error("setCustomConfirmation($enabled): ${config.toString(4)}")
         waitForDeployment()
+    }
+
+    fun enableFlexibleSync() {
+        var request = Request.Builder()
+            .url("$baseUrl/groups/$groupId/apps/$appId/services")
+            .get()
+        var result = executeRequest(request, true)
+        val list = JSONArray(executeRequest(request))
+        for (i in 0 until list.length()) {
+            val obj: JSONObject = list.getJSONObject(i)
+            if (obj.getString("type") == "mongodb") {
+                val serviceId = obj.getString("_id")
+                val configUpdateJson = """
+                        {
+                            "flexible_sync": {
+                                "state": "enabled", 
+                                "database_name": "test_data",
+                                "permissions": {
+                                    "rules": {},
+                                    "defaultRoles": [
+                                        {
+                                            "name": "all",
+                                            "applyWhen": {},
+                                            "read": true,
+                                            "write": true
+                                        }
+                                    ]
+                                }, 
+                                "queryable_fields_names": ["owner", "name", "color"]
+                            }
+                        }
+                """.trimIndent()
+                obj.put("config", JSONObject(configUpdateJson))
+                request = Request.Builder()
+                    .url("$baseUrl/groups/$groupId/apps/$appId/services/${serviceId}/config")
+                    .patch(RequestBody.create(json, configUpdateJson))
+                executeRequest(request, true)
+                break;
+            }
+        }
     }
 
     val JSON = MediaType.parse("application/json; charset=utf-8")

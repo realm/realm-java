@@ -1,6 +1,8 @@
 package io.realm.mongodb.sync;
 
 
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.Nullable;
 
 import io.realm.RealmQuery;
@@ -54,7 +56,8 @@ public interface SubscriptionSet extends Iterable<Subscription> {
     String getErrorMessage();
 
     boolean waitForSynchronization();
-//    void waitForSynchronization(Long timeOut, TimeUnit unit);
+
+//    boolean waitForSynchronization(Long timeOut, TimeUnit unit);
 
     SubscriptionSet update(UpdateCallback action);
 

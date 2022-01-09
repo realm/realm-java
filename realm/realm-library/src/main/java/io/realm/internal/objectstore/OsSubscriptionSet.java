@@ -1,6 +1,8 @@
 package io.realm.internal.objectstore;
 
 import java.util.Iterator;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.Nullable;
 
@@ -80,8 +82,22 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
 
     @Override
     public boolean waitForSynchronization() {
-        long updatedSubsPtr = nativeWaitForSynchronization(nativePtr);
-        return updatedSubsPtr != -1; // FIXME native interface
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicBoolean success = new AtomicBoolean(false);
+        nativeWaitForSynchronization(nativePtr, new StateChangeCallback() {
+            @Override
+            public void onChange(byte state) {
+                success.set(State.fromNativeValue(state) == State.COMPLETE);
+                latch.countDown();
+            }
+        });
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            // Ignore
+        }
+        refresh();
+        return success.get();
     }
 
     @Override
@@ -118,12 +134,16 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
         };
     }
 
+    private interface StateChangeCallback {
+        void onChange(byte state); // Must not throw
+    }
+
     private static native long nativeSize(long nativePtr);
     private static native byte nativeState(long nativePtr);
     private static native String nativeErrorMessage(long nativePtr);
     private static native long nativeCreateMutableSubscriptionSet(long nativePtr);
     private static native long nativeSubscriptionAt(long nativePtr, int index);
-    private static native long nativeWaitForSynchronization(long nativePtr);
+    private static native void nativeWaitForSynchronization(long nativePtr, StateChangeCallback callback);
     private static native long nativeFindByName(long nativePtr, String name);
     private static native long nativeFindByQuery(long nativePtr, long queryPtr);
     private static native void nativeRefresh(long nativePtr);

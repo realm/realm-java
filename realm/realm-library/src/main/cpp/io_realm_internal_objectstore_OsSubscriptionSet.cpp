@@ -18,6 +18,7 @@
 
 #include "java_network_transport.hpp"
 #include "util.hpp"
+#include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
 
@@ -99,25 +100,31 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nat
     return 0;
 }
 
-JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nativeWaitForSynchronization(JNIEnv *env,
+JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nativeWaitForSynchronization(JNIEnv *env,
                                                                                   jclass,
-                                                                                  jlong j_subscription_set_ptr)
+                                                                                  jlong j_subscription_set_ptr,
+                                                                                  jobject j_callback)
 {
     try {
         auto subscriptions = reinterpret_cast<sync::SubscriptionSet *>(j_subscription_set_ptr);
         util::Future<sync::SubscriptionSet::State> result = subscriptions->get_state_change_notification(
                 sync::SubscriptionSet::State::Complete);
-        result.get();
-        // FIXME: What about cancelation?
-        subscriptions->refresh();
-        if (subscriptions->state() == sync::SubscriptionSet::State::Error) {
-            return -1;
-        } else {
-            return j_subscription_set_ptr;
-        }
+
+        static JavaClass callback_class(env, "io/realm/internal/objectstore/OsSubscriptionSet$StateChangeCallback");
+        static JavaMethod onchange_method(env, callback_class, "onChange", "(B)V", false);
+        JavaGlobalWeakRef j_callback_weak(env, j_callback);
+        std::move(result).get_async([j_callback_weak](StatusOrStatusWith<sync::SubscriptionSet::State> status) noexcept {
+            JNIEnv* env = JniUtils::get_env(false);
+            j_callback_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
+                if (status.is_ok()) {
+                    env->CallVoidMethod(obj, onchange_method, static_cast<jbyte>(status.get_value()));
+                } else {
+                    env->CallVoidMethod(obj, onchange_method, static_cast<jbyte>(sync::SubscriptionSet::State::Error));
+                }
+            });
+        });
     }
     CATCH_STD()
-    return 0;
 }
 
 JNIEXPORT jlong JNICALL

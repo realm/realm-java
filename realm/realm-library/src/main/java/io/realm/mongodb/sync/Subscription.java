@@ -22,7 +22,7 @@ public interface Subscription {
      * @param query
      * @return
      */
-    public static Subscription create(String name, RealmQuery query) {
+    static Subscription create(String name, RealmQuery query) {
         return new UnmanagedSubscription(name, query);
     }
 
@@ -31,7 +31,7 @@ public interface Subscription {
      * @param query
      * @return
      */
-    public static Subscription create(RealmQuery query) {
+    static Subscription create(RealmQuery query) {
         return create(null, query);
     }
 
@@ -40,27 +40,27 @@ public interface Subscription {
      * @return
      */
     @Nullable
-    public Date getCreatedAt();
+    Date getCreatedAt();
 
     /**
      * TODO
      * @return
      */
     @Nullable
-    public Date getUpdatedAt();
+    Date getUpdatedAt();
 
     /**
      * TODO
      * @return
      */
     @Nullable
-    public String getName();
+    String getName();
 
     /**
      * TODO
      * @return
      */
-    public String getObjectType();
+    String getObjectType();
 
     /**
      * TODO
