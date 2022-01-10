@@ -4,7 +4,7 @@
 * None.
 
 ### Fixed
-* Crashes when using `RealmAny` inside `RealmList`. (Issue [#7626](https://github.com/realm/realm-java/issues/7626))
+* Crashes when using `RealmAny` inside `RealmList` on ARM 32 devices. (Issue [#7626](https://github.com/realm/realm-java/issues/7626))
 
 ### Compatibility
 * None.
