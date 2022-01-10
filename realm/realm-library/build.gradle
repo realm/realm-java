@@ -48,6 +48,10 @@ android {
                 targets "realm-jni"
             }
         }
+        // For running test as 32-bit only
+        // ndk {
+        //    abiFilters 'armeabi-v7a', 'x86'
+        // }
 
         buildConfigField "String", "VERSION_NAME", "\"${version}\""
 

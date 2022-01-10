@@ -29,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
+import kotlin.random.Random
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -47,8 +48,10 @@ class RealmAnyCollectionTests {
     @Before
     fun setUp() {
         realmConfiguration = configFactory.createSchemaConfiguration(
-                false,
-                PrimaryKeyAsString::class.java)
+            false,
+            PrimaryKeyAsString::class.java,
+            WithRealmAnyTestEntity::class.java
+        )
 
         realm = Realm.getInstance(realmConfiguration)
     }
@@ -56,6 +59,23 @@ class RealmAnyCollectionTests {
     @After
     fun tearDown() {
         realm.close()
+    }
+
+    // Test for https://github.com/realm/realm-java/issues/7626. The issue was only happening
+    // on a 32 bit arm devices or with abiFilter 'armeabi-v7a', so need such or update abiFilter in
+    // build.gradle to verify it.
+    @Test
+    fun accessAnyElement() {
+        realm.executeTransaction {
+            realm.createObject(WithRealmAnyTestEntity::class.java, 1).apply {
+                items = RealmList<RealmAny>(RealmAny.valueOf(1L))
+            }
+        }
+        val results: RealmResults<WithRealmAnyTestEntity> = realm.where(WithRealmAnyTestEntity::class.java).findAll()
+        val entity = results[0]!!
+        val realmAny = entity.items[0]!!
+        assertEquals(RealmAny.Type.INTEGER, realmAny.type)
+        assertEquals(1, realmAny.asInteger())
     }
 
     @Test

@@ -69,5 +69,8 @@ jobject JavaClassGlobalDef::new_uuid(JNIEnv* env, const UUID& uuid)
 jobject JavaClassGlobalDef::new_mixed(JNIEnv* env, const Mixed& mixed)
 {
     static jni_util::JavaMethod init(env, instance()->m_io_realm_internal_core_native_mixed, "<init>", "(J)V");
-    return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, new JavaValue(from_mixed(mixed)));
+    JavaValue *pValue = new JavaValue(from_mixed(mixed));
+    // ARM 32 doesn't convert the pointer correct, so do explicit cast
+    jlong nativePtr = reinterpret_cast<jlong>(pValue);
+    return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, nativePtr);
 }
