@@ -10,7 +10,12 @@ import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.UnmanagedSubscription;
 
 /**
- * TODO
+ * A subscription defines a specific server query and its metadata. The result of this query
+ * is continuously being synchronized with the device as long as the subscription is part of a
+ * {@link SubscriptionSet} with a state of {@link SubscriptionSet.State#COMPLETE}.
+ *
+ * Subscriptions are immutable once created, but they can be updated by using a
+ * {@link MutableSubscriptionSet#addOrUpdate(Subscription)}.
  */
 @ObjectServer
 @Beta
