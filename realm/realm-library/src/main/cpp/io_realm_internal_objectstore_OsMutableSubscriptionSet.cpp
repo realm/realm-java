@@ -38,14 +38,20 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsMutableSubscription
                                                                                               jclass,
                                                                                               jlong j_subscription_set_ptr,
                                                                                               jstring j_name,
-                                                                                              jlong j_query)
+                                                                                              jlong j_query,
+                                                                                              jboolean j_throw_on_update)
 {
     try {
         auto subscriptions = reinterpret_cast<sync::MutableSubscriptionSet*>(j_subscription_set_ptr);
         JStringAccessor name(env, j_name);
         auto query = reinterpret_cast<Query*>(j_query);
         std::pair<sync::SubscriptionSet::iterator, bool> result = subscriptions->insert_or_assign(name, *query);
-        return reinterpret_cast<jlong>(new sync::Subscription(std::move(*result.first)));
+        if (j_throw_on_update) {
+            ThrowException(env, ExceptionKind::IllegalArgument, "Subscription could not be added because it already existed");
+            return -1;
+        } else {
+            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*result.first)));
+        }
     }
     CATCH_STD()
     return 0;
