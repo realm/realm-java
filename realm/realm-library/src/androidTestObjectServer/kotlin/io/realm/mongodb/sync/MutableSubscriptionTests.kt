@@ -24,6 +24,7 @@ import io.realm.TestHelper
 import io.realm.TestSyncConfigurationFactory
 import io.realm.admin.ServerAdmin
 import io.realm.entities.SyncColor
+import io.realm.entities.SyncDog
 import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
@@ -39,6 +40,9 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.IllegalArgumentException
+import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 
 /**
  * Class wrapping tests for SubscriptionSets
@@ -75,16 +79,16 @@ class MutableSubscriptionTests {
 
     @Test
     fun initialSubscriptions() {
-        val subscriptions = realm.subscriptions.update { mutableSubs ->
+        realm.subscriptions.update { mutableSubs ->
             assertEquals(0, mutableSubs.size())
             assertEquals(SubscriptionSet.State.UNCOMMITTED, mutableSubs.state)
         }
     }
 
     @Test
-    fun insertNamedSubscription() {
+    fun addNamedSubscription() {
         val updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>()))
+            mutableSubs.add(Subscription.create("test", realm.where<SyncColor>()))
         }
         assertEquals(1, updatedSubs.size())
         assertEquals(SubscriptionSet.State.PENDING, updatedSubs.state)
@@ -97,9 +101,9 @@ class MutableSubscriptionTests {
     }
 
     @Test
-    fun insertAnonymousSubscription() {
+    fun addAnonymousSubscription() {
         val updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
+            mutableSubs.add(Subscription.create(realm.where<SyncColor>()))
         }
         assertEquals(1, updatedSubs.size())
         assertEquals(SubscriptionSet.State.PENDING, updatedSubs.state)
@@ -109,6 +113,41 @@ class MutableSubscriptionTests {
         assertEquals(sub.objectType, "SyncColor")
         assertTrue(sub.createdAt!!.time > 0)
         assertTrue(sub.updatedAt == sub.createdAt)
+    }
+
+    @Test
+    fun addExistingAnonymous_throws() {
+        realm.subscriptions.update { mutableSubs ->
+            mutableSubs.add(Subscription.create(realm.where<SyncColor>()))
+            assertFailsWith<IllegalArgumentException> {
+                mutableSubs.add(Subscription.create(realm.where<SyncColor>()))
+            }
+        }
+    }
+
+    @Test
+    fun addExistingNamed_throws() {
+        realm.subscriptions.update { mutableSubs ->
+            mutableSubs.add(Subscription.create("sub1", realm.where<SyncColor>()))
+            assertFailsWith<IllegalArgumentException> {
+                mutableSubs.add(Subscription.create("sub1", realm.where<SyncColor>()))
+            }
+        }
+    }
+
+    @Test
+    fun update() {
+        val subs = realm.subscriptions
+        subs.update { mutableSubs ->
+            mutableSubs.add(Subscription.create("sub1", realm.where<SyncColor>()))
+        }
+        subs.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create("sub1", realm.where<SyncColor>().equalTo("color", "red")))
+        }
+        val sub = subs.first()
+        assertEquals("sub1", sub.name)
+        assertEquals("color == \"red\" ", sub.query)
+        assertTrue(sub.createdAt!! < sub.updatedAt!!)
     }
 
     @Test
@@ -125,6 +164,13 @@ class MutableSubscriptionTests {
     }
 
     @Test
+    fun removeNamed_fails() {
+        var updatedSubs = realm.subscriptions.update { mutableSubs ->
+            assertFalse(mutableSubs.remove("dont-exists"))
+        }
+    }
+
+    @Test
     fun removeSubscription() {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
             mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>()))
@@ -135,6 +181,25 @@ class MutableSubscriptionTests {
             assertEquals(0, mutableSubs.size());
         }
         assertEquals(0, updatedSubs.size());
+    }
+
+    @Test
+    fun removeSubscription_fails() {
+        realm.subscriptions.update { mutableSubs ->
+            val managedSub = mutableSubs.add(Subscription.create(realm.where<SyncColor>()))
+            assertTrue(mutableSubs.remove(managedSub))
+            assertFalse(mutableSubs.remove(managedSub))
+        }
+    }
+
+    @Test
+    fun removeSubscription_unManagedthrows() {
+        realm.subscriptions.update { mutableSubs ->
+            val managedSub = mutableSubs.add(Subscription.create("sub", realm.where<SyncColor>()))
+            assertFailsWith<IllegalArgumentException> {
+                mutableSubs.remove(Subscription.create("sub", realm.where<SyncColor>()))
+            }
+        }
     }
 
     @Test
@@ -151,7 +216,20 @@ class MutableSubscriptionTests {
     }
 
     @Test
-    fun removeAllClazzTyped() {
+    fun removeAllStringTyped_fails() {
+        // Not part of schema
+        realm.subscriptions.update { mutableSubs ->
+            assertFalse(mutableSubs.removeAll("DontExists"))
+        }
+
+        // part of schema
+        realm.subscriptions.update { mutableSubs ->
+            assertFalse(mutableSubs.removeAll("SyncColor"))
+        }
+    }
+
+    @Test
+    fun removeAllClassTyped() {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
             mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
         }
@@ -161,6 +239,21 @@ class MutableSubscriptionTests {
             assertEquals(0, mutableSubs.size());
         }
         assertEquals(0, updatedSubs.size());
+    }
+
+    @Test
+    fun removeAllClassTyped_fails() {
+        // Not part of schema
+        realm.subscriptions.update { mutableSubs ->
+            assertFailsWith<IllegalArgumentException> {
+                mutableSubs.removeAll(SyncDog::class.java)
+            }
+        }
+
+        // part of schema
+        realm.subscriptions.update { mutableSubs ->
+            assertFalse(mutableSubs.removeAll(SyncColor::class.java))
+        }
     }
 
     @Test
@@ -174,6 +267,13 @@ class MutableSubscriptionTests {
             assertEquals(0, mutableSubs.size());
         }
         assertEquals(0, updatedSubs.size());
+    }
+
+    @Test
+    fun removeAll_fails() {
+        realm.subscriptions.update { mutableSubs ->
+            assertFalse(mutableSubs.removeAll())
+        }
     }
 
     @Test
