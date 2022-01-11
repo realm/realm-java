@@ -18,12 +18,12 @@ package io.realm.internal.objectstore;
 import io.realm.RealmModel;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.UnmanagedSubscription;
-import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.mongodb.sync.MutableSubscriptionSet;
 import io.realm.mongodb.sync.Subscription;
 
-@ObjectServer
+// TODO Adding @ObjectServer here seems to break the Realm Build Transformer. Investigate why.
+//@ObjectServer
 public class OsMutableSubscriptionSet extends OsSubscriptionSet implements MutableSubscriptionSet {
 
     public OsMutableSubscriptionSet(long nativePtr,
@@ -49,7 +49,7 @@ public class OsMutableSubscriptionSet extends OsSubscriptionSet implements Mutab
             long subscriptionPtr = nativeInsertOrAssign(getNativePtr(), sub.getName(), sub.getQueryPointer(), throwOnUpdate);
             return new OsSubscription(subscriptionPtr);
         } else {
-            throw new IllegalArgumentException("TODO");
+            throw new IllegalArgumentException("Only unmanaged subscriptions are allowed as input. This subscription was managed.@");
         }
     }
 
