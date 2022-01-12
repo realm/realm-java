@@ -53,7 +53,12 @@ public class OsSubscription implements NativeObject, Subscription {
 
     @Override
     public String getName() {
-        return nativeName(nativePtr);
+        String result = nativeName(nativePtr);
+        if (result.isEmpty()) {
+            return null; // Work-around for Core apparently returning "" instead of null.
+        } else {
+            return result;
+        }
     }
 
     @Override

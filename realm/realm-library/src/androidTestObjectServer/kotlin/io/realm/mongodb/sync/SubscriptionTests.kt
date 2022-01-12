@@ -33,6 +33,8 @@ import org.junit.runner.RunWith
 import io.realm.kotlin.where
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import java.lang.IllegalArgumentException
+import kotlin.test.assertFailsWith
 
 /**
  * Class wrapping tests for SubscriptionSets
@@ -80,6 +82,14 @@ class SubscriptionTests {
         assertEquals("TRUEPREDICATE ", sub.query)
         assertNull(sub.createdAt)
         assertNull(sub.updatedAt)
+    }
+
+    @Test
+    fun create_emptyNameThrows() {
+        val query = realm.where<SyncColor>()
+        assertFailsWith<IllegalArgumentException> {
+            Subscription.create("", query)
+        }
     }
 
 }

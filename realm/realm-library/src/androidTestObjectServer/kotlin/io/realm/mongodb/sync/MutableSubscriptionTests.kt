@@ -36,6 +36,7 @@ import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertNull
 import junit.framework.Assert.assertTrue
 import org.junit.After
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,6 +66,7 @@ class MutableSubscriptionTests {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = configFactory.createFlexibleSyncConfiguationBuilder(user)
             .schema(SyncColor::class.java)
+            .syncClientResetStrategy { session, error -> fail("Client Reset should not be triggered.") }
             .build()
         realm = Realm.getInstance(config)
     }
@@ -93,9 +95,9 @@ class MutableSubscriptionTests {
         assertEquals(1, updatedSubs.size())
         assertEquals(SubscriptionSet.State.PENDING, updatedSubs.state)
         val sub: Subscription = updatedSubs.first()
-        assertEquals(sub.name, "test")
-        assertEquals(sub.query, "TRUEPREDICATE ")
-        assertEquals(sub.objectType, "SyncColor")
+        assertEquals("test", sub.name)
+        assertEquals("TRUEPREDICATE ", sub.query)
+        assertEquals("SyncColor", sub.objectType)
         assertTrue(sub.createdAt!!.time > 0)
         assertTrue(sub.updatedAt == sub.createdAt)
     }

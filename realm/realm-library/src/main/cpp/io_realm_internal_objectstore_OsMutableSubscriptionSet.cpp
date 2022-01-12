@@ -50,7 +50,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsMutableSubscription
             ThrowException(env, ExceptionKind::IllegalArgument, "Subscription could not be added because it already existed");
             return -1;
         } else {
-            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*result.first)));
+            return reinterpret_cast<jlong>(new sync::Subscription(*result.first));
         }
     }
     CATCH_STD()
@@ -64,7 +64,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsMutableSubscription
     try {
         auto subscriptions = reinterpret_cast<sync::MutableSubscriptionSet*>(j_subscription_set_ptr);
         sync::SubscriptionSet sub_set = std::move(*subscriptions).commit();
-        return reinterpret_cast<jlong>(new sync::SubscriptionSet(std::move(sub_set)));
+        return reinterpret_cast<jlong>(new sync::SubscriptionSet(sub_set));
     }
     CATCH_STD()
     return 0;

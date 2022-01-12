@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmQuery;
 import io.realm.annotations.Beta;
+import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.UnmanagedSubscription;
 
@@ -33,6 +34,7 @@ public interface Subscription {
      * @return the unmanaged subscription.
      */
     static Subscription create(String name, RealmQuery query) {
+        Util.checkEmpty(name, "name");
         return new UnmanagedSubscription(name, query);
     }
 
@@ -47,7 +49,7 @@ public interface Subscription {
      * @return the unmanaged subscription.
      */
     static Subscription create(RealmQuery query) {
-        return create(null, query);
+        return new UnmanagedSubscription(null, query);
     }
 
     /**

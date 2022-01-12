@@ -32,6 +32,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -60,6 +61,7 @@ class SubscriptionSetTests {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = configFactory.createFlexibleSyncConfiguationBuilder(user)
             .schema(SyncColor::class.java)
+            .syncClientResetStrategy { session, error -> fail("Client Reset should not trigger.") }
             .build()
         realm = Realm.getInstance(config)
     }
