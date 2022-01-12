@@ -26,6 +26,7 @@ import io.realm.entities.SyncColor
 import io.realm.kotlin.where
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
+import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -38,8 +39,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.UnsupportedOperationException
-import java.util.NoSuchElementException
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 
 /**
@@ -50,8 +50,10 @@ class SubscriptionSetTests {
 
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
+    private val looperThread = BlockingLooperThread()
 
     private lateinit var app: TestApp
+    private lateinit var realmConfig: SyncConfiguration
     private lateinit var realm: Realm
 
     @Before
@@ -59,11 +61,11 @@ class SubscriptionSetTests {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp(appName = TEST_APP_3)
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val config = configFactory.createFlexibleSyncConfiguationBuilder(user)
+        realmConfig = configFactory.createFlexibleSyncConfiguationBuilder(user)
             .schema(SyncColor::class.java)
             .syncClientResetStrategy { session, error -> fail("Client Reset should not trigger.") }
             .build()
-        realm = Realm.getInstance(config)
+        realm = Realm.getInstance(realmConfig)
     }
 
     @After
@@ -192,4 +194,98 @@ class SubscriptionSetTests {
         subscriptions.waitForSynchronization()
         assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
     }
+
+    @Test
+    fun waitForSynchronizationAfterInsert() {
+        var updatedSubs = realm.subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>()))
+        }
+        assertTrue(updatedSubs.waitForSynchronization())
+        assertEquals(SubscriptionSet.State.COMPLETE, updatedSubs.state)
+    }
+
+    @Test
+    fun waitForSynchronizationError() {
+        var updatedSubs = realm.subscriptions.update { mutableSubs ->
+            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>().limit(1)))
+        }
+        assertFalse(updatedSubs.waitForSynchronization())
+        assertEquals(SubscriptionSet.State.ERROR, updatedSubs.state)
+        assertTrue(updatedSubs.errorMessage!!.contains("Client provided query with bad syntax"))
+    }
+
+    @Test
+    fun waitForSynchronization_timeOut() {
+        var updatedSubs = realm.subscriptions.update { mutableSubs ->
+            mutableSubs.add(Subscription.create("sub", realm.where<SyncColor>()))
+        }
+        assertTrue(updatedSubs.waitForSynchronization(1, TimeUnit.MINUTES))
+    }
+//
+//    @Test
+//    fun waitForSynchronization_timeOut_fails() {
+//        // TODO
+//    }
+//
+    @Test
+    fun waitForSynchronizationAsync() = looperThread.runBlocking {
+        val realm = Realm.getInstance(realmConfig)
+        looperThread.closeAfterTest(realm)
+        val subs = realm.subscriptions
+        subs.update {
+            it.add(Subscription.create(realm.where<SyncColor>()))
+        }
+        subs.waitForSynchronizationAsync(object: SubscriptionSet.Callback {
+            override fun onStateChange(subscriptions: SubscriptionSet) {
+                assertEquals(1, subscriptions.size())
+                assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
+                looperThread.testComplete()
+            }
+            override fun onError(e: Throwable) {
+                fail(e.toString())
+            }
+        })
+    }
+
+    @Test
+    fun waitForSynchronizationAsync_error() = looperThread.runBlocking {
+        // Server errors are not reported as Exceptions but as state changes
+        val realm = Realm.getInstance(realmConfig)
+        looperThread.closeAfterTest(realm)
+        val subs = realm.subscriptions
+        subs.update { mutableSubs ->
+            mutableSubs.add(Subscription.create("test", realm.where<SyncColor>().limit(1)))
+        }
+        subs.waitForSynchronizationAsync(object: SubscriptionSet.Callback {
+            override fun onStateChange(subscriptions: SubscriptionSet) {
+                assertEquals(SubscriptionSet.State.ERROR, subscriptions.state)
+                assertTrue(subscriptions.errorMessage!!.contains("Client provided query with bad syntax"))
+                looperThread.testComplete()
+            }
+            override fun onError(e: Throwable) {
+                fail(e.toString())
+            }
+        })
+    }
+
+    @Test
+    fun waitForSynchronizationAsync_timeOut() = looperThread.runBlocking {
+        val realm = Realm.getInstance(realmConfig)
+        looperThread.closeAfterTest(realm)
+        val subs = realm.subscriptions
+        subs.update {
+            it.add(Subscription.create(realm.where<SyncColor>()))
+        }
+        subs.waitForSynchronizationAsync(1, TimeUnit.MINUTES, object: SubscriptionSet.Callback {
+            override fun onStateChange(subscriptions: SubscriptionSet) {
+                assertEquals(1, subscriptions.size())
+                assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
+                looperThread.testComplete()
+            }
+            override fun onError(e: Throwable) {
+                fail(e.toString())
+            }
+        })
+    }
+
 }

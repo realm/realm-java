@@ -55,7 +55,8 @@ public class OsSubscription implements NativeObject, Subscription {
     public String getName() {
         String result = nativeName(nativePtr);
         if (result.isEmpty()) {
-            return null; // Work-around for Core apparently returning "" instead of null.
+            // Work-around until is ready https://github.com/realm/realm-core/pull/5160/files
+            return null;
         } else {
             return result;
         }

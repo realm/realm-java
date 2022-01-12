@@ -25,7 +25,6 @@ import io.realm.TestSyncConfigurationFactory
 import io.realm.admin.ServerAdmin
 import io.realm.entities.SyncColor
 import io.realm.entities.SyncDog
-import io.realm.kotlin.syncSession
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -41,8 +40,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.IllegalArgumentException
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 /**
@@ -278,22 +275,4 @@ class MutableSubscriptionTests {
         }
     }
 
-    @Test
-    fun waitForSynchronizationAfterInsert() {
-        var updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>()))
-        }
-        assertTrue(updatedSubs.waitForSynchronization())
-        assertEquals(SubscriptionSet.State.COMPLETE, updatedSubs.state)
-    }
-
-    @Test
-    fun waitForSynchronizationError() {
-        var updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>().limit(1)))
-        }
-        assertFalse(updatedSubs.waitForSynchronization())
-        assertEquals(SubscriptionSet.State.ERROR, updatedSubs.state)
-        assertTrue(updatedSubs.errorMessage!!.contains("Client provided query with bad syntax"))
-    }
 }
