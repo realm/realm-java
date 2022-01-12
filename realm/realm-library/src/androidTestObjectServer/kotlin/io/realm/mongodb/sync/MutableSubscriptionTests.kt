@@ -45,7 +45,7 @@ import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
 /**
- * Class wrapping tests for SubscriptionSets
+ * Class wrapping tests for modifying a subscription set.
  */
 @RunWith(AndroidJUnit4::class)
 class MutableSubscriptionTests {
