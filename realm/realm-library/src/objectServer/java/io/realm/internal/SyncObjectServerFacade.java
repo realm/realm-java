@@ -43,6 +43,8 @@ import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.User;
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.MutableSubscriptionSet;
+import io.realm.mongodb.sync.SubscriptionSet;
 import io.realm.mongodb.sync.Sync;
 import io.realm.mongodb.sync.SyncClientResetStrategy;
 import io.realm.mongodb.sync.SyncConfiguration;
@@ -250,6 +252,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
     }
 
+    // This is guaranteed by other code to never run on the UI thread.
     private void downloadInitialFullRealm(SyncConfiguration syncConfig) {
         OsAsyncOpenTask task = new OsAsyncOpenTask(new OsRealmConfig.Builder(syncConfig).build());
         try {
@@ -291,5 +294,29 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     public Object getSubscriptions(long realmNativePtr, String filter) {
         return null;
         // return OsSyncedSharedRealm.getSubscriptions(realmNativePtr, filter);
+    }
+
+    @Override
+    public void downloadInitialFlexibleSyncData(Realm realm, RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            if (syncConfig.isFlexibleSyncConfiguration()) {
+                SyncConfiguration.InitialFlexibleSyncSubscriptions handler  = syncConfig.getInitialSubscriptionsHandler();
+                if (handler != null) {
+                    SubscriptionSet subscriptions = realm.getSubscriptions();
+                    subscriptions.update(new SubscriptionSet.UpdateCallback() {
+                        @Override
+                        public void update(MutableSubscriptionSet subscriptions) {
+                            handler.configure(realm, subscriptions);
+                        }
+                    });
+                    if (!subscriptions.waitForSynchronization()) {
+                        throw new IllegalStateException("Realm couldn't be fully opened because " +
+                                "flexible sync encountered an error when bootstrapping initial" +
+                                "subscriptions: " + subscriptions.getErrorMessage());
+                    }
+                }
+            }
+        }
     }
 }

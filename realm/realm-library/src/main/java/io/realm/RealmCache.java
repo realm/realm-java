@@ -464,7 +464,22 @@ final class RealmCache {
         referenceCounter.incrementThreadCount(1);
 
         //noinspection unchecked
-        return (E) referenceCounter.getRealmInstance();
+        E realmInstance = (E) referenceCounter.getRealmInstance();
+        if (firstRealmInstanceInProcess) {
+            // If flexible sync initial subscriptions are configured, we need to make
+            // sure they are in the COMPLETE state before proceeding
+            // TODO Ideally this would be part of `downloadInitialRemoteChanges` called before
+            // but his requires a larger refactor, so for now just run the logic here.
+            if (realmInstance instanceof Realm) {
+                ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialFlexibleSyncData((Realm) realmInstance, configuration);
+            } else {
+                // TODO We should probably find a way to lift this restriction, but we have the same restriction
+                //  for initialData transactions, and there hasn't been any complaints about that. So since
+                //  fixing this is going to be a big refactor, we are only going to support typed Realms for now.
+                throw new IllegalStateException("It is only possible to configure initial subscriptions when opening typed realms.");
+            }
+        }
+        return realmInstance;
     }
 
     private <E extends BaseRealm> ReferenceCounter getRefCounter(Class<E> realmClass, OsSharedRealm.VersionID version) {

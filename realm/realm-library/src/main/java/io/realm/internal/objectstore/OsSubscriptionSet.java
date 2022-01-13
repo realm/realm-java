@@ -123,9 +123,11 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
             }
         });
         try {
-            latch.await(timeOut, unit);
+            if (!latch.await(timeOut, unit)) {
+                throw new RuntimeException("Waiting for waitForSynchronization() timed out.");
+            }
         } catch (InterruptedException e) {
-            throw new RuntimeException("Waiting for waitForSynchronization() timed out before it could complete.");
+            throw new RuntimeException("Waiting for waitForSynchronization() was interrupted.");
         }
         refresh();
         return success.get();

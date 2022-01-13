@@ -137,4 +137,8 @@ public class ObjectServerFacade {
         // No nothing
         return null;
     }
+
+    public void downloadInitialFlexibleSyncData(Realm realm, RealmConfiguration configuration) {
+        // Do nothing
+    }
 }

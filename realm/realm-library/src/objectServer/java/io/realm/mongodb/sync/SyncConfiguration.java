@@ -52,7 +52,6 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.RealmModel;
 import io.realm.RealmQuery;
-import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.coroutines.FlowFactory;
 import io.realm.coroutines.RealmFlowFactory;
@@ -110,6 +109,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     @Nullable private final String syncUrlPrefix;
     private final BsonValue partitionValue;
+    @Nullable private final InitialFlexibleSyncSubscriptions initialSubscriptionsHandler;
 
     private SyncConfiguration(File realmPath,
                               @Nullable String assetFilePath,
@@ -136,7 +136,8 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
                               CompactOnLaunchCallback compactOnLaunch,
                               @Nullable String syncUrlPrefix,
-                              BsonValue partitionValue) {
+                              BsonValue partitionValue,
+                              InitialFlexibleSyncSubscriptions initialSubscriptionsHandler) {
         super(realmPath,
                 assetFilePath,
                 key,
@@ -162,6 +163,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.syncClientResetStrategy = syncClientResetStrategy;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
         this.waitForInitialData = waitForInitialData;
+        this.initialSubscriptionsHandler = initialSubscriptionsHandler;
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
         this.sessionStopPolicy = sessionStopPolicy;
         this.syncUrlPrefix = syncUrlPrefix;
@@ -285,6 +287,15 @@ public class SyncConfiguration extends RealmConfiguration {
         return super.getInitialDataTransaction();
     }
 
+    /**
+     * Returns the configured initial subscription handler for this realm.
+     *
+     * @return the handler used to configure initial subscriptions for this realm.
+     */
+    public InitialFlexibleSyncSubscriptions getInitialSubscriptionsHandler() {
+        return initialSubscriptionsHandler;
+    }
+
     // Extract the full server path, minus the file name
     private static String getServerPath(User user, URI serverUrl) {
         // FIXME Add support for partion key
@@ -309,6 +320,7 @@ public class SyncConfiguration extends RealmConfiguration {
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
+        if (!initialSubscriptionsHandler.equals(that.initialSubscriptionsHandler)) return false;
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
         return partitionValue != null ? partitionValue.equals(that.partitionValue) : that.partitionValue == null;
@@ -320,6 +332,7 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + serverUrl.hashCode();
         result = 31 * result + user.hashCode();
         result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (initialSubscriptionsHandler != null ? initialSubscriptionsHandler.hashCode() : 0);
         result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         result = 31 * result + (waitForInitialData ? 1 : 0);
         result = 31 * result + (int) (initialDataTimeoutMillis ^ (initialDataTimeoutMillis >>> 32));
@@ -338,6 +351,8 @@ public class SyncConfiguration extends RealmConfiguration {
         sb.append("user: ").append(user);
         sb.append("\n");
         sb.append("errorHandler: ").append(errorHandler);
+        sb.append("\n");
+        sb.append("initialSubscriptions: ").append(initialSubscriptionsHandler);
         sb.append("\n");
         sb.append("deleteRealmOnLogout: ").append(deleteRealmOnLogout);
         sb.append("\n");
@@ -514,6 +529,16 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * Interface for configuring the initial set of of subscriptions. This should only be
+     * used for synced realms configured for flexible sync.
+     *
+     * @see Builder#initialSubscriptions(SyncConfiguration.InitialFlexibleSyncSubscriptions)
+     */
+    public interface InitialFlexibleSyncSubscriptions {
+        void configure(Realm realm, MutableSubscriptionSet subscriptions);
+    }
+
+    /**
      * Builder used to construct instances of a SyncConfiguration in a fluent manner.
      */
     public static final class Builder  {
@@ -529,6 +554,8 @@ public class SyncConfiguration extends RealmConfiguration {
         private FlowFactory flowFactory;
         @Nullable
         private Realm.Transaction initialDataTransaction;
+        @Nullable
+        private InitialFlexibleSyncSubscriptions initialSubscriptionsHandler;
         @Nullable
         private String filename;
         private String assetFilePath;
@@ -905,6 +932,20 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Sets the initial {@link Subscription}s for  the {@link io.realm.Realm}. This will only be
+         * executed the first time the Realm file is opened (and the file created).
+         *
+         * If {@link #waitForInitialRemoteData()} is configured as well, the realm file isn't fully
+         * opened until all subscription data also has been uploaded.
+         *
+         * @param action {@link MutableSubscriptionSet} where subscriptions can be added.
+         */
+        public Builder initialSubscriptions(InitialFlexibleSyncSubscriptions action) {
+            initialSubscriptionsHandler = action;
+            return this;
+        }
+
+        /**
          * Setting this will create an in-memory Realm instead of saving it to disk. In-memory Realms might still use
          * disk space if memory is running low, but all files created by an in-memory Realm will be deleted when the
          * Realm is closed.
@@ -1245,7 +1286,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     sessionStopPolicy,
                     compactOnLaunch,
                     syncUrlPrefix,
-                    partitionValue
+                    partitionValue,
+                    initialSubscriptionsHandler
             );
         }
 

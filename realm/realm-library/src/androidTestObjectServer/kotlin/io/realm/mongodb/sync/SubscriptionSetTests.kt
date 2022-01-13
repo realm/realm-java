@@ -22,11 +22,15 @@ import io.realm.TEST_APP_3
 import io.realm.TestApp
 import io.realm.TestHelper
 import io.realm.TestSyncConfigurationFactory
+import io.realm.admin.ServerAdmin
 import io.realm.entities.SyncColor
 import io.realm.kotlin.where
+import io.realm.log.LogLevel
+import io.realm.log.RealmLog
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import io.realm.rule.BlockingLooperThread
+import io.realm.util.assertFailsWithMessage
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -39,6 +43,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.RuntimeException
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertFailsWith
 
@@ -59,7 +64,9 @@ class SubscriptionSetTests {
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+        RealmLog.setLevel(LogLevel.ALL)
         app = TestApp(appName = TEST_APP_3)
+        ServerAdmin(app).enableFlexibleSync() // Currrently required because importing doesn't work
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         realmConfig = configFactory.createFlexibleSyncConfiguationBuilder(user)
             .schema(SyncColor::class.java)
@@ -193,6 +200,31 @@ class SubscriptionSetTests {
         }
         subscriptions.waitForSynchronization()
         assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
+    }
+
+    @Test
+    fun waitForSynchronizationInitialSubscriptions() {
+        val subscriptions = realm.subscriptions
+        assertFailsWith<RuntimeException> {
+            subscriptions.waitForSynchronization()
+        }
+        // TODO Ideally this should work, but capture Core's current behaviour.
+        // assertTrue(subscriptions.waitForSynchronization())
+        // assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
+        // assertEquals(0, subscriptions.size())
+    }
+
+    @Test
+    fun waitForSynchronizationInitialEmptySubscriptionSet() {
+        val subscriptions = realm.subscriptions
+        subscriptions.update { /* Do nothing */ }
+        assertFailsWith<RuntimeException> {
+            subscriptions.waitForSynchronization(5, TimeUnit.SECONDS)
+        }
+        // TODO Ideally this should work, but capture Core's current behaviour.
+        // assertTrue(subscriptions.waitForSynchronization())
+        // assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
+        // assertEquals(0, subscriptions.size())
     }
 
     @Test
