@@ -56,7 +56,6 @@ class FlexibleSyncConfigurationTests {
         }
     }
 
-
     @Test
     fun equals() {
         val user: User = createTestUser(app)
@@ -128,5 +127,18 @@ class FlexibleSyncConfigurationTests {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
         assertTrue("Path is: ${config.path}", config.path.endsWith("/default.realm"))
+    }
+
+    @Test
+    fun initialSubscriptions() {
+        val user: User = createTestUser(app)
+        val handler = SyncConfiguration.InitialFlexibleSyncSubscriptions { realm, subscriptions ->
+            // Do nothing
+        }
+        val config: SyncConfiguration = SyncConfiguration.Builder(user)
+            .initialSubscriptions(handler)
+            .build()
+
+        assertEquals(handler, config.initialSubscriptionsHandler)
     }
 }

@@ -320,7 +320,8 @@ public class SyncConfiguration extends RealmConfiguration {
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
-        if (!initialSubscriptionsHandler.equals(that.initialSubscriptionsHandler)) return false;
+        if (initialSubscriptionsHandler != null ? !initialSubscriptionsHandler.equals(that.initialSubscriptionsHandler) : that.initialSubscriptionsHandler != null)
+            return false;
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
         return partitionValue != null ? partitionValue.equals(that.partitionValue) : that.partitionValue == null;
