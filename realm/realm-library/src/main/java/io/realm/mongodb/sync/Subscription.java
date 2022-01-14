@@ -24,7 +24,7 @@ public interface Subscription {
 
     /**
      * Create an unmanaged named subscription for a flexible sync enabled Realm.
-     * The subscription will not take effect until it has been store using either
+     * The subscription will not take effect until it has been stored using either
      * {@link MutableSubscriptionSet#add(Subscription)} or
      * {@link MutableSubscriptionSet#addOrUpdate(Subscription)}.
      *
@@ -40,7 +40,7 @@ public interface Subscription {
 
     /**
      * Create an unmanaged anonymous subscription for a flexible sync enabled Realm.
-     * The subscription will not take effect until it has been store using either
+     * The subscription will not take effect until it has been stored using either
      * {@link MutableSubscriptionSet#add(Subscription)} or
      * {@link MutableSubscriptionSet#addOrUpdate(Subscription)}.
      *

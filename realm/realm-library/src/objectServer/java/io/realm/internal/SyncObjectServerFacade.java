@@ -291,12 +291,6 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
     }
 
     @Override
-    public Object getSubscriptions(long realmNativePtr, String filter) {
-        return null;
-        // return OsSyncedSharedRealm.getSubscriptions(realmNativePtr, filter);
-    }
-
-    @Override
     public void downloadInitialFlexibleSyncData(Realm realm, RealmConfiguration configuration) {
         if (configuration instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) configuration;

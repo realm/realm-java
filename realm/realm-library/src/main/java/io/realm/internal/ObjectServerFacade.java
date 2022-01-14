@@ -133,11 +133,6 @@ public class ObjectServerFacade {
         // Do nothing
     }
 
-    public Object getSubscriptions(long realmNativePtr, String filter) {
-        // No nothing
-        return null;
-    }
-
     public void downloadInitialFlexibleSyncData(Realm realm, RealmConfiguration configuration) {
         // Do nothing
     }

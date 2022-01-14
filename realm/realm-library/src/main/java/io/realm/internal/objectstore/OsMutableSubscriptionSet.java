@@ -49,7 +49,7 @@ public class OsMutableSubscriptionSet extends OsSubscriptionSet implements Mutab
             long subscriptionPtr = nativeInsertOrAssign(getNativePtr(), sub.getName(), sub.getQueryPointer(), throwOnUpdate);
             return new OsSubscription(subscriptionPtr);
         } else {
-            throw new IllegalArgumentException("Only unmanaged subscriptions are allowed as input. This subscription was managed.@");
+            throw new IllegalArgumentException("Only unmanaged subscriptions are allowed as input. This subscription was managed.");
         }
     }
 

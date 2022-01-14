@@ -228,8 +228,9 @@ class SubscriptionSetTests {
     @Test
     fun waitForSynchronizationAfterInsert() {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>()))
+            mutableSubs.add(Subscription.create("test", realm.where<SyncColor>()))
         }
+        assertFalse(updatedSubs.state != SubscriptionSet.State.COMPLETE)
         assertTrue(updatedSubs.waitForSynchronization())
         assertEquals(SubscriptionSet.State.COMPLETE, updatedSubs.state)
     }
@@ -251,12 +252,7 @@ class SubscriptionSetTests {
         }
         assertTrue(updatedSubs.waitForSynchronization(1, TimeUnit.MINUTES))
     }
-//
-//    @Test
-//    fun waitForSynchronization_timeOut_fails() {
-//        // TODO
-//    }
-//
+
     @Test
     fun waitForSynchronizationAsync() = looperThread.runBlocking {
         val realm = Realm.getInstance(realmConfig)
@@ -265,7 +261,8 @@ class SubscriptionSetTests {
         subs.update {
             it.add(Subscription.create(realm.where<SyncColor>()))
         }
-        subs.waitForSynchronizationAsync(object: SubscriptionSet.Callback {
+        subs.waitForSynchronizationAsync(object:
+            SubscriptionSet.StateChangeCallback {
             override fun onStateChange(subscriptions: SubscriptionSet) {
                 assertEquals(1, subscriptions.size())
                 assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
@@ -286,7 +283,8 @@ class SubscriptionSetTests {
         subs.update { mutableSubs ->
             mutableSubs.add(Subscription.create("test", realm.where<SyncColor>().limit(1)))
         }
-        subs.waitForSynchronizationAsync(object: SubscriptionSet.Callback {
+        subs.waitForSynchronizationAsync(object:
+            SubscriptionSet.StateChangeCallback {
             override fun onStateChange(subscriptions: SubscriptionSet) {
                 assertEquals(SubscriptionSet.State.ERROR, subscriptions.state)
                 assertTrue(subscriptions.errorMessage!!.contains("Client provided query with bad syntax"))
@@ -306,7 +304,8 @@ class SubscriptionSetTests {
         subs.update {
             it.add(Subscription.create(realm.where<SyncColor>()))
         }
-        subs.waitForSynchronizationAsync(1, TimeUnit.MINUTES, object: SubscriptionSet.Callback {
+        subs.waitForSynchronizationAsync(1, TimeUnit.MINUTES, object:
+            SubscriptionSet.StateChangeCallback {
             override fun onStateChange(subscriptions: SubscriptionSet) {
                 assertEquals(1, subscriptions.size())
                 assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
@@ -317,5 +316,4 @@ class SubscriptionSetTests {
             }
         })
     }
-
 }

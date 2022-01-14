@@ -306,9 +306,9 @@ public class SyncConfiguration extends RealmConfiguration {
 
     // Extract the full server path, minus the file name
     private static String getServerPath(User user, URI serverUrl) {
-        // FIXME Add support for partion key
+        // FIXME Add support for partition key
         // Current scheme is <rootDir>/<appId>/<userId>/default.realm or
-        // Current scheme is <rootDir>/<appId>/<userId>/<hashedPartionKey>/default.realm
+        // Current scheme is <rootDir>/<appId>/<userId>/<hashedPartitionKey>/default.realm
         return user.getApp().getConfiguration().getAppId() + "/" + user.getId(); // TODO Check that it doesn't contain invalid filesystem chars
     }
 
@@ -493,6 +493,9 @@ public class SyncConfiguration extends RealmConfiguration {
      *
      * @return the value being used by MongoDB Realm to partition the server side MongoDB Database
      * into Realms that can be synchronized independently.
+     * @throws IllegalStateException if this configuration is for a realm configured for flexible
+     * sync. You can use {@link #isPartitionBasedSyncConfiguration()} before calling this method
+     * to check.
      */
     public BsonValue getPartitionValue() {
         checkPartitionConfiguration();
@@ -510,10 +513,10 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns whether or not this configuration is for opening a Realm configured for Partion-based
+     * Returns whether or not this configuration is for opening a Realm configured for Partition-based
      * Sync.
      *
-     * @return {@code true} if this configuration is for a Partion-based Sync Realm, {@code false}
+     * @return {@code true} if this configuration is for a Partition-based Sync Realm, {@code false}
      * if not.
      */
     public boolean isPartitionBasedSyncConfiguration() {
@@ -527,13 +530,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
     private void checkPartitionConfiguration() {
         if (partitionValue == null) {
-            throw new IllegalStateException("This method is only available for Partion-based Sync configurations.");
-        }
-    }
-
-    private void checkFlexibleSyncConfiguration() {
-        if (partitionValue != null) {
-            throw new IllegalStateException("This method is only available for Flexible Sync configurations.");
+            throw new IllegalStateException("This method is only available for Partition-based Sync configurations.");
         }
     }
 
@@ -660,7 +657,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * @param user the user opening the Realm on the server.
          * @param partitionValue the value this Realm is partitioned on. The partition key is a
          * property defined in MongoDB Realm. All classes with a property with this value will be
-         * synchronized to the Realm. If {@code null} is provided, the configuration is treatet
+         * synchronized to the Realm. If {@code null} is provided, the configuration is treated
          * as a Flexible Sync configuration.
          */
         Builder(User user, @Nullable BsonValue partitionValue) {
@@ -1014,7 +1011,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
          * logged when a Client Reset occurs.
          *
-         * This strategy is only available for synced realms using partion based sync. Realms using
+         * This strategy is only available for synced realms using partition based sync. Realms using
          * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
          *
          * @param handler custom seamless loss handler in case of a Client Reset.

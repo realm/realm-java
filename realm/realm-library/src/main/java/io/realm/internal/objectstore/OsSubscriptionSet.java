@@ -15,6 +15,9 @@
  */
 package io.realm.internal.objectstore;
 
+import android.os.Handler;
+import android.os.Looper;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
@@ -28,7 +31,6 @@ import io.realm.RealmAsyncTask;
 import io.realm.RealmQuery;
 import io.realm.internal.NativeObject;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmAsyncTaskImpl;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.mongodb.sync.Subscription;
@@ -50,6 +52,7 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
     private final RealmThreadPoolExecutor stateListenerExecutor;
     private final RealmThreadPoolExecutor updateExecutor;
     private long nativePtr;
+    private Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public OsSubscriptionSet(long nativePtr, RealmProxyMediator schema, RealmThreadPoolExecutor listenerExecutor, RealmThreadPoolExecutor writeExecutor) {
         this.nativePtr = nativePtr;
@@ -134,20 +137,30 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
     }
 
     @Override
-    public RealmAsyncTask waitForSynchronizationAsync(Callback callback) {
+    public RealmAsyncTask waitForSynchronizationAsync(SubscriptionSet.StateChangeCallback callback) {
         return waitForSynchronizationAsync(Long.MAX_VALUE, TimeUnit.SECONDS, callback);
     }
 
     @Override
-    public RealmAsyncTask waitForSynchronizationAsync(Long timeOut, TimeUnit unit, Callback callback) {
+    public RealmAsyncTask waitForSynchronizationAsync(Long timeOut, TimeUnit unit, SubscriptionSet.StateChangeCallback callback) {
         Future<?> future = stateListenerExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 try {
                     waitForSynchronization(timeOut, unit);
-                    callback.onStateChange(OsSubscriptionSet.this);
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onStateChange(OsSubscriptionSet.this);
+                        }
+                    });
                 } catch (Exception e) {
-                    callback.onError(e);
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onError(e);
+                        }
+                    });
                 }
             }
         });
@@ -190,7 +203,6 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
         return new RealmAsyncTaskImpl(future, updateExecutor);
     }
 
-    @Override
     public void refresh() {
         nativeRefresh(nativePtr);
     }

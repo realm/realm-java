@@ -10,8 +10,8 @@ import io.realm.internal.annotations.ObjectServer;
  *
  * This is the only way to modify a {@link SubscriptionSet}.
  *
- * {@link Subscription}'s can are either <i>managed</i> or <i>unmanaged</i>. A unmanaged subscription
- * is one created by using {@link Subscription#create(RealmQuery)} or
+ * {@link Subscription}s can be either <i>managed</i> or <i>unmanaged</i>. Unmanaged subscriptions
+ * are those created by using {@link Subscription#create(RealmQuery)} or
  * {@link Subscription#create(String, RealmQuery)}, while managed subscriptions are the ones being
  * returned from the subscription set.
  *
@@ -45,6 +45,8 @@ public interface MutableSubscriptionSet extends SubscriptionSet {
      *
      * @param subscription managed subscription to remove
      * @return {@code true} if the subscription was removed, {@code false} if not.
+     * @throws IllegalArgumentException if the subscription provided is unmanaged. Only managed
+     * subscriptions can be used as input.
      */
     boolean remove(Subscription subscription);
 

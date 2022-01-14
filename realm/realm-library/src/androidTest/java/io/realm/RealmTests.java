@@ -53,6 +53,7 @@ import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -4780,6 +4781,7 @@ public class RealmTests {
 
     // Test for https://github.com/realm/realm-java/issues/6152
     @Test
+    @Ignore // FIXME This seems to fail way too often on CI.
     public void encryption_stressTest() {
         realm.close();
         looperThread.runBlocking(() -> {

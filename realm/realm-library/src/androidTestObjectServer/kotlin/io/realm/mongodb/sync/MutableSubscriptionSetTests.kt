@@ -45,7 +45,7 @@ import kotlin.test.assertFailsWith
  * Class wrapping tests for modifying a subscription set.
  */
 @RunWith(AndroidJUnit4::class)
-class MutableSubscriptionTests {
+class MutableSubscriptionSetTests {
 
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
@@ -143,6 +143,7 @@ class MutableSubscriptionTests {
         }
         val sub = subs.first()
         assertEquals("sub1", sub.name)
+        assertEquals("SyncColor", sub.objectType)
         assertEquals("color == \"red\" ", sub.query)
         assertTrue(sub.createdAt!! < sub.updatedAt!!)
     }
@@ -256,9 +257,10 @@ class MutableSubscriptionTests {
     @Test
     fun removeAll() {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>()))
+            mutableSubs.add(Subscription.create("test", realm.where<SyncColor>()))
+            mutableSubs.add(Subscription.create("test2", realm.where<SyncColor>()))
         }
-        assertEquals(1, updatedSubs.size())
+        assertEquals(2, updatedSubs.size())
         updatedSubs = updatedSubs.update { mutableSubs ->
             assertTrue(mutableSubs.removeAll())
             assertEquals(0, mutableSubs.size());
