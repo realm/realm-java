@@ -53,7 +53,7 @@ class SubscriptionTests {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp(appName = TEST_APP_3)
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val config = configFactory.createFlexibleSyncConfiguationBuilder(user)
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(SyncColor::class.java)
             .build()
         realm = Realm.getInstance(config)

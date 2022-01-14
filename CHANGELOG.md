@@ -1,9 +1,12 @@
 ## 10.10.0 (YYYY-MM-DD)
 
 ### Enhancements
-* [RealmApp] Add support for Flexible Synchronization. See [the docs](XXX) for more information about how to use it.
+* [RealmApp] Add support for a new mode for synchronized realms: Flexible Sync. The following classes has been added to support this: `Subscription`, `SubscriptionSet` and `MutableSubscriptionSet`. This mode and all API's are marked as Beta.
 
 ### Fixed
+* [RealmApp] The sync client will now drain the receive queue when send fails with ECONNRESET - ensuring that any error message from the server gets received and processed. (Realm Core issue [#5078](https://github.com/realm/realm-core/pull/5078))
+* [RealmApp] UserIdentity metadata table grows indefinitely. (Realm Core issue [#5152](https://github.com/realm/realm-core/issues/5152))
+* Schema validation was missing for embedded objects in sets, resulting in an unhelpful error being thrown if the user attempted to define one.
 * Output from the annotation processor was not deterministic, which could result in cache misses. (Issue [#7615](https://github.com/realm/realm-java/issues/7615))
 
 ### Compatibility
@@ -12,7 +15,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Update to Realm Core 11.9.0, commit: 000e0476d981a033b26d4dc91899867b1d2a287e.
 
 ### Credits
 * Thanks to @jprinet for making the annotation processor output deterministic.

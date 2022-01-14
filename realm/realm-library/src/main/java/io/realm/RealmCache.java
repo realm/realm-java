@@ -474,6 +474,7 @@ final class RealmCache {
                     Realm.createInstance(realmInstance.sharedRealm),
                     configuration
             );
+            realmInstance.refresh();
         }
         return realmInstance;
     }

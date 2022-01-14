@@ -72,13 +72,13 @@ public interface SubscriptionSet extends Iterable<Subscription> {
     Subscription find(RealmQuery query);
 
     /**
-     * Find the subscription with a given name..
+     * Find the subscription with a given name.
      *
      * @param name name of subscription to search for.
      * @return the matching subscription or {@code null} if no subscription with that name was found.
      */
     @Nullable
-    Subscription findByName(String name);
+    Subscription find(String name);
 
     /**
      * Returns the current state of the SubscriptionSet. See {@link SubscriptionSet.State} for more

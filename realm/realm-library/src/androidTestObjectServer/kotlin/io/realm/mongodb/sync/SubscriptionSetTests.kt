@@ -30,7 +30,6 @@ import io.realm.log.RealmLog
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import io.realm.rule.BlockingLooperThread
-import io.realm.util.assertFailsWithMessage
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -68,9 +67,8 @@ class SubscriptionSetTests {
         app = TestApp(appName = TEST_APP_3)
         ServerAdmin(app).enableFlexibleSync() // Currrently required because importing doesn't work
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        realmConfig = configFactory.createFlexibleSyncConfiguationBuilder(user)
+        realmConfig = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(SyncColor::class.java)
-            .syncClientResetStrategy { session, error -> fail("Client Reset should not trigger.") }
             .build()
         realm = Realm.getInstance(realmConfig)
     }
@@ -103,11 +101,11 @@ class SubscriptionSetTests {
     @Test
     fun findByName() {
         val subscriptions = realm.subscriptions
-        assertNull(subscriptions.findByName("foo"))
+        assertNull(subscriptions.find("foo"))
         subscriptions.update { mutableSubs ->
             mutableSubs.addOrUpdate(Subscription.create("foo", realm.where<SyncColor>()))
         }
-        assertNotNull(subscriptions.findByName("foo"))
+        assertNotNull(subscriptions.find("foo"))
     }
 
     @Test

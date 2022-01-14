@@ -198,7 +198,7 @@ class ServerAdmin(private val app: App) {
                                         }
                                     ]
                                 }, 
-                                "queryable_fields_names": ["owner", "name", "color"]
+                                "queryable_fields_names": ["owner", "name", "color", "section"]
                             }
                         }
                 """.trimIndent()

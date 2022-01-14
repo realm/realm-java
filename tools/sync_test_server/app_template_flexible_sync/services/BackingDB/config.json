@@ -9,7 +9,8 @@
             "queryable_fields_names": [
                 "age",
                 "name",
-                "color"
+                "color",
+                "section"
             ]
         }
     },

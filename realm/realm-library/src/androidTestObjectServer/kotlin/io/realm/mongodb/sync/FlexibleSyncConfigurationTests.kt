@@ -141,4 +141,14 @@ class FlexibleSyncConfigurationTests {
 
         assertEquals(handler, config.initialSubscriptionsHandler)
     }
+
+    @Test
+    fun defaultClientResetStrategy() {
+        val user: User = createTestUser(app)
+        val handler = SyncConfiguration.InitialFlexibleSyncSubscriptions { realm, subscriptions ->
+            // Do nothing
+        }
+        val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
+        assertTrue(config.syncClientResetStrategy is ManuallyRecoverUnsyncedChangesStrategy)
+    }
 }

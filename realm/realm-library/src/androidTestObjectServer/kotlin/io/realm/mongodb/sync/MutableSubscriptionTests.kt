@@ -35,7 +35,6 @@ import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertNull
 import junit.framework.Assert.assertTrue
 import org.junit.After
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -61,9 +60,8 @@ class MutableSubscriptionTests {
         app = TestApp(appName = TEST_APP_3)
         ServerAdmin(app).enableFlexibleSync() // Currrently required because importing doesn't work
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val config = configFactory.createFlexibleSyncConfiguationBuilder(user)
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(SyncColor::class.java)
-            .syncClientResetStrategy { session, error -> fail("Client Reset should not be triggered.") }
             .build()
         realm = Realm.getInstance(config)
     }

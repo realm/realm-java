@@ -81,7 +81,7 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
 
     @Nullable
     @Override
-    public Subscription findByName(String name) {
+    public Subscription find(String name) {
         long subscriptionPtr = nativeFindByName(nativePtr, name);
         if (subscriptionPtr != -1) {
             return new OsSubscription(subscriptionPtr);

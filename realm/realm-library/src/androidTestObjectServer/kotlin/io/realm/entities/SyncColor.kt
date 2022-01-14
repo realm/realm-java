@@ -22,10 +22,19 @@ import io.realm.annotations.RealmField
 import org.bson.types.ObjectId
 
 // FIXME: This class is just temporary as a smoke test for Sync. Should be removed once all Sync tests have been migrated.
-open class SyncColor: RealmObject() {
+open class SyncColor(): RealmObject() {
+
+    constructor(section: Int): this() {
+        this.section = section
+    }
+
     @PrimaryKey
     var _id: ObjectId? = ObjectId.get()
     @RealmField(name = "realm_id")
     var realmId: String? = null
+    var section: Int = 0
     var color: String = Color.RED.toString()
+
+
+
 }

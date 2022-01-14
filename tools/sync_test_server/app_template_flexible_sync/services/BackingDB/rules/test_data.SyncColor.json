@@ -19,6 +19,9 @@
               "realm_id": {
                 "bsonType": "string"
               },
+              "section": {
+                "bsonType": "int"
+              },
               "color": {
                 "bsonType": "string"
               }
