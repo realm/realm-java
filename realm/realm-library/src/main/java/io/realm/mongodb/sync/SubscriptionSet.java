@@ -13,7 +13,7 @@ import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.objectstore.OsSubscriptionSet;
 
 /**
- * A subscription set is an immutable view of all current {@link Subscription}'s for a given
+ * A subscription set is an immutable view of all current {@link Subscription}s for a given
  * Realm that has been configured for flexible sync.
  * <p>
  * A {@link Subscription} represents a specific query that is running against Realm on the server
@@ -37,16 +37,44 @@ import io.realm.internal.objectstore.OsSubscriptionSet;
 public interface SubscriptionSet extends Iterable<Subscription> {
 
     /**
-     * The possible states a subscription set can be in
-     * TODO These are internal states, simplify public ones before release?
+     * The possible states a subscription set can be in.
      */
     public enum State {
+        /**
+         * The initial state of subscriptions when opening a new Realm or when entering a
+         * {@link #update(UpdateCallback)}.
+         */
         UNCOMMITTED(OsSubscriptionSet.STATE_VALUE_UNCOMMITTED),
+
+        /**
+         * A subscription set has been modified locally, but is still waiting to be sent to the
+         * server.
+         */
         PENDING(OsSubscriptionSet.STATE_VALUE_PENDING),
+
+        /**
+         * A subscription set was accepted by the server and initial data is being sent to the
+         * device.
+         */
         BOOTSTRAPPING(OsSubscriptionSet.STATE_VALUE_BOOTSTRAPPING),
+
+        /**
+         * A subscription set is actively synchronizing data between the server and the device.
+         */
         COMPLETE(OsSubscriptionSet.STATE_VALUE_COMPLETE),
+
+        /**
+         * An error occurred in the subscription set or one of the subscriptions. The cause is
+         * found in {@link #getErrorMessage()}.
+         */
         ERROR(OsSubscriptionSet.STATE_VALUE_ERROR),
-        SUPERCEDED(OsSubscriptionSet.STATE_VALUE_SUPERCEDED);
+
+        /**
+         * Another subscription set was stored before this one, the changes made to this set
+         * are ignorde by the server. Get the latest subscription set by calling
+         * {@link Realm#getSubscriptions()}.
+         */
+        SUPERSEDED(OsSubscriptionSet.STATE_VALUE_SUPERSEDED);
 
         private final byte value;
 
@@ -93,7 +121,7 @@ public interface SubscriptionSet extends Iterable<Subscription> {
     State getState();
 
     /**
-     * Returns how many subscriptions are curently in this subscription set.
+     * Returns how many subscriptions are currently in this subscription set.
      *
      * @return the number of of subscriptions in the subscription set.
      */
@@ -112,20 +140,20 @@ public interface SubscriptionSet extends Iterable<Subscription> {
 
     /**
      * Wait for the subscription set to synchronize with the server. It will return when the
-     * server either accepts the set of queries and have downloaded data for them, or if an
+     * server either accepts the set of queries and has downloaded data for them, or if an
      * error has occurred. Note, that you will either need to manually call {@link Realm#refresh()}
      * or wait for change listeners to trigger to see the downloaded data.
      *
      * If an error occurred, the underlying reason can be found through {@link #getErrorMessage()}.
      *
-     * @return {@code true} if all current subscriptions was accepted by the server and data has
+     * @return {@code true} if all current subscriptions were accepted by the server and data has
      * been downloaded, or {@code false} if an error occurred.
      */
     boolean waitForSynchronization();
 
     /**
      * Wait for the subscription set to synchronize with the server. It will return when the
-     * server either accepts the set of queries and have downloaded data for them, or if an
+     * server either accepts the set of queries and has downloaded data for them, or if an
      * error has occurred. Note, that you will either need to manually call {@link Realm#refresh()}
      * or wait for change listeners to trigger to see the downloaded data.
      *
@@ -133,7 +161,7 @@ public interface SubscriptionSet extends Iterable<Subscription> {
      *
      * @param timeOut how long to wait for the synchronization to either succeed or fail.
      * @param unit unit of time used for the timeout.
-     * @return {@code true} if all current subscriptions was accepted by the server and data has
+     * @return {@code true} if all current subscriptions were accepted by the server and data has
      * been downloaded, or {@code false} if an error occurred.
      * @throws RuntimeException if the timeout is exceeded.
      */
@@ -141,7 +169,7 @@ public interface SubscriptionSet extends Iterable<Subscription> {
 
     /**
      * Asynchronously wait for the subscription set to synchronize with the server. It will invoke
-     * the callback when the server either accepts the set of queries and have downloaded data for
+     * the callback when the server either accepts the set of queries and has downloaded data for
      * them, or if an error has occurred. Note, that you will either need to manually call
      * {@link Realm#refresh()} or wait for change listeners to trigger to see the downloaded data.
      *
@@ -149,14 +177,14 @@ public interface SubscriptionSet extends Iterable<Subscription> {
      *
      * @param callback callback to trigger when the synchronization either succeed or fail. Results
      *                 will be reported on the UI thread.
-     * @return {@code true} if all current subscriptions was accepted by the server and data has
+     * @return {@code true} if all current subscriptions were accepted by the server and data has
      * been downloaded, or {@code false} if an error occurred.
      */
     RealmAsyncTask waitForSynchronizationAsync(StateChangeCallback callback);
 
     /**
      * Asynchronously wait for the subscription set to synchronize with the server. The callback is
-     * invoked when the server either accepts the set of queries and have downloaded data for them,
+     * invoked when the server either accepts the set of queries and has downloaded data for them,
      * or if an error has occurred. Note, that you will either need to manually call
      * {@link Realm#refresh()} or wait for change listeners to trigger to see the downloaded data.
      *
@@ -166,14 +194,14 @@ public interface SubscriptionSet extends Iterable<Subscription> {
      * @param unit unit of time used for the timeout.
      * @param callback callback to trigger when the synchronization either succeed or fail. Results
      *                 will be reported on the UI thread.
-     * @return {@code true} if all current subscriptions was accepted by the server and data has
+     * @return {@code true} if all current subscriptions were accepted by the server and data has
      * been downloaded, or {@code false} if an error occurred.
      */
     RealmAsyncTask waitForSynchronizationAsync(Long timeOut, TimeUnit unit, StateChangeCallback callback);
 
     /**
      * Modify the subscription set. If an exception is thrown during the update, no changes will be
-     * applied. If the update succeed, this subscription set is updated with the modified state.
+     * applied. If the update succeeds, this subscription set is updated with the modified state.
      *
      * @param action the block that modifies the subscription set. It will run on the caller thread.
      * @return this subscription set, that now has been updated.

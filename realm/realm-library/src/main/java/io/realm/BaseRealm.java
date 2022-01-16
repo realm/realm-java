@@ -707,8 +707,14 @@ abstract class BaseRealm implements Closeable {
     public abstract RealmSchema getSchema();
 
     /**
-     * TODO
-     * @return
+     * Returns the subscription set associated with this Realm. The subscription set defines
+     * a set of queries that define which data is synchronized between this realm and the server.
+     * <p>
+     * This method is only applicable to synchronized realms using flexible sync.
+     *
+     * @return the subscription set associated with this realm.
+     * @throws IllegalStateException if this realm is either a local realm or a partion-based
+     * synchronized realm.
      */
     @ObjectServer
     public SubscriptionSet getSubscriptions() {

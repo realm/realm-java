@@ -938,7 +938,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the initial {@link Subscription}s for  the {@link io.realm.Realm}. This will only be
+         * Sets the initial {@link Subscription}s for the {@link io.realm.Realm}. This will only be
          * executed the first time the Realm file is opened (and the file created).
          *
          * If {@link #waitForInitialRemoteData()} is configured as well, the realm file isn't fully

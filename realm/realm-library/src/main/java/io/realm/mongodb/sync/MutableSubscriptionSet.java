@@ -34,8 +34,9 @@ public interface MutableSubscriptionSet extends SubscriptionSet {
      * Add a new subscription or update an existing named subscription. It isn't possible to update
      * an anonymous subscription. These must removed and re-inserted.
      *
-     * @param subscription unmanaged subscription used to update a managed subscription with the
-     *                     same name or create a new one.
+     * @param subscription anonymous or named subscription created via {@code Subscription.create(...)},
+     *                     used to update a matching one within a specific set. It creates a new
+     *                     one in case there is no match..
      * @return the updated or inserted managed subscription.
      */
     Subscription addOrUpdate(Subscription subscription);

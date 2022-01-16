@@ -95,17 +95,22 @@ class SubscriptionSetTests {
         subscriptions.update { mutableSubs ->
             mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
         }
-        assertNotNull(subscriptions.find(realm.where<SyncColor>()))
+        val sub: Subscription? = subscriptions.find(realm.where<SyncColor>())
+        assertNotNull(sub)
+        assertEquals("SyncColor", sub!!.objectType)
     }
 
     @Test
-    fun findByName() {
+    fun find_byName() {
         val subscriptions = realm.subscriptions
         assertNull(subscriptions.find("foo"))
         subscriptions.update { mutableSubs ->
             mutableSubs.addOrUpdate(Subscription.create("foo", realm.where<SyncColor>()))
         }
-        assertNotNull(subscriptions.find("foo"))
+
+        val sub: Subscription? = subscriptions.find("foo")
+        assertNotNull(sub)
+        assertEquals("foo", sub!!.name)
     }
 
     @Test
