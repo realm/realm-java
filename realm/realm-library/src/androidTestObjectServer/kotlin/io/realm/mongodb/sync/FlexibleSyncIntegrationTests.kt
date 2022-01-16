@@ -8,7 +8,7 @@ import io.realm.TestApp
 import io.realm.TestHelper
 import io.realm.TestSyncConfigurationFactory
 import io.realm.admin.ServerAdmin
-import io.realm.entities.SyncColor
+import io.realm.entities.FlexSyncColor
 import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -62,16 +62,16 @@ class FlexibleSyncIntegrationTests {
         // Upload data from user 1
         val user1 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config1 = configFactory.createFlexibleSyncConfigurationBuilder(user1)
-            .schema(SyncColor::class.java)
+            .schema(FlexSyncColor::class.java)
             .build()
         val realm1 = Realm.getInstance(config1)
         val subs = realm1.subscriptions.update {
-            it.add(Subscription.create(realm1.where<SyncColor>().equalTo("section", section)))
+            it.add(Subscription.create(realm1.where<FlexSyncColor>().equalTo("section", section)))
         }
         assertTrue(subs.waitForSynchronization())
         realm1.executeTransaction {
-            it.insert(SyncColor(section).apply { color = "red" })
-            it.insert(SyncColor(section).apply { color = "blue" })
+            it.insert(FlexSyncColor(section).apply { color = "red" })
+            it.insert(FlexSyncColor(section).apply { color = "blue" })
         }
         realm1.syncSession.uploadAllLocalChanges()
         realm1.close()
@@ -79,16 +79,16 @@ class FlexibleSyncIntegrationTests {
         // Download data from user 2
         val user2 = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config2 = configFactory.createFlexibleSyncConfigurationBuilder(user2)
-            .schema(SyncColor::class.java)
+            .schema(FlexSyncColor::class.java)
             .initialSubscriptions { realm, subscriptions ->
-                subscriptions.add(Subscription.create(realm.where<SyncColor>()
+                subscriptions.add(Subscription.create(realm.where<FlexSyncColor>()
                     .equalTo("section", section)
                     .equalTo("color", "blue")))
             }
             .waitForInitialRemoteData()
             .build()
         val realm2 = Realm.getInstance(config2)
-        assertEquals(1, realm2.where<SyncColor>().equalTo("color", "blue").count())
+        assertEquals(1, realm2.where<FlexSyncColor>().equalTo("color", "blue").count())
         realm2.close()
     }
 
@@ -96,7 +96,7 @@ class FlexibleSyncIntegrationTests {
     fun clientResetIfNoSubscriptionWhenWriting() = looperThread.runBlocking {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
-            .schema(SyncColor::class.java)
+            .schema(FlexSyncColor::class.java)
             .syncClientResetStrategy { session, error ->
                 assertTrue(error.toString(), error.message!!.contains("Client attempted a write that is outside of permissions or query filters"))
                 looperThread.testComplete()
@@ -105,7 +105,7 @@ class FlexibleSyncIntegrationTests {
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
         realm.executeTransaction {
-            it.insert(SyncColor().apply { color = "red" })
+            it.insert(FlexSyncColor().apply { color = "red" })
         }
     }
 
@@ -115,10 +115,10 @@ class FlexibleSyncIntegrationTests {
 
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
-            .schema(SyncColor::class.java)
+            .schema(FlexSyncColor::class.java)
             .initialSubscriptions { realm, subscriptions ->
                 subscriptions.add(
-                    Subscription.create("sub", realm.where<SyncColor>()
+                    Subscription.create("sub", realm.where<FlexSyncColor>()
                         .equalTo("section", section)
                         .beginGroup()
                             .equalTo("color", "red")
@@ -131,20 +131,20 @@ class FlexibleSyncIntegrationTests {
             .build()
         val realm = Realm.getInstance(config)
         realm.executeTransaction {
-            it.insert(SyncColor(section).apply { color = "red" })
-            it.insert(SyncColor(section).apply { color = "blue" })
+            it.insert(FlexSyncColor(section).apply { color = "red" })
+            it.insert(FlexSyncColor(section).apply { color = "blue" })
         }
-        assertEquals(2, realm.where<SyncColor>().count())
+        assertEquals(2, realm.where<FlexSyncColor>().count())
         val subscriptions = realm.subscriptions
         subscriptions.update {
-            it.addOrUpdate(Subscription.create("sub", realm.where<SyncColor>()
+            it.addOrUpdate(Subscription.create("sub", realm.where<FlexSyncColor>()
                 .equalTo("section", section)
                 .equalTo("color", "red")
             ))
         }
         assertTrue(subscriptions.waitForSynchronization())
         realm.refresh()
-        assertEquals(1, realm.where<SyncColor>().count())
+        assertEquals(1, realm.where<FlexSyncColor>().count())
         realm.close()
     }
 }

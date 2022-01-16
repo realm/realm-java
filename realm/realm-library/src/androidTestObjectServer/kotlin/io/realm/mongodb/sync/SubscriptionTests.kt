@@ -22,7 +22,7 @@ import io.realm.TEST_APP_3
 import io.realm.TestApp
 import io.realm.TestHelper
 import io.realm.TestSyncConfigurationFactory
-import io.realm.entities.SyncColor
+import io.realm.entities.FlexSyncColor
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import org.junit.After
@@ -54,7 +54,7 @@ class SubscriptionTests {
         app = TestApp(appName = TEST_APP_3)
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
-            .schema(SyncColor::class.java)
+            .schema(FlexSyncColor::class.java)
             .build()
         realm = Realm.getInstance(config)
     }
@@ -69,16 +69,16 @@ class SubscriptionTests {
 
     @Test
     fun unmanagedSubscription() {
-        var sub = Subscription.create("sub", realm.where<SyncColor>())
+        var sub = Subscription.create("sub", realm.where<FlexSyncColor>())
         assertEquals("sub", sub.name)
-        assertEquals("SyncColor", sub.objectType)
+        assertEquals("FlexSyncColor", sub.objectType)
         assertEquals("TRUEPREDICATE ", sub.query)
         assertNull(sub.createdAt)
         assertNull(sub.updatedAt)
 
-        sub = Subscription.create(realm.where<SyncColor>())
+        sub = Subscription.create(realm.where<FlexSyncColor>())
         assertNull(sub.name)
-        assertEquals("SyncColor", sub.objectType)
+        assertEquals("FlexSyncColor", sub.objectType)
         assertEquals("TRUEPREDICATE ", sub.query)
         assertNull(sub.createdAt)
         assertNull(sub.updatedAt)
@@ -86,7 +86,7 @@ class SubscriptionTests {
 
     @Test
     fun create_emptyNameThrows() {
-        val query = realm.where<SyncColor>()
+        val query = realm.where<FlexSyncColor>()
         assertFailsWith<IllegalArgumentException> {
             Subscription.create("", query)
         }

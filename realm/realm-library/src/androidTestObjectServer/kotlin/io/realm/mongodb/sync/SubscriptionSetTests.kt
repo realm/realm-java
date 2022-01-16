@@ -23,7 +23,7 @@ import io.realm.TestApp
 import io.realm.TestHelper
 import io.realm.TestSyncConfigurationFactory
 import io.realm.admin.ServerAdmin
-import io.realm.entities.SyncColor
+import io.realm.entities.FlexSyncColor
 import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -68,7 +68,7 @@ class SubscriptionSetTests {
         ServerAdmin(app).enableFlexibleSync() // Currrently required because importing doesn't work
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         realmConfig = configFactory.createFlexibleSyncConfigurationBuilder(user)
-            .schema(SyncColor::class.java)
+            .schema(FlexSyncColor::class.java)
             .build()
         realm = Realm.getInstance(realmConfig)
     }
@@ -91,13 +91,13 @@ class SubscriptionSetTests {
     @Test
     fun find() {
         val subscriptions = realm.subscriptions
-        assertNull(subscriptions.find(realm.where<SyncColor>()))
+        assertNull(subscriptions.find(realm.where<FlexSyncColor>()))
         subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
+            mutableSubs.addOrUpdate(Subscription.create(realm.where<FlexSyncColor>()))
         }
-        val sub: Subscription? = subscriptions.find(realm.where<SyncColor>())
+        val sub: Subscription? = subscriptions.find(realm.where<FlexSyncColor>())
         assertNotNull(sub)
-        assertEquals("SyncColor", sub!!.objectType)
+        assertEquals("FlexSyncColor", sub!!.objectType)
     }
 
     @Test
@@ -105,7 +105,7 @@ class SubscriptionSetTests {
         val subscriptions = realm.subscriptions
         assertNull(subscriptions.find("foo"))
         subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("foo", realm.where<SyncColor>()))
+            mutableSubs.addOrUpdate(Subscription.create("foo", realm.where<FlexSyncColor>()))
         }
 
         val sub: Subscription? = subscriptions.find("foo")
@@ -118,13 +118,13 @@ class SubscriptionSetTests {
         val subscriptions = realm.subscriptions
         assertEquals(SubscriptionSet.State.UNCOMMITTED, subscriptions.state)
         subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>()))
+            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<FlexSyncColor>()))
         }
         assertEquals(SubscriptionSet.State.PENDING, subscriptions.state)
         subscriptions.waitForSynchronization()
         assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
         subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>().limit(1)))
+            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<FlexSyncColor>().limit(1)))
         }
         subscriptions.waitForSynchronization()
         assertEquals(SubscriptionSet.State.ERROR, subscriptions.state)
@@ -135,7 +135,7 @@ class SubscriptionSetTests {
         val subscriptions = realm.subscriptions
         assertEquals(0, subscriptions.size())
         subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
+            mutableSubs.addOrUpdate(Subscription.create(realm.where<FlexSyncColor>()))
         }
         assertEquals(1, subscriptions.size())
         subscriptions.update { mutableSubs ->
@@ -149,14 +149,14 @@ class SubscriptionSetTests {
         val subscriptions = realm.subscriptions
         assertNull(subscriptions.errorMessage)
         subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>().limit(1)))
+            mutableSubs.addOrUpdate(Subscription.create(realm.where<FlexSyncColor>().limit(1)))
         }
         subscriptions.waitForSynchronization()
         assertTrue(subscriptions.errorMessage!!.contains("Client provided query with bad syntax"))
         subscriptions.update { mutableSubs ->
             mutableSubs.removeAll() // TODO Removing all queries seems to provoke an error on the server
             mutableSubs.addOrUpdate(
-                Subscription.create(realm.where<SyncColor>())
+                Subscription.create(realm.where<FlexSyncColor>())
             )
         }
         subscriptions.waitForSynchronization()
@@ -176,7 +176,7 @@ class SubscriptionSetTests {
     fun iterator() {
         val subscriptions = realm.subscriptions
         subscriptions.update { mutableSub ->
-            mutableSub.addOrUpdate(Subscription.create("sub1", realm.where<SyncColor>()))
+            mutableSub.addOrUpdate(Subscription.create("sub1", realm.where<FlexSyncColor>()))
         }
         val iterator: MutableIterator<Subscription> = subscriptions.iterator()
         assertTrue(iterator.hasNext())
@@ -199,7 +199,7 @@ class SubscriptionSetTests {
         realm.close()
         // FIXME: Results in native crash. Must check if Realm is closed.
         subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create(realm.where<SyncColor>()))
+            mutableSubs.addOrUpdate(Subscription.create(realm.where<FlexSyncColor>()))
         }
         subscriptions.waitForSynchronization()
         assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
@@ -233,7 +233,7 @@ class SubscriptionSetTests {
     @Test
     fun waitForSynchronizationAfterInsert() {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.add(Subscription.create("test", realm.where<SyncColor>()))
+            mutableSubs.add(Subscription.create("test", realm.where<FlexSyncColor>()))
         }
         assertFalse(updatedSubs.state != SubscriptionSet.State.COMPLETE)
         assertTrue(updatedSubs.waitForSynchronization())
@@ -243,7 +243,7 @@ class SubscriptionSetTests {
     @Test
     fun waitForSynchronizationError() {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<SyncColor>().limit(1)))
+            mutableSubs.addOrUpdate(Subscription.create("test", realm.where<FlexSyncColor>().limit(1)))
         }
         assertFalse(updatedSubs.waitForSynchronization())
         assertEquals(SubscriptionSet.State.ERROR, updatedSubs.state)
@@ -253,7 +253,7 @@ class SubscriptionSetTests {
     @Test
     fun waitForSynchronization_timeOut() {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
-            mutableSubs.add(Subscription.create("sub", realm.where<SyncColor>()))
+            mutableSubs.add(Subscription.create("sub", realm.where<FlexSyncColor>()))
         }
         assertTrue(updatedSubs.waitForSynchronization(1, TimeUnit.MINUTES))
     }
@@ -264,7 +264,7 @@ class SubscriptionSetTests {
         looperThread.closeAfterTest(realm)
         val subs = realm.subscriptions
         subs.update {
-            it.add(Subscription.create(realm.where<SyncColor>()))
+            it.add(Subscription.create(realm.where<FlexSyncColor>()))
         }
         subs.waitForSynchronizationAsync(object:
             SubscriptionSet.StateChangeCallback {
@@ -286,7 +286,7 @@ class SubscriptionSetTests {
         looperThread.closeAfterTest(realm)
         val subs = realm.subscriptions
         subs.update { mutableSubs ->
-            mutableSubs.add(Subscription.create("test", realm.where<SyncColor>().limit(1)))
+            mutableSubs.add(Subscription.create("test", realm.where<FlexSyncColor>().limit(1)))
         }
         subs.waitForSynchronizationAsync(object:
             SubscriptionSet.StateChangeCallback {
@@ -307,7 +307,7 @@ class SubscriptionSetTests {
         looperThread.closeAfterTest(realm)
         val subs = realm.subscriptions
         subs.update {
-            it.add(Subscription.create(realm.where<SyncColor>()))
+            it.add(Subscription.create(realm.where<FlexSyncColor>()))
         }
         subs.waitForSynchronizationAsync(1, TimeUnit.MINUTES, object:
             SubscriptionSet.StateChangeCallback {

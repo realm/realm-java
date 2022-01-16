@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Realm Inc.
+ * Copyright 2022 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,15 @@ import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmField
 import org.bson.types.ObjectId
 
-// FIXME: This class is just temporary as a smoke test for Sync. Should be removed once all Sync tests have been migrated.
-open class SyncColor: RealmObject() {
+/**
+ * Object used when testing Flexible Sync
+ */
+open class FlexSyncColor(): RealmObject() {
+    constructor(section: Int): this() {
+        this.section = section
+    }
     @PrimaryKey
     var _id: ObjectId? = ObjectId.get()
-    @RealmField(name = "realm_id")
-    var realmId: String? = null
+    var section: Int = 0
     var color: String = Color.RED.toString()
 }
