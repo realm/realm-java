@@ -1,7 +1,7 @@
 ## 10.10.0 (YYYY-MM-DD)
 
 ### Enhancements
-* [RealmApp] Add support for a new mode for synchronized realms: Flexible Sync. The following classes have been added to support this: `Subscription`, `SubscriptionSet` and `MutableSubscriptionSet`. This mode and all APIs are marked as Beta.
+* [RealmApp] Add support for a new mode for synchronized realms: Flexible Sync that only synchronizes selective parts of the backend data. The following classes have been added to support this: `Subscription`, `SubscriptionSet` and `MutableSubscriptionSet`. This mode and all APIs are marked as Beta.
 
 ### Fixed
 * [RealmApp] The sync client will now drain the receive queue when send fails with ECONNRESET - ensuring that any error message from the server gets received and processed. (Realm Core issue [#5078](https://github.com/realm/realm-core/pull/5078))

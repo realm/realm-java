@@ -108,8 +108,8 @@ public enum ErrorCode {
     BAD_QUERY(Type.PROTOCOL, 226),                                 // Client query is invalid/malformed (IDENT, QUERY)
     OBJECT_ALREADY_EXISTS(Type.PROTOCOL, 227),                     // Client tried to create an object that already exists outside their view (UPLOAD)
     SERVER_PERMISSIONS_CHANGED(Type.PROTOCOL, 228),                // Server permissions for this file ident have changed since the last time it was used (IDENT)
-    INITIAL_SYNC_NOT_COMPLETE(Type.PROTOCOL, 229),                          // Client tried to open a session before initial sync is complete (BIND)
-    WRITE_NOT_ALLOWED(Type.PROTOCOL, 230),                                  // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query - requires client reset (UPLOAD)
+    INITIAL_SYNC_NOT_COMPLETE(Type.PROTOCOL, 229),                 // Client tried to open a session before initial sync is complete (BIND)
+    WRITE_NOT_ALLOWED(Type.PROTOCOL, 230),                         // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query - requires client reset (UPLOAD)
 
     // Sync Network Client errors.
     // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L73
