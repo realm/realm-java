@@ -235,7 +235,7 @@ class SubscriptionSetTests {
         var updatedSubs = realm.subscriptions.update { mutableSubs ->
             mutableSubs.add(Subscription.create("test", realm.where<FlexSyncColor>()))
         }
-        assertFalse(updatedSubs.state != SubscriptionSet.State.COMPLETE)
+        assertFalse(updatedSubs.state == SubscriptionSet.State.COMPLETE)
         assertTrue(updatedSubs.waitForSynchronization())
         assertEquals(SubscriptionSet.State.COMPLETE, updatedSubs.state)
     }

@@ -44,7 +44,6 @@ do
       '
     fi
 
-    echo $JSON
     ESCAPED_JSON=`echo ${JSON} | tr '\n' "\\n"`
     cp -r $TEMPLATE_APP_PATH $TARGET_APP_PATH/$APP_NAME
     sed -i'.bak' "s/%SYNC_CONFIG%/$ESCAPED_JSON/g" $TARGET_APP_PATH/$APP_NAME/services/BackingDB/config.json

@@ -1,7 +1,7 @@
 {
     "collection": "FlexSyncColor",
     "database": "test_data",
-    "id": "60489e7df5d9bdc94de663cd",
+    "id": "60489e7df5d9bdc94de663ce",
     "roles": [
         {
             "name": "default",
@@ -20,14 +20,15 @@
                 "bsonType": "string"
               },
               "section": {
-                "bsonType": "string"
+                "bsonType": "int"
               },
               "color": {
                 "bsonType": "string"
               }
         },
         "required": [
-            "color"
+            "color",
+            "section"
         ],
         "title": "FlexSyncColor"
     }
