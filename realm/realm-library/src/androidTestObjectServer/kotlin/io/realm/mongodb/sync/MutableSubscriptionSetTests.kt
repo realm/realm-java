@@ -30,11 +30,13 @@ import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
+import io.realm.rule.BlockingLooperThread
 import junit.framework.Assert.assertEquals
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertNull
 import junit.framework.Assert.assertTrue
 import org.junit.After
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,11 +49,14 @@ import kotlin.test.assertFailsWith
 @RunWith(AndroidJUnit4::class)
 class MutableSubscriptionSetTests {
 
+
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
+    private val looperThread = BlockingLooperThread()
 
     private lateinit var app: TestApp
     private lateinit var realm: Realm
+    private lateinit var config: SyncConfiguration
 
     @Before
     fun setUp() {
@@ -60,7 +65,7 @@ class MutableSubscriptionSetTests {
         app = TestApp(appName = TEST_APP_3)
         ServerAdmin(app).enableFlexibleSync() // Currrently required because importing doesn't work
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
-        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+        config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(FlexSyncColor::class.java)
             .build()
         realm = Realm.getInstance(config)
@@ -133,6 +138,14 @@ class MutableSubscriptionSetTests {
     }
 
     @Test
+    fun addOrUpdate_managedThrows() {
+        realm.subscriptions.update {
+            val managedSub = it.add(Subscription.create(realm.where<FlexSyncColor>()))
+            assertFailsWith<java.lang.IllegalArgumentException> {  it.addOrUpdate(managedSub) }
+        }
+    }
+
+    @Test
     fun update() {
         val subs = realm.subscriptions
         subs.update { mutableSubs ->
@@ -146,6 +159,63 @@ class MutableSubscriptionSetTests {
         assertEquals("FlexSyncColor", sub.objectType)
         assertEquals("color == \"red\" ", sub.query)
         assertTrue(sub.createdAt!! < sub.updatedAt!!)
+    }
+
+    @Test
+    fun updateAsync() = looperThread.runBlocking {
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+        val subs = realm.subscriptions
+        subs.update {
+            it.add(Subscription.create("sub1", realm.where<FlexSyncColor>()))
+        }
+
+        subs.updateAsync(object: SubscriptionSet.UpdateAsyncCallback {
+            override fun update(subscriptions: MutableSubscriptionSet) {
+                Realm.getInstance(realm.configuration).use { bgRealm ->
+                    subscriptions.addOrUpdate(Subscription.create(
+                        "sub1",
+                        bgRealm.where<FlexSyncColor>()
+                            .equalTo("color", "red"))
+                    )
+                }
+            }
+
+            override fun onSuccess(subscriptions: SubscriptionSet) {
+                val sub = subscriptions.first()
+                assertEquals("sub1", sub.name)
+                assertEquals("FlexSyncColor", sub.objectType)
+                assertEquals("color == \"red\" ", sub.query)
+                assertTrue(sub.createdAt!! < sub.updatedAt!!)
+                looperThread.testComplete()
+            }
+
+            override fun onError(exception: Throwable) {
+                fail(exception.toString())
+            }
+        })
+    }
+
+    @Test
+    fun updateAsync_throws() = looperThread.runBlocking {
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+        val subs = realm.subscriptions
+        subs.updateAsync(object: SubscriptionSet.UpdateAsyncCallback {
+            override fun update(subscriptions: MutableSubscriptionSet) {
+                throw RuntimeException("Boom")
+            }
+
+            override fun onSuccess(subscriptions: SubscriptionSet) {
+                fail()
+            }
+
+            override fun onError(exception: Throwable) {
+                assertTrue(exception is RuntimeException)
+                assertEquals("Boom", exception.message)
+                looperThread.testComplete()
+            }
+        })
     }
 
     @Test

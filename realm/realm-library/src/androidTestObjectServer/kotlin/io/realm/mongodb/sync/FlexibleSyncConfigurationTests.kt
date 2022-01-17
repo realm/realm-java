@@ -57,6 +57,13 @@ class FlexibleSyncConfigurationTests {
     }
 
     @Test
+    fun defaultConfig() {
+        val user: User = createTestUser(app)
+        val config = SyncConfiguration.defaultConfig(user)
+        assertTrue(config.isFlexibleSyncConfiguration)
+    }
+
+    @Test
     fun equals() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
@@ -104,7 +111,7 @@ class FlexibleSyncConfigurationTests {
         assertEquals("ws://127.0.0.1:9090/", config.serverUrl.toString()) // FIXME: Figure out exactly what to return here
         assertFalse(config.shouldDeleteRealmOnLogout())
         assertTrue(config.isSyncConfiguration)
-        assertTrue(config.isFlexibleSyncConfiguration())
+        assertTrue(config.isFlexibleSyncConfiguration)
     }
 
     @Test

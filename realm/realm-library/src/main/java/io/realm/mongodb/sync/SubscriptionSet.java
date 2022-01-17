@@ -16,17 +16,19 @@ import io.realm.internal.objectstore.OsSubscriptionSet;
  * A subscription set is an immutable view of all current {@link Subscription}s for a given
  * Realm that has been configured for flexible sync.
  * <p>
- * A {@link Subscription} represents a specific query that is running against Realm on the server
- * and being synchronized with the device. The subscription set thus defines all the data that is
- * available to the device. If the subscription set encounters an error, e.g. by containing an
+ * Flexible Sync is a way of defining which data gets synchronized to and from the device using
+ * {@link RealmQuery}s. The query and its metadata are represented by a {@link Subscription}.
+ * <p>
+ * A subscription set thus defines all the data that is available to the device and being
+ * synchronized with the server. If the subscription set encounters an error, e.g. by containing an
  * invalid query, the entire subscription set will enter an {@link SubscriptionSet.State#ERROR}
  * state, and no synchronization will happen until the error has been fixed.
  * <p>
  * If a subscription is removed, so is the corresponding data, but it is only removed from the
  * device. It isn't deleted on the server.
  * <p>
- * It is possible to modify a subscription set while offline, but the set of subscriptions isn't
- * accepted before {@link #getState()} returns {@link SubscriptionSet.State#COMPLETE}.
+ * It is possible to modify a subscription set while offline, but modification isn't
+ * accepted by the server before {@link #getState()} returns {@link SubscriptionSet.State#COMPLETE}.
  * <p>
  * It is possible to force the subscription set to be synchronized with the server by using
  * {@link #waitForSynchronization()} and its variants.
@@ -34,6 +36,7 @@ import io.realm.internal.objectstore.OsSubscriptionSet;
  */
 @ObjectServer
 @Beta
+@Keep
 public interface SubscriptionSet extends Iterable<Subscription> {
 
     /**

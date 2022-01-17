@@ -74,7 +74,7 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
     @Nullable
     @Override
     public Subscription find(RealmQuery query) {
-        long subscriptionPtr = nativeFindByQuery(nativePtr, query.query.getNativePtr());
+        long subscriptionPtr = nativeFindByQuery(nativePtr, query.getQueryPointer());
         if (subscriptionPtr != -1) {
             return new OsSubscription(subscriptionPtr);
         } else {
@@ -194,9 +194,19 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
             public void run() {
                 try {
                     SubscriptionSet updatedSubscriptions = update(callback);
-                    callback.onSuccess(updatedSubscriptions);
-                } catch (Exception exception) {
-                    callback.onError(exception);
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onSuccess(updatedSubscriptions);
+                        }
+                    });
+                } catch (Throwable exception) {
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onError(exception);
+                        }
+                    });
                 }
             }
         });

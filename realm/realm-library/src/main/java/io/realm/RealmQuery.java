@@ -70,7 +70,7 @@ public class RealmQuery<E> {
 
     private final Table table;
     private final BaseRealm realm;
-    public final TableQuery query; // FIXME Make private somehow
+    private final TableQuery query; // FIXME Make private somehow
     private final RealmObjectSchema schema;
     private Class<E> clazz;
     private String className;
@@ -2734,6 +2734,18 @@ public class RealmQuery<E> {
     public String getTypeQueried() {
         // TODO Revisit this when primitive list queries are implemented.
         return table.getClassName();
+    }
+
+    /**
+     * Returns the pointer to the underlying C++ query.
+     *
+     * This method is only public due to architectural design choices that are hard to work
+     * around and should be considered internal and can change without warning.
+     *
+     * @return the pointer to the underlying C++ query.
+     */
+    public long getQueryPointer() {
+        return query.getNativePtr();
     }
 
     private boolean isDynamicQuery() {

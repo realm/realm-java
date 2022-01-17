@@ -41,7 +41,7 @@ public class UnmanagedSubscription implements Subscription {
         this.name = name;
         this.objectType = query.getTypeQueried();
         this.queryDesc = query.getDescription();
-        this.queryPtr = query.query.getNativePtr();
+        this.queryPtr = query.getQueryPointer();
     }
 
     @Override

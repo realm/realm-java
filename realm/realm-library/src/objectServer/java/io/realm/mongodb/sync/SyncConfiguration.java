@@ -216,6 +216,7 @@ public class SyncConfiguration extends RealmConfiguration {
      *
      * @param user The user that will be used for accessing the Realm App.
      * @return the default Flexible Sync configuration for the given user.
+     * @see {@link SubscriptionSet} for more information about Flexible Sync.
      */
     public static SyncConfiguration defaultConfig(User user) {
         return new SyncConfiguration.Builder(user).build();
@@ -591,6 +592,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * given user.
          *
          * @param user The user that will be used for accessing the Realm App.
+         * @see {@link SubscriptionSet} for more information about Flexible Sync.
          */
         public Builder(User user) {
             this(user, (BsonValue) null);
