@@ -24,12 +24,12 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
 
-
 /**
  * Class acting as an mediator between the basic Realm APIs and the Object Server APIs.
  * This breaks the cyclic dependency between ObjectServer and Realm code.
  */
 public class ObjectServerFacade {
+
     public interface RealmCacheAccessor {
         Realm createRealmOrGetFromCache(RealmConfiguration configuration, OsSharedRealm.VersionID versionID);
     }
@@ -129,4 +129,11 @@ public class ObjectServerFacade {
         // Do nothing
     }
 
+    public void checkFlexibleSyncEnabled(RealmConfiguration configuration) {
+        // Do nothing
+    }
+
+    public void downloadInitialFlexibleSyncData(Realm realm, RealmConfiguration configuration) {
+        // Do nothing
+    }
 }

@@ -52,7 +52,6 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmMigration;
 import io.realm.RealmModel;
 import io.realm.RealmQuery;
-import io.realm.annotations.Beta;
 import io.realm.annotations.RealmModule;
 import io.realm.coroutines.FlowFactory;
 import io.realm.coroutines.RealmFlowFactory;
@@ -60,6 +59,7 @@ import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
+import io.realm.log.RealmLog;
 import io.realm.mongodb.App;
 import io.realm.mongodb.Credentials;
 import io.realm.mongodb.User;
@@ -100,6 +100,13 @@ import io.realm.rx.RxObservableFactory;
  */
 public class SyncConfiguration extends RealmConfiguration {
 
+    private static ManuallyRecoverUnsyncedChangesStrategy DEFAULT_MANUAL_CLIENT_RESET_HANDLER = new ManuallyRecoverUnsyncedChangesStrategy() {
+        @Override
+        public void onClientReset(SyncSession session, ClientResetRequiredError error) {
+            RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
+        }
+    };
+
     private final URI serverUrl;
     private final User user;
     private final SyncSession.ErrorHandler errorHandler;
@@ -110,6 +117,7 @@ public class SyncConfiguration extends RealmConfiguration {
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
     @Nullable private final String syncUrlPrefix;
     private final BsonValue partitionValue;
+    @Nullable private final InitialFlexibleSyncSubscriptions initialSubscriptionsHandler;
 
     private SyncConfiguration(File realmPath,
                               @Nullable String assetFilePath,
@@ -136,7 +144,8 @@ public class SyncConfiguration extends RealmConfiguration {
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
                               CompactOnLaunchCallback compactOnLaunch,
                               @Nullable String syncUrlPrefix,
-                              BsonValue partitionValue) {
+                              BsonValue partitionValue,
+                              InitialFlexibleSyncSubscriptions initialSubscriptionsHandler) {
         super(realmPath,
                 assetFilePath,
                 key,
@@ -162,6 +171,7 @@ public class SyncConfiguration extends RealmConfiguration {
         this.syncClientResetStrategy = syncClientResetStrategy;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
         this.waitForInitialData = waitForInitialData;
+        this.initialSubscriptionsHandler = initialSubscriptionsHandler;
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
         this.sessionStopPolicy = sessionStopPolicy;
         this.syncUrlPrefix = syncUrlPrefix;
@@ -202,7 +212,18 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Flexible Sync configuration for the given user.
+     *
+     * @param user The user that will be used for accessing the Realm App.
+     * @return the default Flexible Sync configuration for the given user.
+     * @see {@link SubscriptionSet} for more information about Flexible Sync.
+     */
+    public static SyncConfiguration defaultConfig(User user) {
+        return new SyncConfiguration.Builder(user).build();
+    }
+
+    /**
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -213,7 +234,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -224,7 +245,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -235,7 +256,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -246,7 +267,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns a default configuration for the given user and partition value.
+     * Returns a default Partition-based Sync configuration for the given user and partition value.
      *
      * @param user The user that will be used for accessing the Realm App.
      * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -275,11 +296,20 @@ public class SyncConfiguration extends RealmConfiguration {
         return super.getInitialDataTransaction();
     }
 
+    /**
+     * Returns the configured initial subscription handler for this realm.
+     *
+     * @return the handler used to configure initial subscriptions for this realm.
+     */
+    public InitialFlexibleSyncSubscriptions getInitialSubscriptionsHandler() {
+        return initialSubscriptionsHandler;
+    }
+
     // Extract the full server path, minus the file name
     private static String getServerPath(User user, URI serverUrl) {
-        // FIXME Add support for partion key
+        // FIXME Add support for partition key
         // Current scheme is <rootDir>/<appId>/<userId>/default.realm or
-        // Current scheme is <rootDir>/<appId>/<userId>/<hashedPartionKey>/default.realm
+        // Current scheme is <rootDir>/<appId>/<userId>/<hashedPartitionKey>/default.realm
         return user.getApp().getConfiguration().getAppId() + "/" + user.getId(); // TODO Check that it doesn't contain invalid filesystem chars
     }
 
@@ -299,9 +329,11 @@ public class SyncConfiguration extends RealmConfiguration {
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
+        if (initialSubscriptionsHandler != null ? !initialSubscriptionsHandler.equals(that.initialSubscriptionsHandler) : that.initialSubscriptionsHandler != null)
+            return false;
         if (syncUrlPrefix != null ? !syncUrlPrefix.equals(that.syncUrlPrefix) : that.syncUrlPrefix != null)
             return false;
-        return partitionValue.equals(that.partitionValue);
+        return partitionValue != null ? partitionValue.equals(that.partitionValue) : that.partitionValue == null;
     }
 
     @Override
@@ -310,12 +342,13 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + serverUrl.hashCode();
         result = 31 * result + user.hashCode();
         result = 31 * result + errorHandler.hashCode();
+        result = 31 * result + (initialSubscriptionsHandler != null ? initialSubscriptionsHandler.hashCode() : 0);
         result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
         result = 31 * result + (waitForInitialData ? 1 : 0);
         result = 31 * result + (int) (initialDataTimeoutMillis ^ (initialDataTimeoutMillis >>> 32));
         result = 31 * result + sessionStopPolicy.hashCode();
         result = 31 * result + (syncUrlPrefix != null ? syncUrlPrefix.hashCode() : 0);
-        result = 31 * result + partitionValue.hashCode();
+        result = 31 * result + (partitionValue != null ? partitionValue.hashCode() : 0);
         return result;
     }
 
@@ -328,6 +361,8 @@ public class SyncConfiguration extends RealmConfiguration {
         sb.append("user: ").append(user);
         sb.append("\n");
         sb.append("errorHandler: ").append(errorHandler);
+        sb.append("\n");
+        sb.append("initialSubscriptions: ").append(initialSubscriptionsHandler);
         sb.append("\n");
         sb.append("deleteRealmOnLogout: ").append(deleteRealmOnLogout);
         sb.append("\n");
@@ -459,14 +494,55 @@ public class SyncConfiguration extends RealmConfiguration {
      *
      * @return the value being used by MongoDB Realm to partition the server side MongoDB Database
      * into Realms that can be synchronized independently.
+     * @throws IllegalStateException if this configuration is for a realm configured for flexible
+     * sync. You can use {@link #isPartitionBasedSyncConfiguration()} before calling this method
+     * to check.
      */
     public BsonValue getPartitionValue() {
+        checkPartitionConfiguration();
         return partitionValue;
+    }
+
+    /**
+     * Returns whether or not this configuration is for opening a Realm configured for Flexible
+     * Sync.
+     * 
+     * @return {@code true} if this configuration is for a Flexible Sync Realm, {@code false} if not.
+     */
+    public boolean isFlexibleSyncConfiguration() {
+        return partitionValue == null;
+    }
+
+    /**
+     * Returns whether or not this configuration is for opening a Realm configured for Partition-based
+     * Sync.
+     *
+     * @return {@code true} if this configuration is for a Partition-based Sync Realm, {@code false}
+     * if not.
+     */
+    public boolean isPartitionBasedSyncConfiguration() {
+        return partitionValue != null;
     }
 
     @Override
     protected boolean realmExists() {
         return super.realmExists();
+    }
+
+    private void checkPartitionConfiguration() {
+        if (partitionValue == null) {
+            throw new IllegalStateException("This method is only available for Partition-based Sync configurations.");
+        }
+    }
+
+    /**
+     * Interface for configuring the initial set of of subscriptions. This should only be
+     * used for synced realms configured for flexible sync.
+     *
+     * @see Builder#initialSubscriptions(SyncConfiguration.InitialFlexibleSyncSubscriptions)
+     */
+    public interface InitialFlexibleSyncSubscriptions {
+        void configure(Realm realm, MutableSubscriptionSet subscriptions);
     }
 
     /**
@@ -486,6 +562,8 @@ public class SyncConfiguration extends RealmConfiguration {
         @Nullable
         private Realm.Transaction initialDataTransaction;
         @Nullable
+        private InitialFlexibleSyncSubscriptions initialSubscriptionsHandler;
+        @Nullable
         private String filename;
         private String assetFilePath;
         private OsRealmConfig.Durability durability = OsRealmConfig.Durability.FULL;
@@ -497,6 +575,7 @@ public class SyncConfiguration extends RealmConfiguration {
         private URI serverUrl;
         private User user = null;
         private SyncSession.ErrorHandler errorHandler;
+        @Nullable
         private SyncClientResetStrategy syncClientResetStrategy;
         private OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy = OsRealmConfig.SyncSessionStopPolicy.AFTER_CHANGES_UPLOADED;
         private CompactOnLaunchCallback compactOnLaunch;
@@ -504,11 +583,24 @@ public class SyncConfiguration extends RealmConfiguration {
         private long maxNumberOfActiveVersions = Long.MAX_VALUE;
         private boolean allowWritesOnUiThread;
         private boolean allowQueriesOnUiThread;
+        @Nullable
         private final BsonValue partitionValue;
 
+
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Flexible Sync <i>SyncConfiguration</i> with the
+         * given user.
+         *
+         * @param user The user that will be used for accessing the Realm App.
+         * @see {@link SubscriptionSet} for more information about Flexible Sync.
+         */
+        public Builder(User user) {
+            this(user, (BsonValue) null);
+        }
+
+        /**
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -518,8 +610,8 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -529,8 +621,8 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -540,8 +632,8 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -551,8 +643,8 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Creates an instance of the builder for a <i>SyncConfiguration</i> with the given user
-         * and partition value.
+         * Creates an instance of the builder for a Partition-based Sync <i>SyncConfiguration</i>
+         * with the given user and partition value.
          *
          * @param user The user that will be used for accessing the Realm App.
          * @param partitionValue The partition value identifying the remote Realm that will be synchronized.
@@ -565,18 +657,17 @@ public class SyncConfiguration extends RealmConfiguration {
          * Builder used to construct instances of a SyncConfiguration in a fluent manner.
          *
          * @param user the user opening the Realm on the server.
-         * @param partitionValue te value this Realm is partitioned on. The partition key is a
+         * @param partitionValue the value this Realm is partitioned on. The partition key is a
          * property defined in MongoDB Realm. All classes with a property with this value will be
-         * synchronized to the Realm.
-         * @see <a href="FIXME">Link to docs about partions</a>
+         * synchronized to the Realm. If {@code null} is provided, the configuration is treated
+         * as a Flexible Sync configuration.
          */
-        Builder(User user, BsonValue partitionValue) {
+        Builder(User user, @Nullable BsonValue partitionValue) {
             Context context = Realm.getApplicationContext();
             if (context == null) {
                 throw new IllegalStateException("Call `Realm.init(Context)` before creating a SyncConfiguration");
             }
             Util.checkNull(user, "user");
-            Util.checkNull(partitionValue, "partitionValue");
             validateAndSet(user);
             validateAndSet(user.getApp().getConfiguration().getBaseUrl());
             this.partitionValue = partitionValue;
@@ -584,7 +675,6 @@ public class SyncConfiguration extends RealmConfiguration {
                 this.modules.add(Realm.getDefaultModule());
             }
             this.errorHandler = user.getApp().getConfiguration().getDefaultErrorHandler();
-            this.syncClientResetStrategy = user.getApp().getConfiguration().getDefaultSyncClientResetStrategy();
             this.allowQueriesOnUiThread = true;
             this.allowWritesOnUiThread = false;
         }
@@ -850,6 +940,20 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Sets the initial {@link Subscription}s for the {@link io.realm.Realm}. This will only be
+         * executed the first time the Realm file is opened (and the file created).
+         *
+         * If {@link #waitForInitialRemoteData()} is configured as well, the realm file isn't fully
+         * opened until all subscription data also has been uploaded.
+         *
+         * @param action {@link MutableSubscriptionSet} where subscriptions can be added.
+         */
+        public Builder initialSubscriptions(InitialFlexibleSyncSubscriptions action) {
+            initialSubscriptionsHandler = action;
+            return this;
+        }
+
+        /**
          * Setting this will create an in-memory Realm instead of saving it to disk. In-memory Realms might still use
          * disk space if memory is running low, but all files created by an in-memory Realm will be deleted when the
          * Realm is closed.
@@ -908,6 +1012,9 @@ public class SyncConfiguration extends RealmConfiguration {
         /**
          * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
          * logged when a Client Reset occurs.
+         *
+         * This strategy is only available for synced realms using partition based sync. Realms using
+         * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
          *
          * @param handler custom seamless loss handler in case of a Client Reset.
          */
@@ -1135,6 +1242,16 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalStateException("serverUrl() and user() are both required.");
             }
 
+            // Flexible Sync only support Manual Client Reset, so ignore whatever App sets as the
+            // default and enforce Manual unless the user has specified
+            if (syncClientResetStrategy == null) {
+                if (partitionValue == null) {
+                    this.syncClientResetStrategy = DEFAULT_MANUAL_CLIENT_RESET_HANDLER;
+                } else {
+                    this.syncClientResetStrategy = user.getApp().getConfiguration().getDefaultSyncClientResetStrategy();
+                }
+            }
+
             // Check that readOnly() was applied to legal configuration. Right now it should only be allowd if
             // an assetFile is configured
             if (readOnly) {
@@ -1190,7 +1307,8 @@ public class SyncConfiguration extends RealmConfiguration {
                     sessionStopPolicy,
                     compactOnLaunch,
                     syncUrlPrefix,
-                    partitionValue
+                    partitionValue,
+                    initialSubscriptionsHandler
             );
         }
 

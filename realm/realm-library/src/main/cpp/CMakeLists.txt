@@ -200,6 +200,9 @@ if (NOT REALM_ENABLE_SYNC)
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoCollection.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsWatchStream.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMongoDatabase.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsMutableSubscriptionSet.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSubscription.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSubscriptionSet.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsPush.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_internal_objectstore_OsSyncUser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/io_realm_mongodb_mongo_iterable_AggregateIterable.cpp

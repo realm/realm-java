@@ -1,5 +1,5 @@
-/*
- * Copyright 2018 Realm Inc.
+/**
+ * Copyright 2022 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.realm.entities
 
-package io.realm.internal.annotations;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import android.graphics.Color
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
+import org.bson.types.ObjectId
 
 /**
- * This annotation is used to mark the classes as being specific to the Realm Object Server.
- * They will be stripped in the Base variant.
+ * Object used when testing Flexible Sync
  */
-@Retention(RetentionPolicy.CLASS)
-@Target({ElementType.TYPE, ElementType.METHOD})
-public @interface ObjectServer {
+open class FlexSyncColor(): RealmObject() {
+    constructor(section: Int): this() {
+        this.section = section
+    }
+    @PrimaryKey
+    var _id: ObjectId? = ObjectId.get()
+    var section: Int = 0
+    var color: String = Color.RED.toString()
 }

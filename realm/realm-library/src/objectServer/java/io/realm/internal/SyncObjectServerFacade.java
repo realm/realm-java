@@ -30,22 +30,24 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.realm.Realm;
-import io.realm.internal.objectstore.OsApp;
-import io.realm.mongodb.App;
 import io.realm.RealmConfiguration;
-import io.realm.mongodb.AppConfiguration;
-import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
-import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
-import io.realm.mongodb.sync.Sync;
-import io.realm.mongodb.User;
-import io.realm.mongodb.sync.SyncClientResetStrategy;
-import io.realm.mongodb.sync.SyncConfiguration;
 import io.realm.exceptions.DownloadingRealmInterruptedException;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.internal.network.NetworkStateReceiver;
+import io.realm.internal.objectstore.OsApp;
 import io.realm.internal.objectstore.OsAsyncOpenTask;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.User;
+import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.MutableSubscriptionSet;
+import io.realm.mongodb.sync.SubscriptionSet;
+import io.realm.mongodb.sync.Sync;
+import io.realm.mongodb.sync.SyncClientResetStrategy;
+import io.realm.mongodb.sync.SyncConfiguration;
 
 @SuppressWarnings({"unused", "WeakerAccess"}) // Used through reflection. See ObjectServerFacade
 @Keep
@@ -157,19 +159,21 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
             // TODO Simplify. org.bson serialization only allows writing full documents, so the partition
             //  key is embedded in a document with key 'value' and unwrapped in JNI.
-            BsonValue partitionValue = syncConfig.getPartitionValue();
-            String encodedPartitionValue;
-            switch (partitionValue.getBsonType()) {
-                case STRING:
-                case OBJECT_ID:
-                case INT32:
-                case INT64:
-                case BINARY:
-                case NULL:
-                    encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported type: " + partitionValue);
+            String encodedPartitionValue = null;
+            if (syncConfig.isPartitionBasedSyncConfiguration()) {
+                BsonValue partitionValue = syncConfig.getPartitionValue();
+                switch (partitionValue.getBsonType()) {
+                    case STRING:
+                    case OBJECT_ID:
+                    case INT32:
+                    case INT64:
+                    case BINARY:
+                    case NULL:
+                        encodedPartitionValue = JniBsonProtocol.encode(partitionValue, AppConfiguration.DEFAULT_BSON_CODEC_REGISTRY);
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Unsupported type: " + partitionValue);
+                }
             }
 
             int i = 0;
@@ -248,6 +252,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
     }
 
+    // This is guaranteed by other code to never run on the UI thread.
     private void downloadInitialFullRealm(SyncConfiguration syncConfig) {
         OsAsyncOpenTask task = new OsAsyncOpenTask(new OsRealmConfig.Builder(syncConfig).build());
         try {
@@ -271,4 +276,41 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         }
     }
 
+    @Override
+    public void checkFlexibleSyncEnabled(RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            if (!syncConfig.isFlexibleSyncConfiguration()) {
+                throw new IllegalStateException("This method is only available for synchronized " +
+                        "realms configured for Flexible Sync. This realm is configured for " +
+                        "Partition-based Sync: " + configuration.getPath());
+            }
+        } else {
+            throw new IllegalStateException("This method is only available for synchronized Realms.");
+        }
+    }
+
+    @Override
+    public void downloadInitialFlexibleSyncData(Realm realm, RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            if (syncConfig.isFlexibleSyncConfiguration()) {
+                SyncConfiguration.InitialFlexibleSyncSubscriptions handler  = syncConfig.getInitialSubscriptionsHandler();
+                if (handler != null) {
+                    SubscriptionSet subscriptions = realm.getSubscriptions();
+                    subscriptions.update(new SubscriptionSet.UpdateCallback() {
+                        @Override
+                        public void update(MutableSubscriptionSet subscriptions) {
+                            handler.configure(realm, subscriptions);
+                        }
+                    });
+                    if (!subscriptions.waitForSynchronization()) {
+                        throw new IllegalStateException("Realm couldn't be fully opened because " +
+                                "flexible sync encountered an error when bootstrapping initial" +
+                                "subscriptions: " + subscriptions.getErrorMessage());
+                    }
+                }
+            }
+        }
+    }
 }

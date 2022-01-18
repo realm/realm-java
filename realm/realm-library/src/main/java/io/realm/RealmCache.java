@@ -464,7 +464,21 @@ final class RealmCache {
         referenceCounter.incrementThreadCount(1);
 
         //noinspection unchecked
-        return (E) referenceCounter.getRealmInstance();
+        E realmInstance = (E) referenceCounter.getRealmInstance();
+        if (firstRealmInstanceInProcess) {
+            // If flexible sync initial subscriptions are configured, we need to make
+            // sure they are in the COMPLETE state before proceeding
+            // TODO Ideally this would be part of `downloadInitialRemoteChanges` called before
+            //  but his requires a larger refactor, so for now just run the logic here.
+            ObjectServerFacade.getSyncFacadeIfPossible().downloadInitialFlexibleSyncData(
+                    Realm.createInstance(realmInstance.sharedRealm),
+                    configuration
+            );
+            if (!configuration.isReadOnly()) {
+                realmInstance.refresh();
+            }
+        }
+        return realmInstance;
     }
 
     private <E extends BaseRealm> ReferenceCounter getRefCounter(Class<E> realmClass, OsSharedRealm.VersionID version) {

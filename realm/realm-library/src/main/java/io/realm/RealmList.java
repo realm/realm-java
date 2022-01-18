@@ -61,7 +61,6 @@ import io.realm.rx.CollectionChange;
  *
  * @param <E> the class of objects in list.
  */
-
 public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode.";
