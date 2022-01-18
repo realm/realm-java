@@ -203,7 +203,8 @@ public class OsRealmConfig implements NativeObject {
                           boolean autoUpdateNotification,
                           @Nullable OsSchemaInfo schemaInfo,
                           @Nullable OsSharedRealm.MigrationCallback migrationCallback,
-                          @Nullable OsSharedRealm.InitializationCallback initializationCallback) {
+                          @Nullable OsSharedRealm.InitializationCallback initializationCallback
+    ) {
         this.realmConfiguration = config;
         this.nativePtr = nativeCreate(config.getPath(), fifoFallbackDir, true, config.getMaxNumberOfActiveVersions());
         NativeContext.dummyContext.addReference(this);
@@ -224,6 +225,8 @@ public class OsRealmConfig implements NativeObject {
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
+        Object beforeClientResetHandler = syncConfigurationOptions[j++];
+        Object afterClientResetHandler = syncConfigurationOptions[j++];
         String encodedPartitionValue = (String) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
         Long appPtr = (Long) syncConfigurationOptions[j++];
@@ -297,6 +300,8 @@ public class OsRealmConfig implements NativeObject {
                     customAuthorizationHeaderName,
                     customHeaders,
                     clientResyncMode,
+                    beforeClientResetHandler,
+                    afterClientResetHandler,
                     encodedPartitionValue,
                     syncService);
             try {
@@ -390,11 +395,12 @@ public class OsRealmConfig implements NativeObject {
 
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
-    private static native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl,
+    private native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl,
                                                               String userId, String userProvider, String refreshToken, String accessToken,
                                                               String deviceId, byte sessionStopPolicy, String urlPrefix,
                                                               String customAuthorizationHeaderName,
                                                               String[] customHeaders, byte clientResetMode,
+                                                              Object beforeClientResetHandler, Object afterClientResetHandler,
                                                               String partionKeyValue, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,

@@ -24,6 +24,7 @@ import org.bson.codecs.MapCodecProvider;
 import org.bson.codecs.ValueCodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -35,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -49,6 +51,9 @@ import io.realm.internal.log.obfuscator.TokenObfuscator;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
 import io.realm.mongodb.sync.ClientResetRequiredError;
+import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.SyncClientResetStrategy;
 import io.realm.mongodb.sync.SyncSession;
 
 import static io.realm.internal.network.LoggingInterceptor.LOGIN_FEATURE;
@@ -137,7 +142,7 @@ public class AppConfiguration {
     private final String appVersion;
     private final URL baseUrl;
     private final SyncSession.ErrorHandler defaultErrorHandler;
-    private final SyncSession.ClientResetHandler defaultClientResetHandler;
+    private final SyncClientResetStrategy defaultSyncClientResetStrategy;
     @Nullable
     private final byte[] encryptionKey;
     private final long requestTimeoutMs;
@@ -153,7 +158,7 @@ public class AppConfiguration {
                              String appVersion,
                              URL baseUrl,
                              SyncSession.ErrorHandler defaultErrorHandler,
-                             SyncSession.ClientResetHandler defaultClientResetHandler,
+                             SyncClientResetStrategy defaultSyncClientResetStrategy,
                              @Nullable byte[] encryptionKey,
                              long requestTimeoutMs,
                              String authorizationHeaderName,
@@ -166,7 +171,7 @@ public class AppConfiguration {
         this.appVersion = appVersion;
         this.baseUrl = baseUrl;
         this.defaultErrorHandler = defaultErrorHandler;
-        this.defaultClientResetHandler = defaultClientResetHandler;
+        this.defaultSyncClientResetStrategy = defaultSyncClientResetStrategy;
         this.encryptionKey = (encryptionKey == null) ? null : Arrays.copyOf(encryptionKey, encryptionKey.length);
         this.requestTimeoutMs = requestTimeoutMs;
         this.authorizationHeaderName = (!Util.isEmptyString(authorizationHeaderName)) ? authorizationHeaderName : "Authorization";
@@ -271,9 +276,27 @@ public class AppConfiguration {
      * {@link SyncSession}.
      *
      * @return the app default error handler.
+     *
+     * @deprecated replaced by {@link #getDefaultSyncClientResetStrategy()}
      */
+    @Deprecated
     public SyncSession.ClientResetHandler getDefaultClientResetHandler() {
-        return defaultClientResetHandler;
+        try {
+            return (SyncSession.ClientResetHandler) defaultSyncClientResetStrategy;
+        } catch (ClassCastException exception) {
+            throw new ClassCastException(exception.getMessage() + ": getDefaultClientResetHandler() " +
+                    "is deprecated and has been replaced by getDefaultSyncClientResetStrategy()");
+        }
+    }
+
+    /**
+     * Returns the default sync client reset strategy used by synced Realms if there are problems with their
+     * {@link SyncSession}.
+     *
+     * @return the app default error handler.
+     */
+    public SyncClientResetStrategy getDefaultSyncClientResetStrategy() {
+        return defaultSyncClientResetStrategy;
     }
 
     /**
@@ -388,10 +411,20 @@ public class AppConfiguration {
                 }
             }
         };
-        private SyncSession.ClientResetHandler defaultClientResetHandler = new SyncSession.ClientResetHandler() {
+        private SyncClientResetStrategy defaultSyncClientResetStrategy = new DiscardUnsyncedChangesStrategy() {
             @Override
-            public void onClientReset(SyncSession session, ClientResetRequiredError error) {
-                RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
+            public void onBeforeReset(Realm realm) {
+                RealmLog.debug("Client Reset is about to happen on Realm: " + realm.getPath());
+            }
+
+            @Override
+            public void onAfterReset(Realm before, Realm after) {
+                RealmLog.debug("Client Reset complete on Realm: " + after.getPath());
+            }
+
+            @Override
+            public void onError(SyncSession session, ClientResetRequiredError error) {
+                RealmLog.fatal("Seamless Client Reset failed on: " + session.getConfiguration().getServerUrl());
             }
         };
         private byte[] encryptionKey;
@@ -556,10 +589,47 @@ public class AppConfiguration {
          * the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param handler the default Client Reset handler.
+         *                
+         * @deprecated replaced by {@link #defaultSyncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          */
+        @Deprecated
         public Builder defaultClientResetHandler(SyncSession.ClientResetHandler handler) {
             Util.checkNull(handler, "handler");
-            defaultClientResetHandler = handler;
+            defaultSyncClientResetStrategy = handler;
+            return this;
+        }
+
+        /**
+         * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
+         * session.
+         * <p>
+         * This default can be overridden by calling
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
+         * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         *
+         * @param strategy the default sync client reset strategy.
+         */
+        public Builder defaultSyncClientResetStrategy(@Nonnull ManuallyRecoverUnsyncedChangesStrategy strategy) {
+            Util.checkNull(strategy, "strategy");
+            defaultSyncClientResetStrategy = strategy;
+            return this;
+        }
+
+        /**
+         * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
+         * session.
+         * <p>
+         * This default can be overridden by calling
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
+         * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         *
+         * @param strategy the default sync client reset strategy.
+         */
+        public Builder defaultSyncClientResetStrategy(@Nonnull DiscardUnsyncedChangesStrategy strategy) {
+            Util.checkNull(strategy, "strategy");
+            defaultSyncClientResetStrategy = strategy;
             return this;
         }
 
@@ -643,7 +713,7 @@ public class AppConfiguration {
                     appVersion,
                     baseUrl,
                     defaultErrorHandler,
-                    defaultClientResetHandler,
+                    defaultSyncClientResetStrategy,
                     encryptionKey,
                     requestTimeoutMs,
                     authorizationHeaderName,

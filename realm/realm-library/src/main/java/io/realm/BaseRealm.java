@@ -45,8 +45,10 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.internal.Util;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
+import io.realm.mongodb.sync.SubscriptionSet;
 
 /**
  * Base class for all Realm instances.
@@ -703,6 +705,22 @@ abstract class BaseRealm implements Closeable {
      * @return The {@link RealmSchema} for this Realm.
      */
     public abstract RealmSchema getSchema();
+
+    /**
+     * Returns the subscription set associated with this Realm. The subscription set defines
+     * a set of queries that define which data is synchronized between this realm and the server.
+     * <p>
+     * This method is only applicable to synchronized realms using flexible sync.
+     *
+     * @return the subscription set associated with this realm.
+     * @throws IllegalStateException if this realm is either a local realm or a partion-based
+     * synchronized realm.
+     */
+    @ObjectServer
+    public SubscriptionSet getSubscriptions() {
+        checkIfValid();
+        return sharedRealm.getSubscriptions(configuration.getSchemaMediator(), asyncTaskExecutor, WRITE_EXECUTOR);
+    }
 
     // Used by RealmList/RealmResults, to create RealmObject from a OsResults.
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject

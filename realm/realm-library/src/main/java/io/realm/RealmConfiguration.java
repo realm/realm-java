@@ -35,6 +35,7 @@ import io.realm.coroutines.FlowFactory;
 import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
 import io.realm.internal.OsRealmConfig;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
@@ -376,6 +377,10 @@ public class RealmConfiguration {
             return false;
         }
         return maxNumberOfActiveVersions == that.maxNumberOfActiveVersions;
+    }
+
+    protected Realm getInstance(OsSharedRealm.VersionID version) {
+        return RealmCache.createRealmOrGetFromCache(this, Realm.class, version);
     }
 
     @Override

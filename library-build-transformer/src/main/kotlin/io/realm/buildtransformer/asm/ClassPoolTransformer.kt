@@ -56,9 +56,13 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
     private fun pass1(): Triple<Set<String>, Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>, Map<ByteCodeTypeDescriptor, Set<FieldName>>> {
         val metadataCollector = AnnotationVisitor(annotationDescriptor)
         inputClasses.forEach {
-            it.inputStream().use {
-                val classReader = ClassReader(it)
-                classReader.accept(metadataCollector, 0)
+            try {
+                it.inputStream().use {
+                    val classReader = ClassReader(it)
+                    classReader.accept(metadataCollector, 0)
+                }
+            } catch (ex: Exception) {
+                throw RuntimeException("Failed to collect data in: ${it.absolutePath}", ex)
             }
         }
         return Triple(metadataCollector.annotatedClasses, metadataCollector.annotatedMethods, metadataCollector.annotatedFields)
@@ -71,20 +75,27 @@ class ClassPoolTransformer(annotationQualifiedName: QualifiedName, private val i
      */
     private fun pass2(markedClasses: Set<String>, markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>, markedFields: Map<ByteCodeTypeDescriptor, Set<FieldName>>): Set<File> {
         inputClasses.forEach { classFile ->
-            var result = ByteArray(0)
-            if (!classFile.shouldBeDeleted) { // Respect previously set delete flag, so avoid doing any work
-                classFile.inputStream().use { inputStream ->
-                    val writer = ClassWriter(0) // We don't modify methods so no reason to re-calculate method frames
-                    val classRemover = AnnotatedCodeStripVisitor(annotationDescriptor, markedClasses, markedMethods, markedFields, writer)
-                    val reader = ClassReader(inputStream)
-                    reader.accept(classRemover, 0)
-                    result = if (classRemover.deleteClass) ByteArray(0) else writer.toByteArray()
+            try {
+                var result = ByteArray(0)
+                if (!classFile.shouldBeDeleted) { // Respect previously set delete flag, so avoid doing any work
+                    classFile.inputStream().use { inputStream ->
+                        val writer = ClassWriter(0) // We don't modify methods so no reason to re-calculate method frames
+                        val classRemover = AnnotatedCodeStripVisitor(annotationDescriptor, markedClasses, markedMethods, markedFields, writer)
+                        val reader = ClassReader(inputStream)
+                        reader.accept(classRemover, 0)
+                        result = if (classRemover.deleteClass) ByteArray(0) else writer.toByteArray()
+                    }
+                    if (result.isNotEmpty()) {
+                        classFile.outputStream().use { outputStream -> outputStream.write(result) }
+                    } else {
+                        classFile.shouldBeDeleted = true
+                    }
                 }
-                if (result.isNotEmpty()) {
-                    classFile.outputStream().use { outputStream -> outputStream.write(result) }
-                } else {
-                    classFile.shouldBeDeleted = true
-                }
+            } catch (ex: Exception) {
+                throw RuntimeException(
+                    "Failed to remove class, field or method in: ${classFile.absolutePath}",
+                    ex
+                )
             }
         }
         return inputClasses

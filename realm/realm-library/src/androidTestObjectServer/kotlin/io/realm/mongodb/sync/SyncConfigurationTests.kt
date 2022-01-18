@@ -42,6 +42,7 @@ import org.junit.*
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.lang.ClassCastException
 import kotlin.test.assertFailsWith
 import java.lang.IllegalStateException
 import java.util.UUID
@@ -98,25 +99,41 @@ class SyncConfigurationTests {
     @Test
     fun clientResetHandler() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
-        val handler = object : SyncSession.ClientResetHandler {
-            override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {}
-        }
-        val config = builder.clientResetHandler(handler).build()
-        assertEquals(handler, config.clientResetHandler)
+        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+        val config = builder.syncClientResetStrategy(handler).build()
+        assertEquals(handler, config.syncClientResetStrategy)
     }
 
     @Test
     fun clientResetHandler_fromAppConfiguration() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
-        assertEquals(app.configuration.defaultClientResetHandler, config.clientResetHandler)
+        assertEquals(app.configuration.defaultSyncClientResetStrategy, config.syncClientResetStrategy)
     }
 
     @Test
     fun clientResetHandler_nullThrows() {
         val user: User = createTestUser(app)
         val builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        assertFailsWith<IllegalArgumentException> { builder.clientResetHandler(TestHelper.getNull()) }
+        assertFailsWith<IllegalArgumentException> { builder.syncClientResetStrategy(TestHelper.getNull<ManuallyRecoverUnsyncedChangesStrategy>()) }
+    }
+
+    @Test
+    fun clientResetHandler_deprecated() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val handler = SyncSession.ClientResetHandler { _, _ -> }
+        val config = builder.syncClientResetStrategy(handler).build()
+        assertEquals(handler, config.syncClientResetStrategy)
+    }
+
+    @Test
+    fun clientResetHandler_deprecatedThrows() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+        val config = builder.syncClientResetStrategy(handler).build()
+        assertFailsWith<ClassCastException> {
+            config.clientResetHandler
+        }
     }
 
     @Test
@@ -317,22 +334,74 @@ class SyncConfigurationTests {
     }
 
     @Test
-    fun clientResyncMode() {
+    fun defaultClientResyncMode() {
         val user: User = createTestUser(app)
 
-        // Default mode for full Realms
         var config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
-        assertEquals(ClientResyncMode.MANUAL, config.clientResyncMode)
+        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun legacyClientResyncMode() {
+        val user: User = createTestUser(app)
+
+        val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+                .syncClientResetStrategy(object : SyncSession.ClientResetHandler {
+                    override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
+                        fail("Should not be called")
+                    }
+                })
+                .build()
+        assertTrue(config.syncClientResetStrategy is ManuallyRecoverUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun manualClientResyncMode() {
+        val user: User = createTestUser(app)
+
+        val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+                .syncClientResetStrategy(object : ManuallyRecoverUnsyncedChangesStrategy {
+                    override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
+                        fail("Should not be called")
+                    }
+                })
+                .build()
+        assertTrue(config.syncClientResetStrategy is ManuallyRecoverUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun discardUnsyncedChangesStrategyMode() {
+        val user: User = createTestUser(app)
+
+        val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+                .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                    override fun onBeforeReset(realm: Realm) {
+                        fail("Should not be called")
+                    }
+
+                    override fun onAfterReset(before: Realm, after: Realm) {
+                        fail("Should not be called")
+                    }
+
+                    override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                        fail("Should not be called")
+                    }
+
+                })
+                .build()
+        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
     }
 
     @Test
     fun clientResyncMode_throwsOnNull() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration.Builder = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-        try {
-            config.clientResyncMode(TestHelper.getNull())
-            fail()
-        } catch (ignore: IllegalArgumentException) {
+
+        assertFailsWith<IllegalArgumentException> {
+            config.syncClientResetStrategy(TestHelper.getNull<ManuallyRecoverUnsyncedChangesStrategy>())
+        }
+        assertFailsWith<IllegalArgumentException> {
+            config.syncClientResetStrategy(TestHelper.getNull<DiscardUnsyncedChangesStrategy>())
         }
     }
 
@@ -387,8 +456,8 @@ class SyncConfigurationTests {
         assertFailsWith<java.lang.IllegalArgumentException> {
             SyncConfiguration.defaultConfig(user, ObjectId())
         }
-        assertFailsWith<java.lang.IllegalArgumentException> {
-            SyncConfiguration.defaultConfig(app.currentUser(), ObjectId())
+        assertFailsWith<java.lang.NullPointerException> {
+            SyncConfiguration.defaultConfig(app.currentUser()!!, ObjectId())
         }
     }
 

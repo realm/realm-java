@@ -1,0 +1,40 @@
+{
+    "collection": "EmbeddedSimpleParent",
+    "database": "test_data",
+    "id": "60489e7df5d9bdc95de663cd",
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "additional_fields": {}
+        }
+    ],
+    "schema": {
+        "properties": {
+            "_id": {
+                "bsonType": "string"
+            },
+            "realm_id": {
+            "bsonType": "string"
+            },
+            "child": {
+            "title": "EmbeddedSimpleChild",
+            "bsonType": "object",
+            "required": [
+                "childId"
+            ],
+            "properties": {
+                "childId": {
+                "bsonType": "string"
+                }
+            }
+            }
+        },
+        "required": [
+            "_id"
+        ],
+        "title": "EmbeddedSimpleParent"
+    }
+}

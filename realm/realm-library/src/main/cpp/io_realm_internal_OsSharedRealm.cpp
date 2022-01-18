@@ -20,6 +20,7 @@
 #include <realm/object-store/sync/sync_manager.hpp>
 #include <realm/object-store/sync/sync_session.hpp>
 #include <realm/object-store/results.hpp>
+#include <realm/sync/subscriptions.hpp>
 
 #include "observable_collection_wrapper.hpp"
 #endif
@@ -517,3 +518,29 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeNumberOfVersi
     CATCH_STD()
     return 0;
 }
+
+#if REALM_ENABLE_SYNC
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetActiveSubscriptionSet(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto realm = *reinterpret_cast<SharedRealm*>(j_native_ptr);
+        const sync::SubscriptionSet subs = realm->get_latest_subscription_set();
+        return reinterpret_cast<jlong>(new sync::SubscriptionSet(std::move(subs)));
+    }
+    CATCH_STD();
+    return 0;
+}
+#endif
+
+#if REALM_ENABLE_SYNC
+JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSharedRealm_nativeGetLatestSubscriptionSet(JNIEnv* env, jclass, jlong j_native_ptr)
+{
+    try {
+        auto realm = *reinterpret_cast<SharedRealm*>(j_native_ptr);
+        const sync::SubscriptionSet subs = realm->get_active_subscription_set();
+        return reinterpret_cast<jlong>(new sync::SubscriptionSet(std::move(subs)));
+    }
+    CATCH_STD();
+    return 0;
+}
+#endif

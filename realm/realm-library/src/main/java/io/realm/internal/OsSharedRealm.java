@@ -30,8 +30,9 @@ import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
-import io.realm.internal.objectstore.OsKeyPathMapping;
-
+import io.realm.internal.async.RealmThreadPoolExecutor;
+import io.realm.internal.objectstore.OsSubscriptionSet;
+import io.realm.mongodb.sync.SubscriptionSet;
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
@@ -203,17 +204,8 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
      * to be the same one to ensure core's destructor thread safety.
      */
-    private OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
-        this.nativePtr = nativeSharedRealmPtr;
-        this.osRealmConfig = osRealmConfig;
-        this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
-        this.context = osRealmConfig.getContext();
-        this.context.addReference(this);
-
-        this.capabilities = new AndroidCapabilities();
-        // This instance should never need notifications.
-        this.realmNotifier = null;
-        nativeSetAutoRefresh(nativePtr, false);
+    OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
+        this(nativeSharedRealmPtr, osRealmConfig, osRealmConfig.getContext());
 
         boolean foundParentSharedRealm = false;
         for (OsSharedRealm sharedRealm : sharedRealmsUnderConstruction) {
@@ -226,6 +218,24 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         if (!foundParentSharedRealm) {
             throw new IllegalStateException("Cannot find the parent 'OsSharedRealm' which is under construction.");
         }
+    }
+
+    /**
+     * Creates a {@code OsSharedRealm} instance from a given Object Store's {@code OsSharedRealm}
+     * pointer with a given NativeContext. This is used to create {@code OsSharedRealm} from the
+     * callback functions.
+     */
+    OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, NativeContext nativeContext) {
+        this.nativePtr = nativeSharedRealmPtr;
+        this.osRealmConfig = osRealmConfig;
+        this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
+        this.context = nativeContext;
+        this.context.addReference(this);
+
+        this.capabilities = new AndroidCapabilities();
+        // This instance should never need notifications.
+        this.realmNotifier = null;
+        nativeSetAutoRefresh(nativePtr, false);
     }
 
     /**
@@ -371,20 +381,13 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     @ObjectServer
-    public int getPrivileges() {
-        // FIXME: Remove
-        return 0;
-    }
-
-    @ObjectServer
-    public int getClassPrivileges(String className) {
-        // FIXME: Remove
-        return 0;
-    }
-
-    @ObjectServer
-    public int getObjectPrivileges(UncheckedRow row) {
-        return 0;
+    public SubscriptionSet getSubscriptions(RealmProxyMediator schema,
+                                            RealmThreadPoolExecutor listenerExecutor,
+                                            RealmThreadPoolExecutor writeExecutor) {
+        ObjectServerFacade facade = ObjectServerFacade.getSyncFacadeIfPossible();
+        facade.checkFlexibleSyncEnabled(getConfiguration());
+        long ptr = nativeGetLatestSubscriptionSet(nativePtr);
+        return new OsSubscriptionSet(ptr, schema, listenerExecutor, writeExecutor);
     }
 
     public boolean isClosed() {
@@ -653,4 +656,6 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native long nativeNumberOfVersions(long nativePtr);
 
+    private static native long nativeGetLatestSubscriptionSet(long realmNativePtr);
+    private static native long nativeGetActiveSubscriptionSet(long realmNativePtr);
 }

@@ -32,9 +32,9 @@ import io.realm.mongodb.sync.SyncConfiguration;
 @Keep
 public enum ErrorCode {
 
-    // See Client::Error in https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp#L1230
-    // See https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp
-    // See https://github.com/realm/realm-object-store/blob/v10/src/sync/generic_network_transport.hpp#L47
+    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L73
+    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/protocol.hpp
+    // See https://github.com/realm/realm-core/blob/master/src/realm/object-store/sync/generic_network_transport.hpp#L40
 
     // Catch-all
     // The underlying type and error code should be part of the error message
@@ -55,7 +55,7 @@ public enum ErrorCode {
     EVENT_DESERIALIZING(Type.JAVA, 1200),
 
     // Custom Object Store errors
-    CLIENT_RESET(Type.PROTOCOL, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsSharedRealm.cpp
+    CLIENT_RESET(Type.JAVA, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsRealmConfig.cpp
 
     // Connection level and protocol errors from the native Sync Client
     CONNECTION_CLOSED(Type.PROTOCOL, 100, Category.RECOVERABLE),    // Connection closed (no error)
@@ -85,6 +85,7 @@ public enum ErrorCode {
     PERMISSION_DENIED(Type.PROTOCOL, 206),                         // Permission denied (BIND, REFRESH)
 
     // Fatal: Wrong server/client versions. Trying to sync incompatible files or the file was corrupted.
+    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/protocol.hpp
     BAD_SERVER_FILE_IDENT(Type.PROTOCOL, 207),                     // Bad server file identifier (IDENT)
     BAD_CLIENT_FILE_IDENT(Type.PROTOCOL, 208),                     // Bad client file identifier (IDENT)
     BAD_SERVER_VERSION(Type.PROTOCOL, 209),                        // Bad server version (IDENT, UPLOAD)
@@ -104,9 +105,14 @@ public enum ErrorCode {
     USER_MISMATCH(Type.PROTOCOL, 223),                             // User mismatch for client file identifier (IDENT)
     TOO_MANY_SESSIONS(Type.PROTOCOL, 224),                         // Too many sessions in connection (BIND)
     INVALID_SCHEMA_CHANGE(Type.PROTOCOL, 225),                     // Invalid schema change (UPLOAD)
+    BAD_QUERY(Type.PROTOCOL, 226),                                 // Client query is invalid/malformed (IDENT, QUERY)
+    OBJECT_ALREADY_EXISTS(Type.PROTOCOL, 227),                     // Client tried to create an object that already exists outside their view (UPLOAD)
+    SERVER_PERMISSIONS_CHANGED(Type.PROTOCOL, 228),                // Server permissions for this file ident have changed since the last time it was used (IDENT)
+    INITIAL_SYNC_NOT_COMPLETE(Type.PROTOCOL, 229),                 // Client tried to open a session before initial sync is complete (BIND)
+    WRITE_NOT_ALLOWED(Type.PROTOCOL, 230),                         // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query - requires client reset (UPLOAD)
 
     // Sync Network Client errors.
-    // See https://github.com/realm/realm-sync/blob/master/src/realm/sync/client.hpp#L1230
+    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L73
     CLIENT_CONNECTION_CLOSED(Type.SESSION, 100),            // Connection closed (no error)
     CLIENT_UNKNOWN_MESSAGE(Type.SESSION, 101),              // Unknown type of input message
     CLIENT_LIMITS_EXCEEDED(Type.SESSION, 103),              // Limits exceeded in input message
@@ -138,6 +144,7 @@ public enum ErrorCode {
     CLIENT_BAD_SERIAL_TRANSACT_STATUS(Type.SESSION, 129),   // Bad status of serialized transaction (TRANSACT)
     CLIENT_BAD_OBJECT_ID_SUBSTITUTIONS(Type.SESSION, 130),  // Bad encoded object identifier substitutions (TRANSACT)
     CLIENT_HTTP_TUNNEL_FAILED(Type.SESSION, 131),           // Failed to establish HTTP tunnel with configured proxy
+    AUTO_CLIENT_RESET_FAILURE(Type.SESSION, 132),           // Automatic client reset failed
 
 
     // 300 - 599 Reserved for Standard HTTP error codes
@@ -343,7 +350,7 @@ public enum ErrorCode {
         public static final String SERVICE = "realm::app::ServiceError"; // MongoDB Realm Response errors
         public static final String JSON = "realm::app::JSONError"; // Errors when parsing JSON
         public static final String PROTOCOL = "realm::sync::ProtocolError"; // Protocol level errors from the native Sync Client
-        public static final String SESSION = "realm::sync::Client::Error"; // Session level errors from the native Sync Client
+        public static final String SESSION = "realm::sync::ClientError"; // Session level errors from the native Sync Client
         public static final String UNKNOWN = "unknown"; // Catch-all category
     }
 

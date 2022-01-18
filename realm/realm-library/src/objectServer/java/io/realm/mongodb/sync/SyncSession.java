@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
@@ -70,7 +70,7 @@ public class SyncSession {
     private final long appNativePointer;
     private final SyncConfiguration configuration;
     private final ErrorHandler errorHandler;
-    private final ClientResetHandler clientResetHandler;
+    private final SyncClientResetStrategy clientResetHandler;
     private volatile boolean isClosed = false;
     private final AtomicReference<WaitForSessionWrapper> waitingForServerChanges = new AtomicReference<>(null);
 
@@ -175,7 +175,7 @@ public class SyncSession {
     SyncSession(SyncConfiguration configuration, long appNativePointer) {
         this.configuration = configuration;
         this.errorHandler = configuration.getErrorHandler();
-        this.clientResetHandler = configuration.getClientResetHandler();
+        this.clientResetHandler = configuration.getSyncClientResetStrategy();
         this.appNativePointer = appNativePointer;
     }
 
@@ -219,8 +219,16 @@ public class SyncSession {
                 throw new IllegalStateException("Missing Client Reset info.");
             }
             RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(clientResetPathInfo);
-            clientResetHandler.onClientReset(this, new ClientResetRequiredError(appNativePointer,
-                    errCode, errorMessage, configuration, backupRealmConfiguration));
+
+            if (clientResetHandler instanceof ManuallyRecoverUnsyncedChangesStrategy) {
+                ((ManuallyRecoverUnsyncedChangesStrategy) clientResetHandler).onClientReset(this,
+                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
+                                configuration, backupRealmConfiguration));
+            } else if (clientResetHandler instanceof DiscardUnsyncedChangesStrategy) {
+                ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
+                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
+                                configuration, backupRealmConfiguration));
+            }
         } else {
             AppException wrappedError;
             if (errCode == ErrorCode.UNKNOWN) {
@@ -727,17 +735,11 @@ public class SyncSession {
      * Any writes to the Realm file between this callback and Client Reset has been executed, will not be
      * synchronized to MongoDB Realm. Those changes will only be present in the backed up file. It is therefore
      * recommended to close all open Realm instances as soon as possible.
+     *
+     * @deprecated replaced by {@link ManuallyRecoverUnsyncedChangesStrategy}
      */
-    public interface ClientResetHandler {
-        /**
-         * Callback that indicates a Client Reset has happened. This should be handled as quickly as
-         * possible as any further changes to the Realm will not be synchronized with the server and
-         * must be moved manually from the backup Realm to the new one.
-         * 
-         * @param session {@link SyncSession} this error happened on.
-         * @param error {@link ClientResetRequiredError} the specific Client Reset error.
-         */
-        void onClientReset(SyncSession session, ClientResetRequiredError error);
+    @Deprecated
+    public interface ClientResetHandler extends ManuallyRecoverUnsyncedChangesStrategy {
     }
 
     // Wrapper class for handling the async operations of the underlying SyncSession calling

@@ -1,16 +1,26 @@
-## 10.9.1 (YYYY-MM-DD)
+## 10.10.0 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* [RealmApp] Add support for a new mode for synchronized realms: Flexible Sync that only synchronizes selective parts of the backend data. The following classes have been added to support this: `Subscription`, `SubscriptionSet` and `MutableSubscriptionSet`. This mode and all APIs are marked as Beta.
 
 ### Fixed
+* [RealmApp] The sync client will now drain the receive queue when send fails with ECONNRESET - ensuring that any error message from the server gets received and processed. (Realm Core issue [#5078](https://github.com/realm/realm-core/pull/5078))
+* [RealmApp] UserIdentity metadata table grows indefinitely. (Realm Core issue [#5152](https://github.com/realm/realm-core/issues/5152))
+* Schema validation was missing for embedded objects in sets, resulting in an unhelpful error being thrown if the user attempted to define one.
+* Output from the annotation processor was not deterministic, which could result in cache misses. (Issue [#7615](https://github.com/realm/realm-java/issues/7615))
 * Crashes when using `RealmAny` inside `RealmList` on ARM 32 devices. (Issue [#7626](https://github.com/realm/realm-java/issues/7626))
 
 ### Compatibility
-* None.
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Update to Realm Core 11.9.0, commit: 733f12702d16ab0d0c7fea0831a2aee5ca5c26db.
+
+### Credits
+* Thanks to @jprinet for making the annotation processor output deterministic.
+
 
 ## 10.9.0 (2021-12-06)
 
@@ -19,6 +29,14 @@
 * [RealmApp] Reduced native memory usage when working with synchronized Realms.
 * [RealmApp] Make it possible to bundle synchronized Realms in apps using `Realm.writeCopyTo()` and `SyncConfiguration.Builder.assetFile()`.
 * The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
+* [RealmApp] Introduced `SyncSession.DiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that doesn't require the Realm to be closed, but discards any unsynced data from the client. This is now the default policy if not overridden.
+
+### Deprecated
+* [RealmApp] `SyncSession.ClientResetHandler()`. Use `SyncSession.ManuallyRecoverUnsyncedChangesStrategy()` instead.
+* [RealmApp] `AppConfiguration.Builder.defaultClientResetHandler()`. Use `AppConfiguration.Builder.setDefaultSyncClientResetStrategy()` instead.
+* [RealmApp] `AppConfiguration.getDefaultClientResetHandler()`. Use `AppConfiguration.getDefaultSyncClientResetStrategy()` instead.
+* [RealmApp] `SyncConfiguration.Builder.clientResetHandler()`. Use `SyncConfiguration.Builder.setSyncClientResetStrategy()` instead.
+* [RealmApp] `SyncConfiguration.getClientResetHandler()`. Use `SyncConfiguration.getSyncClientResetStrategy()` instead.
 
 ### Fixed
 * [RealmApp] Setting `AppConfiguration.syncRootDirectory()` didn't have any effect beside creating the new folder. Realms were still placed in the default location. 

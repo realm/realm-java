@@ -20,9 +20,9 @@ import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
-
 
 /**
  * Class acting as an mediator between the basic Realm APIs and the Object Server APIs.
@@ -30,7 +30,15 @@ import io.realm.exceptions.RealmException;
  */
 public class ObjectServerFacade {
 
-    public static final int SYNC_CONFIG_OPTIONS = 15;
+    public interface RealmCacheAccessor {
+        Realm createRealmOrGetFromCache(RealmConfiguration configuration, OsSharedRealm.VersionID versionID);
+    }
+
+    public interface RealmInstanceFactory {
+        Realm createInstance(OsSharedRealm sharedRealm);
+    }
+
+    public static final int SYNC_CONFIG_OPTIONS = 17;
 
     private static final ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
     private static ObjectServerFacade syncFacade = null;
@@ -57,7 +65,7 @@ public class ObjectServerFacade {
     /**
      * Initializes the Object Server library
      */
-    public void initialize(Context context, String userAgent) {
+    public void initialize(Context context, String userAgent, RealmCacheAccessor accessor, RealmInstanceFactory instantiator) {
     }
 
     /**
@@ -121,4 +129,11 @@ public class ObjectServerFacade {
         // Do nothing
     }
 
+    public void checkFlexibleSyncEnabled(RealmConfiguration configuration) {
+        // Do nothing
+    }
+
+    public void downloadInitialFlexibleSyncData(Realm realm, RealmConfiguration configuration) {
+        // Do nothing
+    }
 }

@@ -29,7 +29,13 @@ import io.realm.mongodb.sync.testSessionStopPolicy
  * test ends.
  */
 class TestSyncConfigurationFactory : TestRealmConfigurationFactory() {
-    fun createSyncConfigurationBuilder(user: User?): SyncConfiguration.Builder {
+
+    fun createFlexibleSyncConfigurationBuilder(user: User): SyncConfiguration.Builder {
+        return SyncConfiguration.Builder(user)
+            .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
+    }
+
+    fun createSyncConfigurationBuilder(user: User): SyncConfiguration.Builder {
         return SyncConfiguration.Builder(user, "default")
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
     }
