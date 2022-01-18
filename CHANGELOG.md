@@ -1,4 +1,4 @@
-## 10.10.0 (YYYY-MM-DD)
+## 10.10.0 (2022-01-18)
 
 ### Enhancements
 * [RealmApp] Add support for a new mode for synchronized realms: Flexible Sync that only synchronizes selective parts of the backend data. The following classes have been added to support this: `Subscription`, `SubscriptionSet` and `MutableSubscriptionSet`. This mode and all APIs are marked as Beta.
