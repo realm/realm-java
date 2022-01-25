@@ -124,6 +124,8 @@ class MutableSubscriptionSetTests {
             mutableSubs.add(Subscription.create(realm.where<FlexSyncColor>().equalTo("section", 10L)))
             mutableSubs.add(Subscription.create(realm.where<FlexSyncColor>().equalTo("section", 5L)))
             mutableSubs.add(Subscription.create(realm.where<FlexSyncColor>().equalTo("section", 1L)))
+        }.also { subscriptionSet ->
+            assertEquals(4, subscriptionSet.count())
         }
     }
 
