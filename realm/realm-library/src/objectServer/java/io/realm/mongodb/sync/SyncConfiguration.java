@@ -729,11 +729,11 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * FIXME: Make public once https://github.com/realm/realm-object-store/pull/1049 is merged.
-         *
          * Sets the filename for the Realm file on this device.
+         *
+         * @param filename name for the Realm file.
          */
-        Builder name(String filename) {
+        public Builder name(String filename) {
             //noinspection ConstantConditions
             if (filename == null || filename.isEmpty()) {
                 throw new IllegalArgumentException("A non-empty filename must be provided");

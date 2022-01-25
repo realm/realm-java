@@ -1,10 +1,10 @@
 ## 10.10.1 (YYYY-MM-DD)
 
 ### Enhancements
-* None.
+* [RealmApp] Add support for setting the filename on Flexible and Partition Sync configurations.
 
 ### Fixed
-* [RealmApp]  Creating multiple anonymous subscriptions for a Realm would throw an exception.
+* [RealmApp] Creating multiple anonymous subscriptions for a Realm would throw an exception.
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
