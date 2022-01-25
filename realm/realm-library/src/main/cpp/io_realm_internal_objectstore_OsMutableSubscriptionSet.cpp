@@ -45,7 +45,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsMutableSubscription
         auto subscriptions = reinterpret_cast<sync::MutableSubscriptionSet*>(j_subscription_set_ptr);
         JStringAccessor name(env, j_name);
         auto query = reinterpret_cast<Query*>(j_query);
-        std::pair<sync::SubscriptionSet::iterator, bool> result = subscriptions->insert_or_assign(name, *query);
+        std::pair<sync::SubscriptionSet::iterator, bool> result = name.is_null() ? subscriptions->insert_or_assign(*query) : subscriptions->insert_or_assign(name, *query);
+
         if (j_throw_on_update && !result.second) {
             ThrowException(env, ExceptionKind::IllegalArgument, "Subscription could not be added because it already existed");
             return -1;
