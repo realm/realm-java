@@ -118,6 +118,16 @@ class MutableSubscriptionSetTests {
     }
 
     @Test
+    fun add_multiple_anonymous() {
+        realm.subscriptions.update { mutableSubs ->
+            mutableSubs.add(Subscription.create(realm.where<FlexSyncColor>()))
+            mutableSubs.add(Subscription.create(realm.where<FlexSyncColor>().equalTo("section", 10L)))
+            mutableSubs.add(Subscription.create(realm.where<FlexSyncColor>().equalTo("section", 5L)))
+            mutableSubs.add(Subscription.create(realm.where<FlexSyncColor>().equalTo("section", 1L)))
+        }
+    }
+
+    @Test
     fun addExistingAnonymous_throws() {
         realm.subscriptions.update { mutableSubs ->
             mutableSubs.add(Subscription.create(realm.where<FlexSyncColor>()))
