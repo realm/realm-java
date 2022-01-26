@@ -1,4 +1,4 @@
-## 10.10.1 (YYYY-MM-DD)
+## 10.10.1 (2022-01-26)
 
 ### Enhancements
 * [RealmApp] Add support for setting the filename on Flexible and Partition Sync configurations.
