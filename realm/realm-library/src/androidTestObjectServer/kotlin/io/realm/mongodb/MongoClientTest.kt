@@ -684,7 +684,6 @@ class MongoClientTest {
         }
     }
 
-    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndUpdate_emptyCollection() {
         with(getCollectionInternal()) {
@@ -693,7 +692,6 @@ class MongoClientTest {
         }
     }
 
-    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndUpdate_noUpdates() {
         with(getCollectionInternal()) {
@@ -702,7 +700,6 @@ class MongoClientTest {
         }
     }
 
-    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndUpdate_noUpsert() {
         with(getCollectionInternal()) {
@@ -848,7 +845,6 @@ class MongoClientTest {
         }
     }
 
-    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndReplace_noUpdates() {
         with(getCollectionInternal()) {
@@ -860,7 +856,6 @@ class MongoClientTest {
         }
     }
 
-    @Ignore("https://github.com/realm/realm-java/issues/7238")
     @Test
     fun findOneAndReplace_noUpsert() {
         with(getCollectionInternal()) {

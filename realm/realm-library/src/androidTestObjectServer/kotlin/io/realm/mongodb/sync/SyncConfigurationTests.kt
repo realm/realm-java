@@ -711,4 +711,13 @@ class SyncConfigurationTests {
             .inMemory()
         assertFailsWith<IllegalStateException> { builder.assetFile("foo.bar") }
     }
+
+    @Test
+    fun overrideDefaultPath() {
+        val user: User = createTestUser(app)
+        val config: SyncConfiguration = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+            .name("custom.realm")
+            .build()
+        assertTrue("Path is: ${config.path}", config.path.endsWith("${app.configuration.appId}/${user.id}/custom.realm"))
+    }
 }

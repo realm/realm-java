@@ -158,4 +158,13 @@ class FlexibleSyncConfigurationTests {
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
         assertTrue(config.syncClientResetStrategy is ManuallyRecoverUnsyncedChangesStrategy)
     }
+
+    @Test
+    fun overrideDefaultPath() {
+        val user: User = createTestUser(app)
+        val config: SyncConfiguration = SyncConfiguration.Builder(user)
+            .name("custom.realm")
+            .build()
+        assertTrue("Path is: ${config.path}", config.path.endsWith("${app.configuration.appId}/${user.id}/custom.realm"))
+    }
 }

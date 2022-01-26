@@ -1,3 +1,21 @@
+## 10.10.1 (2022-01-26)
+
+### Enhancements
+* [RealmApp] Add support for setting the filename on Flexible and Partition Sync configurations.
+
+### Fixed
+* [RealmApp] Creating multiple anonymous subscriptions for a Realm would throw an exception.
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Android Gradle Plugin 7.1.0
+* Updated to Gradle 7.3.3.
+
+
 ## 10.10.0 (2022-01-18)
 
 ### Enhancements
