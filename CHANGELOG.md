@@ -12,7 +12,8 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None.
+* Updated to Android Gradle Plugin 7.1.0
+* Updated to Gradle 7.3.3.
 
 
 ## 10.10.0 (2022-01-18)
