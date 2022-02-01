@@ -2587,7 +2587,7 @@ public class RealmQuery<E> {
 
         fieldNames[0] = firstFieldName;
         for (int i = 0; i < remainingFieldNames.length; i++) {
-            fieldNames[1 + i] = remainingFieldNames[0];
+            fieldNames[1 + i] = remainingFieldNames[i];
         }
 
         this.query.distinct(realm.getSchema().getKeyPathMapping(), fieldNames);
