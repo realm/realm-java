@@ -298,7 +298,7 @@ public class RealmAny {
      * If the value is not null the type will be {@link RealmAny.Type#UUID}, {@link RealmAny.Type#NULL} otherwise.
      *
      * @param value the RealmAny value.
-     * @return a new RealmAny of an UUID.
+     * @return a new RealmAny of a UUID.
      */
     public static RealmAny valueOf(@Nullable UUID value) {
         return new RealmAny((value == null) ? new NullRealmAnyOperator() : new UUIDRealmAnyOperator(value));

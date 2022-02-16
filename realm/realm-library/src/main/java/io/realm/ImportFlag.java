@@ -30,12 +30,12 @@ public enum ImportFlag {
      * value as the value already present in the Realm.
      * <p>
      * For local Realms this only has an impact on change listeners which will not report changes to
-     * those fields that was not written.
+     * those fields that were not written.
      * <p>
      * For synchronized Realms this also impacts the server, which will see improved performance as
-     * there is less changes to upload and merge into the server Realm.
+     * there are fewer changes to upload and merge into the server Realm.
      * <p>
-     * It also impact how the server merges changes from different devices. Realm uses a
+     * It also impacts how the server merges changes from different devices. Realm uses a
      * last-write-wins approach when merging individual fields in an object, so if a field is not
      * written it will be considered "older" than other fields modified.
      * <p>
@@ -57,7 +57,7 @@ public enum ImportFlag {
      *         becomes (Field A = 3, Field B = 2).
      *     </li>
      * </ol>
-     * This is normally the desired behaviour as the final object is the merged result of the latest
+     * This is normally the desired behavior as the final object is the merged result of the latest
      * changes from both devices, however if all the fields in an object are considered an atomic
      * unit, then this flag should not be set as it will ensure that all fields are set and thus have
      * the same "age" when data are sent to the server.

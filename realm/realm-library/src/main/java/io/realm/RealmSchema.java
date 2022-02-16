@@ -66,7 +66,7 @@ public abstract class RealmSchema {
 
     /**
      * Returns the {@link RealmObjectSchema} for a given class. If this {@link RealmSchema} is immutable, an immutable
-     * {@link RealmObjectSchema} will be returned. Otherwise, it returns an mutable {@link RealmObjectSchema}.
+     * {@link RealmObjectSchema} will be returned. Otherwise, it returns a mutable {@link RealmObjectSchema}.
      *
      * @param className name of the class
      * @return schema object for that class or {@code null} if the class doesn't exists.
