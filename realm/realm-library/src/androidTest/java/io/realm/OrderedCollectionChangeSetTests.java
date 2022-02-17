@@ -32,7 +32,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -361,7 +360,7 @@ public class OrderedCollectionChangeSetTests {
 
     @Test
     @RunTestInLooperThread
-    public void mixed_changes() {
+    public void realmAny_changes() {
         Realm realm = looperThread.getRealm();
         populateData(realm, 10);
         ChangesCheck changesCheck = new ChangesCheck() {
@@ -472,7 +471,6 @@ public class OrderedCollectionChangeSetTests {
         results.addChangeListener((collection, changeSet) -> {
             assertSame(collection, results);
             assertEquals(10, collection.size());
-            assertTrue(changeSet.isCompleteResult());
             assertEquals(OrderedCollectionChangeSet.State.INITIAL, changeSet.getState());
             assertEquals(0, changeSet.getInsertions().length);
             assertEquals(0, changeSet.getChanges().length);
@@ -497,7 +495,6 @@ public class OrderedCollectionChangeSetTests {
         results.addChangeListener((collection, changeSet) -> {
             assertSame(collection, results);
             assertEquals(11, collection.size());
-            assertTrue(changeSet.isCompleteResult());
             assertEquals(OrderedCollectionChangeSet.State.UPDATE, changeSet.getState());
             assertEquals(1, changeSet.getInsertions().length);
             looperThread.testComplete();

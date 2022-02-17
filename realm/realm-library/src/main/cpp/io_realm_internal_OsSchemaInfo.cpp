@@ -16,9 +16,9 @@
 
 #include "io_realm_internal_OsSchemaInfo.h"
 
-#include <schema.hpp>
-#include <object_schema.hpp>
-#include <property.hpp>
+#include <realm/object-store/schema.hpp>
+#include <realm/object-store/object_schema.hpp>
+#include <realm/object-store/property.hpp>
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
 #include "util.hpp"
@@ -31,14 +31,12 @@ using namespace realm::_impl;
 
 static void finalize_schema(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<Schema*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeCreateFromList(JNIEnv* env, jclass,
                                                                                  jlongArray objectSchemaPtrs_)
 {
-    TR_ENTER()
     try {
         std::vector<ObjectSchema> object_schemas;
         JLongArrayAccessor array(env, objectSchemaPtrs_);
@@ -54,7 +52,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeCreateFromList
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_schema);
 }
 
@@ -62,8 +59,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsSchemaInfo_nativeGetObjectSchem
                                                                                       jlong native_ptr,
                                                                                       jstring j_class_name)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         JStringAccessor class_name_accessor(env, j_class_name);
         StringData class_name(class_name_accessor);

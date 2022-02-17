@@ -68,7 +68,7 @@ import java.lang.annotation.Target;
  *     <li>The annotated field must be `final`.</li>
  *     <li>The annotation argument (the name of the backlinked field) is required.</li>
  *     <li>The annotation argument must be a simple field name.  It cannot contain periods ('.').</li>
- *     <li>The annotated field must be of type `RealmResults&gt;T&lt;` where T is concrete class that extends `RealmModel`.</li>
+ *     <li>The annotated field must be of type `RealmResults&lt;T&gt;` where T is concrete class that extends `RealmModel`.</li>
  * </ul>
  *
  * Note that when the source of the reverse reference (`dog` in the case above) is a `List`, there is a reverse
@@ -94,7 +94,7 @@ import java.lang.annotation.Target;
  * <p>
  * Querying inverse relationship is like querying any {@code RealmResults}. This means that an inverse relationship
  * cannot be {@code null} but it can be empty (length is 0). It is possible to query fields in the source class. This is
- * equivalent to link queries. Please read <a href="https://realm.io/docs/java/latest/#link-queries">for more
+ * equivalent to link queries. Please read <a href="https://docs.mongodb.com/realm/sdk/android/examples/define-a-realm-object-model/#std-label-android-field-relationships-inverse">for more
  * information</a>.
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -32,7 +32,6 @@ import java.util.List;
 import io.realm.ManagedRealmListForValueTests.ListType;
 import io.realm.entities.NullTypes;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.ManagedRealmListForValueTests.ListType.BINARY_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.BOOLEAN_LIST;
@@ -52,7 +51,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-
 
 /**
  * Unit tests specific for RealmList with value elements.

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.internal.ColumnInfo;
@@ -48,7 +49,7 @@ import io.realm.internal.Util;
 public class FilterableMediator extends RealmProxyMediator {
 
     private final RealmProxyMediator originalMediator;
-    private final Set<Class<? extends RealmModel>> allowedClasses;
+    private final Set<Class<? extends RealmModel>> classes;
 
     /**
      * Creates a filterable {@link RealmProxyMediator}.
@@ -57,28 +58,47 @@ public class FilterableMediator extends RealmProxyMediator {
      * @param allowedClasses the subset of classes from original mediator to allow.
      */
     public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmModel>> allowedClasses) {
+        this(originalMediator, allowedClasses, false);
+    }
+
+    /**
+     * Creates a filterable {@link RealmProxyMediator}.
+     *
+     * @param originalMediator the original auto generated mediator.
+     * @param classes the subset of classes from original mediator.
+     * @param exclude sets to exclude the classes from the original mediator schema.
+     */
+    public FilterableMediator(RealmProxyMediator originalMediator, Collection<Class<? extends RealmModel>> classes, boolean exclude) {
         this.originalMediator = originalMediator;
 
         Set<Class<? extends RealmModel>> tempAllowedClasses = new HashSet<>();
         //noinspection ConstantConditions
         if (originalMediator != null) {
             Set<Class<? extends RealmModel>> originalClasses = originalMediator.getModelClasses();
-            for (Class<? extends RealmModel> clazz : allowedClasses) {
-                if (originalClasses.contains(clazz)) {
-                    tempAllowedClasses.add(clazz);
+            if (!exclude) {
+                for (Class<? extends RealmModel> clazz : classes) {
+                    if (originalClasses.contains(clazz)) {
+                        tempAllowedClasses.add(clazz);
+                    }
+                }
+            } else {
+                for (Class<? extends RealmModel> clazz : originalClasses) {
+                    if (!classes.contains(clazz)) {
+                        tempAllowedClasses.add(clazz);
+                    }
                 }
             }
         }
-        this.allowedClasses = Collections.unmodifiableSet(tempAllowedClasses);
+
+        this.classes = Collections.unmodifiableSet(tempAllowedClasses);
     }
 
     @Override
     public Map<Class<? extends RealmModel>, OsObjectSchemaInfo> getExpectedObjectSchemaInfoMap() {
-        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
-                new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
+        Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap = new HashMap<>();
         for (Map.Entry<Class<? extends RealmModel>, OsObjectSchemaInfo> entry :
                 originalMediator.getExpectedObjectSchemaInfoMap().entrySet()) {
-            if (allowedClasses.contains(entry.getKey())) {
+            if (classes.contains(entry.getKey())) {
                 infoMap.put(entry.getKey(), entry.getValue());
             }
         }
@@ -98,6 +118,16 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
+    protected <T extends RealmModel> Class<T> getClazzImpl(String className) {
+        return originalMediator.getClazz(className);
+    }
+
+    @Override
+    protected boolean hasPrimaryKeyImpl(Class<? extends RealmModel> clazz) {
+        return originalMediator.hasPrimaryKey(clazz);
+    }
+
+    @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz,
             Object baseRealm,
             Row row,
@@ -110,19 +140,19 @@ public class FilterableMediator extends RealmProxyMediator {
 
     @Override
     public Set<Class<? extends RealmModel>> getModelClasses() {
-        return allowedClasses;
+        return classes;
     }
 
     @Override
-    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
+    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        return originalMediator.copyOrUpdate(realm, object, update, cache);
+        return originalMediator.copyOrUpdate(realm, object, update, cache, flags);
     }
 
     @Override
-    public void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public long insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        originalMediator.insert(realm, object, cache);
+        return originalMediator.insert(realm, object, cache);
     }
 
     @Override
@@ -132,9 +162,9 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public long insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         checkSchemaHasClass(Util.getOriginalModelClass(object.getClass()));
-        originalMediator.insertOrUpdate(realm, object, cache);
+        return originalMediator.insertOrUpdate(realm, object, cache);
     }
 
     @Override
@@ -162,6 +192,18 @@ public class FilterableMediator extends RealmProxyMediator {
     }
 
     @Override
+    public <E extends RealmModel> boolean isEmbedded(Class<E> clazz) {
+        checkSchemaHasClass(Util.getOriginalModelClass(clazz));
+        return originalMediator.isEmbedded(clazz);
+    }
+
+    @Override
+    public <E extends RealmModel> void updateEmbeddedObject(Realm realm, E unmanagedObject, E managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        checkSchemaHasClass(Util.getOriginalModelClass(managedObject.getClass()));
+        originalMediator.updateEmbeddedObject(realm, unmanagedObject, managedObject, cache, flags);
+    }
+
+    @Override
     public boolean transformerApplied() {
         //noinspection SimplifiableIfStatement
         if (originalMediator == null) {
@@ -172,7 +214,7 @@ public class FilterableMediator extends RealmProxyMediator {
 
     // Validates if a model class (not RealmProxy) is part of this Schema.
     private void checkSchemaHasClass(Class<? extends RealmModel> clazz) {
-        if (!allowedClasses.contains(clazz)) {
+        if (!classes.contains(clazz)) {
             throw new IllegalArgumentException(clazz.getSimpleName() + " is not part of the schema for this Realm");
         }
     }

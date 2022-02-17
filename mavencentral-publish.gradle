@@ -1,0 +1,23 @@
+// This script is responsible for setting up the configuration required to publish to Maven Central.
+// Setting up POM files and signing artifacts are done in `mavencentral-publications.gradle`. They
+// are separate as the nexus publish plugin used to publish to Maven Central be only applied to top
+// level projects.
+apply plugin: 'io.github.gradle-nexus.publish-plugin'
+apply from: buildscript.sourceFile.getParent() + "/" + "mavencentral-properties.gradle"
+
+nexusPublishing {
+    packageGroup = "io.realm"
+    repositories {
+        sonatype {
+            stagingProfileId = rootProject.ext["sonatypeStagingProfileId"]
+            username = rootProject.ext["ossrhUsername"]
+            password = rootProject.ext["ossrhPassword"]
+        }
+    }
+    // Repository transitions seems, at times, to be really slow.
+    // This sets the timeout to 20 minutes
+    transitionCheckOptions {
+        maxRetries.set(120)
+        delayBetween.set(java.time.Duration.ofMillis(10000))
+    }
+}

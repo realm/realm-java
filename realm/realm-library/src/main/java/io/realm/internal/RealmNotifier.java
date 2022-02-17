@@ -50,7 +50,7 @@ public abstract class RealmNotifier implements Closeable {
 // |-------------------------------+--------------+-----------------------------------|
 
     private static class RealmObserverPair<T> extends ObserverPairList.ObserverPair<T, RealmChangeListener<T>> {
-        public RealmObserverPair(T observer, RealmChangeListener<T> listener) {
+        RealmObserverPair(T observer, RealmChangeListener<T> listener) {
             super(observer, listener);
         }
 

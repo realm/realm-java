@@ -16,7 +16,7 @@
 
 package io.realm.internal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,5 +37,17 @@ public class JNINativeTest {
                 assertEquals("Exception kind: " + i, expect, throwable.toString());
             }
         }
+    }
+
+    @Test
+    public void clampMaxTimestamps() {
+        assertEquals(Long.MAX_VALUE, TestUtil.getDateFromTimestamp(Long.MAX_VALUE, 999999999));
+        assertEquals(Long.MAX_VALUE, TestUtil.getDateFromTimestamp((Long.MAX_VALUE / 1000) + 1, 0)); // 1 second above MAX in milliseconds
+    }
+
+    @Test
+    public void clampMinTimestamps() {
+        assertEquals(Long.MIN_VALUE, TestUtil.getDateFromTimestamp(Long.MIN_VALUE, -999999999));
+        assertEquals(Long.MIN_VALUE, TestUtil.getDateFromTimestamp((Long.MIN_VALUE / 1000) - 1, 0)); // 1 second below MIN in milliseconds
     }
 }

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.exceptions.RealmException;
@@ -100,6 +101,18 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
+    protected <T extends RealmModel> Class<T> getClazzImpl(String className) {
+        RealmProxyMediator mediator = getMediator(className);
+        return mediator.getClazz(className);
+    }
+
+    @Override
+    protected boolean hasPrimaryKeyImpl(Class<? extends RealmModel> clazz) {
+        RealmProxyMediator mediator = getMediator(clazz);
+        return mediator.hasPrimaryKey(clazz);
+    }
+
+    @Override
     public <E extends RealmModel> E newInstance(Class<E> clazz,
             Object baseRealm,
             Row row,
@@ -116,15 +129,15 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache) {
+    public <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        return mediator.copyOrUpdate(realm, object, update, cache);
+        return mediator.copyOrUpdate(realm, object, update, cache, flags);
     }
 
     @Override
-    public void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public long insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        mediator.insert(realm, object, cache);
+        return mediator.insert(realm, object, cache);
     }
 
     @Override
@@ -134,9 +147,9 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
-    public void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
+    public long insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache) {
         RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(object.getClass()));
-        mediator.insertOrUpdate(realm, object, cache);
+        return mediator.insertOrUpdate(realm, object, cache);
     }
 
     @Override
@@ -164,6 +177,18 @@ public class CompositeMediator extends RealmProxyMediator {
     }
 
     @Override
+    public <E extends RealmModel> boolean isEmbedded(Class<E> clazz) {
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(clazz));
+        return mediator.isEmbedded(clazz);
+    }
+
+    @Override
+    public <E extends RealmModel> void updateEmbeddedObject(Realm realm, E unmanagedObject, E managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags) {
+        RealmProxyMediator mediator = getMediator(Util.getOriginalModelClass(managedObject.getClass()));
+        mediator.updateEmbeddedObject(realm, unmanagedObject, managedObject, cache, flags);
+    }
+
+    @Override
     public boolean transformerApplied() {
         for (Map.Entry<Class<? extends RealmModel>, RealmProxyMediator> entry : mediators.entrySet()) {
             if (!entry.getValue().transformerApplied()) {
@@ -180,5 +205,11 @@ public class CompositeMediator extends RealmProxyMediator {
             throw new RealmException(clazz.getSimpleName() + " is not part of the schema for this Realm");
         }
         return mediator;
+    }
+
+    // Returns the mediator for a given model class (not RealmProxy) or throws exception
+    private RealmProxyMediator getMediator(String className) {
+        Class<? extends RealmModel> clazz = internalClassNames.get(className);
+        return getMediator(clazz);
     }
 }

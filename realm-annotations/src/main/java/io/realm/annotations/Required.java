@@ -21,20 +21,25 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation will mark the field or the element of a primitive {@link io.realm.RealmList} as not nullable.
+ * This annotation will mark the field or the element in {@code io.realm.RealmList} as not nullable.
  * <p>
  * When a field of type {@code Boolean, Byte, Short, Integer, Long, Float, Double, String, byte[], Date} is annotated
- * with {@link Required}, it cannot be set to {@code null}.
+ * with {@link Required}, it cannot be set to {@code null} and Realm will throw an exception if it happens.
  * <p>
- * Fields with primitive types are implicitly required.
+ * Fields with primitive types are implicitly required. Note, {@code String} is not a primitive type, so in Java
+ * it is default nullable unless it is marked {@code \@Required}. In Kotlin the reverse is true, so a {@code String} is
+ * non-null. To specify a nullable String in Kotlin you should use {@code String?}.
  * <p>
- * When a primitive {@link io.realm.RealmList} ({@code RealmList<String>, RealmList<byte[]>, RealmList<Boolean>,
- * RealmList<Byte>, RealmList<Short>, RealmList<Integer>, RealmList<Long>, RealmList<Float>, RealmList<Double>,
- * RealmList<Date>}) is annotated with {@link Required}, it cannot contain {@code null} values.
+ * If this annotation is used on a {@code RealmList}, the annotation is applied to the elements inside
+ * the list and not the list itself. The list itself is always non-null. This means that a list marked with this
+ * annotation are never allowed to hold {@code null} values even if the datatype would otherwise allow it.
+ * Realm will throw an exception if you attempt to store null values into a list marked {@code \@Required}.
  * <p>
- * The {@link io.realm.RealmList} field itself is required always.
+ * This annotation cannot be used on a {@code RealmAny}, as the inner value of a RealmAny field is always nullable.
+ * Realm will throw an exception if you attempt mark a {@code RealmAny} as {@code \@Required}.
  * <p>
- * Compiling will fail when fields with other types have {@link Required} annotation.
+ * Compiling will fail if the {@link Required} annotation is put an a {@code RealmList} containing references to other
+ * Realm objects.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

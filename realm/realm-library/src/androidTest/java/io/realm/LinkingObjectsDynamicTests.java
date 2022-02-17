@@ -16,8 +16,6 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import java.util.Locale;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
@@ -34,7 +33,6 @@ import io.realm.entities.Cat;
 import io.realm.entities.Owner;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -172,13 +170,16 @@ public class LinkingObjectsDynamicTests {
         dynamicRealm.commitTransaction();
 
         for (RealmFieldType fieldType : RealmFieldType.values()) {
+            if(fieldType == RealmFieldType.TYPED_LINK)
+                continue;
+
             try {
                 switch (fieldType) {
                     // skip valid types
                     case OBJECT: // fall-through
                     case LIST:
                         continue;
-                    // skip special case
+                        // skip special case
                     case LINKING_OBJECTS:
                         continue;
                     case INTEGER:
@@ -202,40 +203,77 @@ public class LinkingObjectsDynamicTests {
                     case DOUBLE:
                         object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE);
                         break;
+                    case DECIMAL128:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DECIMAL128);
+                        break;
+                    case OBJECT_ID:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID);
+                        break;
+                    case UUID:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID);
+                        break;
+                    case MIXED:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_REALM_ANY);
+                        break;
                     case INTEGER_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INT_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_INTEGER_LIST);
+                        break;
                     case BOOLEAN_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BOOLEAN_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BOOLEAN_LIST);
+                        break;
                     case STRING_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_STRING_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_STRING_LIST);
+                        break;
                     case BINARY_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BINARY_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_BINARY_LIST);
+                        break;
                     case DATE_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DATE_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DATE_LIST);
+                        break;
                     case FLOAT_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_FLOAT_LIST);
-                        //break;
-                        throw new IllegalArgumentException("Unexpected field type");
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_FLOAT_LIST);
+                        break;
                     case DOUBLE_LIST:
-                        // FIXME zaki50 enable this once Primitive List is implemented
-                        //object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
-                        //break;
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DOUBLE_LIST);
+                        break;
+                    case DECIMAL128_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_DECIMAL128_LIST);
+                        break;
+                    case OBJECT_ID_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_OBJECT_ID_LIST);
+                        break;
+                    case UUID_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_UUID_LIST);
+                        break;
+                    case MIXED_LIST:
+                        object.linkingObjects(AllJavaTypes.CLASS_NAME, AllJavaTypes.FIELD_REALM_ANY_LIST);
+                        break;
+                    case STRING_TO_MIXED_MAP:
+                    case STRING_TO_BOOLEAN_MAP:
+                    case STRING_TO_STRING_MAP:
+                    case STRING_TO_INTEGER_MAP:
+                    case STRING_TO_FLOAT_MAP:
+                    case STRING_TO_DOUBLE_MAP:
+                    case STRING_TO_BINARY_MAP:
+                    case STRING_TO_DATE_MAP:
+                    case STRING_TO_OBJECT_ID_MAP:
+                    case STRING_TO_UUID_MAP:
+                    case STRING_TO_DECIMAL128_MAP:
+                    case STRING_TO_LINK_MAP:
+                    case BOOLEAN_SET:
+                    case STRING_SET:
+                    case INTEGER_SET:
+                    case FLOAT_SET:
+                    case DOUBLE_SET:
+                    case BINARY_SET:
+                    case DATE_SET:
+                    case DECIMAL128_SET:
+                    case OBJECT_ID_SET:
+                    case UUID_SET:
+                    case LINK_SET:
+                    case MIXED_SET:
+                        // TODO: https://github.com/realm/realm-java/issues/7382
+                        // TODO: https://github.com/realm/realm-java/issues/7383
                         throw new IllegalArgumentException("Unexpected field type");
                     default:
                         fail("unknown type: " + fieldType);
@@ -248,7 +286,7 @@ public class LinkingObjectsDynamicTests {
         }
 
         // Linking Object fields are implicit and do not exist.
-        for (String field : new String[] {AllJavaTypes.FIELD_LO_OBJECT, AllJavaTypes.FIELD_LO_LIST}) {
+        for (String field : new String[]{AllJavaTypes.FIELD_LO_OBJECT, AllJavaTypes.FIELD_LO_LIST}) {
             try {
                 object.linkingObjects(AllJavaTypes.CLASS_NAME, field);
                 fail();
@@ -290,6 +328,8 @@ public class LinkingObjectsDynamicTests {
                 target3.setId(3);
             }
         });
+
+        dynamicRealm.refresh();
 
         final DynamicRealmObject target1 = dynamicRealm.where(BacklinksTarget.CLASS_NAME).equalTo(BacklinksTarget.FIELD_ID, 1).findFirst();
         final RealmResults<DynamicRealmObject> target1Sources = target1.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
@@ -350,6 +390,8 @@ public class LinkingObjectsDynamicTests {
             }
         });
 
+        dynamicRealm.refresh();
+
         final DynamicRealmObject cat1 = dynamicRealm.where(Cat.CLASS_NAME).equalTo(Cat.FIELD_NAME, "cat1").findFirst();
         final RealmResults<DynamicRealmObject> cat1Owners = cat1.linkingObjects(Owner.CLASS_NAME, Owner.FIELD_CAT);
         assertNotNull(cat1Owners);
@@ -401,6 +443,8 @@ public class LinkingObjectsDynamicTests {
                 source200.getFieldList().add(target2);
             }
         });
+
+        dynamicRealm.refresh();
 
         final DynamicRealmObject target1 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 1L).findFirst();
         final DynamicRealmObject target2 = dynamicRealm.where(AllJavaTypes.CLASS_NAME).equalTo(AllJavaTypes.FIELD_ID, 2L).findFirst();
@@ -475,17 +519,18 @@ public class LinkingObjectsDynamicTests {
         });
 
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
-        try {
-            final DynamicRealmObject targetAsync = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
-                    .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
-            // precondition
-            assertFalse(targetAsync.isLoaded());
+        looperThread.closeAfterTest(dynamicRealm);
+        final DynamicRealmObject targetAsync = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirstAsync();
+        // precondition
+        assertFalse(targetAsync.isLoaded());
 
-            thrown.expect(IllegalStateException.class);
+        try {
             targetAsync.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
-        } finally {
-            dynamicRealm.close();
+            fail();
+        } catch (IllegalStateException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
@@ -505,30 +550,31 @@ public class LinkingObjectsDynamicTests {
         });
 
         final DynamicRealm dynamicRealm = DynamicRealm.getInstance(looperThread.getConfiguration());
+        looperThread.closeAfterTest(dynamicRealm);
+        final DynamicRealmObject target = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
+                .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
+
+        dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                target.deleteFromRealm();
+            }
+        });
+
+        // precondition
+        assertFalse(target.isValid());
+
         try {
-            final DynamicRealmObject target = dynamicRealm.where(BacklinksTarget.CLASS_NAME)
-                    .equalTo(BacklinksTarget.FIELD_ID, 1L).findFirst();
-
-            dynamicRealm.executeTransaction(new DynamicRealm.Transaction() {
-                @Override
-                public void execute(DynamicRealm realm) {
-                    target.deleteFromRealm();
-                }
-            });
-
-            // precondition
-            assertFalse(target.isValid());
-
-            thrown.expect(IllegalStateException.class);
             target.linkingObjects(BacklinksSource.CLASS_NAME, BacklinksSource.FIELD_CHILD);
-        } finally {
-            dynamicRealm.close();
+            fail();
+        } catch (IllegalStateException ignored) {
         }
+        looperThread.testComplete();
     }
 
     @Test
     public void dynamicQuery_invalidSyntax() {
-        String[] invalidBacklinks = new String[] {
+        String[] invalidBacklinks = new String[]{
                 "linkingObject(x",
                 "linkingObject(x.y",
                 "linkingObject(x.y)",

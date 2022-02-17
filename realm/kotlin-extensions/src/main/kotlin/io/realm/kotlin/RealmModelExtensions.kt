@@ -44,6 +44,37 @@ fun RealmModel.isValid(): Boolean {
 }
 
 /**
+ * Returns a frozen snapshot of this object. The frozen copy can be read and queried from any thread without throwing
+ * an [IllegalStateException].
+ *
+ * Freezing a RealmModel also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
+ * original collection is fully closed (i.e. all instances across all threads are closed), the frozen Realm and
+ * object will be closed as well.
+ *
+ * Frozen objects can be queried as normal, but trying to mutate it in any way or attempting to register a listener will
+ * throw an [IllegalStateException].
+ *
+ * Note: Keeping a large number of frozen objects with different versions alive can have a negative impact on the filesize
+ * of the Realm. In order to avoid such a situation it is possible to set [io.realm.RealmConfiguration.Builder.maxNumberOfActiveVersions].
+ *
+ * @return a frozen copy of this object.
+ * @throws IllegalStateException if this method is called from inside a write transaction.
+ */
+fun <T: RealmModel> RealmModel.freeze(): T {
+    return RealmObject.freeze(this) as T
+}
+
+/**
+ * Returns whether or not this RealmModel is frozen.
+ *
+ * @return `true` if the RealmModel is frozen, `false` if it is not.
+ * @see [freeze]
+ */
+fun RealmModel.isFrozen(): Boolean {
+    return RealmObject.isFrozen(this)
+}
+
+/**
  * Checks if this object is managed by Realm. A managed object is just a wrapper around the data in the underlying
  * Realm file. On Looper threads, a managed object will be live-updated so it always points to the latest data. It
  * is possible to register a change listener using [addChangeListener] to be
@@ -210,4 +241,3 @@ fun  <E : RealmModel> E.removeChangeListener(listener: RealmObjectChangeListener
 fun RealmModel.removeAllChangeListeners() {
     return RealmObject.removeAllChangeListeners(this)
 }
-

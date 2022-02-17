@@ -18,8 +18,8 @@
 
 #include <realm/util/assert.hpp>
 
-#include <object_schema.hpp>
-#include <property.hpp>
+#include <realm/object-store/object_schema.hpp>
+#include <realm/object-store/property.hpp>
 
 #include "java_accessor.hpp"
 #include "java_exception_def.hpp"
@@ -32,18 +32,21 @@ using namespace realm::_impl;
 
 static void finalize_object_schema(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<ObjectSchema*>(ptr);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRealmObjectSchema(JNIEnv* env, jclass,
-                                                                                                jstring j_name_str)
+                                                                                                jstring j_public_class_name,
+                                                                                                jstring j_internal_class_name,
+                                                                                                jboolean j_embedded)
 {
-    TR_ENTER()
     try {
-        JStringAccessor name(env, j_name_str);
+        JStringAccessor public_name(env, j_public_class_name);
+        JStringAccessor internal_name(env, j_internal_class_name);
         ObjectSchema* object_schema = new ObjectSchema();
-        object_schema->name = name;
+        object_schema->name = internal_name;
+        object_schema->alias = public_name;
+        object_schema->is_embedded = to_bool(j_embedded);
         return reinterpret_cast<jlong>(object_schema);
     }
     CATCH_STD()
@@ -52,7 +55,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeCreateRe
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_object_schema);
 }
 
@@ -61,7 +63,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeAddProper
                                                                                      jlongArray j_persisted_properties,
                                                                                      jlongArray j_computed_properties)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         ObjectSchema& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
         JLongArrayAccessor persisted_properties(env, j_persisted_properties);
@@ -91,7 +92,6 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeAddProper
 JNIEXPORT jstring JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetClassName(JNIEnv* env, jclass,
                                                                                        jlong nativePtr)
 {
-    TR_ENTER_PTR(nativePtr)
     try {
         ObjectSchema* object_schema = reinterpret_cast<ObjectSchema*>(nativePtr);
         auto name = object_schema->name;
@@ -106,7 +106,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrope
                                                                                     jlong native_ptr,
                                                                                     jstring j_property_name)
 {
-    TR_ENTER_PTR(native_ptr)
     try {
         auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
         JStringAccessor property_name_accessor(env, j_property_name);
@@ -116,7 +115,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrope
             return reinterpret_cast<jlong>(new Property(*property));
         }
         THROW_JAVA_EXCEPTION(env, JavaExceptionDef::IllegalState,
-                             format("Property '%1' cannot be found.", property_name.data()));
+                             util::format("Property '%1' cannot be found.", property_name.data()));
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
@@ -125,8 +124,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrope
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrimaryKeyProperty(JNIEnv* env, jclass,
                                                                                               jlong native_ptr)
 {
-    TR_ENTER_PTR(native_ptr)
-
     try {
         auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
         auto* property = object_schema.primary_key_property();
@@ -136,4 +133,14 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeGetPrima
     }
     CATCH_STD()
     return reinterpret_cast<jlong>(nullptr);
+}
+
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_OsObjectSchemaInfo_nativeIsEmbedded(JNIEnv* env, jclass, jlong native_ptr)
+{
+    try {
+        auto& object_schema = *reinterpret_cast<ObjectSchema*>(native_ptr);
+        return to_jbool(object_schema.is_embedded);
+    }
+    CATCH_STD()
+    return to_jbool(false);
 }

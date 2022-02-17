@@ -16,12 +16,17 @@
 
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+
 import java.util.Date;
 
 import javax.annotation.Nullable;
 
-import io.realm.Case;
+import io.realm.RealmAny;
+import io.realm.RealmAnyNativeFunctionsImpl;
 import io.realm.Sort;
+import io.realm.internal.core.NativeRealmAny;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 import io.realm.log.RealmLog;
 
 
@@ -30,26 +35,27 @@ public class TableQuery implements NativeObject {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
-    // See documentation in that NativeContext for an explanation of how this is used
-    @SuppressWarnings("unused")
-    private final NativeContext context;
-
     private final Table table;
     private final long nativePtr;
 
-    // All actions (find(), findAll(), sum(), etc.) must call validateQuery() before performing
-    // the actual action. The other methods must set queryValidated to false in order to enforce
-    // the first action to validate the syntax of the query.
+    private final RealmAnyNativeFunctionsImpl realmAnyNativeFunctions = new RealmAnyNativeFunctionsImpl();
+
     private boolean queryValidated = true;
 
-    // TODO: Can we protect this?
-    public TableQuery(NativeContext context, Table table, long nativeQueryPtr) {
+    private static String escapeFieldName(@Nullable String fieldName) {
+        if (fieldName == null) { return null; }
+        return fieldName.replace(" ", "\\ ");
+    }
+
+    public TableQuery(NativeContext context,
+            Table table,
+            long nativeQueryPtr) {
         if (DEBUG) {
             RealmLog.debug("New TableQuery: ptr=%x", nativeQueryPtr);
         }
-        this.context = context;
         this.table = table;
         this.nativePtr = nativeQueryPtr;
+
         context.addReference(this);
     }
 
@@ -70,10 +76,10 @@ public class TableQuery implements NativeObject {
     /**
      * Checks in core if query syntax is valid. Throws exception, if not.
      */
-    void validateQuery() {
-        if (!queryValidated) { // If not yet validated, checks if syntax is valid
+    public void validateQuery() {
+        if (!queryValidated) {
             String invalidMessage = nativeValidateQuery(nativePtr);
-            if (invalidMessage.equals("")) {
+            if ("".equals(invalidMessage)) {
                 queryValidated = true; // If empty string error message, query is valid
             } else { throw new UnsupportedOperationException(invalidMessage); }
         }
@@ -81,8 +87,8 @@ public class TableQuery implements NativeObject {
 
     // Grouping
 
-    public TableQuery group() {
-        nativeGroup(nativePtr);
+    public TableQuery beginGroup() {
+        nativeBeginGroup(nativePtr);
         queryValidated = false;
         return this;
     }
@@ -105,324 +111,286 @@ public class TableQuery implements NativeObject {
         return this;
     }
 
-    // Queries for integer values.
+    public static String buildSortDescriptor(String[] fieldNames, Sort[] sortOrders) {
+        StringBuilder descriptorBuilder = new StringBuilder("SORT(");
 
-    public TableQuery equalTo(long[] columnIndexes, long[] tablePtrs, long value) {
-        nativeEqual(nativePtr, columnIndexes, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
+        String sortSeparator = "";
+        for (int i = 0; i < fieldNames.length; i++) {
+            String fieldName = fieldNames[i];
 
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, long value) {
-        nativeNotEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
+            descriptorBuilder.append(sortSeparator)
+                    .append(escapeFieldName(fieldName))
+                    .append(" ")
+                    .append((sortOrders[i] == Sort.ASCENDING) ? "ASC" : "DESC");
 
-    public TableQuery greaterThan(long[] columnIndex, long[] tablePtrs, long value) {
-        nativeGreater(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(long[] columnIndex, long[] tablePtrs, long value) {
-        nativeGreaterEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery lessThan(long[] columnIndex, long[] tablePtrs, long value) {
-        nativeLess(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(long[] columnIndex, long[] tablePtrs, long value) {
-        nativeLessEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery between(long[] columnIndex, long value1, long value2) {
-        nativeBetween(nativePtr, columnIndex, value1, value2);
-        queryValidated = false;
-        return this;
-    }
-
-    // Queries for float values.
-
-    public TableQuery equalTo(long[] columnIndex, long[] tablePtrs, float value) {
-        nativeEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, float value) {
-        nativeNotEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery greaterThan(long[] columnIndex, long[] tablePtrs, float value) {
-        nativeGreater(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(long[] columnIndex, long[] tablePtrs, float value) {
-        nativeGreaterEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery lessThan(long[] columnIndex, long[] tablePtrs, float value) {
-        nativeLess(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(long[] columnIndex, long[] tablePtrs, float value) {
-        nativeLessEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery between(long[] columnIndex, float value1, float value2) {
-        nativeBetween(nativePtr, columnIndex, value1, value2);
-        queryValidated = false;
-        return this;
-    }
-
-    // Queries for double values.
-
-    public TableQuery equalTo(long[] columnIndex, long[] tablePtrs, double value) {
-        nativeEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, double value) {
-        nativeNotEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery greaterThan(long[] columnIndex, long[] tablePtrs, double value) {
-        nativeGreater(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery greaterThanOrEqual(long[] columnIndex, long[] tablePtrs, double value) {
-        nativeGreaterEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery lessThan(long[] columnIndex, long[] tablePtrs, double value) {
-        nativeLess(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(long[] columnIndex, long[] tablePtrs, double value) {
-        nativeLessEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery between(long[] columnIndex, double value1, double value2) {
-        nativeBetween(nativePtr, columnIndex, value1, value2);
-        queryValidated = false;
-        return this;
-    }
-
-    // Query for boolean values.
-
-    public TableQuery equalTo(long[] columnIndex, long[] tablePtrs, boolean value) {
-        nativeEqual(nativePtr, columnIndex, tablePtrs, value);
-        queryValidated = false;
-        return this;
-    }
-
-    // Queries for Date values.
-
-    private static final String DATE_NULL_ERROR_MESSAGE = "Date value in query criteria must not be null.";
-
-    public TableQuery equalTo(long[] columnIndex, long[] tablePtrs, @Nullable Date value) {
-        if (value == null) {
-            nativeIsNull(nativePtr, columnIndex, tablePtrs);
-        } else {
-            nativeEqualTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
+            sortSeparator = ", ";
         }
-        queryValidated = false;
+
+        descriptorBuilder.append(")");
+
+        return descriptorBuilder.toString();
+    }
+
+    public TableQuery sort(@Nullable OsKeyPathMapping mapping, String[] fieldNames, Sort[] sortOrders) {
+        String descriptor = buildSortDescriptor(fieldNames, sortOrders);
+        rawDescriptor(mapping, descriptor);
         return this;
     }
 
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeNotEqualTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
-    }
+    public static String buildDistinctDescriptor(String[] fieldNames) {
+        StringBuilder descriptorBuilder = new StringBuilder("DISTINCT(");
 
-    public TableQuery greaterThan(long[] columnIndex, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeGreaterTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
-    }
+        String distinctSeparator = "";
+        for (String fieldName : fieldNames) {
+            descriptorBuilder.append(distinctSeparator)
+                    .append(escapeFieldName(fieldName));
 
-    public TableQuery greaterThanOrEqual(long[] columnIndex, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeGreaterEqualTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery lessThan(long[] columnIndex, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeLessTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery lessThanOrEqual(long[] columnIndex, long[] tablePtrs, Date value) {
-        //noinspection ConstantConditions
-        if (value == null) { throw new IllegalArgumentException(DATE_NULL_ERROR_MESSAGE); }
-        nativeLessEqualTimestamp(nativePtr, columnIndex, tablePtrs, value.getTime());
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery between(long[] columnIndex, Date value1, Date value2) {
-        //noinspection ConstantConditions
-        if (value1 == null || value2 == null) {
-            throw new IllegalArgumentException("Date values in query criteria must not be null."); // Different text
+            distinctSeparator = ", ";
         }
-        nativeBetweenTimestamp(nativePtr, columnIndex, value1.getTime(), value2.getTime());
+
+        descriptorBuilder.append(")");
+
+        return descriptorBuilder.toString();
+    }
+
+    public TableQuery distinct(@Nullable OsKeyPathMapping mapping, String[] fieldNames) {
+        String descriptor = buildDistinctDescriptor(fieldNames);
+        rawDescriptor(mapping, descriptor);
+        return this;
+    }
+
+    public TableQuery limit(long limit) {
+        rawDescriptor(null, "LIMIT(" + limit + ")");
+        return this;
+    }
+
+    public TableQuery isEmpty(@Nullable OsKeyPathMapping mapping, String fieldName) {
+        rawPredicateWithPointers(mapping, escapeFieldName(fieldName) + ".@count = 0");
         queryValidated = false;
         return this;
     }
 
-    // Queries for Binary values.
-
-    public TableQuery equalTo(long[] columnIndices, long[] tablePtrs, byte[] value) {
-        nativeEqual(nativePtr, columnIndices, tablePtrs, value);
+    public TableQuery isNotEmpty(@Nullable OsKeyPathMapping mapping, String fieldName) {
+        rawPredicateWithPointers(mapping, escapeFieldName(fieldName) + ".@count != 0");
         queryValidated = false;
         return this;
     }
 
-    public TableQuery notEqualTo(long[] columnIndices, long[] tablePtrs, byte[] value) {
-        nativeNotEqual(nativePtr, columnIndices, tablePtrs, value);
+    public TableQuery rawPredicate(@Nullable OsKeyPathMapping mapping, String predicate, RealmAny... args) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, predicate, args);
+        return this;
+    }
+
+    public void rawPredicateWithPointers(@Nullable OsKeyPathMapping mapping, String predicate, long... values) {
+        nativeRawPredicate(nativePtr,
+                predicate,
+                values,
+                (mapping != null) ? mapping.getNativePtr() : 0);
+    }
+
+    private void rawDescriptor(@Nullable OsKeyPathMapping mapping, String descriptor) {
+        nativeRawDescriptor(nativePtr,
+                descriptor,
+                (mapping != null) ? mapping.getNativePtr() : 0);
+    }
+
+    public TableQuery equalTo(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " = $0", value);
         queryValidated = false;
         return this;
     }
 
-    // Equals
-    public TableQuery equalTo(long[] columnIndexes, long[] tablePtrs, @Nullable String value, Case caseSensitive) {
-        nativeEqual(nativePtr, columnIndexes, tablePtrs, value, caseSensitive.getValue());
+    public TableQuery notEqualTo(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " != $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery equalTo(long[] columnIndexes, long[] tablePtrs, String value) {
-        nativeEqual(nativePtr, columnIndexes, tablePtrs, value, true);
+    public TableQuery equalToInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " =[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    // Not Equals
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, @Nullable String value, Case caseSensitive) {
-        nativeNotEqual(nativePtr, columnIndex, tablePtrs, value, caseSensitive.getValue());
+    public TableQuery notEqualToInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " !=[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery notEqualTo(long[] columnIndex, long[] tablePtrs, @Nullable String value) {
-        nativeNotEqual(nativePtr, columnIndex, tablePtrs, value, true);
+    public TableQuery greaterThan(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " > $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery beginsWith(long[] columnIndices, long[] tablePtrs, String value, Case caseSensitive) {
-        nativeBeginsWith(nativePtr, columnIndices, tablePtrs, value, caseSensitive.getValue());
+    public TableQuery greaterThanOrEqual(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " >= $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery beginsWith(long[] columnIndices, long[] tablePtrs, String value) {
-        nativeBeginsWith(nativePtr, columnIndices, tablePtrs, value, true);
+    public TableQuery lessThan(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " < $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery endsWith(long[] columnIndices, long[] tablePtrs, String value, Case caseSensitive) {
-        nativeEndsWith(nativePtr, columnIndices, tablePtrs, value, caseSensitive.getValue());
+    public TableQuery lessThanOrEqual(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " <= $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery endsWith(long[] columnIndices, long[] tablePtrs, String value) {
-        nativeEndsWith(nativePtr, columnIndices, tablePtrs, value, true);
+    public TableQuery between(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value1, RealmAny value2) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, "(" + escapeFieldName(fieldName) + " >= $0 AND " + escapeFieldName(fieldName) + " <= $1)", value1, value2);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery like(long[] columnIndices, long[] tablePtrs, String value, Case caseSensitive) {
-        nativeLike(nativePtr, columnIndices, tablePtrs, value, caseSensitive.getValue());
+    public TableQuery beginsWith(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " BEGINSWITH $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery like(long[] columnIndices, long[] tablePtrs, String value) {
-        nativeLike(nativePtr, columnIndices, tablePtrs, value, true);
+    public TableQuery beginsWithInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " BEGINSWITH[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery contains(long[] columnIndices, long[] tablePtrs, String value, Case caseSensitive) {
-        nativeContains(nativePtr, columnIndices, tablePtrs, value, caseSensitive.getValue());
+    public TableQuery endsWith(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " ENDSWITH $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery contains(long[] columnIndices, long[] tablePtrs, String value) {
-        nativeContains(nativePtr, columnIndices, tablePtrs, value, true);
+    public TableQuery endsWithInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " ENDSWITH[c] $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery isEmpty(long[] columnIndices, long[] tablePtrs) {
-        nativeIsEmpty(nativePtr, columnIndices, tablePtrs);
+    public TableQuery like(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " LIKE $0", value);
         queryValidated = false;
         return this;
     }
 
-    public TableQuery isNotEmpty(long[] columnIndices, long[] tablePtrs) {
-        nativeIsNotEmpty(nativePtr, columnIndices, tablePtrs);
+    public TableQuery likeInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " LIKE[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery contains(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + " CONTAINS[c] $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    // Dictionary queries
+
+    public TableQuery containsKey(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny key) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@keys == $0", key);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsValue(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, "ANY " + escapeFieldName(fieldName) + ".@values == $0", value);
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery containsEntry(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny key, RealmAny value) {
+        realmAnyNativeFunctions.callRawPredicate(this, mapping, escapeFieldName(fieldName) + "[$0] == $1", key, value);
+        queryValidated = false;
+        return this;
+    }
+
+    // isNull and isNotNull
+    public TableQuery isNull(@Nullable OsKeyPathMapping mapping, String fieldName) {
+        rawPredicateWithPointers(mapping, escapeFieldName(fieldName) + " = NULL");
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery isNotNull(@Nullable OsKeyPathMapping mapping, String fieldName) {
+        rawPredicateWithPointers(mapping, escapeFieldName(fieldName) + " != NULL");
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery alwaysTrue() {
+        rawPredicateWithPointers(null, "TRUEPREDICATE");
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery alwaysFalse() {
+        rawPredicateWithPointers(null, "FALSEPREDICATE");
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery in(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny[] values) {
+        fieldName = escapeFieldName(fieldName);
+
+        beginGroup();
+
+        boolean first = true;
+        for (RealmAny value : values) {
+            if (!first) { or(); }
+            if (value == null) {
+                isNull(mapping, fieldName);
+            } else {
+                equalTo(mapping, fieldName, value);
+            }
+            first = false;
+        }
+        endGroup();
+
+        queryValidated = false;
+        return this;
+    }
+
+    public TableQuery inInsensitive(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny[] values) {
+        fieldName = escapeFieldName(fieldName);
+
+        beginGroup();
+
+        boolean first = true;
+        for (RealmAny value : values) {
+            if (!first) { or(); }
+            if (value == null) {
+                isNull(mapping, fieldName);
+            } else {
+                equalToInsensitive(mapping, fieldName, value);
+            }
+            first = false;
+        }
+        endGroup();
+
         queryValidated = false;
         return this;
     }
 
     // Searching methods.
 
-    @Deprecated // Doesn't seem to be used
-    public long find(long fromTableRow) {
-        validateQuery();
-        return nativeFind(nativePtr, fromTableRow);
-    }
-
     /**
      * Returns the table row index for the first element matching the query.
      */
     public long find() {
         validateQuery();
-        return nativeFind(nativePtr, 0);
+        return nativeFind(nativePtr);
     }
 
     //
@@ -431,192 +399,162 @@ public class TableQuery implements NativeObject {
 
     // Integer aggregation
 
-    public long sumInt(long columnIndex, long start, long end, long limit) {
+    public long sumInt(long columnKey) {
         validateQuery();
-        return nativeSumInt(nativePtr, columnIndex, start, end, limit);
+        return nativeSumInt(nativePtr, columnKey);
     }
 
-    public long sumInt(long columnIndex) {
+    public Long maximumInt(long columnKey) {
         validateQuery();
-        return nativeSumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        return nativeMaximumInt(nativePtr, columnKey);
     }
 
-    public Long maximumInt(long columnIndex, long start, long end, long limit) {
+    public Long minimumInt(long columnKey) {
         validateQuery();
-        return nativeMaximumInt(nativePtr, columnIndex, start, end, limit);
+        return nativeMinimumInt(nativePtr, columnKey);
     }
 
-    public Long maximumInt(long columnIndex) {
+    public double averageInt(long columnKey) {
         validateQuery();
-        return nativeMaximumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
-    }
-
-    public Long minimumInt(long columnIndex, long start, long end, long limit) {
-        validateQuery();
-        return nativeMinimumInt(nativePtr, columnIndex, start, end, limit);
-    }
-
-    public Long minimumInt(long columnIndex) {
-        validateQuery();
-        return nativeMinimumInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
-    }
-
-    public double averageInt(long columnIndex, long start, long end, long limit) {
-        validateQuery();
-        return nativeAverageInt(nativePtr, columnIndex, start, end, limit);
-    }
-
-    public double averageInt(long columnIndex) {
-        validateQuery();
-        return nativeAverageInt(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        return nativeAverageInt(nativePtr, columnKey);
     }
 
     // Float aggregation
 
-    public double sumFloat(long columnIndex, long start, long end, long limit) {
+    public double sumFloat(long columnKey) {
         validateQuery();
-        return nativeSumFloat(nativePtr, columnIndex, start, end, limit);
+        return nativeSumFloat(nativePtr, columnKey);
     }
 
-    public double sumFloat(long columnIndex) {
+    public Float maximumFloat(long columnKey) {
         validateQuery();
-        return nativeSumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        return nativeMaximumFloat(nativePtr, columnKey);
     }
 
-    public Float maximumFloat(long columnIndex, long start, long end, long limit) {
+    public Float minimumFloat(long columnKey) {
         validateQuery();
-        return nativeMaximumFloat(nativePtr, columnIndex, start, end, limit);
+        return nativeMinimumFloat(nativePtr, columnKey);
     }
 
-    public Float maximumFloat(long columnIndex) {
+    public double averageFloat(long columnKey) {
         validateQuery();
-        return nativeMaximumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
-    }
-
-    public Float minimumFloat(long columnIndex, long start, long end, long limit) {
-        validateQuery();
-        return nativeMinimumFloat(nativePtr, columnIndex, start, end, limit);
-    }
-
-    public Float minimumFloat(long columnIndex) {
-        validateQuery();
-        return nativeMinimumFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
-    }
-
-    public double averageFloat(long columnIndex, long start, long end, long limit) {
-        validateQuery();
-        return nativeAverageFloat(nativePtr, columnIndex, start, end, limit);
-    }
-
-    public double averageFloat(long columnIndex) {
-        validateQuery();
-        return nativeAverageFloat(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        return nativeAverageFloat(nativePtr, columnKey);
     }
 
     // Double aggregation
 
-    public double sumDouble(long columnIndex, long start, long end, long limit) {
+    public double sumDouble(long columnKey) {
         validateQuery();
-        return nativeSumDouble(nativePtr, columnIndex, start, end, limit);
+        return nativeSumDouble(nativePtr, columnKey);
     }
 
-    public double sumDouble(long columnIndex) {
+    public Decimal128 sumDecimal128(long columnKey) {
         validateQuery();
-        return nativeSumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        long[] data = nativeSumDecimal128(nativePtr, columnKey);
+        if (data != null) {
+            return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
+        } else {
+            return null;
+        }
     }
 
-    public Double maximumDouble(long columnIndex, long start, long end, long limit) {
+    public Double maximumDouble(long columnKey) {
         validateQuery();
-        return nativeMaximumDouble(nativePtr, columnIndex, start, end, limit);
+        return nativeMaximumDouble(nativePtr, columnKey);
     }
 
-    public Double maximumDouble(long columnIndex) {
+    public Double minimumDouble(long columnKey) {
         validateQuery();
-        return nativeMaximumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        return nativeMinimumDouble(nativePtr, columnKey);
     }
 
-    public Double minimumDouble(long columnIndex, long start, long end, long limit) {
+    public double averageDouble(long columnKey) {
         validateQuery();
-        return nativeMinimumDouble(nativePtr, columnIndex, start, end, limit);
+        return nativeAverageDouble(nativePtr, columnKey);
     }
 
-    public Double minimumDouble(long columnIndex) {
+    // RealmAny aggregation
+    public Decimal128 sumRealmAny(long columnKey) {
         validateQuery();
-        return nativeMinimumDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        long[] data =  nativeSumRealmAny(nativePtr, columnKey);
+        return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
     }
 
-    public double averageDouble(long columnIndex, long start, long end, long limit) {
+    public NativeRealmAny maximumRealmAny(long columnKey) {
         validateQuery();
-        return nativeAverageDouble(nativePtr, columnIndex, start, end, limit);
+        return nativeMaximumRealmAny(nativePtr, columnKey);
     }
 
-    public double averageDouble(long columnIndex) {
+    public NativeRealmAny minimumRealmAny(long columnKey) {
         validateQuery();
-        return nativeAverageDouble(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        return nativeMinimumRealmAny(nativePtr, columnKey);
+    }
+
+    public Decimal128 averageRealmAny(long columnKey) {
+        validateQuery();
+        long[] data =  nativeAverageRealmAny(nativePtr, columnKey);
+        return Decimal128.fromIEEE754BIDEncoding(data[1]/*high*/, data[0]/*low*/);
+    }
+
+    public Decimal128 averageDecimal128(long columnKey) {
+        validateQuery();
+        long[] result = nativeAverageDecimal128(nativePtr, columnKey);
+        if (result != null) {
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
+        }
+        return null;
+    }
+
+    public Decimal128 maximumDecimal128(long columnKey) {
+        validateQuery();
+        long[] result = nativeMaximumDecimal128(nativePtr, columnKey);
+        if (result != null) {
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
+        }
+        return null;
     }
 
     // Date aggregation
 
-    public Date maximumDate(long columnIndex, long start, long end, long limit) {
+    public Date maximumDate(long columnKey) {
         validateQuery();
-        Long result = nativeMaximumTimestamp(nativePtr, columnIndex, start, end, limit);
+        Long result = nativeMaximumTimestamp(nativePtr, columnKey);
         if (result != null) {
             return new Date(result);
         }
         return null;
     }
 
-    public Date maximumDate(long columnIndex) {
+    public Date minimumDate(long columnKey) {
         validateQuery();
-        Long result = nativeMaximumTimestamp(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
+        Long result = nativeMinimumTimestamp(nativePtr, columnKey);
         if (result != null) {
             return new Date(result);
         }
         return null;
     }
 
-    public Date minimumDate(long columnIndex, long start, long end, long limit) {
+    public Decimal128 minimumDecimal128(long columnKey) {
         validateQuery();
-        Long result = nativeMinimumTimestamp(nativePtr, columnIndex, start, end, limit);
+        long[] result = nativeMinimumDecimal128(nativePtr, columnKey);
         if (result != null) {
-            return new Date(result * 1000);
+            return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
         }
         return null;
-    }
-
-    public Date minimumDate(long columnIndex) {
-        validateQuery();
-        Long result = nativeMinimumTimestamp(nativePtr, columnIndex, 0, Table.INFINITE, Table.INFINITE);
-        if (result != null) {
-            return new Date(result);
-        }
-        return null;
-    }
-
-    // isNull and isNotNull
-    public TableQuery isNull(long[] columnIndices, long[] tablePtrs) {
-        nativeIsNull(nativePtr, columnIndices, tablePtrs);
-        queryValidated = false;
-        return this;
-    }
-
-    public TableQuery isNotNull(long[] columnIndices, long[] tablePtrs) {
-        nativeIsNotNull(nativePtr, columnIndices, tablePtrs);
-        queryValidated = false;
-        return this;
     }
 
     // Count
 
-    // TODO: Rename all start, end parameter names to firstRow, lastRow
-    public long count(long start, long end, long limit) {
-        validateQuery();
-        return nativeCount(nativePtr, start, end, limit);
-    }
-
+    /**
+     * Returns only the number of matching objects.
+     * This method is very fast compared to evaluating a query completely, but it does not
+     * goes around any logic implemented in Object Store and other parts of the API that works
+     * on query results. So the primary use case for this method is testing.
+     */
+    @Deprecated
     public long count() {
         validateQuery();
-        return nativeCount(nativePtr, 0, Table.INFINITE, Table.INFINITE);
+        return nativeCount(nativePtr);
     }
 
     public long remove() {
@@ -629,17 +567,61 @@ public class TableQuery implements NativeObject {
         throw new IllegalStateException("Mutable method call during read transaction.");
     }
 
-    public void alwaysTrue() {
-        nativeAlwaysTrue(nativePtr);
-    }
+    private native long nativeFind(long nativeQueryPtr);
 
-    public void alwaysFalse() {
-        nativeAlwaysFalse(nativePtr);
-    }
+    private native long nativeSumInt(long nativeQueryPtr, long columnKey);
 
-    private native String nativeValidateQuery(long nativeQueryPtr);
+    private native Long nativeMaximumInt(long nativeQueryPtr, long columnKey);
 
-    private native void nativeGroup(long nativeQueryPtr);
+    private native Long nativeMinimumInt(long nativeQueryPtr, long columnKey);
+
+    private native double nativeAverageInt(long nativeQueryPtr, long columnKey);
+
+    private native double nativeSumFloat(long nativeQueryPtr, long columnKey);
+
+    private native Float nativeMaximumFloat(long nativeQueryPtr, long columnKey);
+
+    private native Float nativeMinimumFloat(long nativeQueryPtr, long columnKey);
+
+    private native double nativeAverageFloat(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeSumRealmAny(long nativeQueryPtr, long columnKey);
+
+    private native double nativeSumDouble(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeSumDecimal128(long nativeQueryPtr, long columnKey);
+
+    private native Double nativeMaximumDouble(long nativeQueryPtr, long columnKey);
+
+    private native NativeRealmAny nativeMaximumRealmAny(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeMaximumDecimal128(long nativeQueryPtr, long columnKey);
+
+    private native NativeRealmAny nativeMinimumRealmAny(long nativeQueryPtr, long columnKey);
+
+    private native Double nativeMinimumDouble(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeMinimumDecimal128(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeAverageRealmAny(long nativeQueryPtr, long columnKey);
+
+    private native double nativeAverageDouble(long nativeQueryPtr, long columnKey);
+
+    private native long[] nativeAverageDecimal128(long nativeQueryPtr, long columnKey);
+
+    private native Long nativeMaximumTimestamp(long nativeQueryPtr, long columnKey);
+
+    private native Long nativeMinimumTimestamp(long nativeQueryPtr, long columnKey);
+
+    private native long nativeCount(long nativeQueryPtr);
+
+    private native long nativeRemove(long nativeQueryPtr);
+
+    private native void nativeRawPredicate(long nativeQueryPtr, String filter, long[] argsPtr, long mappingPtr);
+
+    private native void nativeRawDescriptor(long nativeQueryPtr, String descriptor, long mappingPtr);
+
+    private native void nativeBeginGroup(long nativeQueryPtr);
 
     private native void nativeEndGroup(long nativeQueryPtr);
 
@@ -647,127 +629,7 @@ public class TableQuery implements NativeObject {
 
     private native void nativeNot(long nativeQueryPtr);
 
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeGreater(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeGreaterEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeLess(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeLessEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeBetween(long nativeQueryPtr, long[] columnIndex, long value1, long value2);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeGreater(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeGreaterEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeLess(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeLessEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, float value);
-
-    private native void nativeBetween(long nativeQueryPtr, long[] columnIndex, float value1, float value2);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeGreater(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeGreaterEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeLess(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeLessEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, double value);
-
-    private native void nativeBetween(long nativeQueryPtr, long[] columnIndex, double value1, double value2);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, boolean value);
-
-    private native void nativeEqualTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeNotEqualTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeGreaterTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeGreaterEqualTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeLessTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeLessEqualTimestamp(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, long value);
-
-    private native void nativeBetweenTimestamp(long nativeQueryPtr, long[] columnIndex, long value1, long value2);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, byte[] value);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, byte[] value);
-
-    private native void nativeEqual(long nativeQueryPtr, long[] columnIndexes, long[] tablePtrs, @Nullable String value, boolean caseSensitive);
-
-    private native void nativeNotEqual(long nativeQueryPtr, long[] columnIndex, long[] tablePtrs, @Nullable String value, boolean caseSensitive);
-
-    private native void nativeBeginsWith(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, String value, boolean caseSensitive);
-
-    private native void nativeEndsWith(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, String value, boolean caseSensitive);
-
-    private native void nativeLike(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, String value, boolean caseSensitive);
-
-    private native void nativeContains(long nativeQueryPtr, long[] columnIndices, long[] tablePtrs, String value, boolean caseSensitive);
-
-    private native void nativeIsEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
-
-    private native void nativeIsNotEmpty(long nativePtr, long[] columnIndices, long[] tablePtrs);
-
-    private native void nativeAlwaysTrue(long nativeQueryPtr);
-
-    private native void nativeAlwaysFalse(long nativeQueryPtr);
-
-    private native long nativeFind(long nativeQueryPtr, long fromTableRow);
-
-    private native long nativeFindAll(long nativeQueryPtr, long start, long end, long limit);
-
-    private native long nativeSumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native Long nativeMaximumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native Long nativeMinimumInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native double nativeAverageInt(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native double nativeSumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native Float nativeMaximumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native Float nativeMinimumFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native double nativeAverageFloat(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native double nativeSumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native Double nativeMaximumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native Double nativeMinimumDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native double nativeAverageDouble(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native Long nativeMaximumTimestamp(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native Long nativeMinimumTimestamp(long nativeQueryPtr, long columnIndex, long start, long end, long limit);
-
-    private native void nativeIsNull(long nativePtr, long[] columnIndices, long[] tablePtrs);
-
-    private native void nativeIsNotNull(long nativePtr, long[] columnIndice, long[] tablePtr);
-
-    private native long nativeCount(long nativeQueryPtr, long start, long end, long limit);
-
-    private native long nativeRemove(long nativeQueryPtr);
+    private native String nativeValidateQuery(long nativeQueryPtr);
 
     private static native long nativeGetFinalizerPtr();
 }

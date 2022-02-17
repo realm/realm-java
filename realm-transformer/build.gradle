@@ -1,31 +1,23 @@
 buildscript {
-    ext.kotlin_version = '1.2.40'
+    def properties = new Properties()
+    properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
+    ext.kotlin_version = properties.get('KOTLIN')
     repositories {
         google()
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
-allprojects {
-    def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
-    props.each { key, val ->
-        project.ext.set(key, val)
-    }
-}
-
 apply plugin: 'kotlin'
-apply plugin: 'groovy'
 apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.jfrog.bintray'
 
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim()
@@ -33,7 +25,7 @@ version = file("${projectDir}/../version.txt").text.trim()
 def properties = new Properties()
 properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
 
-def syncVersion = properties.getProperty('REALM_SYNC_VERSION')
+def coreVersion = properties.getProperty('REALM_CORE')
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
@@ -53,23 +45,22 @@ configurations {
 sourceSets {
     main {
         compileClasspath += configurations.provided
-        java {
-            srcDirs += ['build/generated-src/main/java', 'src/main/kotlin']
-        }
+        java.srcDirs += ['build/generated-src/main/java', 'src/main/kotlin']
     }
 }
 
 dependencies {
-    compile localGroovy()
-    compile gradleApi()
-    compile "io.realm:realm-annotations:${version}"
-    compileOnly 'com.android.tools.build:gradle:3.1.1'
-    compile 'org.javassist:javassist:3.21.0-GA'
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    implementation gradleApi()
+    implementation "io.realm:realm-annotations:${version}"
+    compileOnly "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
+    implementation 'org.javassist:javassist:3.25.0-GA'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlin_version}"
+    implementation "com.google.guava:guava:31.0.1-jre"
+    // JAX-B dependencies for JDK 9+ (this is not available in JVM env 'java.lang.NoClassDefFoundError: javax/xml/bind/DatatypeConverter'
+    // and it was removed in Java 11 https://stackoverflow.com/a/43574427
+    implementation("javax.xml.bind:jaxb-api:2.3.1")
 
-    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
-        exclude module: 'groovy-all'
-    }
+    testImplementation 'junit:junit:4.12'
 }
 
 // for Ant filter
@@ -78,34 +69,14 @@ import org.apache.tools.ant.filters.ReplaceTokens
 task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'
     into 'build/generated-src/main/java/io/realm/transformer'
-    filter(ReplaceTokens, tokens: [version: version, syncVersion: syncVersion])
+    filter(ReplaceTokens, tokens: [version: version, coreVersion: coreVersion])
     outputs.upToDateWhen { false }
 }
 
-compileJava.dependsOn generateVersionClass
-compileGroovy.dependsOn = compileGroovy.taskDependencies.values - 'compileJava'
-compileKotlin.dependsOn compileGroovy
-compileKotlin.classpath += files(compileGroovy.destinationDir)
-classes.dependsOn compileKotlin
+compileKotlin.dependsOn generateVersionClass
 
-def commonPom = {
-    licenses {
-        license {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'repo'
-        }
-    }
-    issueManagement {
-        system 'github'
-        url 'https://github.com/realm/realm-java/issues'
-    }
-    scm {
-        url 'scm:https://github.com/realm/realm-java'
-        connection 'scm:git@github.com:realm/realm-java.git'
-        developerConnection 'scm:git@github.com:realm/realm-java.git'
-    }
-}
+apply from: "${rootDir}/../mavencentral-publications.gradle"
+apply from: "${rootDir}/../mavencentral-publish.gradle"
 
 publishing {
     publications {
@@ -113,67 +84,22 @@ publishing {
             groupId 'io.realm'
             artifactId = 'realm-transformer'
             from components.java
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'realm-transformer')
-                root.appendNode('description', 'Android Gradle Transformer for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
-                root.appendNode('url', 'http://realm.io')
-                root.children().last() + commonPom
-            }
-        }
-    }
-    repositories {
-        maven {
-            credentials(AwsCredentials) {
-                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
-                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
-            }
-            if(project.version.endsWith('-SNAPSHOT')) {
-                url "s3://realm-ci-artifacts/maven/snapshots/"
-            } else {
-                url "s3://realm-ci-artifacts/maven/releases/"
-            }
+            populatePom(
+                    it,
+                    'realm-transformer',
+                    'Android Gradle Transformer for Realm. Realm is a mobile database: Build better apps, faster.'
+            )
         }
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
 
-    dryRun = false
-    publish = false
-
-    publications = ['realmPublication']
-    pkg {
-        repo = 'maven'
-        name = 'realm-transformer'
-        desc = 'Realm for Android'
-        websiteUrl = 'http://realm.io'
-        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
-        vcsUrl = 'https://github.com/realm/realm-java.git'
-        licenses = ['Apache-2.0']
-        labels = ['android', 'realm']
-        publicDownloadNumbers = false
+compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs = ["-Xinline-classes"]
     }
 }
-
-artifactory {
-    contextUrl = 'https://oss.jfrog.org/artifactory'
-    publish {
-        repository {
-            repoKey = 'oss-snapshot-local'
-            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-        }
-        defaults {
-            publications ('realmPublication')
-        }
-    }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
-}
-

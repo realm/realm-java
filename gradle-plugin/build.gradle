@@ -1,21 +1,28 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.project.ProjectInternal
+
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
+
     repositories {
         jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
+        classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
     }
 }
 
-apply plugin: 'groovy'
-apply plugin: 'maven'
+apply plugin: 'groovy-gradle-plugin'
 apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.jfrog.bintray'
 
 def props = new Properties()
-props.load(new FileInputStream("${rootDir}/../realm.properties"))
+props.load(new FileInputStream("${rootDir}/../dependencies.list"))
 props.each { key, val ->
     project.ext.set(key, val)
 }
@@ -37,6 +44,10 @@ configurations {
     compile.extendsFrom provided
 }
 
+test {
+    testLogging.showStandardStreams = true
+}
+
 sourceSets {
     main {
         compileClasspath += configurations.provided
@@ -44,23 +55,27 @@ sourceSets {
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    compile "io.realm:realm-transformer:${version}"
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation "io.realm:realm-transformer:${version}"
     /*Note: the latest Android Gradle plugin has now built in support for annotation processors and warns and/or blocks android-apt,
      see this https://bitbucket.org/hvisser/android-apt/wiki/Migration page on how to migrate
      and this https://www.littlerobots.nl/blog/Whats-next-for-android-apt/ for more info.
    */
-    compile 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
-    compileOnly 'com.android.tools.build:gradle:3.1.0-alpha06'
+    implementation 'com.neenbedankt.gradle.plugins:android-apt:1.8' //TODO: https://www.littlerobots.nl/blog/Whats-next-for-android-apt/
+    compileOnly "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
 
-    testCompile gradleTestKit()
-    testCompile 'junit:junit:4.12'
-    testCompile 'com.android.tools.build:gradle:3.1.0-alpha06'
+    testImplementation gradleTestKit()
+    testImplementation 'junit:junit:4.12'
+    testImplementation "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
+    // See https://github.com/gradle/gradle/issues/16774#issuecomment-893493869
+    def toolingApiBuildersJar = (project as ProjectInternal).services.get(ModuleRegistry.class)
+            .getModule("gradle-tooling-api-builders")
+            .classpath
+            .asFiles
+            .first()
+    testRuntimeOnly(files(toolingApiBuildersJar))
 }
-
-//for Ant filter
-import org.apache.tools.ant.filters.ReplaceTokens
 
 task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'
@@ -80,29 +95,8 @@ sourceSets {
 
 compileJava.dependsOn generateVersionClass
 
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
-}
-
-def commonPom = {
-    licenses {
-        license {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'repo'
-        }
-    }
-    issueManagement {
-        system 'github'
-        url 'https://github.com/realm/realm-java/issues'
-    }
-    scm {
-        url 'scm:https://github.com/realm/realm-java'
-        connection 'scm:git@github.com:realm/realm-java.git'
-        developerConnection 'scm:git@github.com:realm/realm-java.git'
-    }
-}
+apply from: "${rootDir}/../mavencentral-publications.gradle"
+apply from: "${rootDir}/../mavencentral-publish.gradle"
 
 publishing {
     publications {
@@ -110,61 +104,16 @@ publishing {
             groupId 'io.realm'
             artifactId = 'realm-gradle-plugin'
             from components.java
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'realm-gradle-plugin')
-                root.appendNode('description', 'Gradle plugin for Realm. Realm is a mobile database: a replacement for SQLite & ORMs.')
-                root.appendNode('url', 'http://realm.io')
-                root.children().last() + commonPom
-            }
-        }
-    }
-    repositories {
-        maven {
-            credentials(AwsCredentials) {
-                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
-                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
-            }
-            if(project.version.endsWith('-SNAPSHOT')) {
-                url "s3://realm-ci-artifacts/maven/snapshots/"
-            } else {
-                url "s3://realm-ci-artifacts/maven/releases/"
-            }
+            populatePom(
+                    it,
+                    'realm-gradle-plugin',
+                    'Gradle plugin for Realm. Realm is a mobile database: Build better apps, faster.'
+            )
         }
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-
-    dryRun = false
-    publish = false
-
-    publications = ['realmPublication']
-    pkg {
-        repo = 'maven'
-        name = 'realm-gradle-plugin'
-        desc = 'Realm for Android'
-        websiteUrl = 'http://realm.io'
-        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
-        vcsUrl = 'https://github.com/realm/realm-java.git'
-        licenses = ['Apache-2.0']
-        labels = ['android', 'realm']
-        publicDownloadNumbers = false
-    }
-}
-
-artifactory {
-    contextUrl = 'https://oss.jfrog.org/artifactory'
-    publish {
-        repository {
-            repoKey = 'oss-snapshot-local'
-            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-        }
-        defaults {
-            publications ('realmPublication')
-        }
-    }
+java {
+    withSourcesJar()
+    withJavadocJar()
 }

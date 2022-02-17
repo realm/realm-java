@@ -1,6 +1,10 @@
 package io.realm.internal;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -10,18 +14,18 @@ import io.realm.RealmChangeListener;
 /**
  * Java wrapper of Object Store List class. This backs managed versions of RealmList.
  */
-public class OsList implements NativeObject, ObservableCollection {
+public class OsList implements NativeObject, ObservableCollection, OsCollection {
 
     private final long nativePtr;
     private final NativeContext context;
     private final Table targetTable;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final ObserverPairList<CollectionObserverPair> observerPairs =
-            new ObserverPairList<CollectionObserverPair>();
+            new ObserverPairList<>();
 
-    public OsList(UncheckedRow row, long columnIndex) {
+    public OsList(UncheckedRow row, long columnKey) {
         OsSharedRealm sharedRealm = row.getTable().getSharedRealm();
-        long[] ptrs = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnIndex);
+        long[] ptrs = nativeCreate(sharedRealm.getNativePtr(), row.getNativePtr(), columnKey);
 
         this.nativePtr = ptrs[0];
         this.context = sharedRealm.context;
@@ -32,6 +36,14 @@ public class OsList implements NativeObject, ObservableCollection {
         } else {
             targetTable = null;
         }
+    }
+
+    // Use for creating a copy of the OsList, e.g when freezing it.
+    private OsList(OsSharedRealm sharedRealm, long listNativePtr, @Nullable Table targetTable) {
+        this.nativePtr = listNativePtr;
+        this.targetTable = targetTable;
+        this.context = sharedRealm.context;
+        context.addReference(this);
     }
 
     @Override
@@ -168,6 +180,90 @@ public class OsList implements NativeObject, ObservableCollection {
         }
     }
 
+    public void addDecimal128(@Nullable Decimal128 value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddDecimal128(nativePtr, value.getLow(), value.getHigh());
+        }
+    }
+
+    public void insertDecimal128(long pos, @Nullable Decimal128 value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertDecimal128(nativePtr, pos, value.getLow(), value.getHigh());
+        }
+    }
+
+    public void setDecimal128(long pos, @Nullable Decimal128 value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetDecimal128(nativePtr, pos, value.getLow(), value.getHigh());
+        }
+    }
+
+    public void addObjectId(@Nullable ObjectId value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddObjectId(nativePtr, value.toString());
+        }
+    }
+
+    public void insertObjectId(long pos, @Nullable ObjectId value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertObjectId(nativePtr, pos, value.toString());
+        }
+    }
+
+    public void setObjectId(long pos, @Nullable ObjectId value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetObjectId(nativePtr, pos, value.toString());
+        }
+    }
+
+    public void addUUID(@Nullable UUID value) {
+        if (value == null) {
+            nativeAddNull(nativePtr);
+        } else {
+            nativeAddUUID(nativePtr, value.toString());
+        }
+    }
+
+    public void insertUUID(long pos, @Nullable UUID value) {
+        if (value == null) {
+            nativeInsertNull(nativePtr, pos);
+        } else {
+            nativeInsertUUID(nativePtr, pos, value.toString());
+        }
+    }
+
+    public void setUUID(long pos, @Nullable UUID value) {
+        if (value == null) {
+            nativeSetNull(nativePtr, pos);
+        } else {
+            nativeSetUUID(nativePtr, pos, value.toString());
+        }
+    }
+
+    public void addRealmAny(long realmAnyPtr) {
+        nativeAddRealmAny(nativePtr, realmAnyPtr);
+    }
+
+    public void insertRealmAny(long pos, long realmAnyPtr) {
+        nativeInsertRealmAny(nativePtr, pos, realmAnyPtr);
+    }
+
+    public void setRealmAny(long pos, long realmAnyPtr) {
+        nativeSetRealmAny(nativePtr, pos, realmAnyPtr);
+    }
+
     @Nullable
     public Object getValue(long pos) {
         return nativeGetValue(nativePtr, pos);
@@ -200,6 +296,7 @@ public class OsList implements NativeObject, ObservableCollection {
         return new TableQuery(context, targetTable, nativeGetQuery(nativePtr));
     }
 
+    @Override
     public boolean isValid() {
         return nativeIsValid(nativePtr);
     }
@@ -255,12 +352,31 @@ public class OsList implements NativeObject, ObservableCollection {
         observerPairs.foreach(new Callback(changeset));
     }
 
+    public OsList freeze(OsSharedRealm frozenRealm) {
+        return new OsList(frozenRealm,
+                nativeFreeze(nativePtr, frozenRealm.getNativePtr()),
+                (targetTable != null) ? targetTable.freeze(frozenRealm) : null);
+    }
+
+    public long createAndAddEmbeddedObject() {
+        return nativeCreateAndAddEmbeddedObject(nativePtr, size());
+    }
+
+    public long createAndAddEmbeddedObject(long index) {
+        return nativeCreateAndAddEmbeddedObject(nativePtr, index);
+    }
+
+    public long createAndSetEmbeddedObject(long index) {
+        return nativeCreateAndSetEmbeddedObject(nativePtr, index);
+    }
+
+
     private static native long nativeGetFinalizerPtr();
 
     // TODO: nativeTablePtr is not necessary. It is used to create FieldDescriptor which should be generated from
     // OsSchemaInfo.
     // Returns {nativeListPtr, nativeTablePtr}
-    private static native long[] nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnIndex);
+    private static native long[] nativeCreate(long nativeSharedRealmPtr, long nativeRowPtr, long columnKey);
 
     private static native long nativeGetRow(long nativePtr, long index);
 
@@ -334,9 +450,42 @@ public class OsList implements NativeObject, ObservableCollection {
 
     private static native void nativeSetString(long nativePtr, long pos, @Nullable String value);
 
+    private static native void nativeAddDecimal128(long nativePtr, long low, long high);
+
+    private static native void nativeInsertDecimal128(long nativePtr, long pos, long low, long high);
+
+    private static native void nativeSetDecimal128(long nativePtr, long pos, long low, long high);
+
+    private static native void nativeAddObjectId(long nativePtr, String data);
+
+    private static native void nativeInsertObjectId(long nativePtr, long pos, String data);
+
+    private static native void nativeSetObjectId(long nativePtr, long pos, String data);
+
+    private static native void nativeAddUUID(long nativePtr, String data);
+
+    private static native void nativeInsertUUID(long nativePtr, long pos, String data);
+
+    private static native void nativeSetUUID(long nativePtr, long pos, String data);
+
+    private static native void nativeAddRealmAny(long nativePtr, long realmAnyPtr);
+
+    private static native void nativeInsertRealmAny(long nativePtr, long pos, long realmAnyPtr);
+
+    private static native void nativeSetRealmAny(long nativePtr, long pos, long realmAnyPtr);
+
     private static native Object nativeGetValue(long nativePtr, long pos);
 
     private native void nativeStartListening(long nativePtr);
 
     private native void nativeStopListening(long nativePtr);
+
+    private static native long nativeFreeze(long nativePtr, long sharedRealmNativePtr);
+
+    // Create an "empty" embedded object at the end of the list
+    private static native long nativeCreateAndAddEmbeddedObject(long nativePtr, long index);
+
+    // Replaces the embedded object and index with a new "empty" embedded object
+    private static native long nativeCreateAndSetEmbeddedObject(long nativePtr, long index);
+
 }

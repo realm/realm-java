@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -40,7 +39,7 @@ import java.util.concurrent.ThreadFactory;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
-import io.realm.internal.ObjectServerFacade;
+import io.realm.TestRealmConfigurationFactory;
 import io.realm.internal.android.AndroidCapabilities;
 
 
@@ -55,7 +54,7 @@ import io.realm.internal.android.AndroidCapabilities;
  * the open Realms).
  */
 public class RunInLooperThread extends TestRealmConfigurationFactory {
-    private static final long WAIT_TIMEOUT_MS = 60 * 1000;
+    private static final long WAIT_TIMEOUT_MS = 20 * 1000;
 
     // lock protecting objects shared with the test thread
     private final Object lock = new Object();
@@ -95,6 +94,9 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     // Runnable guaranteed to trigger after the test either succeeded or failed.
     // Access guarded by 'lock'
     private List<Runnable> runAfterTestIsComplete = new ArrayList<>();
+
+    // Used to indicate that a test is being marked as complete, but teardown hasn't fully finished yet.
+    private boolean testCompletedButNotFullyTornDown;
 
     /**
      * Get the configuration for the test realm.
@@ -219,11 +221,36 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
     /**
      * Signal that the test has completed.
      * <p>
-     * Used on both the main and test threads.
-     * Valid after {@code before}.
+     * Can be used on both the main and test threads.
      */
     public void testComplete() {
-        signalTestCompleted.countDown();
+        // Close all resources and run any after test tasks
+        // Post as runnable to ensure that this code runs on the correct thread.
+        postRunnable(new Runnable() {
+            @Override
+            public void run() {
+                closeTestResources();
+            }
+        });
+    }
+
+    /**
+     * Internal logic for shutting down a test.
+     */
+    private void closeTestResources() {
+        testCompletedButNotFullyTornDown = true;
+        try {
+            closeResources();
+            closeRealms();
+            for (Runnable task : runAfterTestIsComplete) {
+                task.run();
+            }
+        } catch (Throwable t) {
+            throw new AssertionError("Failed to close test resources correctly", t);
+        } finally {
+            testCompletedButNotFullyTornDown = false;
+            signalTestCompleted.countDown();
+        }
     }
 
     /**
@@ -231,7 +258,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      *
      * @param latches additional latches to wait on, before setting the test completed flag.
      */
-    public void testComplete(CountDownLatch... latches) {
+    public void
+    testComplete(CountDownLatch... latches) {
         for (CountDownLatch latch : latches) {
             TestHelper.awaitOrFail(latch);
         }
@@ -245,8 +273,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             while (backgroundHandler == null) {
                 try {
                     lock.wait(WAIT_TIMEOUT_MS);
-                } catch (InterruptedException ignore) {
-                    break;
+                } catch (InterruptedException e) {
+                    throw new AssertionError("Could not acquire the test handler.", e);
                 }
             }
             return this.backgroundHandler;
@@ -315,6 +343,8 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
      * This will run on the same thread as the looper test.
      */
     public void looperTearDown() {
+        // Do nothing
+        // Override in test classes if needed.
     }
 
     private void initRealm() {
@@ -349,11 +379,12 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
 
     /**
      * Checks if the current test is considered completed or not.
+     *
      * It is completed if either {@link #testComplete()} was called or an uncaught exception was thrown.
      */
     public boolean isTestComplete() {
         synchronized (lock) {
-            return signalTestCompleted.getCount() == 0;
+            return signalTestCompleted.getCount() <= 0 || testCompletedButNotFullyTornDown;
         }
     }
 
@@ -461,11 +492,11 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             this.base = base;
         }
 
-        @Override
-        public CountDownLatch getRealmClosedSignal() {
-            return signalClosedRealm;
-        }
-
+//        @Override
+//        public CountDownLatch getRealmClosedSignal() {
+//            return signalClosedRealm;
+//        }
+//
         @Override
         public synchronized Looper getLooper() {
             return looper;
@@ -499,20 +530,13 @@ public class RunInLooperThread extends TestRealmConfigurationFactory {
             } catch (Throwable t) {
                 setAssertionError(t);
                 setUnitTestFailed();
-            } finally {
+
+                // If an exception occurred, `looperThread.testComplete()` was probably no called.
+                // Rerun it here, but ignore any failures as the first failure is more important.
                 try {
-                    looperTearDown();
-                    closeResources();
-                    for (Runnable task : runAfterTestIsComplete) {
-                        task.run();
-                    }
-                } catch (Throwable t) {
-                    setAssertionError(t);
-                    setUnitTestFailed();
+                    closeTestResources();
+                } catch (Throwable ignore) {
                 }
-                testComplete();
-                closeRealms();
-                signalClosedRealm.countDown();
             }
         }
     }

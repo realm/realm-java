@@ -21,20 +21,25 @@ import android.os.Build;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
+import io.realm.internal.android.AndroidCapabilities;
 import io.realm.log.RealmLog;
 
 
 public class Util {
+
+    private static Boolean rxJavaAvailable;
+    private static Boolean coroutinesAvailable;
 
     public static String getTablePrefix() {
         return nativeGetTablePrefix();
@@ -117,6 +122,9 @@ public class Util {
         final String management = ".management";
         File managementFolder = new File(realmFolder, realmFileName + management);
         File realmFile = new File(canonicalPath);
+        // This file is not always stored here, but if it is we want to delete it.
+        // If it isn't found it is placed in a temporary folder, so no reason to delete it.
+        File fifoFile = new File(canonicalPath + ".note");
 
         // Deletes files in management directory and the directory.
         // There is no subfolders in the management directory.
@@ -145,6 +153,118 @@ public class Util {
         } else {
             realmDeleted = true;
         }
+
+        if (fifoFile.exists() && !fifoFile.delete()) {
+            RealmLog.warn(String.format(Locale.ENGLISH,".note file at %s cannot be deleted",
+                        fifoFile.getAbsolutePath()));
+        }
+
         return realmDeleted;
+    }
+
+    /**
+     * Converts a var arg argument list to a set ignoring any duplicates and null values.
+     */
+    public static <T> Set<T> toSet(T... items) {
+        //noinspection ConstantConditions
+        if (items == null) {
+            return Collections.emptySet();
+        } else {
+            Set<T> set = new LinkedHashSet<>();
+            for (int i = 0; i < items.length; i++) {
+                T item = items[i];
+                if (item != null) {
+                    set.add(item);
+                }
+            }
+            return set;
+        }
+    }
+
+    public static void checkEmpty(String argValue, String argName) {
+        if (isEmptyString(argValue)) {
+            throw new IllegalArgumentException("Non-empty '" + argName + "' required.");
+        }
+    }
+
+    public static void checkNull(@Nullable Object argValue, String argName) {
+        if (argValue == null) {
+            throw new IllegalArgumentException("Nonnull '" + argName + "' required.");
+        }
+    }
+
+    public static void checkLooperThread(String errorMessage) {
+        AndroidCapabilities capabilities = new AndroidCapabilities();
+        capabilities.checkCanDeliverNotification(errorMessage);
+    }
+
+    public static void checkNotOnMainThread(String errorMessage) {
+        if (new AndroidCapabilities().isMainThread()) {
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    /**
+     * Checks if RxJava is present and can be loaded.
+     *
+     * @return {@code true} if RxJava dependency exists, {@code false} otherwise.
+     */
+    @SuppressWarnings("LiteralClassName")
+    public static synchronized boolean isRxJavaAvailable() {
+        if (rxJavaAvailable == null) {
+            try {
+                Class.forName("io.reactivex.Flowable");
+                rxJavaAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                rxJavaAvailable = false;
+            }
+        }
+        return rxJavaAvailable;
+    }
+
+    /**
+     * Checks if the coroutines framework is present and can be loaded.
+     *
+     * @return {@code true} if the coroutines dependency exists, {@code false} otherwise.
+     */
+    public static synchronized boolean isCoroutinesAvailable() {
+        if (coroutinesAvailable == null) {
+            try {
+                Class.forName("kotlinx.coroutines.flow.Flow");
+                coroutinesAvailable = true;
+            } catch (ClassNotFoundException ignore) {
+                coroutinesAvailable = false;
+            }
+        }
+        return coroutinesAvailable;
+    }
+
+    /**
+     * Validates that a key is present in a given map
+     *
+     * @param key the key to expect.
+     * @param map the map to search.
+     * @param argName the map argument name
+     * @throws IllegalArgumentException if key is not present.
+     */
+    public static void checkContainsKey(final String key, final Map<String, ?> map, final String argName) {
+        if (!map.containsKey(key)) {
+            throw new IllegalArgumentException("Key '" + key + "' required in '"+ argName +"'.");
+        }
+    }
+
+    /**
+     * Returns a {@link Class} object from a string.
+     *
+     * @param className the class name
+     * @return the {@code Class} object matching the string.
+     * @throws IllegalArgumentException if the class does not exist.
+     */
+    public static Class<?> getClassForName(String className) {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Class '" + className + "' does not exist.");
+        }
     }
 }

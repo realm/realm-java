@@ -16,8 +16,8 @@
 
 package io.realm.internal;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -29,8 +29,9 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
+import static junit.framework.Assert.assertNotSame;
 import static junit.framework.TestCase.assertEquals;
 
 
@@ -47,7 +48,7 @@ public class JNIColumnInfoTest {
     public void setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         RealmConfiguration config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
 
         table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
@@ -67,28 +68,12 @@ public class JNIColumnInfoTest {
 
     @Test
     public void shouldGetColumnInformation() {
-
         assertEquals(2, table.getColumnCount());
 
-        assertEquals("lastName", table.getColumnName(1));
+        long columnKey = table.getColumnKey("lastName");
+        assertNotSame(Table.NO_MATCH, columnKey);
 
-        assertEquals(1, table.getColumnIndex("lastName"));
-
-        assertEquals(RealmFieldType.STRING, table.getColumnType(1));
-
-    }
-
-    @Test
-    public void validateColumnInfo() {
-
-        assertEquals(2, table.getColumnCount());
-
-        assertEquals("lastName", table.getColumnName(1));
-
-        assertEquals(1, table.getColumnIndex("lastName"));
-
-        assertEquals(RealmFieldType.STRING, table.getColumnType(1));
-
+        assertEquals(RealmFieldType.STRING, table.getColumnType(columnKey));
     }
 
 }

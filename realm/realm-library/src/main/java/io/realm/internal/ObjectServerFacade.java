@@ -20,9 +20,9 @@ import android.content.Context;
 
 import java.lang.reflect.InvocationTargetException;
 
+import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.exceptions.RealmException;
-
 
 /**
  * Class acting as an mediator between the basic Realm APIs and the Object Server APIs.
@@ -30,7 +30,17 @@ import io.realm.exceptions.RealmException;
  */
 public class ObjectServerFacade {
 
-    private final static ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
+    public interface RealmCacheAccessor {
+        Realm createRealmOrGetFromCache(RealmConfiguration configuration, OsSharedRealm.VersionID versionID);
+    }
+
+    public interface RealmInstanceFactory {
+        Realm createInstance(OsSharedRealm sharedRealm);
+    }
+
+    public static final int SYNC_CONFIG_OPTIONS = 17;
+
+    private static final ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
     private static ObjectServerFacade syncFacade = null;
 
     static {
@@ -54,10 +64,8 @@ public class ObjectServerFacade {
 
     /**
      * Initializes the Object Server library
-     *
-     * @param context
      */
-    public void init(Context context) {
+    public void initialize(Context context, String userAgent, RealmCacheAccessor accessor, RealmInstanceFactory instantiator) {
     }
 
     /**
@@ -66,8 +74,8 @@ public class ObjectServerFacade {
     public void realmClosed(RealmConfiguration configuration) {
     }
 
-    public Object[] getUserAndServerUrl(RealmConfiguration config) {
-        return new Object[8];
+    public Object[] getSyncConfigurationOptions(RealmConfiguration config) {
+        return new Object[SYNC_CONFIG_OPTIONS];
     }
 
     public static ObjectServerFacade getFacade(boolean needSyncFacade) {
@@ -98,13 +106,15 @@ public class ObjectServerFacade {
     }
 
     /**
-     * Block until all latest changes have been downloaded from the server.
+     * Block until all latest changes have been downloaded from the server. This should only
+     * be called the first time a Realm file is created.
      *
      * @throws {@code DownloadingRealmInterruptedException} if the thread was interrupted while blocked waiting for
      * this to complete.
+     * @throws {@code ObjectServerException } In any other kind of error is reported.
      */
     @SuppressWarnings("JavaDoc")
-    public void downloadRemoteChanges(RealmConfiguration config) {
+    public void downloadInitialRemoteChanges(RealmConfiguration config) {
         // Do nothing
     }
 
@@ -115,16 +125,15 @@ public class ObjectServerFacade {
         return false;
     }
 
-    public boolean isPartialRealm(RealmConfiguration configuration) {
-        return false;
-    }
-
-    public void addSupportForObjectLevelPermissions(RealmConfiguration.Builder builder) {
+    public void createNativeSyncSession(RealmConfiguration configuration) {
         // Do nothing
     }
 
-    public OsResults createSubscriptionAwareResults(OsSharedRealm sharedRealm, TableQuery query, SortDescriptor sortDescriptor, SortDescriptor distinctDescriptor, String name) {
-        throw new IllegalStateException("Should only be called by builds supporting Sync");
+    public void checkFlexibleSyncEnabled(RealmConfiguration configuration) {
+        // Do nothing
     }
 
+    public void downloadInitialFlexibleSyncData(Realm realm, RealmConfiguration configuration) {
+        // Do nothing
+    }
 }

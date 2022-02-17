@@ -29,14 +29,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
-import io.realm.annotations.Beta;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
 import io.realm.internal.CheckedRow;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsRealmConfig;
 import io.realm.internal.OsSchemaInfo;
@@ -50,10 +48,7 @@ import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
-import io.realm.sync.permissions.ObjectPrivileges;
-import io.realm.sync.permissions.RealmPermissions;
-import io.realm.sync.permissions.RealmPrivileges;
-import io.realm.sync.permissions.Role;
+import io.realm.mongodb.sync.SubscriptionSet;
 
 /**
  * Base class for all Realm instances.
@@ -83,6 +78,13 @@ abstract class BaseRealm implements Closeable {
     // Thread pool for all async operations (Query & transaction)
     static final RealmThreadPoolExecutor asyncTaskExecutor = RealmThreadPoolExecutor.newDefaultExecutor();
 
+    /**
+     * Thread pool executor used for write operations - only one thread is needed as writes cannot
+     * be parallelized.
+     */
+    public static final RealmThreadPoolExecutor WRITE_EXECUTOR = RealmThreadPoolExecutor.newSingleThreadExecutor();
+
+    final boolean frozen; // Cache the value in Java, since it is accessed frequently and doesn't change.
     final long threadId;
     protected final RealmConfiguration configuration;
     // Which RealmCache is this Realm associated to. It is null if the Realm instance is opened without being put into a
@@ -97,17 +99,20 @@ abstract class BaseRealm implements Closeable {
             if (schema != null) {
                 schema.refresh();
             }
+            if (BaseRealm.this instanceof Realm) {
+                schema.createKeyPathMapping();
+            }
         }
     };
 
     // Create a realm instance and associate it to a RealmCache.
-    BaseRealm(RealmCache cache, @Nullable OsSchemaInfo schemaInfo) {
-        this(cache.getConfiguration(), schemaInfo);
+    BaseRealm(RealmCache cache, @Nullable OsSchemaInfo schemaInfo, OsSharedRealm.VersionID version) {
+        this(cache.getConfiguration(), schemaInfo, version);
         this.realmCache = cache;
     }
 
     // Create a realm instance without associating it to any RealmCache.
-    BaseRealm(final RealmConfiguration configuration, @Nullable OsSchemaInfo schemaInfo) {
+    BaseRealm(final RealmConfiguration configuration, @Nullable OsSchemaInfo schemaInfo, OsSharedRealm.VersionID version) {
         this.threadId = Thread.currentThread().getId();
         this.configuration = configuration;
         this.realmCache = null;
@@ -123,19 +128,21 @@ abstract class BaseRealm implements Closeable {
             initializationCallback = new OsSharedRealm.InitializationCallback() {
                 @Override
                 public void onInit(OsSharedRealm sharedRealm) {
-                    initialDataTransaction.execute(Realm.createInstance(sharedRealm));
+                    Realm instance = Realm.createInstance(sharedRealm);
+                    initialDataTransaction.execute(instance);
                 }
             };
         }
 
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(configuration)
+                .fifoFallbackDir(new File(BaseRealm.applicationContext.getFilesDir(), ".realm.temp"))
                 .autoUpdateNotification(true)
                 .migrationCallback(migrationCallback)
                 .schemaInfo(schemaInfo)
                 .initializationCallback(initializationCallback);
-        this.sharedRealm = OsSharedRealm.getInstance(configBuilder);
+        this.sharedRealm = OsSharedRealm.getInstance(configBuilder, version);
+        this.frozen = sharedRealm.isFrozen();
         this.shouldCloseSharedRealm = true;
-
         sharedRealm.registerSchemaChangedCallback(schemaChangedCallback);
     }
 
@@ -147,10 +154,11 @@ abstract class BaseRealm implements Closeable {
         this.realmCache = null;
 
         this.sharedRealm = sharedRealm;
+        this.frozen = sharedRealm.isFrozen();
         this.shouldCloseSharedRealm = false;
     }
 
-    /**
+   /**
      * Sets the auto-refresh status of the Realm instance.
      * <p>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
@@ -177,16 +185,21 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Refreshes the Realm instance and all the RealmResults and RealmObjects instances coming from it.
-     * It also calls any listeners associated with the Realm if neeeded.
+     * It also calls any listeners associated with the Realm if needed.
      * <p>
      * WARNING: Calling this on a thread with async queries will turn those queries into synchronous queries.
-     * In most cases it is better to use {@link RealmChangeListener}s to be notified about changes to the
-     * Realm on a given thread than it is to use this method.
+     * This means this method will throw a {@link RealmException} if
+     * {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)} was used with {@code true} to
+     * obtain a Realm instance. In most cases it is better to use {@link RealmChangeListener}s to be notified
+     * about changes to the Realm on a given thread than it is to use this method.
      *
      * @throws IllegalStateException if attempting to refresh from within a transaction.
+     * @throws RealmException if called from the UI thread after opting out via {@link RealmConfiguration.Builder#allowQueriesOnUiThread(boolean)}.
      */
     public void refresh() {
         checkIfValid();
+        checkAllowQueriesOnUiThread();
+
         if (isInTransaction()) {
             throw new IllegalStateException("Cannot refresh a Realm instance inside a transaction.");
         }
@@ -210,6 +223,9 @@ abstract class BaseRealm implements Closeable {
         }
         checkIfValid();
         sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        if (frozen) {
+            throw new IllegalStateException("It is not possible to add a change listener to a frozen Realm since it never changes.");
+        }
         //noinspection unchecked
         sharedRealm.realmNotifier.addChangeListener((T) this, listener);
     }
@@ -227,8 +243,10 @@ abstract class BaseRealm implements Closeable {
         if (listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
-        checkIfValid();
-        sharedRealm.capabilities.checkCanDeliverNotification(LISTENER_NOT_ALLOWED_MESSAGE);
+        if (isClosed()) {
+            RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                    "make sure to close all listeners before closing the Realm.", configuration.getPath());
+        }
         //noinspection unchecked
         sharedRealm.realmNotifier.removeChangeListener((T) this, listener);
     }
@@ -238,18 +256,34 @@ abstract class BaseRealm implements Closeable {
      * when subscribed to. Items will continually be emitted as the Realm is updated -
      * {@code onComplete} will never be called.
      * <p>
+     * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Flowables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * realm.asFlowable()
+     *   .observeOn(Schedulers.computation())
+     *   .map(rxRealm -> doExpensiveWork(rxRealm))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
+     * <p>
      * If you would like the {@code asFlowable()} to stop emitting items, you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
      * <pre>
      * {@code
-     * realm.asFlowable().first().subscribe( ... ) // You only get the results once
+     * realm.asFlowable().first().subscribe( ... ); // You only get the results once
      * }
      * </pre>
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     public abstract Flowable asFlowable();
 
@@ -260,13 +294,16 @@ abstract class BaseRealm implements Closeable {
      * @see io.realm.RealmChangeListener
      */
     protected void removeAllListeners() {
-        checkIfValid();
-        sharedRealm.capabilities.checkCanDeliverNotification("removeListener cannot be called on current thread.");
+        if (isClosed()) {
+            RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                    "make sure to close all listeners before closing the Realm.", configuration.getPath());
+        }
         sharedRealm.realmNotifier.removeChangeListeners(this);
     }
 
     /**
-     * Writes a compacted copy of the Realm to the given destination File.
+     * Writes a compacted copy of the Realm to the given destination File. The resulting file can be
+     * used as initial dataset to bootstrap a local or synced Realm in other devices.
      * <p>
      * The destination file cannot already exist.
      * <p>
@@ -274,8 +311,11 @@ abstract class BaseRealm implements Closeable {
      * the last transaction was committed.
      *
      * @param destination file to save the Realm to.
+     * @throws IllegalArgumentException if destination argument is null.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file or writing to the
      * destination file.
+     * @throws IllegalStateException if called from the UI thread.
+     * @throws IllegalStateException if not all client changes are integrated in server.
      */
     public void writeCopyTo(File destination) {
         //noinspection ConstantConditions
@@ -287,7 +327,9 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Writes a compacted and encrypted copy of the Realm to the given destination File.
+     * Writes a compacted and encrypted copy of the Realm to the given destination File. The
+     * resulting file can be used as initial dataset to bootstrap a local or synced Realm in other
+     * devices.
      * <p>
      * The destination file cannot already exist.
      * <p>
@@ -300,6 +342,8 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalArgumentException if destination argument is null.
      * @throws RealmFileException if an error happened when accessing the underlying Realm file or writing to the
      * destination file.
+     * @throws IllegalStateException if called from the UI thread.
+     * @throws IllegalStateException if not all client changes are integrated in server.
      */
     public void writeEncryptedCopyTo(File destination, byte[] key) {
         //noinspection ConstantConditions
@@ -320,7 +364,9 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if calling this from within a transaction or from a Looper thread.
      * @throws RealmMigrationNeededException on typed {@link Realm} if the latest version contains
      * incompatible schema changes.
+     * @deprecated this method will be removed on the next-major release.
      */
+    @Deprecated
     public boolean waitForChange() {
         checkIfValid();
         if (isInTransaction()) {
@@ -345,7 +391,9 @@ abstract class BaseRealm implements Closeable {
      * called waitForChange.
      *
      * @throws IllegalStateException if the {@link io.realm.Realm} instance has already been closed.
+     * @deprecated this method will be removed in the next-major release
      */
+    @Deprecated
     public void stopWaitForChange() {
         if (realmCache != null) {
             realmCache.invokeWithLock(new RealmCache.Callback0() {
@@ -426,6 +474,51 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Returns a frozen snapshot of the current Realm. This Realm can be read and queried from any thread without throwing
+     * an {@link IllegalStateException}. A frozen Realm has its own lifecycle and can be closed by calling {@link #close()},
+     * but fully closing the Realm that spawned the frozen copy will also close the frozen Realm.
+     * <p>
+     * Frozen data can be queried as normal, but trying to mutate it in any way or attempting to register any listener will
+     * throw an {@link IllegalStateException}.
+     * <p>
+     * Note: Keeping a large number of Realms with different versions alive can have a negative impact on the filesize
+     * of the Realm. In order to avoid such a situation, it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
+     *
+     * @return a frozen copy of this Realm.
+     * @throws IllegalStateException if this method is called from inside a write transaction.
+     */
+    public abstract BaseRealm freeze();
+
+    /**
+     * Returns whether or not this Realm is frozen.
+     *
+     * @return {@code true} if the Realm is frozen, {@code false} if it is not.
+     * @see #freeze()
+     */
+    public boolean isFrozen() {
+        // This method needs to be threadsafe even for live Realms, so don't call {@link #checkIfValid}
+        if (sharedRealm == null || sharedRealm.isClosed()) {
+            throw new IllegalStateException(BaseRealm.CLOSED_REALM_MESSAGE);
+        }
+        return frozen;
+    }
+
+    /**
+     * Returns the current number of active versions currently being held by this Realm.
+     * <p>
+     * Having a large number of active versions have a negative impact on the size of the
+     * Realm file. See <a href="https://docs.mongodb.com/realm/sdk/android/fundamentals/realms/#realm-file-size">the FAQ</a>
+     * for more information.
+     *
+     * @return number of active versions currently being held by the Realm.
+     * @see RealmConfiguration.Builder#maxNumberOfActiveVersions(long)
+     */
+    public long getNumberOfActiveVersions() {
+        checkIfValid();
+        return getSharedRealm().getNumberOfVersions();
+    }
+
+    /**
      * Checks if a Realm's underlying resources are still available or not getting accessed from the wrong thread.
      */
     protected void checkIfValid() {
@@ -434,25 +527,38 @@ abstract class BaseRealm implements Closeable {
         }
 
         // Checks if we are in the right thread.
-        if (threadId != Thread.currentThread().getId()) {
+        if (!frozen && threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(BaseRealm.INCORRECT_THREAD_MESSAGE);
+        }
+    }
+
+    /**
+     * Checks whether queries are allowed from the UI thread in the current RealmConfiguration.
+     */
+    protected void checkAllowQueriesOnUiThread() {
+        // Warn on query being executed on UI thread if isAllowQueriesOnUiThread is set to true, throw otherwise
+        if (getSharedRealm().capabilities.isMainThread()) {
+            if (!getConfiguration().isAllowQueriesOnUiThread()) {
+                throw new RealmException("Queries on the UI thread have been disabled. They can be enabled by setting 'RealmConfiguration.Builder.allowQueriesOnUiThread(true)'.");
+            }
+        }
+    }
+
+    /**
+     * Checks whether writes are allowed from the UI thread in the current RealmConfiguration.
+     */
+    protected void checkAllowWritesOnUiThread() {
+        // Warn on transaction being executed on UI thread if allowWritesOnUiThread is set to true, throw otherwise
+        if (getSharedRealm().capabilities.isMainThread()) {
+            if (!getConfiguration().isAllowWritesOnUiThread()) {
+                throw new RealmException("Running transactions on the UI thread has been disabled. It can be enabled by setting 'RealmConfiguration.Builder.allowWritesOnUiThread(true)'.");
+            }
         }
     }
 
     protected void checkIfInTransaction() {
         if (!sharedRealm.isInTransaction()) {
             throw new IllegalStateException("Changing Realm data can only be done from inside a transaction.");
-        }
-    }
-
-    protected void checkIfPartialRealm() {
-        boolean isPartialRealm = false;
-        if (configuration.isSyncConfiguration()) {
-            isPartialRealm = ObjectServerFacade.getSyncFacadeIfPossible().isPartialRealm(configuration);
-        }
-
-        if (!isPartialRealm) {
-            throw new IllegalStateException("This method is only available on partially synchronized Realms.");
         }
     }
 
@@ -466,12 +572,49 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
+     * Creates a row representing an embedded object - for internal use only.
+     *
+     * @param className the class name of the object to create.
+     * @param parentProxy The parent object which should hold a reference to the embedded object.
+     * @param parentProperty the property in the parent class which holds the reference.
+     * @param schema the Realm schema from which to obtain table information.
+     * @param parentObjectSchema the parent object schema from which to obtain property information.
+     * @return the row representing the newly created embedded object.
+     * @throws IllegalArgumentException if any embedded object invariants are broken.
+     */
+    Row getEmbeddedObjectRow(final String className,
+                             final RealmObjectProxy parentProxy,
+                             final String parentProperty,
+                             final RealmSchema schema,
+                             final RealmObjectSchema parentObjectSchema) {
+        final long parentPropertyColKey = parentObjectSchema.getColumnKey(parentProperty);
+        final RealmFieldType parentPropertyType = parentObjectSchema.getFieldType(parentProperty);
+        final Row row = parentProxy.realmGet$proxyState().getRow$realm();
+        final RealmFieldType fieldType = parentObjectSchema.getFieldType(parentProperty);
+        boolean propertyAcceptable = parentObjectSchema.isPropertyAcceptableForEmbeddedObject(fieldType);
+        if (!propertyAcceptable) {
+            throw new IllegalArgumentException(String.format("Field '%s' does not contain a valid link", parentProperty));
+        }
+        final String linkedType = parentObjectSchema.getPropertyClassName(parentProperty);
+
+        // By now linkedType can only be either OBJECT or LIST, so no exhaustive check needed
+        Row embeddedObject;
+        if (linkedType.equals(className)) {
+            long objKey = row.createEmbeddedObject(parentPropertyColKey, parentPropertyType);
+            embeddedObject = schema.getTable(className).getCheckedRow(objKey);
+        } else {
+            throw new IllegalArgumentException(String.format("Parent type %s expects that property '%s' be of type %s but was %s.", parentObjectSchema.getClassName(), parentProperty, linkedType, className));
+        }
+
+        return embeddedObject;
+    }
+
+    /**
      * Checks if the Realm is not built with a SyncRealmConfiguration.
      */
     void checkNotInSync() {
         if (configuration.isSyncConfiguration()) {
-            throw new IllegalArgumentException("You cannot perform changes to a schema. " +
-                    "Please update app and restart.");
+            throw new UnsupportedOperationException("You cannot perform destructive changes to a schema of a synced Realm");
         }
     }
 
@@ -504,41 +647,6 @@ abstract class BaseRealm implements Closeable {
     }
 
     /**
-     * Returns the privileges granted to the current user for this Realm.
-     *
-     * @return the privileges granted the current user for this Realm.
-     */
-    @Beta
-    @ObjectServer
-    public RealmPrivileges getPrivileges() {
-        checkIfValid();
-        return new RealmPrivileges(sharedRealm.getPrivileges());
-    }
-
-    /**
-     * Returns the privileges granted to the current user for the given object.
-     *
-     * @param object Realm object to get privileges for.
-     * @return the privileges granted the current user for the object.
-     * @throws IllegalArgumentException if the object is either null, unmanaged or not part of this Realm.
-     */
-    public ObjectPrivileges getPrivileges(RealmModel object) {
-        checkIfValid();
-        //noinspection ConstantConditions
-        if (object == null) {
-            throw new IllegalArgumentException("Non-null 'object' required.");
-        }
-        if (!RealmObject.isManaged(object)) {
-            throw new IllegalArgumentException("Only managed objects have privileges. This is a an unmanaged object: " + object.toString());
-        }
-        if (!((RealmObjectProxy) object).realmGet$proxyState().getRealm$realm().getPath().equals(getPath())) {
-            throw new IllegalArgumentException("Object belongs to a different Realm.");
-        }
-        UncheckedRow row = (UncheckedRow) ((RealmObjectProxy) object).realmGet$proxyState().getRow$realm();
-        return new ObjectPrivileges(sharedRealm.getObjectPrivileges(row));
-    }
-
-    /**
      * Closes the Realm instance and all its resources.
      * <p>
      * It's important to always remember to close Realm instances when you're done with it in order not to leak memory,
@@ -548,7 +656,7 @@ abstract class BaseRealm implements Closeable {
      */
     @Override
     public void close() {
-        if (this.threadId != Thread.currentThread().getId()) {
+        if (!frozen && this.threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(INCORRECT_THREAD_CLOSE_MESSAGE);
         }
 
@@ -577,7 +685,7 @@ abstract class BaseRealm implements Closeable {
      * @throws IllegalStateException if attempting to close from another thread.
      */
     public boolean isClosed() {
-        if (this.threadId != Thread.currentThread().getId()) {
+        if (!frozen && this.threadId != Thread.currentThread().getId()) {
             throw new IllegalStateException(INCORRECT_THREAD_MESSAGE);
         }
 
@@ -589,10 +697,7 @@ abstract class BaseRealm implements Closeable {
      *
      * @return {@code true} if empty, @{code false} otherwise.
      */
-    public boolean isEmpty() {
-        checkIfValid();
-        return sharedRealm.isEmpty();
-    }
+    public abstract boolean isEmpty();
 
     /**
      * Returns the schema for this Realm.
@@ -600,6 +705,22 @@ abstract class BaseRealm implements Closeable {
      * @return The {@link RealmSchema} for this Realm.
      */
     public abstract RealmSchema getSchema();
+
+    /**
+     * Returns the subscription set associated with this Realm. The subscription set defines
+     * a set of queries that define which data is synchronized between this realm and the server.
+     * <p>
+     * This method is only applicable to synchronized realms using flexible sync.
+     *
+     * @return the subscription set associated with this realm.
+     * @throws IllegalStateException if this realm is either a local realm or a partion-based
+     * synchronized realm.
+     */
+    @ObjectServer
+    public SubscriptionSet getSubscriptions() {
+        checkIfValid();
+        return sharedRealm.getSubscriptions(configuration.getSchemaMediator(), asyncTaskExecutor, WRITE_EXECUTOR);
+    }
 
     // Used by RealmList/RealmResults, to create RealmObject from a OsResults.
     // Invariant: if dynamicClassName != null -> clazz == DynamicRealmObject
@@ -619,9 +740,9 @@ abstract class BaseRealm implements Closeable {
         return result;
     }
 
-    <E extends RealmModel> E get(Class<E> clazz, long rowIndex, boolean acceptDefaultValue, List<String> excludeFields) {
+    <E extends RealmModel> E get(Class<E> clazz, long rowKey, boolean acceptDefaultValue, List<String> excludeFields) {
         Table table = getSchema().getTable(clazz);
-        UncheckedRow row = table.getUncheckedRow(rowIndex);
+        UncheckedRow row = table.getUncheckedRow(rowKey);
         return configuration.getSchemaMediator().newInstance(clazz, this, row, getSchema().getColumnInfo(clazz),
                 acceptDefaultValue, excludeFields);
     }
@@ -652,20 +773,13 @@ abstract class BaseRealm implements Closeable {
 
     /**
      * Deletes all objects from this Realm.
-     * <p>
-     * If the Realm is a partially synchronized Realm, all subscriptions will be cleared as well.
      *
-     * @throws IllegalStateException if the corresponding Realm is a partially synchronized Realm, is
-     * closed or called from an incorrect thread.
+     * @throws IllegalStateException if the Realm is closed or called from an incorrect thread.
      */
     public void deleteAll() {
         checkIfValid();
-        if (sharedRealm.isPartial()) {
-            throw new IllegalStateException(DELETE_NOT_SUPPORTED_UNDER_PARTIAL_SYNC);
-        }
-        boolean isPartialRealm = sharedRealm.isPartial();
         for (RealmObjectSchema objectSchema : getSchema().getAll()) {
-            getSchema().getTable(objectSchema.getClassName()).clear(isPartialRealm);
+            getSchema().getTable(objectSchema.getClassName()).clear();
         }
     }
 
@@ -698,7 +812,7 @@ abstract class BaseRealm implements Closeable {
      * @return {@code true} if compaction succeeded, {@code false} otherwise.
      */
     static boolean compactRealm(final RealmConfiguration configuration) {
-        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configuration);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(configuration, OsSharedRealm.VersionID.LIVE);
         Boolean result = sharedRealm.compact();
         sharedRealm.close();
         return result;
@@ -757,7 +871,7 @@ abstract class BaseRealm implements Closeable {
                 OsSharedRealm sharedRealm = null;
                 try {
                     sharedRealm =
-                            OsSharedRealm.getInstance(configBuilder);
+                            OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE);
                 } finally {
                     if (sharedRealm != null) {
                         sharedRealm.close();
@@ -844,7 +958,12 @@ abstract class BaseRealm implements Closeable {
         }
     }
 
-    // FIXME: This stuff doesn't appear to be used.  It should either be explained or deleted.
+    /**
+     * CM: This is used when creating new proxy classes directly from the generated proxy code.
+     * It is a bit unclear exactly how it works, but it seems to be some work-around for some
+     * constructor shenanigans, i.e. values are set in this object just before the Proxy object
+     * is created (see `RealmDefaultModuleMediator.newInstance)`).
+     */
     static final class ThreadLocalRealmObjectContext extends ThreadLocal<RealmObjectContext> {
         @Override
         protected RealmObjectContext initialValue() {

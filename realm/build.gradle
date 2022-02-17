@@ -1,10 +1,9 @@
-project.ext.minSdkVersion = 9
-project.ext.compileSdkVersion = 26
-project.ext.buildToolsVersion = '27.0.2'
-
 buildscript {
-    ext.kotlin_version = '1.2.10'
-    ext.dokka_version = '0.9.16'
+    def projectDependencies = new Properties()
+    projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
+    ext.kotlin_version = projectDependencies.get('KOTLIN')
+    ext.coroutines_android_version = projectDependencies.get('KOTLIN_COROUTINES')
+    ext.dokka_version = '1.5.0'
     repositories {
         mavenLocal()
         google()
@@ -14,28 +13,32 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha06'
-        classpath 'de.undercouch:gradle-download-task:3.3.0'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+        classpath "com.android.tools.build:gradle:${projectDependencies.get('GRADLE_BUILD_TOOLS')}"
+        classpath 'de.undercouch:gradle-download-task:4.0.2'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         classpath 'com.novoda:gradle-android-command-plugin:1.7.1'
         classpath 'com.github.skhatri:gradle-s3-plugin:1.0.4'
         classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.4'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${projectDependencies.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
         classpath "io.realm:realm-transformer:${file('../version.txt').text.trim()}"
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.13'
+        classpath "io.realm:realm-library-build-transformer:${file('../version.txt').text.trim()}"
+        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:2.0.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
+        classpath "gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.5.0"
+        classpath "io.github.gradle-nexus:publish-plugin:${projectDependencies.get("GRADLE_NEXUS_PLUGIN")}"
     }
 }
 
 allprojects {
-    def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
-    props.each { key, val ->
+    def projectDependencies = new Properties()
+    projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
+    projectDependencies.each { key, val ->
         project.ext.set(key, val)
     }
-
+    project.ext.minSdkVersion = 16
+    project.ext.compileSdkVersion = 29
+    project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
     group = 'io.realm'
     version = file("${rootDir}/../version.txt").text.trim()
     repositories {
@@ -45,7 +48,13 @@ allprojects {
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
+// Disable JavaDoc strict mode: https://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:-missing', '-quiet')
+        }
+    }
 }
+
+apply from: "${rootDir}/../mavencentral-publish.gradle"

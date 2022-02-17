@@ -16,6 +16,9 @@
 
 package io.realm;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,17 +28,17 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.realm.internal.Freezable;
 import io.realm.internal.InvalidRow;
 import io.realm.internal.OsList;
-import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.rx.CollectionChange;
@@ -51,14 +54,13 @@ import io.realm.rx.CollectionChange;
  * <p>
  * Unmanaged RealmLists can be created by the user and can contain both managed and unmanaged RealmObjects. This is
  * useful when dealing with JSON deserializers like GSON or other frameworks that inject values into a class.
- * Unmanaged elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable)} method.
+ * Unmanaged elements in this list can be added to a Realm using the {@link Realm#copyToRealm(Iterable, ImportFlag...)} method.
  * <p>
  * {@link RealmList} can contain more elements than {@code Integer.MAX_VALUE}.
  * In that case, you can access only first {@code Integer.MAX_VALUE} elements in it.
  *
  * @param <E> the class of objects in list.
  */
-
 public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
 
     private static final String ONLY_IN_MANAGED_MODE_MESSAGE = "This method is only available in managed mode.";
@@ -72,7 +74,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
     // Always null if RealmList is unmanaged, always non-null if managed.
     private final ManagedListOperator<E> osListOperator;
-    final protected BaseRealm realm;
+
+    /**
+     * The {@link BaseRealm} instance in which this list resides.
+     * <p>
+     * Warning: This field is only exposed for internal usage, and should not be used.
+     */
+    public final BaseRealm baseRealm;
+
     private List<E> unmanagedList;
 
     /**
@@ -80,10 +89,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * This effectively makes the RealmList function as a {@link java.util.ArrayList} and it is not possible to query
      * the objects in this state.
      * <p>
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist its elements in Realm.
+     * Use {@link io.realm.Realm#copyToRealm(Iterable, ImportFlag...)} to properly persist its elements in Realm.
      */
     public RealmList() {
-        realm = null;
+        baseRealm = null;
         osListOperator = null;
         unmanagedList = new ArrayList<>();
     }
@@ -93,7 +102,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * A RealmList in unmanaged mode function as a {@link java.util.ArrayList} and it is not possible to query the
      * objects in this state.
      * <p>
-     * Use {@link io.realm.Realm#copyToRealm(Iterable)} to properly persist all unmanaged elements in Realm.
+     * Use {@link io.realm.Realm#copyToRealm(Iterable, ImportFlag...)} to properly persist all unmanaged elements in Realm.
      *
      * @param objects initial objects in the list.
      */
@@ -102,7 +111,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         if (objects == null) {
             throw new IllegalArgumentException("The objects argument cannot be null");
         }
-        realm = null;
+        baseRealm = null;
         osListOperator = null;
         unmanagedList = new ArrayList<>(objects.length);
         Collections.addAll(unmanagedList, objects);
@@ -113,22 +122,26 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      *
      * @param clazz type of elements in the Array.
      * @param osList backing {@link OsList}.
-     * @param realm reference to Realm containing the data.
+     * @param baseRealm reference to Realm containing the data.
      */
-    RealmList(Class<E> clazz, OsList osList, BaseRealm realm) {
+    RealmList(Class<E> clazz, OsList osList, BaseRealm baseRealm) {
         this.clazz = clazz;
-        osListOperator = getOperator(realm, osList, clazz, null);
-        this.realm = realm;
+        osListOperator = getOperator(baseRealm, osList, clazz, null);
+        this.baseRealm = baseRealm;
     }
 
-    RealmList(String className, OsList osList, BaseRealm realm) {
-        this.realm = realm;
+    RealmList(String className, OsList osList, BaseRealm baseRealm) {
+        this.baseRealm = baseRealm;
         this.className = className;
-        osListOperator = getOperator(realm, osList, null, className);
+        osListOperator = getOperator(baseRealm, osList, null, className);
     }
 
     OsList getOsList() {
         return osListOperator.getOsList();
+    }
+
+    long createAndAddEmbeddedObject() {
+        return osListOperator.getOsList().createAndAddEmbeddedObject();
     }
 
     /**
@@ -136,11 +149,11 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean isValid() {
-        if (realm == null) {
+        if (baseRealm == null) {
             return true;
         }
         //noinspection SimplifiableIfStatement
-        if (realm.isClosed()) {
+        if (baseRealm.isClosed()) {
             return false;
         }
         return isAttached();
@@ -150,8 +163,38 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@inheritDoc}
      */
     @Override
+    public RealmList<E> freeze() {
+        if (isManaged()) {
+            if (!isValid()) {
+                throw new IllegalStateException("Only valid, managed RealmLists can be frozen.");
+            }
+
+            BaseRealm frozenRealm = baseRealm.freeze();
+            OsList frozenList = getOsList().freeze(frozenRealm.sharedRealm);
+            if (className != null) {
+                return new RealmList<>(className, frozenList, frozenRealm);
+            } else {
+                return new RealmList<>(clazz, frozenList, frozenRealm);
+            }
+        } else {
+            throw new UnsupportedOperationException(ONLY_IN_MANAGED_MODE_MESSAGE);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isFrozen() {
+        return (baseRealm != null && baseRealm.isFrozen());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean isManaged() {
-        return realm != null;
+        return baseRealm != null;
     }
 
     private boolean isAttached() {
@@ -165,10 +208,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <ol>
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)} afterwards.</li>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel, ImportFlag...)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)} if it has a primary key.</li>
      * </ol>
      *
      * @param location the index at which to insert.
@@ -193,10 +236,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <ol>
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)} afterwards.</li>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed. In
-     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)}
-     * or {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
+     * that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel, ImportFlag...)}
+     * or {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)} if it has a primary key.</li>
      * </ol>
      *
      * @param object the object to add.
@@ -220,10 +263,10 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <ol>
      * <li><b>Unmanaged RealmLists</b>: It is possible to add both managed and unmanaged objects. If adding managed
      * objects to an unmanaged RealmList they will not be copied to the Realm again if using
-     * {@link Realm#copyToRealm(RealmModel)} afterwards.</li>
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)} afterwards.</li>
      * <li><b>Managed RealmLists</b>: It is possible to add unmanaged objects to a RealmList that is already managed.
-     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel)} or
-     * {@link Realm#copyToRealmOrUpdate(RealmModel)} if it has a primary key.</li>
+     * In that case the object will transparently be copied to Realm using {@link Realm#copyToRealm(RealmModel, ImportFlag...)} or
+     * {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)} if it has a primary key.</li>
      * </ol>
      *
      * @param location the index at which to put the specified object.
@@ -331,7 +374,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean remove(@Nullable Object object) {
-        if (isManaged() && !realm.isInTransaction()) {
+        if (isManaged() && !baseRealm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
         return super.remove(object);
@@ -355,7 +398,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      */
     @Override
     public boolean removeAll(Collection<?> collection) {
-        if (isManaged() && !realm.isInTransaction()) {
+        if (isManaged() && !baseRealm.isInTransaction()) {
             throw new IllegalStateException(REMOVE_OUTSIDE_TRANSACTION_ERROR);
         }
         return super.removeAll(collection);
@@ -684,7 +727,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     @Override
     public boolean contains(@Nullable Object object) {
         if (isManaged()) {
-            realm.checkIfValid();
+            baseRealm.checkIfValid();
 
             // Deleted objects can never be part of a RealmList
             if (object instanceof RealmObjectProxy) {
@@ -736,7 +779,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
     }
 
     private void checkValidRealm() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
     }
 
     /**
@@ -753,15 +796,15 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
         }
         if (className != null) {
             return new OrderedRealmCollectionSnapshot<>(
-                    realm,
-                    OsResults.createFromQuery(realm.sharedRealm, osListOperator.getOsList().getQuery()),
+                    baseRealm,
+                    OsResults.createFromQuery(baseRealm.sharedRealm, osListOperator.getOsList().getQuery()),
                     className);
         } else {
             // 'clazz' is non-null when 'dynamicClassName' is null.
             //noinspection ConstantConditions
             return new OrderedRealmCollectionSnapshot<>(
-                    realm,
-                    OsResults.createFromQuery(realm.sharedRealm, osListOperator.getOsList().getQuery()),
+                    baseRealm,
+                    OsResults.createFromQuery(baseRealm.sharedRealm, osListOperator.getOsList().getQuery()),
                     clazz);
         }
     }
@@ -778,14 +821,14 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@link Realm} was already closed.
      */
     public Realm getRealm() {
-        if (realm == null) {
+        if (baseRealm == null) {
             return null;
         }
-        realm.checkIfValid();
-        if (!(realm instanceof Realm)) {
+        baseRealm.checkIfValid();
+        if (!(baseRealm instanceof Realm)) {
             throw new IllegalStateException("This method is only available for typed Realms");
         }
-        return (Realm) realm;
+        return (Realm) baseRealm;
     }
 
     @Override
@@ -829,7 +872,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
                 //noinspection ConstantConditions,unchecked
                 if (isClassForRealmModel(clazz)) {
                     //noinspection ConstantConditions,unchecked
-                    sb.append(realm.getSchema().getSchemaForClass((Class<RealmModel>) clazz).getClassName());
+                    sb.append(baseRealm.getSchema().getSchemaForClass((Class<RealmModel>) clazz).getClassName());
                 } else {
                     if (clazz == byte[].class) {
                         sb.append(clazz.getSimpleName());
@@ -846,7 +889,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             } else if (isClassForRealmModel(clazz)) {
                 for (int i = 0; i < size(); i++) {
                     //noinspection ConstantConditions
-                    sb.append(((RealmObjectProxy) get(i)).realmGet$proxyState().getRow$realm().getIndex());
+                    sb.append(((RealmObjectProxy) get(i)).realmGet$proxyState().getRow$realm().getObjectKey());
                     sb.append(separator);
                 }
                 if (0 < size()) {
@@ -876,6 +919,21 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * subscribed to. RealmList will continually be emitted as the RealmList is updated -
      * {@code onComplete} will never be called.
      * <p>
+     * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Flowables always emit items from the thread holding the live RealmList. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * list.asFlowable()
+     *   .observeOn(Schedulers.computation())
+     *   .map(rxResults -> doExpensiveWork(rxResults))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
+     * <p>
      * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
@@ -887,25 +945,22 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * }
      * </pre>
      * <p>
-     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}.
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
     public Flowable<RealmList<E>> asFlowable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().from((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
+        if (baseRealm instanceof Realm) {
+            return baseRealm.configuration.getRxFactory().from((Realm) baseRealm, this);
+        } else if (baseRealm instanceof DynamicRealm) {
             @SuppressWarnings("UnnecessaryLocalVariable")
-            Flowable<RealmList<E>> results = realm.configuration.getRxFactory().from((DynamicRealm) realm, this);
+            Flowable<RealmList<E>> results = baseRealm.configuration.getRxFactory().from((DynamicRealm) baseRealm, this);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+            throw new UnsupportedOperationException(baseRealm.getClass() + " does not support RxJava2.");
         }
     }
 
@@ -917,34 +972,37 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * <p>
      * RealmList will continually be emitted as the RealmList is updated - {@code onComplete} will never be called.
      * <p>
-     * * Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
+     * Items emitted from Realm Observables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Observables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * list.asChangesetObservable()
+     *   .observeOn(Schedulers.computation())
+     *   .map((rxList, changes) -> doExpensiveWork(rxList, changes))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     public Observable<CollectionChange<RealmList<E>>> asChangesetObservable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
-            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+        if (baseRealm instanceof Realm) {
+            return baseRealm.configuration.getRxFactory().changesetsFrom((Realm) baseRealm, this);
+        } else if (baseRealm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) baseRealm;
             RealmList<DynamicRealmObject> dynamicResults = (RealmList<DynamicRealmObject>) this;
-            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
+            return (Observable) baseRealm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+            throw new UnsupportedOperationException(baseRealm.getClass() + " does not support RxJava2.");
         }
-    }
-
-    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
-        if (checkListener && listener == null) {
-            throw new IllegalArgumentException("Listener should not be null");
-        }
-        realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
     }
 
     /**
@@ -981,7 +1039,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@link android.app.IntentService} thread.
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         osListOperator.getOsList().addListener(this, listener);
     }
 
@@ -994,7 +1052,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         osListOperator.getOsList().removeListener(this, listener);
     }
 
@@ -1032,7 +1090,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * {@link android.app.IntentService} thread.
      */
     public void addChangeListener(RealmChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         osListOperator.getOsList().addListener(this, listener);
     }
 
@@ -1045,7 +1103,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<RealmList<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, listener, true);
         osListOperator.getOsList().removeListener(this, listener);
     }
 
@@ -1056,7 +1114,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
-        checkForAddRemoveListener(null, false);
+        CollectionUtils.checkForAddRemoveListener(baseRealm, null, false);
         osListOperator.getOsList().removeAllListeners();
     }
 
@@ -1204,7 +1262,7 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
          */
         @Override
         public void set(@Nullable E e) {
-            realm.checkIfValid();
+            baseRealm.checkIfValid();
             if (lastRet < 0) {
                 throw new IllegalStateException();
             }
@@ -1220,13 +1278,13 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
 
         /**
          * Adding a new object to the RealmList. If the object is not already manage by Realm it will be transparently
-         * copied using {@link Realm#copyToRealmOrUpdate(RealmModel)}
+         * copied using {@link Realm#copyToRealmOrUpdate(RealmModel, ImportFlag...)}
          *
          * @see #add(Object)
          */
         @Override
         public void add(@Nullable E e) {
-            realm.checkIfValid();
+            baseRealm.checkIfValid();
             checkConcurrentModification();
             try {
                 int i = cursor;
@@ -1275,630 +1333,22 @@ public class RealmList<E> extends AbstractList<E> implements OrderedRealmCollect
             //noinspection unchecked
             return (ManagedListOperator<E>) new DateListOperator(realm, osList, (Class<Date>) clazz);
         }
-        throw new IllegalArgumentException("Unexpected value class: " + clazz.getName());
-    }
-}
-
-/**
- * This class provides facade for against {@link OsList}. {@link OsList} is used for both {@link RealmModel}s
- * and values, but there are some subtle differences in actual operation.
- * <p>
- * This class provides common interface for them.
- * <p>
- * You need to use appropriate sub-class for underlying field type.
- *
- * @param <T> class of element which is returned on read operation.
- */
-abstract class ManagedListOperator<T> {
-    static final String NULL_OBJECTS_NOT_ALLOWED_MESSAGE = "RealmList does not accept null values.";
-    static final String INVALID_OBJECT_TYPE_MESSAGE = "Unacceptable value type. Acceptable: %1$s, actual: %2$s .";
-
-    final BaseRealm realm;
-    final OsList osList;
-    @Nullable
-    final Class<T> clazz;
-
-    ManagedListOperator(BaseRealm realm, OsList osList, @Nullable Class<T> clazz) {
-        this.realm = realm;
-        this.clazz = clazz;
-        this.osList = osList;
-    }
-
-    public abstract boolean forRealmModel();
-
-    public final OsList getOsList() {
-        return osList;
-    }
-
-    public final boolean isValid() {
-        return osList.isValid();
-    }
-
-    public final int size() {
-        final long actualSize = osList.size();
-        return actualSize < Integer.MAX_VALUE ? (int) actualSize : Integer.MAX_VALUE;
-    }
-
-    public final boolean isEmpty() {
-        return osList.isEmpty();
-    }
-
-    protected abstract void checkValidValue(@Nullable Object value);
-
-    @Nullable
-    public abstract T get(int index);
-
-    public final void append(@Nullable Object value) {
-        checkValidValue(value);
-
-        if (value == null) {
-            appendNull();
-        } else {
-            appendValue(value);
-        }
-    }
-
-    private void appendNull() {
-        osList.addNull();
-    }
-
-    abstract protected void appendValue(Object value);
-
-    public final void insert(int index, @Nullable Object value) {
-        checkValidValue(value);
-
-        if (value == null) {
-            insertNull(index);
-        } else {
-            insertValue(index, value);
-        }
-
-    }
-
-    protected void insertNull(int index) {
-        osList.insertNull(index);
-    }
-
-    protected abstract void insertValue(int index, Object value);
-
-    @Nullable
-    public final T set(int index, @Nullable Object value) {
-        checkValidValue(value);
-
-        //noinspection unchecked
-        final T oldObject = get(index);
-        if (value == null) {
-            setNull(index);
-        } else {
-            setValue(index, value);
-        }
-        return oldObject;
-    }
-
-    protected void setNull(int index) {
-        osList.setNull(index);
-    }
-
-    abstract protected void setValue(int index, Object value);
-
-    final void move(int oldPos, int newPos) {
-        osList.move(oldPos, newPos);
-    }
-
-    final void remove(int index) {
-        osList.remove(index);
-    }
-
-    final void removeAll() {
-        osList.removeAll();
-    }
-
-    final void delete(int index) {
-        osList.delete(index);
-    }
-
-    final void deleteLast() {
-        osList.delete(osList.size() - 1);
-    }
-
-    final void deleteAll() {
-        osList.deleteAll();
-    }
-
-}
-
-/**
- * A subclass of {@link ManagedListOperator} that deal with {@link RealmModel} list field.
- */
-final class RealmModelListOperator<T> extends ManagedListOperator<T> {
-
-    @Nullable
-    private final String className;
-
-    RealmModelListOperator(BaseRealm realm, OsList osList, @Nullable Class<T> clazz, @Nullable String className) {
-        super(realm, osList, clazz);
-        this.className = className;
-    }
-
-    @Override
-    public boolean forRealmModel() {
-        return true;
-    }
-
-    @Override
-    public T get(int index) {
-        //noinspection unchecked
-        return (T) realm.get((Class<? extends RealmModel>) clazz, className, osList.getUncheckedRow(index));
-    }
-
-    @Override
-    protected void checkValidValue(@Nullable Object value) {
-        if (value == null) {
-            throw new IllegalArgumentException(NULL_OBJECTS_NOT_ALLOWED_MESSAGE);
-        }
-        if (!(value instanceof RealmModel)) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
-                            "java.lang.String",
-                            value.getClass().getName()));
-        }
-    }
-
-    private void checkInsertIndex(int index) {
-        final int size = size();
-        if (index < 0 || size < index) {
-            throw new IndexOutOfBoundsException("Invalid index " + index + ", size is " + osList.size());
-        }
-    }
-
-    @Override
-    public void appendValue(Object value) {
-        final RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.addRow(proxy.realmGet$proxyState().getRow$realm().getIndex());
-    }
-
-    @Override
-    protected void insertNull(int index) {
-        throw new RuntimeException("Should not reach here.");
-    }
-
-    @Override
-    public void insertValue(int index, Object value) {
-        // need to check in advance to avoid unnecessary copy of unmanaged object into Realm.
-        checkInsertIndex(index);
-
-        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.insertRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
-    }
-
-    @Override
-    protected void setNull(int index) {
-        throw new RuntimeException("Should not reach here.");
-    }
-
-    @Override
-    protected void setValue(int index, Object value) {
-        RealmObjectProxy proxy = (RealmObjectProxy) copyToRealmIfNeeded((RealmModel) value);
-        osList.setRow(index, proxy.realmGet$proxyState().getRow$realm().getIndex());
-    }
-
-    // Transparently copies an unmanaged object or managed object from another Realm to the Realm backing this RealmList.
-    private <E extends RealmModel> E copyToRealmIfNeeded(E object) {
-        if (object instanceof RealmObjectProxy) {
-            RealmObjectProxy proxy = (RealmObjectProxy) object;
-
-            if (proxy instanceof DynamicRealmObject) {
-                //noinspection ConstantConditions
-                @Nonnull
-                String listClassName = className;
-                if (proxy.realmGet$proxyState().getRealm$realm() == realm) {
-                    String objectClassName = ((DynamicRealmObject) object).getType();
-                    if (listClassName.equals(objectClassName)) {
-                        // Same Realm instance and same target table
-                        return object;
-                    } else {
-                        // Different target table
-                        throw new IllegalArgumentException(String.format(Locale.US,
-                                "The object has a different type from list's." +
-                                        " Type of the list is '%s', type of object is '%s'.", listClassName, objectClassName));
-                    }
-                } else if (realm.threadId == proxy.realmGet$proxyState().getRealm$realm().threadId) {
-                    // We don't support moving DynamicRealmObjects across Realms automatically. The overhead is too big as
-                    // you have to run a full schema validation for each object.
-                    // And copying from another Realm instance pointed to the same Realm file is not supported as well.
-                    throw new IllegalArgumentException("Cannot copy DynamicRealmObject between Realm instances.");
-                } else {
-                    throw new IllegalStateException("Cannot copy an object to a Realm instance created in another thread.");
-                }
-            } else {
-                // Object is already in this realm
-                if (proxy.realmGet$proxyState().getRow$realm() != null && proxy.realmGet$proxyState().getRealm$realm().getPath().equals(realm.getPath())) {
-                    if (realm != proxy.realmGet$proxyState().getRealm$realm()) {
-                        throw new IllegalArgumentException("Cannot copy an object from another Realm instance.");
-                    }
-                    return object;
-                }
-            }
-        }
-
-        // At this point the object can only be a typed object, so the backing Realm cannot be a DynamicRealm.
-        Realm realm = (Realm) this.realm;
-        if (OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(),
-                realm.getConfiguration().getSchemaMediator().getSimpleClassName(object.getClass())) != null) {
-            return realm.copyToRealmOrUpdate(object);
-        } else {
-            return realm.copyToRealm(object);
-        }
-    }
-}
-
-/**
- * A subclass of {@link ManagedListOperator} that deal with {@link String} list field.
- */
-final class StringListOperator extends ManagedListOperator<String> {
-
-    StringListOperator(BaseRealm realm, OsList osList, Class<String> clazz) {
-        super(realm, osList, clazz);
-    }
-
-    @Override
-    public boolean forRealmModel() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public String get(int index) {
-        return (String) osList.getValue(index);
-    }
-
-    @Override
-    protected void checkValidValue(@Nullable Object value) {
-        if (value == null) {
-            // null is always valid (but schema may reject null on insertion).
-            return;
-        }
-        if (!(value instanceof String)) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
-                            "java.lang.String",
-                            value.getClass().getName()));
-        }
-    }
-
-    @Override
-    public void appendValue(Object value) {
-        osList.addString((String) value);
-    }
-
-    @Override
-    public void insertValue(int index, Object value) {
-        osList.insertString(index, (String) value);
-    }
-
-    @Override
-    protected void setValue(int index, Object value) {
-        osList.setString(index, (String) value);
-    }
-}
-
-/**
- * A subclass of {@link ManagedListOperator} that deal with {@code long} list field.
- */
-final class LongListOperator<T> extends ManagedListOperator<T> {
-
-    LongListOperator(BaseRealm realm, OsList osList, Class<T> clazz) {
-        super(realm, osList, clazz);
-    }
-
-    @Override
-    public boolean forRealmModel() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public T get(int index) {
-        final Long value = (Long) osList.getValue(index);
-        if (value == null) {
-            return null;
-        }
-        if (clazz == Long.class) {
+        if (clazz == Decimal128.class) {
             //noinspection unchecked
-            return (T) value;
+            return (ManagedListOperator<E>) new Decimal128ListOperator(realm, osList, (Class<Decimal128>) clazz);
         }
-        if (clazz == Integer.class) {
-            //noinspection unchecked,UnnecessaryBoxing,ConstantConditions
-            return clazz.cast(Integer.valueOf(value.intValue()));
+        if (clazz == ObjectId.class) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new ObjectIdListOperator(realm, osList, (Class<ObjectId>) clazz);
         }
-        if (clazz == Short.class) {
-            //noinspection unchecked,UnnecessaryBoxing,ConstantConditions
-            return clazz.cast(Short.valueOf(value.shortValue()));
+        if (clazz == UUID.class) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new UUIDListOperator(realm, osList, (Class<UUID>) clazz);
         }
-        if (clazz == Byte.class) {
-            //noinspection unchecked,UnnecessaryBoxing,ConstantConditions
-            return clazz.cast(Byte.valueOf(value.byteValue()));
+        if (clazz == RealmAny.class) {
+            //noinspection unchecked
+            return (ManagedListOperator<E>) new RealmAnyListOperator(realm, osList, (Class<RealmAny>) clazz);
         }
-        //noinspection ConstantConditions
-        throw new IllegalStateException("Unexpected element type: " + clazz.getName());
-    }
-
-    @Override
-    protected void checkValidValue(@Nullable Object value) {
-        if (value == null) {
-            // null is always valid (but schema may reject null on insertion).
-            return;
-        }
-        if (!(value instanceof Number)) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
-                            "java.lang.Long, java.lang.Integer, java.lang.Short, java.lang.Byte",
-                            value.getClass().getName()));
-        }
-    }
-
-    @Override
-    public void appendValue(Object value) {
-        osList.addLong(((Number) value).longValue());
-    }
-
-    @Override
-    public void insertValue(int index, Object value) {
-        osList.insertLong(index, ((Number) value).longValue());
-    }
-
-    @Override
-    protected void setValue(int index, Object value) {
-        osList.setLong(index, ((Number) value).longValue());
-    }
-}
-
-/**
- * A subclass of {@link ManagedListOperator} that deal with {@code boolean} list field.
- */
-final class BooleanListOperator extends ManagedListOperator<Boolean> {
-
-    BooleanListOperator(BaseRealm realm, OsList osList, Class<Boolean> clazz) {
-        super(realm, osList, clazz);
-    }
-
-    @Override
-    public boolean forRealmModel() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public Boolean get(int index) {
-        return (Boolean) osList.getValue(index);
-    }
-
-    @Override
-    protected void checkValidValue(@Nullable Object value) {
-        if (value == null) {
-            // null is always valid (but schema may reject null on insertion).
-            return;
-        }
-        if (!(value instanceof Boolean)) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
-                            "java.lang.Boolean",
-                            value.getClass().getName()));
-        }
-    }
-
-    @Override
-    public void appendValue(Object value) {
-        osList.addBoolean((Boolean) value);
-    }
-
-    @Override
-    public void insertValue(int index, Object value) {
-        osList.insertBoolean(index, (Boolean) value);
-    }
-
-    @Override
-    protected void setValue(int index, Object value) {
-        osList.setBoolean(index, (Boolean) value);
-    }
-}
-
-/**
- * A subclass of {@link ManagedListOperator} that deal with {@code byte[]} list field.
- */
-final class BinaryListOperator extends ManagedListOperator<byte[]> {
-
-    BinaryListOperator(BaseRealm realm, OsList osList, Class<byte[]> clazz) {
-        super(realm, osList, clazz);
-    }
-
-    @Override
-    public boolean forRealmModel() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public byte[] get(int index) {
-        return (byte[]) osList.getValue(index);
-    }
-
-    @Override
-    protected void checkValidValue(@Nullable Object value) {
-        if (value == null) {
-            // null is always valid (but schema may reject null on insertion).
-            return;
-        }
-        if (!(value instanceof byte[])) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
-                            "byte[]",
-                            value.getClass().getName()));
-        }
-    }
-
-    @Override
-    public void appendValue(Object value) {
-        osList.addBinary((byte[]) value);
-    }
-
-    @Override
-    public void insertValue(int index, Object value) {
-        osList.insertBinary(index, (byte[]) value);
-    }
-
-    @Override
-    protected void setValue(int index, Object value) {
-        osList.setBinary(index, (byte[]) value);
-    }
-}
-
-/**
- * A subclass of {@link ManagedListOperator} that deal with {@code double} list field.
- */
-final class DoubleListOperator extends ManagedListOperator<Double> {
-
-    DoubleListOperator(BaseRealm realm, OsList osList, Class<Double> clazz) {
-        super(realm, osList, clazz);
-    }
-
-    @Override
-    public boolean forRealmModel() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public Double get(int index) {
-        return (Double) osList.getValue(index);
-    }
-
-    @Override
-    protected void checkValidValue(@Nullable Object value) {
-        if (value == null) {
-            // null is always valid (but schema may reject null on insertion).
-            return;
-        }
-        if (!(value instanceof Number)) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
-                            "java.lang.Number",
-                            value.getClass().getName()));
-        }
-    }
-
-    @Override
-    public void appendValue(Object value) {
-        osList.addDouble(((Number) value).doubleValue());
-    }
-
-    @Override
-    public void insertValue(int index, Object value) {
-        osList.insertDouble(index, ((Number) value).doubleValue());
-    }
-
-    @Override
-    protected void setValue(int index, Object value) {
-        osList.setDouble(index, ((Number) value).doubleValue());
-    }
-}
-
-/**
- * A subclass of {@link ManagedListOperator} that deal with {@code float} list field.
- */
-final class FloatListOperator extends ManagedListOperator<Float> {
-
-    FloatListOperator(BaseRealm realm, OsList osList, Class<Float> clazz) {
-        super(realm, osList, clazz);
-    }
-
-    @Override
-    public boolean forRealmModel() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public Float get(int index) {
-        return (Float) osList.getValue(index);
-    }
-
-    @Override
-    protected void checkValidValue(@Nullable Object value) {
-        if (value == null) {
-            // null is always valid (but schema may reject null on insertion).
-            return;
-        }
-        if (!(value instanceof Number)) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
-                            "java.lang.Number",
-                            value.getClass().getName()));
-        }
-    }
-
-    @Override
-    public void appendValue(Object value) {
-        osList.addFloat(((Number) value).floatValue());
-    }
-
-    @Override
-    public void insertValue(int index, Object value) {
-        osList.insertFloat(index, ((Number) value).floatValue());
-    }
-
-    @Override
-    protected void setValue(int index, Object value) {
-        osList.setFloat(index, ((Number) value).floatValue());
-    }
-}
-
-/**
- * A subclass of {@link ManagedListOperator} that deal with {@link Date} list field.
- */
-final class DateListOperator extends ManagedListOperator<Date> {
-
-    DateListOperator(BaseRealm realm, OsList osList, Class<Date> clazz) {
-        super(realm, osList, clazz);
-    }
-
-    @Override
-    public boolean forRealmModel() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public Date get(int index) {
-        return (Date) osList.getValue(index);
-    }
-
-    @Override
-    protected void checkValidValue(@Nullable Object value) {
-        if (value == null) {
-            // null is always valid (but schema may reject null on insertion).
-            return;
-        }
-        if (!(value instanceof Date)) {
-            throw new IllegalArgumentException(
-                    String.format(Locale.ENGLISH, INVALID_OBJECT_TYPE_MESSAGE,
-                            "java.util.Date",
-                            value.getClass().getName()));
-        }
-    }
-
-    @Override
-    public void appendValue(Object value) {
-        osList.addDate((Date) value);
-    }
-
-    @Override
-    public void insertValue(int index, Object value) {
-        osList.insertDate(index, (Date) value);
-    }
-
-    @Override
-    protected void setValue(int index, Object value) {
-        osList.setDate(index, (Date) value);
+        throw new IllegalArgumentException("Unexpected value class: " + clazz.getName());
     }
 }

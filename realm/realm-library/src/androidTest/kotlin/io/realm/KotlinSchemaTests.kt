@@ -15,9 +15,8 @@
  */
 package io.realm
 
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.entities.AllKotlinTypes
-import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

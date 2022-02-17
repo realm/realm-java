@@ -15,27 +15,27 @@
  */
 package io.realm.transformer.build
 
-import com.android.SdkConstants
+import com.android.build.api.transform.DirectoryInput
 import com.android.build.api.transform.Format
+import com.android.build.api.transform.JarInput
 import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import com.google.common.io.Files
-import io.realm.transformer.BytecodeModifier
-import io.realm.transformer.GroovyUtil
-import io.realm.transformer.ManagedClassPool
-import io.realm.transformer.logger
+import io.realm.transformer.*
 import javassist.ClassPool
 import javassist.CtClass
-import org.gradle.api.Project
 import java.io.File
 import java.util.regex.Pattern
+
+public const val DOT_CLASS = ".class"
+public const val DOT_JAR = ".jar"
 
 /**
  * Abstract class defining the structure of doing different types of builds.
  *
  */
-abstract class BuildTemplate(val project: Project, val outputProvider: TransformOutputProvider, val transform: Transform) {
+abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: TransformOutputProvider, val transform: Transform) {
 
     protected lateinit var inputs: MutableCollection<TransformInput>
     protected lateinit var classPool: ManagedClassPool
@@ -118,27 +118,40 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
     }
 
     private fun copyResourceFiles(inputs: MutableCollection<TransformInput>) {
-        inputs.forEach {
-            it.directoryInputs.forEach {
-                val dirPath: String = it.file.absolutePath
-                it.file.walkTopDown().forEach {
-                    if (it.isFile) {
-                        if (!it.absolutePath.endsWith(SdkConstants.DOT_CLASS)) {
-                            logger.debug("  Copying resource $it")
-                            val dest = File(getOutputFile(outputProvider), it.absolutePath.substring(dirPath.length))
+        inputs.forEach { input: TransformInput ->
+            input.directoryInputs.forEach { directory: DirectoryInput ->
+                val dirPath: String = directory.file.absolutePath
+                directory.file.walkTopDown().forEach { file: File ->
+                    if (file.isFile) {
+                        if (!file.absolutePath.endsWith(DOT_CLASS)) {
+                            logger.debug("  Copying resource file: $file")
+                            val dest = File(getOutputFile(outputProvider, Format.DIRECTORY), file.absolutePath.substring(dirPath.length))
                             dest.parentFile.mkdirs()
-                            Files.copy(it, dest)
+                            Files.copy(file, dest)
                         }
                     }
                 }
             }
-            // no need to implement the code for `it.jarInputs.each` since PROJECT SCOPE does not use jar input.
+
+            input.jarInputs.forEach { jar: JarInput ->
+                logger.debug("Found JAR file: ${jar.file.absolutePath}")
+                val dirPath: String = jar.file.absolutePath
+                jar.file.walkTopDown().forEach { file: File ->
+                    if (file.isFile) {
+                        if (file.absolutePath.endsWith(DOT_JAR)) {
+                            logger.debug("  Copying jar file: $file")
+                            val dest = File(getOutputFile(outputProvider, Format.JAR), file.absolutePath.substring(dirPath.length))
+                            dest.parentFile.mkdirs()
+                            Files.copy(file, dest)
+                        }
+                    }
+                }
+            }
         }
     }
 
-    protected fun getOutputFile(outputProvider: TransformOutputProvider): File {
-        return outputProvider.getContentLocation(
-                "realm", transform.inputTypes, transform.scopes, Format.DIRECTORY)
+    protected fun getOutputFile(outputProvider: TransformOutputProvider, format: Format): File {
+        return outputProvider.getContentLocation("realm", transform.inputTypes, transform.scopes, format)
     }
 
     /**
@@ -147,7 +160,7 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
      */
     private fun addBootClassesToClassPool(classPool: ClassPool) {
         try {
-            GroovyUtil.getBootClasspath(project).forEach {
+            metadata.bootClassPath.forEach {
                 val path: String = it.absolutePath
                 logger.debug("Add boot class $path to class pool.")
                 classPool.appendClassPath(path)
@@ -159,8 +172,8 @@ abstract class BuildTemplate(val project: Project, val outputProvider: Transform
         }
     }
 
-    fun getOutputModelClasses(): Collection<CtClass> {
-        return outputModelClasses
+    fun getOutputModelClasses(): Set<CtClass> {
+        return outputModelClasses.toSet()
     }
 
     protected abstract fun findModelClasses(classNames: Set<String>): Collection<CtClass>

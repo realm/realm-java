@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.realm.ImportFlag;
 import io.realm.Realm;
 import io.realm.RealmModel;
 import io.realm.RealmObject;
@@ -81,6 +82,44 @@ public abstract class RealmProxyMediator {
     protected abstract String getSimpleClassNameImpl(Class<? extends RealmModel> clazz);
 
     /**
+     * Returns a reference of the class that represents the specified class name. The returning class reference would be
+     * a realization of {@link RealmModel}.
+     *
+     * @param className the class name.
+     * @return a class reference to the representing class.
+     */
+    public final <T extends RealmModel> Class<T> getClazz(String className) {
+        return getClazzImpl(className);
+    }
+
+    /**
+     * Returns a reference of the class that represents the specified class name. The returning class reference would be
+     * a realization of {@link RealmModel}.
+     *
+     * @param className the class name.
+     * @return a class reference to the representing class.
+     */
+    protected abstract <T extends RealmModel> Class<T> getClazzImpl(String className);
+
+    /**
+     * Returns {@code true} true if the provided class reference has a primary key defined.
+     *
+     * @param clazz the {@link RealmModel} or the Realm object proxy class reference.
+     * @return true if the class has a defined primary key, false otherwise.
+     */
+    public boolean hasPrimaryKey(Class<? extends RealmModel> clazz){
+        return hasPrimaryKeyImpl(clazz);
+    }
+
+    /**
+     * Returns {@code true} if the provided class reference has a primary key defined.
+     *
+     * @param clazz the {@link RealmModel} or the Realm object proxy class reference.
+     * @return true if the class has a defined primary key, false otherwise.
+     */
+    protected abstract boolean hasPrimaryKeyImpl(Class<? extends RealmModel> clazz);
+
+    /**
      * Creates a new instance of an {@link RealmObjectProxy} for the given RealmObject class.
      *
      * @param clazz the {@link RealmObject} to create {@link RealmObjectProxy} for.
@@ -114,34 +153,39 @@ public abstract class RealmProxyMediator {
      * @param update {@code true} if object has a primary key and should try to update already existing data,
      * {@code false} otherwise.
      * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
+     * @param flags any special flags controlling the behaviour of the import.
      * @return the managed Realm object.
      */
-    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache);
+    public abstract <E extends RealmModel> E copyOrUpdate(Realm realm, E object, boolean update, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags);
 
     /**
-     * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * Inserts an unmanaged RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
      * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      *
      * @param realm reference to the {@link Realm} where the object will be inserted.
      * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
+     *
+     * @return the key of the object inserted in the realm.
      */
-    public abstract void insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract long insert(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
-     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
      * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original object will not be persisted.
      *
-     * @param realm reference to the {@link Realm} where the objecs will be inserted.
+     * @param realm reference to the {@link Realm} where the objects will be inserted.
      * @param object {@link RealmObject} to insert.
      * @param cache the cache for mapping between unmanaged objects and their table row index for eventual reuse.
+     *
+     * @return the key of the object inserted or updated in the realm.
      */
-    public abstract void insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
+    public abstract long insertOrUpdate(Realm realm, RealmModel object, Map<RealmModel, Long> cache);
 
     /**
-     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)}
+     * Inserts or updates a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)}
      * since it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original objects will not be persisted.
      *
@@ -151,7 +195,7 @@ public abstract class RealmProxyMediator {
     public abstract void insertOrUpdate(Realm realm, Collection<? extends RealmModel> objects);
 
     /**
-     * Inserts a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map)} since
+     * Inserts a RealmObject. This is generally faster than {@link #copyOrUpdate(Realm, RealmModel, boolean, Map, Set)} since
      * it doesn't return the inserted elements, and performs minimum allocations and checks.
      * After being inserted any changes to the original objects will not be persisted.
      *
@@ -196,6 +240,23 @@ public abstract class RealmProxyMediator {
     public abstract <E extends RealmModel> E createDetachedCopy(E realmObject, int maxDepth, Map<RealmModel, RealmObjectProxy.CacheData<RealmModel>> cache);
 
     /**
+     * Returns whether or not this class is considered "embedded".
+     */
+    public abstract <E extends RealmModel> boolean isEmbedded(Class<E> clazz);
+
+
+    /**
+     * Updates an embedded object with the values from an unmanaged object.
+     *
+     * @param realm the reference to the {@link Realm} where the object will be copied.
+     * @param unmanagedObject the unmanaged objects whose values should be used to update the manged object
+     * @param managedObject the managed object that should be updated
+     * @param cache the cache for mapping between unmanaged objects and their {@link RealmObjectProxy} representation.
+     * @param flags any special flags controlling the behaviour of the import.
+     */
+    public abstract <E extends RealmModel> void updateEmbeddedObject(Realm realm, E unmanagedObject, E managedObject, Map<RealmModel, RealmObjectProxy> cache, Set<ImportFlag> flags);
+
+    /**
      * Returns whether Realm transformer has been applied or not. Subclasses of this class are
      * created by the annotation processor and the Realm transformer will add an override of
      * this method that always return {@code true} if the transform was successful.
@@ -227,6 +288,13 @@ public abstract class RealmProxyMediator {
         }
     }
 
+    protected static void checkClassName(String className) {
+        //noinspection ConstantConditions
+        if ((className == null) || (className.isEmpty())) {
+            throw new NullPointerException("A class extending RealmObject must be provided");
+        }
+    }
+
     protected static RealmException getMissingProxyClassException(Class<? extends RealmModel> clazz) {
         return new RealmException(
                 String.format("'%s' is not part of the schema for this Realm.", clazz.toString()));
@@ -235,5 +303,9 @@ public abstract class RealmProxyMediator {
     protected static RealmException getMissingProxyClassException(String className) {
         return new RealmException(
                 String.format("'%s' is not part of the schema for this Realm.", className));
+    }
+
+    protected static IllegalStateException getNotEmbeddedClassException(String className) {
+        return new IllegalStateException("This class is not marked embedded: " + className);
     }
 }

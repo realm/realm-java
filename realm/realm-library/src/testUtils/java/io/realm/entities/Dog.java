@@ -47,6 +47,10 @@ public class Dog extends RealmObject {
     public Dog(String name) {
         this.name = name;
     }
+    public Dog(String name, long age) {
+        this.name = name;
+        this.age = age;
+    }
 
     public Owner getOwner() {
         return owner;

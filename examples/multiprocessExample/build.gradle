@@ -8,7 +8,7 @@ android {
     defaultConfig {
         applicationId "io.realm.examples.realmmultiprocessexample"
         targetSdkVersion rootProject.sdkVersion
-        minSdkVersion 15
+        minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName "1.0"
     }
@@ -25,6 +25,5 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:appcompat-v7:27.0.2'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
 }
-

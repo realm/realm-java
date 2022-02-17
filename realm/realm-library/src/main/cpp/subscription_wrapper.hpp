@@ -23,7 +23,6 @@
 #include "jni_util/java_method.hpp"
 
 #include <realm/util/optional.hpp>
-#include <sync/partial_sync.hpp>
 
 namespace realm {
 namespace _impl {

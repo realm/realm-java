@@ -70,8 +70,8 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
     private static ReferencePool referencePool = new ReferencePool();
 
     NativeObjectReference(NativeContext context,
-            NativeObject referent,
-            ReferenceQueue<? super NativeObject> referenceQueue) {
+                          NativeObject referent,
+                          ReferenceQueue<? super NativeObject> referenceQueue) {
         super(referent, referenceQueue);
         this.nativePtr = referent.getNativePtr();
         this.nativeFinalizerPtr = referent.getNativeFinalizerPtr();
@@ -93,5 +93,5 @@ final class NativeObjectReference extends PhantomReference<NativeObject> {
     /**
      * Calls the native finalizer function to free the given native pointer.
      */
-    private static native void nativeCleanUp(long nativeFinalizer, long nativePointer);
+    static native void nativeCleanUp(long nativeFinalizer, long nativePointer);
 }

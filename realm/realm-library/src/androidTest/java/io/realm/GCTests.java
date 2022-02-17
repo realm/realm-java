@@ -17,7 +17,7 @@
 package io.realm;
 
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -27,7 +27,6 @@ import org.junit.runner.RunWith;
 
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.TestCase.assertNotNull;
 

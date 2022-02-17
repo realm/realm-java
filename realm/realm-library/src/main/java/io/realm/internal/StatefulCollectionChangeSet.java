@@ -3,7 +3,6 @@ package io.realm.internal;
 import javax.annotation.Nullable;
 
 import io.realm.OrderedCollectionChangeSet;
-import io.realm.log.RealmLog;
 
 /**
  * A wrapper around {@link OsCollectionChangeSet} that makes it stateful with regard to how many
@@ -18,7 +17,6 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
     private final OrderedCollectionChangeSet changeset;
     private final Throwable error;
     private final State state;
-    private final boolean remoteDataSynchronized;
 
     /**
      * @param backingChangeset Underlying changeset backing this.
@@ -28,8 +26,6 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
 
         // Calculate the state here since object is immutable
         boolean isInitial = backingChangeset.isFirstAsyncCallback();
-        remoteDataSynchronized = backingChangeset.isRemoteDataLoaded();
-
         error = backingChangeset.getError();
         if (error != null) {
             state = State.ERROR;
@@ -79,9 +75,5 @@ public class StatefulCollectionChangeSet implements OrderedCollectionChangeSet {
         return error;
     }
 
-    @Override
-    public boolean isCompleteResult() {
-        return remoteDataSynchronized;
-    }
 }
 

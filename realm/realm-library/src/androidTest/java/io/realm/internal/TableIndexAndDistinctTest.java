@@ -16,8 +16,8 @@
 
 package io.realm.internal;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -29,8 +29,7 @@ import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.TestHelper;
-import io.realm.rule.TestRealmConfigurationFactory;
-
+import io.realm.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 
@@ -46,11 +45,14 @@ public class TableIndexAndDistinctTest {
     private OsSharedRealm sharedRealm;
     private Table table;
 
+    private long colKey1;
+    private long colKey2;
+
     @Before
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
 
         sharedRealm.beginTransaction();
     }
@@ -70,16 +72,16 @@ public class TableIndexAndDistinctTest {
         table = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table table) {
-                table.addColumn(RealmFieldType.INTEGER, "number");
-                table.addColumn(RealmFieldType.STRING, "name");
+                colKey1 = table.addColumn(RealmFieldType.INTEGER, "number");
+                colKey2 = table.addColumn(RealmFieldType.STRING, "name");
 
-                TestHelper.addRowWithValues(table, 0, "A");
-                TestHelper.addRowWithValues(table, 1, "B");
-                TestHelper.addRowWithValues(table, 2, "C");
-                TestHelper.addRowWithValues(table, 3, "B");
-                TestHelper.addRowWithValues(table, 4, "D");
-                TestHelper.addRowWithValues(table, 5, "D");
-                TestHelper.addRowWithValues(table, 6, "D");
+                TestHelper.addRowWithValues(table, new long[]{colKey1, colKey2}, new Object[]{0, "A"});
+                TestHelper.addRowWithValues(table, new long[]{colKey1, colKey2}, new Object[]{1, "B"});
+                TestHelper.addRowWithValues(table, new long[]{colKey1, colKey2}, new Object[]{2, "C"});
+                TestHelper.addRowWithValues(table, new long[]{colKey1, colKey2}, new Object[]{3, "B"});
+                TestHelper.addRowWithValues(table, new long[]{colKey1, colKey2}, new Object[]{4, "D"});
+                TestHelper.addRowWithValues(table, new long[]{colKey1, colKey2}, new Object[]{5, "D"});
+                TestHelper.addRowWithValues(table, new long[]{colKey1, colKey2}, new Object[]{6, "D"});
             }
         });
 
@@ -92,27 +94,28 @@ public class TableIndexAndDistinctTest {
      */
     @Test
     public void shouldTestSettingIndexOnMultipleColumns() {
-
+        long[] columnsKey = new long[5];
         // Creates a table only with String type columns
         Table t = TestHelper.createTable(sharedRealm, "temp", new TestHelper.AdditionalTableSetup() {
             @Override
             public void execute(Table t) {
-                t.addColumn(RealmFieldType.STRING, "col1");
-                t.addColumn(RealmFieldType.STRING, "col2");
-                t.addColumn(RealmFieldType.STRING, "col3");
-                t.addColumn(RealmFieldType.STRING, "col4");
-                t.addColumn(RealmFieldType.STRING, "col5");
-                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
-                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
-                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
-                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
-                TestHelper.addRowWithValues(t, "row1", "row2", "row3", "row4", "row5");
+                columnsKey[0] = t.addColumn(RealmFieldType.STRING, "col1");
+                columnsKey[1] = t.addColumn(RealmFieldType.STRING, "col2");
+                columnsKey[2] = t.addColumn(RealmFieldType.STRING, "col3");
+                columnsKey[3] = t.addColumn(RealmFieldType.STRING, "col4");
+                columnsKey[4] = t.addColumn(RealmFieldType.STRING, "col5");
+
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
+                TestHelper.addRowWithValues(t, columnsKey, new Object[]{"row1", "row2", "row3", "row4", "row5"});
             }
         });
 
-        for (long c=0;c<t.getColumnCount();c++){
-            t.addSearchIndex(c);
-            assertEquals(true, t.hasSearchIndex(c));
+        for (int i = 0; i < columnsKey.length; i++) {
+            t.addSearchIndex(columnsKey[i]);
+            assertEquals(true, t.hasSearchIndex(columnsKey[i]));
         }
 
     }
@@ -140,27 +143,27 @@ public class TableIndexAndDistinctTest {
     @Test
     public void shouldCheckIndexIsOkOnColumn() {
         init();
-        table.addSearchIndex(1);
+        table.addSearchIndex(colKey1);
     }
 
     @Test
     public void removeSearchIndex() {
         init();
-        table.addSearchIndex(1);
-        assertEquals(true, table.hasSearchIndex(1));
+        table.addSearchIndex(colKey1);
+        assertEquals(true, table.hasSearchIndex(colKey1));
 
-        table.removeSearchIndex(1);
-        assertEquals(false, table.hasSearchIndex(1));
+        table.removeSearchIndex(colKey1);
+        assertEquals(false, table.hasSearchIndex(colKey1));
     }
 
     @Test
     public void removeSearchIndexNoOp() {
         init();
-        assertEquals(false, table.hasSearchIndex(1));
+        assertEquals(false, table.hasSearchIndex(colKey1));
 
         // Removes index from non-indexed column is a no-op.
-        table.removeSearchIndex(1);
-        assertEquals(false, table.hasSearchIndex(1));
+        table.removeSearchIndex(colKey1);
+        assertEquals(false, table.hasSearchIndex(colKey1));
     }
 }
 

@@ -17,6 +17,7 @@
 package io.realm.internal;
 
 import java.lang.ref.ReferenceQueue;
+import java.util.LinkedList;
 
 
 // Currently we free native objects in two threads, the SharedGroup is freed in the caller thread, others are freed in
@@ -30,14 +31,47 @@ public class NativeContext {
     private static final ReferenceQueue<NativeObject> referenceQueue = new ReferenceQueue<NativeObject>();
     private static final Thread finalizingThread = new Thread(new FinalizerRunnable(referenceQueue));
     // Dummy context which will be used by native objects which's destructors are always thread safe.
-    static final NativeContext dummyContext = new NativeContext();
+    public static final NativeContext dummyContext = new NativeContext();
 
     static {
         finalizingThread.setName("RealmFinalizingDaemon");
         finalizingThread.start();
     }
 
-    void addReference(NativeObject referent) {
+    public void addReference(NativeObject referent) {
         new NativeObjectReference(this, referent, referenceQueue);
+    }
+
+    /**
+     * Executes a given NativeContextRunnable with a NativeContext which lifecycle is bound
+     * to a function scope.
+     *
+     * @param runnable function to execute.
+     */
+    static void execute(NativeContextRunnable runnable) {
+        ManualReleaseNativeContext nativeContext = new ManualReleaseNativeContext();
+        runnable.run(nativeContext);
+        nativeContext.release();
+    }
+
+    public interface NativeContextRunnable {
+        void run(NativeContext nativeContext);
+    }
+
+    private static class ManualReleaseNativeContext extends NativeContext {
+        private final LinkedList<NativeObject> references = new LinkedList<>();
+
+        ManualReleaseNativeContext(){ }
+
+        @Override
+        public void addReference(NativeObject referent) {
+            references.add(referent);
+        }
+
+        public void release() {
+            for (NativeObject object : references) {
+                NativeObjectReference.nativeCleanUp(object.getNativeFinalizerPtr(), object.getNativePtr());
+            }
+        }
     }
 }

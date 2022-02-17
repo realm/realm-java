@@ -15,7 +15,6 @@ android {
         minSdkVersion rootProject.minSdkVersion
         versionCode 1
         versionName "1.0"
-        javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
     }
     buildTypes {
         release {
@@ -31,7 +30,7 @@ android {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.16.18'
+    compileOnly 'org.projectlombok:lombok:1.18.22'
     compileOnly 'javax.annotation:javax.annotation-api:1.3.1'
-    annotationProcessor 'org.projectlombok:lombok:1.16.18'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
 }

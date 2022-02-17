@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,7 +32,6 @@ import io.realm.entities.PrimaryKeyAsString;
 import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -70,8 +69,8 @@ public class RealmAnnotationTests {
     @Test
     public void ignore() {
         Table table = realm.getTable(AnnotationTypes.class);
-        assertEquals(-1, table.getColumnIndex(AnnotationTypes.FIELD_IGNORE_STRING));
-        assertEquals(-1, table.getColumnIndex(AnnotationTypes.FIELD_TRANSIENT_STRING));
+        assertEquals(-1, table.getColumnKey(AnnotationTypes.FIELD_IGNORE_STRING));
+        assertEquals(-1, table.getColumnKey(AnnotationTypes.FIELD_TRANSIENT_STRING));
     }
 
     // Tests if "index" annotation works with supported types.
@@ -79,26 +78,26 @@ public class RealmAnnotationTests {
     public void index() {
         Table table = realm.getTable(AnnotationIndexTypes.class);
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexString")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexString")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexString")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexString")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexInt")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexInt")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexInt")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexInt")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexByte")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexByte")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexByte")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexByte")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexShort")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexShort")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexShort")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexShort")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexLong")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexLong")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexLong")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexLong")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexBoolean")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexBoolean")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexBoolean")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexBoolean")));
 
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("indexDate")));
-        assertFalse(table.hasSearchIndex(table.getColumnIndex("notIndexDate")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("indexDate")));
+        assertFalse(table.hasSearchIndex(table.getColumnKey("notIndexDate")));
     }
 
     @Test
@@ -127,14 +126,19 @@ public class RealmAnnotationTests {
     }
 
     @Test
-    public void primaryKey_isIndexed() {
+    public void string_primaryKey_isIndexed() {
+        // Before Core 6 only String primary keys did not have a Index as a default
+        // With Core 10, primary keys do not need indexes in general and they where removed (file
+        // format 21), but it turned out this was causing problems with performance when upgrading
+        // Realm files. In pathological cases, upgrades could take minutes, so this decision was
+        // reverted and indexes was re-added in file format v22.
         Table table = realm.getTable(PrimaryKeyAsString.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsString.CLASS_NAME));
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("name")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("name")));
 
         table = realm.getTable(PrimaryKeyAsLong.class);
         assertNotNull(OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), PrimaryKeyAsLong.CLASS_NAME));
-        assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
+        assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
     }
 
     // Annotation processor honors common naming conventions.

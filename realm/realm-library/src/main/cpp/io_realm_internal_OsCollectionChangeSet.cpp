@@ -16,7 +16,7 @@
 
 #include "io_realm_internal_OsCollectionChangeSet.h"
 
-#include <collection_notifications.hpp>
+#include <realm/object-store/collection_notifications.hpp>
 
 #include "util.hpp"
 
@@ -28,7 +28,6 @@ static jintArray index_set_to_indices_array(JNIEnv* env, const IndexSet& index_s
 
 static void finalize_changeset(jlong ptr)
 {
-    TR_ENTER_PTR(ptr);
     delete reinterpret_cast<CollectionChangeSet*>(ptr);
 }
 
@@ -82,14 +81,12 @@ static jintArray index_set_to_indices_array(JNIEnv* env, const IndexSet& index_s
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetFinalizerPtr(JNIEnv*, jclass)
 {
-    TR_ENTER()
     return reinterpret_cast<jlong>(&finalize_changeset);
 }
 
 JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetRanges(JNIEnv* env, jclass,
                                                                                          jlong native_ptr, jint type)
 {
-    TR_ENTER_PTR(native_ptr)
     // no throws
     auto& change_set = *reinterpret_cast<CollectionChangeSet*>(native_ptr);
     switch (type) {
@@ -107,7 +104,6 @@ JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeG
 JNIEXPORT jintArray JNICALL Java_io_realm_internal_OsCollectionChangeSet_nativeGetIndices(JNIEnv* env, jclass,
                                                                                           jlong native_ptr, jint type)
 {
-    TR_ENTER_PTR(native_ptr)
     // no throws
     auto& change_set = *reinterpret_cast<CollectionChangeSet*>(native_ptr);
     switch (type) {

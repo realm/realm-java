@@ -19,7 +19,6 @@ package io.realm;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -39,7 +38,6 @@ import java.util.concurrent.Future;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -606,6 +604,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case DELETE_ALL_FROM_REALM:
                         case IS_VALID:
                         case IS_MANAGED:
+                        case IS_FROZEN:
+                        case FREEZE:
                             continue;
 
                         default:
@@ -638,6 +638,8 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                     case DELETE_ALL_FROM_REALM:
                     case IS_VALID:
                     case IS_MANAGED:
+                    case IS_FROZEN:
+                    case FREEZE:
                         continue;
 
                     default:
@@ -824,6 +826,11 @@ public class ManagedRealmCollectionTests extends CollectionTests {
                         case DELETE_ALL_FROM_REALM: collection.deleteAllFromRealm(); break;
                         case IS_VALID: collection.isValid(); break;
                         case IS_MANAGED: collection.isManaged(); return true;
+
+                        // These methods are threadsafe pr. design
+                        case IS_FROZEN:
+                        case FREEZE:
+                            return true;
                     }
                     return false;
                 } catch (IllegalStateException ignored) {

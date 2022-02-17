@@ -1,25 +1,26 @@
-apply plugin: 'java'
-apply plugin: 'maven'
+apply plugin: 'kotlin'
 apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.artifactory'
-apply plugin: 'com.jfrog.bintray'
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
-dependencies {
-    compile "com.squareup:javawriter:2.5.1"
-    compile "io.realm:realm-annotations:${version}"
+def properties = new Properties()
+properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))
 
-    testCompile files('../realm-library/build/intermediates/intermediate-jars/objectServer/release/classes.jar') // Java projects cannot depend on AAR files
-    testCompile files("${System.properties['java.home']}/../lib/tools.jar") // This is needed otherwise compile-testing won't be able to find it
-    testCompile group:'junit', name:'junit', version:'4.12'
-    testCompile group:'com.google.testing.compile', name:'compile-testing', version:'0.6'
-    testCompile files(file("${System.env.ANDROID_HOME}/platforms/android-27/android.jar"))
+dependencies {
+    implementation "com.squareup:javawriter:2.5.1"
+    implementation "io.realm:realm-annotations:${version}"
+    implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY')}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    testImplementation files('../realm-library/build/intermediates/aar_main_jar/baseRelease/classes.jar') // Java projects cannot depend on AAR files
+    testImplementation group:'junit', name:'junit', version:'4.12'
+    testImplementation group:'com.google.testing.compile', name:'compile-testing', version:'0.19'
+    testImplementation files(file("${System.env.ANDROID_HOME}/platforms/android-29/android.jar"))
 }
 
 // for Ant filter
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.internal.jvm.Jvm
 
 task generateVersionClass(type: Copy) {
     from 'src/main/templates/Version.java'
@@ -37,32 +38,10 @@ sourceSets {
     }
 }
 
-compileJava.dependsOn generateVersionClass
+compileKotlin.dependsOn generateVersionClass
 compileTestJava.dependsOn ':realm-library:assembleBaseRelease'
 
-task ojoUpload() {
-    dependsOn "artifactoryPublish"
-    group = 'Publishing'
-}
-
-def commonPom = {
-    licenses {
-        license {
-            name 'The Apache Software License, Version 2.0'
-            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            distribution 'repo'
-        }
-    }
-    issueManagement {
-        system 'github'
-        url 'https://github.com/realm/realm-java/issues'
-    }
-    scm {
-        url 'scm:https://github.com/realm/realm-java'
-        connection 'scm:git@github.com:realm/realm-java.git'
-        developerConnection 'scm:git@github.com:realm/realm-java.git'
-    }
-}
+apply from: "${rootDir}/../mavencentral-publications.gradle"
 
 publishing {
     publications {
@@ -70,61 +49,29 @@ publishing {
             groupId 'io.realm'
             artifactId = 'realm-annotations-processor'
             from components.java
-            pom.withXml {
-                Node root = asNode()
-                root.appendNode('name', 'realm-annotations-processor')
-                root.appendNode('description', 'Annotation Processor for Realm. Realm is a mobile database: a replacement for SQLite & ORMs')
-                root.appendNode('url', 'http://realm.io')
-                root.children().last() + commonPom
-            }
-        }
-    }
-    repositories {
-        maven {
-            credentials(AwsCredentials) {
-                accessKey project.hasProperty('s3AccessKey') ? s3AccessKey : 'noAccessKey'
-                secretKey project.hasProperty('s3SecretKey') ? s3SecretKey : 'noSecretKey'
-            }
-            if(project.version.endsWith('-SNAPSHOT')) {
-                url "s3://realm-ci-artifacts/maven/snapshots/"
-            } else {
-                url "s3://realm-ci-artifacts/maven/releases/"
-            }
+            populatePom(
+                it,
+                'realm-annotations-processor',
+                'Annotation Processor for Realm. Realm is a mobile database: Build better apps, faster.'
+            )
         }
     }
 }
 
-bintray {
-    user = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-    key = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
 
-    dryRun = false
-    publish = false
-
-    publications = ['basePublication']
-    pkg {
-        repo = 'maven'
-        name = 'realm-annotations-processor'
-        desc = 'Realm for Android'
-        websiteUrl = 'http://realm.io'
-        issueTrackerUrl = 'https://github.com/realm/realm-java/issues'
-        vcsUrl = 'https://github.com/realm/realm-java.git'
-        licenses = ['Apache-2.0']
-        labels = ['android', 'realm']
-        publicDownloadNumbers = false
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+        freeCompilerArgs += ["-XXLanguage:+InlineClasses"]
     }
 }
 
-artifactory {
-    contextUrl = 'https://oss.jfrog.org/artifactory'
-    publish {
-        repository {
-            repoKey = 'oss-snapshot-local'
-            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
-            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
-        }
-        defaults {
-            publications ('basePublication')
-        }
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }

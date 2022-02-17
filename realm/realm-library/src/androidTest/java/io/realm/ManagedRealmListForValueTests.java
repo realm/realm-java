@@ -39,7 +39,6 @@ import io.realm.entities.NullTypes;
 import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.ManagedRealmListForValueTests.ListType.BINARY_LIST;
 import static io.realm.ManagedRealmListForValueTests.ListType.BOOLEAN_LIST;

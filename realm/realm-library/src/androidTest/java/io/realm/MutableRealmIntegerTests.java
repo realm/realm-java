@@ -16,8 +16,8 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +32,6 @@ import java.io.InputStream;
 
 import io.realm.entities.MutableRealmIntegerTypes;
 import io.realm.rule.RunInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -189,7 +188,7 @@ public class MutableRealmIntegerTests {
             MutableRealmIntegerTypes c2 = realm.copyToRealm(c1);
             fail("should not be able to copy a null value to a @Required MutableRealmInteger");
         } catch(IllegalArgumentException ignore) {
-            checkException(ignore, "is not nullable");
+            checkException(ignore, "Missing value for property");
         }
         realm.commitTransaction();
     }
@@ -397,7 +396,7 @@ public class MutableRealmIntegerTests {
 
     @Test
     public void testStream() throws IOException {
-        Context context = InstrumentationRegistry.getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
         InputStream in = TestHelper.loadJsonFromAssets(context, "empty.json");
         realm.beginTransaction();
@@ -429,7 +428,7 @@ public class MutableRealmIntegerTests {
             obj = realm.createObjectFromJson(MutableRealmIntegerTypes.class, in);
             fail("Attempt to set @Required Mutable Realm Integer null, from JSON, should fail");
         } catch (IllegalArgumentException ignore) {
-            checkException(ignore, "is not nullable");
+            checkException(ignore, "Missing value for property");
         }
         realm.commitTransaction();
     }

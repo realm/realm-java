@@ -19,7 +19,6 @@ package io.realm;
 import android.content.Context;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -28,12 +27,15 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import io.realm.annotations.RealmModule;
+import io.realm.coroutines.FlowFactory;
+import io.realm.coroutines.RealmFlowFactory;
 import io.realm.exceptions.RealmException;
-import io.realm.exceptions.RealmFileException;
 import io.realm.internal.OsRealmConfig;
+import io.realm.internal.OsSharedRealm;
 import io.realm.internal.RealmCore;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Util;
@@ -66,11 +68,9 @@ import io.realm.rx.RxObservableFactory;
 public class RealmConfiguration {
 
     public static final String DEFAULT_REALM_NAME = "default.realm";
-    public static final int KEY_LENGTH = 64;
 
     private static final Object DEFAULT_MODULE;
     protected static final RealmProxyMediator DEFAULT_MODULE_MEDIATOR;
-    private static Boolean rxJavaAvailable;
 
     static {
         DEFAULT_MODULE = Realm.getDefaultModule();
@@ -79,7 +79,7 @@ public class RealmConfiguration {
             if (!mediator.transformerApplied()) {
                 throw new ExceptionInInitializerError("RealmTransformer doesn't seem to be applied." +
                         " Please update the project configuration to use the Realm Gradle plugin." +
-                        " See https://realm.io/news/android-installation-change/");
+                        " See https://docs.mongodb.com/realm/sdk/android/install/#customize-dependecies-defined-by-the-realm-gradle-plugin");
             }
             DEFAULT_MODULE_MEDIATOR = mediator;
         } else {
@@ -98,9 +98,14 @@ public class RealmConfiguration {
     private final OsRealmConfig.Durability durability;
     private final RealmProxyMediator schemaMediator;
     private final RxObservableFactory rxObservableFactory;
+    private final FlowFactory flowFactory;
     private final Realm.Transaction initialDataTransaction;
     private final boolean readOnly;
     private final CompactOnLaunchCallback compactOnLaunch;
+    private final long maxNumberOfActiveVersions;
+    private final boolean allowWritesOnUiThread;
+    private final boolean allowQueriesOnUiThread;
+
     /**
      * Whether this RealmConfiguration is intended to open a
      * recovery Realm produced after an offline/online client reset.
@@ -109,9 +114,7 @@ public class RealmConfiguration {
 
     // We need to enumerate all parameters since SyncConfiguration and RealmConfiguration supports different
     // subsets of them.
-    protected RealmConfiguration(@Nullable File realmDirectory,
-            @Nullable String realmFileName,
-            String canonicalPath,
+    protected RealmConfiguration(File realmPath,
             @Nullable String assetFilePath,
             @Nullable byte[] key,
             long schemaVersion,
@@ -120,13 +123,17 @@ public class RealmConfiguration {
             OsRealmConfig.Durability durability,
             RealmProxyMediator schemaMediator,
             @Nullable RxObservableFactory rxObservableFactory,
+            @Nullable FlowFactory flowFactory,
             @Nullable Realm.Transaction initialDataTransaction,
             boolean readOnly,
             @Nullable CompactOnLaunchCallback compactOnLaunch,
-            boolean isRecoveryConfiguration) {
-        this.realmDirectory = realmDirectory;
-        this.realmFileName = realmFileName;
-        this.canonicalPath = canonicalPath;
+            boolean isRecoveryConfiguration,
+            long maxNumberOfActiveVersions,
+            boolean allowWritesOnUiThread,
+            boolean allowQueriesOnUiThread) {
+        this.realmDirectory = realmPath.getParentFile();
+        this.realmFileName = realmPath.getName();
+        this.canonicalPath = realmPath.getAbsolutePath();
         this.assetFilePath = assetFilePath;
         this.key = key;
         this.schemaVersion = schemaVersion;
@@ -135,10 +142,14 @@ public class RealmConfiguration {
         this.durability = durability;
         this.schemaMediator = schemaMediator;
         this.rxObservableFactory = rxObservableFactory;
+        this.flowFactory = flowFactory;
         this.initialDataTransaction = initialDataTransaction;
         this.readOnly = readOnly;
         this.compactOnLaunch = compactOnLaunch;
         this.isRecoveryConfiguration = isRecoveryConfiguration;
+        this.maxNumberOfActiveVersions = maxNumberOfActiveVersions;
+        this.allowWritesOnUiThread = allowWritesOnUiThread;
+        this.allowQueriesOnUiThread = allowQueriesOnUiThread;
     }
 
     public File getRealmDirectory() {
@@ -184,25 +195,27 @@ public class RealmConfiguration {
      *
      * @return the initial data transaction.
      */
-    Realm.Transaction getInitialDataTransaction() {
+    protected Realm.Transaction getInitialDataTransaction() {
         return initialDataTransaction;
     }
 
     /**
-     * Indicates if there is available asset file for copy action.
+     * Indicates if an asset file has been configured for this configuration.
      *
      * @return {@code true} if there is asset file, {@code false} otherwise.
      */
-    boolean hasAssetFile() {
+    public boolean hasAssetFile() {
         return !Util.isEmptyString(assetFilePath);
     }
 
     /**
      * Returns the path to the Realm asset file.
      *
-     * @return path to the asset file relative to the asset directory.
+     * @return path to the asset file relative to the asset directory or {@code null} if not asset
+     * file was specified.
      */
-    String getAssetFilePath() {
+    @Nullable
+    public String getAssetFilePath() {
         return assetFilePath;
     }
 
@@ -243,7 +256,7 @@ public class RealmConfiguration {
      *
      * @return {@code true} if the Realm file exists, {@code false} otherwise.
      */
-    boolean realmExists() {
+    protected boolean realmExists() {
         return new File(canonicalPath).exists();
     }
 
@@ -257,10 +270,25 @@ public class RealmConfiguration {
         // Since RxJava doesn't exist, rxObservableFactory is not initialized.
         if (rxObservableFactory == null) {
             throw new UnsupportedOperationException("RxJava seems to be missing from the classpath. " +
-                    "Remember to add it as a compile dependency." +
-                    " See https://realm.io/docs/java/latest/#rxjava for more details.");
+                    "Remember to add it as an implementation dependency." +
+                    " See https://github.com/realm/realm-java/tree/master/examples/rxJavaExample for more details.");
         }
         return rxObservableFactory;
+    }
+
+    /**
+     * Returns the {@link FlowFactory} that is used to create Kotlin Flows from Realm objects.
+     *
+     * @return the factory instance used to create Flows.
+     * @throws UnsupportedOperationException if the required coroutines framework is not on the classpath.
+     */
+    public FlowFactory getFlowFactory() {
+        if (flowFactory == null) {
+            throw new UnsupportedOperationException("The coroutines framework is missing from the classpath. " +
+                    "Remember to add it as an implementation dependency. " +
+                    "See https://github.com/Kotlin/kotlinx.coroutines#android for more details");
+        }
+        return flowFactory;
     }
 
     /**
@@ -275,10 +303,41 @@ public class RealmConfiguration {
 
     /**
      * @return {@code true} if this configuration is intended to open a backup Realm (as a result of a client reset).
-     * @see <a href="https://realm.io/docs/java/latest/api/io/realm/ClientResetRequiredError.html">ClientResetRequiredError</a>
+     * @see {@link ClientResetRequiredError}
      */
     public boolean isRecoveryConfiguration() {
         return isRecoveryConfiguration;
+    }
+
+    /**
+     * @return the maximum number of active versions allowed before an exception is thrown.
+     */
+    public long getMaxNumberOfActiveVersions() {
+        return maxNumberOfActiveVersions;
+    }
+
+    /**
+     * Returns whether calls to {@link Realm#executeTransaction} can be done on the UI thread.
+     * <p>
+     * <b>Note: Realm does not allow blocking transactions to be run on the main thread unless users explicitly opt in with
+     * {@link Builder#allowWritesOnUiThread(boolean)} or its Realm Sync builder counterpart.</b>
+     *
+     * @return whether or not write operations are allowed to be run from the UI thread.
+     */
+    public boolean isAllowWritesOnUiThread() {
+        return allowWritesOnUiThread;
+    }
+
+    /**
+     * Returns whether a {@link RealmQuery} is allowed to be launched from the UI thread.
+     * <p>
+     * By default Realm allows queries on the main thread. To disallow this users have to explicitly opt in with
+     * {@link Builder#allowQueriesOnUiThread(boolean)} or its Realm Sync builder counterpart.
+     *
+     * @return whether or not queries are allowed to be run from the UI thread.
+     */
+    public boolean isAllowQueriesOnUiThread() {
+        return allowQueriesOnUiThread;
     }
 
     @Override
@@ -314,7 +373,14 @@ public class RealmConfiguration {
         if (initialDataTransaction != null ? !initialDataTransaction.equals(that.initialDataTransaction) : that.initialDataTransaction != null) {
             return false;
         }
-        return compactOnLaunch != null ? compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch == null;
+        if (compactOnLaunch != null ? !compactOnLaunch.equals(that.compactOnLaunch) : that.compactOnLaunch != null) {
+            return false;
+        }
+        return maxNumberOfActiveVersions == that.maxNumberOfActiveVersions;
+    }
+
+    protected Realm getInstance(OsSharedRealm.VersionID version) {
+        return RealmCache.createRealmOrGetFromCache(this, Realm.class, version);
     }
 
     @Override
@@ -334,16 +400,17 @@ public class RealmConfiguration {
         result = 31 * result + (readOnly ? 1 : 0);
         result = 31 * result + (compactOnLaunch != null ? compactOnLaunch.hashCode() : 0);
         result = 31 * result + (isRecoveryConfiguration ? 1 : 0);
+        result = 31 * result + (int) (maxNumberOfActiveVersions ^ (maxNumberOfActiveVersions >>> 32));
         return result;
     }
 
     // Creates the mediator that defines the current schema.
     protected static RealmProxyMediator createSchemaMediator(Set<Object> modules,
-            Set<Class<? extends RealmModel>> debugSchema) {
+            Set<Class<? extends RealmModel>> debugSchema, boolean excludeDebugSchema) {
 
         // If using debug schema, uses special mediator.
         if (debugSchema.size() > 0) {
-            return new FilterableMediator(DEFAULT_MODULE_MEDIATOR, debugSchema);
+            return new FilterableMediator(DEFAULT_MODULE_MEDIATOR, debugSchema, excludeDebugSchema);
         }
 
         // If only one module, uses that mediator directly.
@@ -394,7 +461,7 @@ public class RealmConfiguration {
         stringBuilder.append("\n");
         stringBuilder.append("canonicalPath: ").append(canonicalPath);
         stringBuilder.append("\n");
-        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : KEY_LENGTH).append("]");
+        stringBuilder.append("key: ").append("[length: ").append(key == null ? 0 : Realm.ENCRYPTION_KEY_LENGTH).append("]");
         stringBuilder.append("\n");
         stringBuilder.append("schemaVersion: ").append(Long.toString(schemaVersion));
         stringBuilder.append("\n");
@@ -409,42 +476,19 @@ public class RealmConfiguration {
         stringBuilder.append("readOnly: ").append(readOnly);
         stringBuilder.append("\n");
         stringBuilder.append("compactOnLaunch: ").append(compactOnLaunch);
+        stringBuilder.append("\n");
+        stringBuilder.append("maxNumberOfActiveVersions: ").append(maxNumberOfActiveVersions);
 
         return stringBuilder.toString();
     }
 
-    /**
-     * Checks if RxJava is can be loaded.
-     *
-     * @return {@code true} if RxJava dependency exist, {@code false} otherwise.
-     */
-    @SuppressWarnings("LiteralClassName")
-    static synchronized boolean isRxJavaAvailable() {
-        if (rxJavaAvailable == null) {
-            try {
-                Class.forName("io.reactivex.Flowable");
-                rxJavaAvailable = true;
-            } catch (ClassNotFoundException ignore) {
-                rxJavaAvailable = false;
-            }
-        }
-        return rxJavaAvailable;
-    }
-
-    // Gets the canonical path for a given file.
-    protected static String getCanonicalPath(File realmFile) {
-        try {
-            return realmFile.getCanonicalPath();
-        } catch (IOException e) {
-            throw new RealmFileException(RealmFileException.Kind.ACCESS_ERROR,
-                    "Could not resolve the canonical path to the Realm file: " + realmFile.getAbsolutePath(),
-                    e);
-        }
-    }
-
     // Checks if this configuration is a SyncConfiguration instance.
-    boolean isSyncConfiguration() {
+    protected boolean isSyncConfiguration() {
         return false;
+    }
+
+    protected static RealmConfiguration forRecovery(String canonicalPath, @Nullable byte[] encryptionKey, RealmProxyMediator schemaMediator) {
+        return new RealmConfiguration(new File(canonicalPath),null, encryptionKey, 0, null, false, OsRealmConfig.Durability.FULL, schemaMediator, null, null, null, true, null, true, Long.MAX_VALUE, false, true);
     }
 
     /**
@@ -462,10 +506,17 @@ public class RealmConfiguration {
         private OsRealmConfig.Durability durability;
         private HashSet<Object> modules = new HashSet<Object>();
         private HashSet<Class<? extends RealmModel>> debugSchema = new HashSet<Class<? extends RealmModel>>();
+        private boolean excludeDebugSchema = false;
+        @Nullable
         private RxObservableFactory rxFactory;
+        @Nullable
+        private FlowFactory flowFactory;
         private Realm.Transaction initialDataTransaction;
         private boolean readOnly;
         private CompactOnLaunchCallback compactOnLaunch;
+        private long maxNumberOfActiveVersions = Long.MAX_VALUE;
+        private boolean allowWritesOnUiThread;
+        private boolean allowQueriesOnUiThread;
 
         /**
          * Creates an instance of the Builder for the RealmConfiguration.
@@ -501,6 +552,8 @@ public class RealmConfiguration {
             if (DEFAULT_MODULE != null) {
                 this.modules.add(DEFAULT_MODULE);
             }
+            this.allowWritesOnUiThread = false;
+            this.allowQueriesOnUiThread = true;
         }
 
         /**
@@ -543,17 +596,17 @@ public class RealmConfiguration {
 
         /**
          * Sets the 64 byte key used to encrypt and decrypt the Realm file.
-         * Sets the {@value io.realm.RealmConfiguration#KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
+         * Sets the {@value io.realm.Realm#ENCRYPTION_KEY_LENGTH} bytes key used to encrypt and decrypt the Realm file.
          */
         public Builder encryptionKey(byte[] key) {
             //noinspection ConstantConditions
             if (key == null) {
                 throw new IllegalArgumentException("A non-null key must be provided");
             }
-            if (key.length != KEY_LENGTH) {
+            if (key.length != Realm.ENCRYPTION_KEY_LENGTH) {
                 throw new IllegalArgumentException(String.format(Locale.US,
                         "The provided key must be %s bytes. Yours was: %s",
-                        KEY_LENGTH, key.length));
+                        Realm.ENCRYPTION_KEY_LENGTH, key.length));
             }
             this.key = Arrays.copyOf(key, key.length);
             return this;
@@ -680,8 +733,25 @@ public class RealmConfiguration {
          *
          * @param factory factory to use.
          */
-        public Builder rxFactory(RxObservableFactory factory) {
+        public Builder rxFactory(@Nonnull RxObservableFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Rx Observable factory must not be null.");
+            }
             rxFactory = factory;
+            return this;
+        }
+
+        /**
+         * Sets the {@link FlowFactory} used to create coroutines Flows from Realm objects.
+         * The default factory is {@link RealmFlowFactory}.
+         *
+         * @param factory factory to use.
+         */
+        public Builder flowFactory(@Nonnull FlowFactory factory) {
+            if (factory == null) {
+                throw new IllegalArgumentException("The provided Flow factory must not be null.");
+            }
+            flowFactory = factory;
             return this;
         }
 
@@ -766,6 +836,28 @@ public class RealmConfiguration {
         }
 
         /**
+         * Sets the maximum number of live versions in the Realm file before an {@link IllegalStateException} is thrown when
+         * attempting to write more data.
+         * <p>
+         * Realm is capable of concurrently handling many different versions of Realm objects. This can e.g. happen if you
+         * have a Realm open on many different threads or are freezing objects while data is being written to the file.
+         * <p>
+         * Under normal circumstances this is not a problem, but if the number of active versions grow too large, it will
+         * have a negative effect on the filesize on disk. Setting this parameters can therefore be used to prevent uses of
+         * Realm that can result in very large Realms.
+         *
+         * @param number the maximum number of active versions before an exception is thrown.
+         * @see <a href="https://docs.mongodb.com/realm/sdk/android/fundamentals/realms/#realm-file-size">FAQ</a>
+         */
+        public Builder maxNumberOfActiveVersions(long number) {
+            if (number < 1) {
+                throw new IllegalArgumentException("Only positive numbers above 0 are allowed. Yours was: " + number);
+            }
+            this.maxNumberOfActiveVersions = number;
+            return this;
+        }
+
+        /**
          * DEBUG method. This restricts the Realm schema to only consist of the provided classes without having to
          * create a module. These classes must be available in the default module. Calling this will remove any
          * previously configured modules.
@@ -783,6 +875,40 @@ public class RealmConfiguration {
                 Collections.addAll(debugSchema, additionalClasses);
             }
 
+            return this;
+        }
+
+        /**
+         * DEBUG method. This restricts the Realm schema to exclude the provided classes from the original schema
+         * without having to create a module. These classes must be available in the default module. Calling this will
+         * remove any previously configured modules.
+         */
+        final Builder excludeSchema(Class<? extends RealmModel> firstClass, Class<? extends RealmModel>... additionalClasses) {
+            excludeDebugSchema = true;
+            return schema(firstClass, additionalClasses);
+        }
+
+        /**
+         * Sets whether or not calls to {@link Realm#executeTransaction} are allowed from the UI thread.
+         * <p>
+         * <b>WARNING: Realm does not allow synchronous transactions to be run on the main thread unless users explicitly opt in
+         * with this method.</b> We recommend diverting calls to {@code executeTransaction} to non-UI threads or, alternatively,
+         * using {@link Realm#executeTransactionAsync}.
+         */
+        public Builder allowWritesOnUiThread(boolean allowWritesOnUiThread) {
+            this.allowWritesOnUiThread = allowWritesOnUiThread;
+            return this;
+        }
+
+        /**
+         * Sets whether or not a {@link RealmQuery} can be launched from the UI thread.
+         * <p>
+         * By default Realm allows queries on the main thread. However, by doing so your application may experience a drop of
+         * frames or even ANRs. We recommend diverting queries to non-UI threads or, alternatively, using
+         * {@link RealmQuery#findAllAsync()} or {@link RealmQuery#findFirstAsync()}.
+         */
+        public Builder allowQueriesOnUiThread(boolean allowQueriesOnUiThread) {
+            this.allowQueriesOnUiThread = allowQueriesOnUiThread;
             return this;
         }
 
@@ -809,26 +935,31 @@ public class RealmConfiguration {
                 }
             }
 
-            if (rxFactory == null && isRxJavaAvailable()) {
-                rxFactory = new RealmObservableFactory();
+            if (rxFactory == null && Util.isRxJavaAvailable()) {
+                rxFactory = new RealmObservableFactory(true);
             }
 
+            if (flowFactory == null && Util.isCoroutinesAvailable()) {
+                flowFactory = new RealmFlowFactory(true);
+            }
 
-            return new RealmConfiguration(directory,
-                    fileName,
-                    getCanonicalPath(new File(directory, fileName)),
+            return new RealmConfiguration(new File(directory, fileName),
                     assetFilePath,
                     key,
                     schemaVersion,
                     migration,
                     deleteRealmIfMigrationNeeded,
                     durability,
-                    createSchemaMediator(modules, debugSchema),
+                    createSchemaMediator(modules, debugSchema, excludeDebugSchema),
                     rxFactory,
+                    flowFactory,
                     initialDataTransaction,
                     readOnly,
                     compactOnLaunch,
-                    false
+                    false,
+                    maxNumberOfActiveVersions,
+                    allowWritesOnUiThread,
+                    allowQueriesOnUiThread
             );
         }
 

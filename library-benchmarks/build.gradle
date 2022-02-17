@@ -1,41 +1,46 @@
 buildscript {
+    def properties = new Properties()
+    properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
+    ext.kotlin_version = properties.get('KOTLIN')
     repositories {
         mavenLocal()
         google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.0-alpha06'
+        classpath "androidx.benchmark:benchmark-gradle-plugin:1.0.0-rc01"
+        classpath "com.android.tools.build:gradle:${properties.get("GRADLE_BUILD_TOOLS")}"
         classpath "io.realm:realm-gradle-plugin:${file("${rootDir}/../version.txt").text.trim()}"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${properties.get("KOTLIN")}"
     }
 }
 
 allprojects {
     def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.load(new FileInputStream("${rootDir}/../dependencies.list"))
     props.each { key, val ->
         project.ext.set(key, val)
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
-}
-
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'realm-android'
+apply plugin: 'androidx.benchmark'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion "27.0.2"
+    compileSdkVersion 28
+    buildToolsVersion "${project.ext.get("ANDROID_BUILD_TOOLS")}"
 
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 27
+        minSdkVersion 16
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.benchmark.junit4.AndroidBenchmarkRunner"
+        testInstrumentationRunnerArgument 'androidx.benchmark.suppressErrors', 'EMULATOR,UNLOCKED'
     }
 
     buildTypes {
@@ -44,6 +49,15 @@ android {
             // Running with DEBUG = true will disable the JIT
             debuggable = false
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
     }
 }
 
@@ -54,10 +68,8 @@ repositories {
 }
 
 dependencies {
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test:rules:1.0.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation "androidx.benchmark:benchmark-junit4:1.0.0-rc01"
     androidTestImplementation 'junit:junit:4.12'
-    androidTestImplementation 'dk.ilios:spanner:0.6.0'
-    androidTestImplementation 'com.opencsv:opencsv:3.4'
-    androidTestImplementation 'junit:junit:4.12'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

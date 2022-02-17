@@ -16,24 +16,27 @@
 
 package io.realm;
 
-import android.support.test.rule.UiThreadTestRule;
-import android.support.test.runner.AndroidJUnit4;
-
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.UiThreadTestRule;
+
 import io.realm.entities.AllTypes;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.entities.Cat;
+import io.realm.entities.StringOnly;
 import io.realm.entities.pojo.AllTypesRealmModel;
+import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -271,7 +274,8 @@ public class RealmChangeListenerTests {
     // 1. adding a listener if on the parent
     // 2. modify child
     // 3. listener is triggered (forward link)
-    @Test@RunTestInLooperThread
+    @Test
+    @RunTestInLooperThread
     public void listenerOnParentChangeChild() {
         final long[] nCalls = {0};
         final Realm realm = Realm.getInstance(looperThread.getConfiguration());
@@ -297,6 +301,55 @@ public class RealmChangeListenerTests {
         assertEquals(1, nCalls[0]);
 
         realm.close();
+        looperThread.testComplete();
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void removeListenerOnInvalidObjectShouldWarn() {
+        realm = Realm.getInstance(realmConfig);
+        RealmChangeListener<StringOnly> listener = realmModel -> {
+        };
+        RealmChangeListener<RealmResults<StringOnly>> listenerAll = realmModel -> {
+        };
+
+        realm.beginTransaction();
+        StringOnly stringOnly = realm.createObject(StringOnly.class);
+        realm.commitTransaction();
+
+        stringOnly.addChangeListener(listener);
+
+        RealmResults<StringOnly> all = realm.where(StringOnly.class).findAll();
+        all.addChangeListener(listenerAll);
+
+        realm.close();
+
+        // add a custom logger to capture expected warning message
+        TestHelper.TestLogger testLogger = new TestHelper.TestLogger();
+        RealmLog.add(testLogger);
+
+        stringOnly.removeChangeListener(listener);
+        assertThat(testLogger.message, CoreMatchers.containsString(
+                "Calling removeChangeListener on a closed Realm " + realm.getPath() + ", make sure to close all listeners before closing the Realm."));
+
+        testLogger.message = "";
+        stringOnly.removeAllChangeListeners();
+        assertThat(testLogger.message, CoreMatchers.containsString(
+                "Calling removeChangeListener on a closed Realm " + realm.getPath() + ", make sure to close all listeners before closing the Realm."));
+
+
+        testLogger.message = "";
+        all.removeChangeListener(listenerAll);
+        assertThat(testLogger.message, CoreMatchers.containsString(
+                "Calling removeChangeListener on a closed Realm " + realm.getPath() + ", make sure to close all listeners before closing the Realm."));
+
+        testLogger.message = "";
+        all.removeAllChangeListeners();
+        assertThat(testLogger.message, CoreMatchers.containsString(
+                "Calling removeChangeListener on a closed Realm " + realm.getPath() + ", make sure to close all listeners before closing the Realm."));
+
+        RealmLog.remove(testLogger);
+
         looperThread.testComplete();
     }
 }

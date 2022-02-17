@@ -23,7 +23,7 @@ import io.realm.annotations.RealmNamingPolicy;
 /**
  * Class with only a custom name
  */
-@RealmClass(name = "customName")
+@RealmClass("customName")
 public class NamePolicyClassOnly extends RealmObject {
 
     public String firstName;

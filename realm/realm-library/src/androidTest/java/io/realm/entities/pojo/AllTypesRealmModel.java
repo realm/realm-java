@@ -16,8 +16,13 @@
 
 package io.realm.entities.pojo;
 
-import java.util.Date;
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 
+import java.util.Date;
+import java.util.UUID;
+
+import io.realm.RealmAny;
 import io.realm.RealmList;
 import io.realm.RealmModel;
 import io.realm.annotations.Index;
@@ -34,6 +39,8 @@ public class AllTypesRealmModel implements RealmModel {
     public static final String FIELD_STRING = "columnString";
     public static final String FIELD_BINARY = "columnBinary";
     public static final String FIELD_BOOLEAN = "columnBoolean";
+    public static final String FIELD_REALM_ANY = "columnRealmAny";
+    public static final String FIELD_REALM_ANY_LIST = "columnRealmAnyRealmList";
 
     @Index
     public String columnString;
@@ -47,6 +54,12 @@ public class AllTypesRealmModel implements RealmModel {
     public byte[] columnBinary;
     public Dog columnRealmObject;
     public RealmList<Dog> columnRealmList;
+    public Decimal128 columnDecimal128;
+    public ObjectId columnObjectId;
+    public UUID columnUUID;
+    public RealmAny columnRealmAny;
+    public RealmList<RealmAny> columnRealmAnyRealmList;
+
 
     @Override
     public int hashCode() {

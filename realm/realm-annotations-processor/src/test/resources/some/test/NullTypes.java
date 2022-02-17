@@ -16,6 +16,9 @@
 
 package some.test;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.lang.String;
 import java.util.Date;
 
@@ -64,6 +67,14 @@ public class NullTypes extends RealmObject {
     private Date fieldDateNotNull;
     private Date fieldDateNull;
 
+    @Required
+    private Decimal128 fieldDecimal128NotNull;
+    private Decimal128 fieldDecimal128Null;
+
+    @Required
+    private ObjectId fieldObjectIdNotNull;
+    private ObjectId fieldObjectIdNull;
+
     private NullTypes fieldObjectNull;
 
     @Required
@@ -105,6 +116,14 @@ public class NullTypes extends RealmObject {
     @Required
     private RealmList<Date> fieldDateListNotNull;
     private RealmList<Date> fieldDateListNull;
+
+    @Required
+    private RealmList<Decimal128> fieldDecimal128ListNotNull;
+    private RealmList<Decimal128> fieldDecimal128ListNull;
+
+    @Required
+    private RealmList<ObjectId> fieldObjectIdListNotNull;
+    private RealmList<ObjectId> fieldObjectIdListNull;
 
     public String getFieldStringNotNull() {
         return realmGet$fieldStringNotNull();

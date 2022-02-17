@@ -1,10 +1,14 @@
 ![Realm](logo.png)
 
-[![bintray](https://api.bintray.com/packages/realm/maven/realm-gradle-plugin/images/download.svg) ](https://bintray.com/realm/maven/realm-gradle-plugin/_latestVersion)
+[![Maven Central](https://img.shields.io/maven-central/v/io.realm/realm-gradle-plugin?colorB=4dc427&label=Maven%20Central)](https://search.maven.org/artifact/io.realm/realm-gradle-plugin)
 [![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/realm/realm-java/blob/master/LICENSE)
 
 Realm is a mobile database that runs directly inside phones, tablets or wearables.
 This repository holds the source code for the Java version of Realm, which currently runs only on Android.
+
+## Realm Kotlin
+
+See [Realm Kotlin](https://github.com/realm/realm-kotlin) for more information about our new SDK written specifically for Kotlin Multiplatform and Android. The SDK is still experimental and the API surface has not been finalized yet, but we highly encourage any feedback you might have.
 
 ## Features
 
@@ -15,32 +19,33 @@ This repository holds the source code for the Java version of Realm, which curre
 
 ## Getting Started
 
-Please see the [detailed instructions in our docs](https://realm.io/docs/java/latest/#installation) to add Realm to your project.
+Please see the [detailed instructions in our docs](https://docs.mongodb.com/realm/sdk/android/install/) to add Realm to your project.
 
 ## Documentation
 
-Documentation for Realm can be found at [realm.io/docs/java](https://realm.io/docs/java).
-The API reference is located at [realm.io/docs/java/api](https://realm.io/docs/java/api).
+Documentation for Realm can be found at [docs.mongodb.com/realm/sdk/android/](https://docs.mongodb.com/realm/sdk/android/).
+The API reference is located at [docs.mongodb.com/realm-sdks/java/](https://docs.mongodb.com/realm-sdks/java/latest/).
 
 ## Getting Help
 
-- **Need help with your code?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We actively monitor & answer questions on StackOverflow!
-- **Have a bug to report?** [Open an issue](https://github.com/realm/realm-java/issues/new). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
-- **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new). Tell us what the feature should do, and why you want the feature.
-- Sign up for our [**Community Newsletter**](https://go.pardot.com/l/210132/2017-04-26/3j74l) to get regular tips, learn about other use-cases and get alerted of blogposts and tutorials about Realm.
+- **Got a question?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We actively monitor & answer questions on StackOverflow! You can also check out our [Community Forum](https://developer.mongodb.com/community/forums/tags/c/realm/9/realm-sdk) where general questions about how to do something can be discussed.
+- **Think you found a bug?** [Open an issue](https://github.com/realm/realm-java/issues/new?template=bug_report.md). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
+- **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new?template=feature_request.md). Tell us what the feature should do, and why you want the feature.
 
 ## Using Snapshots
 
-If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [JFrog OSS](http://oss.jfrog.org/oss-snapshot-local/io/realm/realm-gradle-plugin/)
+If you want to test recent bugfixes or features that have not been packaged in an official release yet, you can use a **-SNAPSHOT** release of the current development version of Realm via Gradle, available on [Sonatype OSS](https://oss.sonatype.org/#nexus-search;quick~realm-gradle-plugin)
+
 
 ```
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
         maven {
-            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
+        jcenter()
     }
     dependencies {
         classpath "io.realm:realm-gradle-plugin:<version>-SNAPSHOT"
@@ -49,11 +54,12 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        mavenCentral()
         google()
         maven {
-            url 'http://oss.jfrog.org/artifactory/oss-snapshot-local'
+            url 'https://oss.sonatype.org/content/repositories/snapshots/'
         }
+        jcenter()
     }
 }
 ```
@@ -67,35 +73,24 @@ In case you don't want to use the precompiled version, you can build Realm yours
 ### Prerequisites
 
  * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
- * Download & install the Android SDK **Build-Tools 27.0.2**, **Android Oreo (API 27)** (for example through Android Studio’s **Android SDK Manager**).
- * Install CMake from SDK manager in Android Studio ("SDK Tools" -> "CMake").
- * If you use Android Studio, Android Studio 3.0 or higher is required.
+ * The latest stable version of Android Studio. Currently [4.1.1](https://developer.android.com/studio/).
+ * Download & install the Android SDK **Build-Tools 29.0.3**, **Android Pie (API 29)** (for example through Android Studio’s **Android SDK Manager**).
+ * Install CMake version 3.18.4 and build Ninja.
+ * Install the NDK (Side-by-side) **21.0.6113669** from the SDK Manager in Android Studio. Remember to check `☑  Show package details` in the manager to display all available versions.
 
- * Realm currently requires version r10e of the NDK.  Download the one appropriate for your development platform, from the NDK [archive](https://developer.android.com/ndk/downloads/older_releases.html).
-You may unzip the file wherever you choose.  For macOS, a suggested location is `~/Library/Android`.  The download will unzip as the directory `android-ndk-r10e`.
-
- * If you will be building with Android Studio, you will need to tell it to use the correct NDK.  To do this, define the variable `ndk.dir` in `realm/local.properties` and assign it the full pathname of the directory that you unzipped above.  Note that there is a `local.properites` in the root directory that is *not* the one that needs to be edited.
-
-    ```
-    ndk.dir=/Users/brian/Library/Android/android-ndk-r10e/r10e
-
-    ```
-
- * Add two environment variables to your profile (presuming you installed the NDK in `~/Library/android-ndk-r10e`):
+ * Add the Android home environment variable to your profile:
 
     ```
     export ANDROID_HOME=~/Library/Android/sdk
-    export ANDROID_NDK_HOME=~/Library/Android/android-ndk-r10e
     ```
 
- * If you are launching Android Studio from the macOS Finder, you should also run the following two commands:
+ * If you are launching Android Studio from the macOS Finder, you should also run the following command:
 
     ```
     launchctl setenv ANDROID_HOME "$ANDROID_HOME"
-    launchctl setenv ANDROID_NDK_HOME "$ANDROID_NDK_HOME"
     ```
 
- * If you'd like to specify the location in which to store the archives of Realm Core, define the `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables you to keep Core's archive when executing `git clean -xfd`.
+ * If you'd like to specify the location in which to store the archives of Realm Core, define the `REALM_CORE_DOWNLOAD_DIR` environment variable. It enables caching core release artifacts.
 
    ```
    export REALM_CORE_DOWNLOAD_DIR=~/.realmCore
@@ -111,7 +106,7 @@ It would be a good idea to add all of the symbol definitions (and their accompan
 
  * If you develop Realm Java with Android Studio, we recommend you to exclude some directories from indexing target by executing following steps on Android Studio. It really speeds up indexing phase after the build.
 
-    - Under `/realm/realm-library/`, select `build`, `.externalNativeBuild` and `distribution` folders in `Project` view.
+    - Under `/realm/realm-library/`, select `build`, `.cxx` and `distribution` folders in `Project` view.
     - Press `Command + Shift + A` to open `Find action` dialog. If you are not using default keymap nor using macOS, you can find your shortcut key in `Keymap` preference by searching `Find action`.
     - Search `Excluded` (not `Exclude`) action and select it. Selected folder icons should become orange (in default theme).
     - Restart Android Studio.
@@ -147,6 +142,33 @@ That command will generate:
 
 The full build may take an hour or more, to complete.
 
+### Building from source
+
+It is possible to build Realm Java with the submodule version of Realm Core. This is done by providing the following parameter when building: `-PbuildCore=true`.
+
+```
+./gradlew assembleBase -PbuildCore=true
+```
+
+You can turn off interprocedural optimizations with the following parameter: `-PenableLTO=false`. 
+
+```
+./gradlew assembleBase -PenableLTO=false`
+```
+
+Note: Building the `Base` variant would always build realm-core.
+
+Note: Interprocedural optimizations are enabled by default.
+
+Note: If you want to build from source inside Android Studio, you need to update the Gradle parameters by going into the Realm projects settings `Settings > Build, Execution, Deployment > Compiler > Command-line options` and add `-PbuildCore=true` or `-PenableLTO=false` to it. Alternatively you can add it into your `gradle.properties`:
+
+```
+buildCore=true
+enableLTO=false
+```
+
+Note: If building on OSX you might like to prevent Gatekeeper to block all NDK executables by disabling it: `sudo spctl --master-disable`. Remember to enable it afterwards: `sudo spctl --master-enable`
+
 ### Other Commands
 
  * `./gradlew tasks` will show all the available tasks
@@ -161,10 +183,10 @@ Generating the Javadoc using the command above may generate warnings. The Javado
 
 ### Upgrading Gradle Wrappers
 
- All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradleVersion` property defined in `/realm.properties` to determine Gradle Version of generating wrappers.
+ All gradle projects in this repository have `wrapper` task to generate Gradle Wrappers. Those tasks refer to `gradle` property defined in `/dependencies.list` to determine Gradle Version of generating wrappers.
 We have a script `./tools/update_gradle_wrapper.sh` to automate these steps. When you update Gradle Wrappers, please obey the following steps.
 
- 1. Edit `gradleVersion` property in defined in `/realm.properties` to new Gradle Wrapper version.
+ 1. Edit `gradle` property in defined in `/dependencies.list` to new Gradle Wrapper version.
  2. Execute `/tools/update_gradle_wrapper.sh`.
 
 ### Gotchas
@@ -176,7 +198,7 @@ The repository is organized into six Gradle projects:
  * `realm-transformer`: it contains the bytecode transformer.
  * `gradle-plugin`: it contains the Gradle plugin.
  * `examples`: it contains the example projects. This project directly depends on `gradle-plugin` which adds a dependency to the artifacts produced by `realm`.
- * The root folder is another Gradle project.  All it does is orchestrate the other jobs
+ * The root folder is another Gradle project.  All it does is orchestrate the other jobs.
 
 This means that `./gradlew clean` and `./gradlew cleanExamples` will fail if `assembleExamples` has not been executed first.
 Note that IntelliJ [does not support multiple projects in the same window](https://youtrack.jetbrains.com/issue/IDEABKL-6118#)
@@ -221,7 +243,7 @@ A docker image can be built from `tools/sync_test_server/Dockerfile` to run the 
 
 To run a testing server locally:
 
-1. Install [docker](https://www.docker.com/products/overview).
+1. Install [docker](https://www.docker.com/products/overview) and run it.
 
 2. Run `tools/sync_test_server/start_server.sh`:
 
@@ -250,9 +272,9 @@ These tests may take as much as half an hour to complete.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for more details!
 
-This project adheres to the [Contributor Covenant Code of Conduct](https://realm.io/conduct).
+This project adheres to the [MongoDB Code of Conduct](https://www.mongodb.com/community-code-of-conduct).
 By participating, you are expected to uphold this code. Please report
-unacceptable behavior to [info@realm.io](mailto:info@realm.io).
+unacceptable behavior to [community-conduct@mongodb.com](mailto:community-conduct@mongodb.com).
 
 The directory `realm/config/studio` contains lint and style files recommended for project code.
 Import them from Android Studio with Android Studio > Preferences... > Code Style > Manage... > Import,
@@ -276,4 +298,4 @@ not eligible to receive the product under U.S. law.**
 
 **_And if you don't like it, please let us know what you would like improved, so we can fix it!_**
 
-![analytics](https://ga-beacon.appspot.com/UA-50247013-2/realm-java/README?pixel)
+<img style="width: 0px; height: 0px;" src="https://3eaz4mshcd.execute-api.us-east-1.amazonaws.com/prod?s=https://github.com/realm/realm-java#README.md">

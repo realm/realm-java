@@ -1,0 +1,12 @@
+{
+    "id": "60489e7df5d9bdc94de663c7",
+    "name": "BackingDB",
+    "type": "mongodb",
+    "config": {
+        %SYNC_CONFIG%
+    },
+    "secret_config": {
+        "uri": "BackingDB_uri"
+    },
+    "version": 1
+}

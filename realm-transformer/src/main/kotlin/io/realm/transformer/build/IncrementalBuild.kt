@@ -16,23 +16,23 @@
 
 package io.realm.transformer.build
 
-import com.android.SdkConstants
+import com.android.build.api.transform.Format
 import com.android.build.api.transform.Status
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformOutputProvider
 import io.realm.annotations.RealmClass
 import io.realm.transformer.BytecodeModifier
+import io.realm.transformer.ProjectMetaData
 import io.realm.transformer.RealmTransformer
 import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
 import javassist.NotFoundException
-import org.gradle.api.Project
 import java.io.File
 import java.util.jar.JarFile
 
-class IncrementalBuild(project: Project, outputProvider: TransformOutputProvider, transform: RealmTransformer)
-    : BuildTemplate(project, outputProvider, transform) {
+class IncrementalBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvider, transform: RealmTransformer)
+    : BuildTemplate(metadata, outputProvider, transform) {
 
     override fun prepareOutputClasses(inputs: MutableCollection<TransformInput>) {
         this.inputs = inputs;
@@ -51,11 +51,9 @@ class IncrementalBuild(project: Project, outputProvider: TransformOutputProvider
             logger.debug("Modify accessors in class: $it")
             val ctClass: CtClass = classPool.getCtClass(it)
             BytecodeModifier.useRealmAccessors(classPool, ctClass, null)
-            ctClass.writeFile(getOutputFile(outputProvider).canonicalPath)
+            ctClass.writeFile(getOutputFile(outputProvider, Format.DIRECTORY).canonicalPath)
         }
-
     }
-
 
     /**
      * Categorize the transform input into its two main categorizes: `directoryFiles` which are
@@ -78,9 +76,9 @@ class IncrementalBuild(project: Project, outputProvider: TransformOutputProvider
                         return@forEach
                     }
                     val filePath: String = it.key.absolutePath
-                    if (filePath.endsWith(SdkConstants.DOT_CLASS)) {
+                    if (filePath.endsWith(DOT_CLASS)) {
                         val className = filePath
-                                .substring(dirPath.length + 1, filePath.length - SdkConstants.DOT_CLASS.length)
+                                .substring(dirPath.length + 1, filePath.length - DOT_CLASS.length)
                                 .replace(File.separatorChar, '.')
                         directoryFiles.add(className)
                     }
@@ -96,7 +94,7 @@ class IncrementalBuild(project: Project, outputProvider: TransformOutputProvider
                 jarFile.entries()
                         .toList()
                         .filter {
-                            !it.isDirectory && it.name.endsWith(SdkConstants.DOT_CLASS)
+                            !it.isDirectory && it.name.endsWith(DOT_CLASS)
                         }
                         .forEach {
                             val path: String = it.name
@@ -104,7 +102,7 @@ class IncrementalBuild(project: Project, outputProvider: TransformOutputProvider
                             // `/`. It depends on how the jar file was created.
                             // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
                             val className: String = path
-                                    .substring(0, path.length - SdkConstants.DOT_CLASS.length)
+                                    .substring(0, path.length - DOT_CLASS.length)
                                     .replace('/', '.')
                                     .replace('\\', '.')
                             jarFiles.add(className)

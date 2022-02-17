@@ -16,7 +16,10 @@
 
 package io.realm;
 
-import android.test.AndroidTestCase;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Arrays;
 
@@ -30,10 +33,16 @@ import io.realm.entities.HumanModule;
 import io.realm.internal.modules.CompositeMediator;
 import io.realm.internal.modules.FilterableMediator;
 
-public class MediatorTest extends AndroidTestCase {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public class MediatorTest {
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
-    public void testMediatorsEquality() {
+    @Test
+    public void mediatorsEquality() {
         final DefaultRealmModuleMediator defaultMediator = new DefaultRealmModuleMediator();
         final CompositeMediator compositeMediator = new CompositeMediator(defaultMediator);
         final FilterableMediator filterableMediator = new FilterableMediator(defaultMediator, defaultMediator.getModelClasses());
@@ -60,7 +69,8 @@ public class MediatorTest extends AndroidTestCase {
         assertEquals(filterableMediator.hashCode(), filterableMediator.hashCode());
     }
 
-    public void testCompositeMediatorModelClassesCount() {
+    @Test
+    public void compositeMediatorModelClassesCount() {
         final CompositeMediator mediator = new CompositeMediator(
                 new HumanModuleMediator(),
                 new AnimalModuleMediator()
@@ -72,7 +82,8 @@ public class MediatorTest extends AndroidTestCase {
         assertEquals(modelsInHumanModule + modelsInAnimalModule, mediator.getModelClasses().size());
     }
 
-    public void testFilterableMediatorModelClassesCount() {
+    @Test
+    public void filterableMediatorModelClassesCount() {
         //noinspection unchecked
         final FilterableMediator mediator = new FilterableMediator(new AnimalModuleMediator(), Arrays.<Class<? extends RealmModel>>asList(Cat.class, CatOwner.class));
 
@@ -83,7 +94,8 @@ public class MediatorTest extends AndroidTestCase {
         assertFalse(mediator.getModelClasses().contains(AllTypes.class));
     }
 
-    public void testDefaultMediatorWasTransformed() {
+    @Test
+    public void defaultMediatorWasTransformed() {
         final DefaultRealmModuleMediator defaultMediator = new DefaultRealmModuleMediator();
         assertTrue(defaultMediator.transformerApplied());
     }

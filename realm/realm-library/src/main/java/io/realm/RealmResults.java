@@ -16,19 +16,29 @@
 
 package io.realm;
 
-
 import android.annotation.SuppressLint;
 import android.os.Looper;
+
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
+import java.util.Date;
+import java.util.Locale;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
-import io.realm.internal.CheckedRow;
+import io.realm.internal.Freezable;
 import io.realm.internal.OsResults;
+import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
+import io.realm.internal.Util;
+import io.realm.internal.android.JsonUtils;
+import io.realm.log.RealmLog;
 import io.realm.rx.CollectionChange;
 
 /**
@@ -37,8 +47,8 @@ import io.realm.rx.CollectionChange;
  * increases speed.
  * <p>
  * RealmResults are live views, which means that if it is on an {@link Looper} thread, it will automatically
- * update its query results after a transaction has been committed. If on a non-looper thread, {@link Realm#waitForChange()}
- * must be called to update the results.
+ * update its query results after a transaction has been committed. If on a non-looper thread,
+ * {@link Realm#refresh()} must be called to update the results.
  * <p>
  * Updates to RealmObjects from a RealmResults list must be done from within a transaction and the modified objects are
  * persisted to the Realm file during the commit of the transaction.
@@ -72,7 +82,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     // Abandon typing information, all ye who enter here
-    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, CheckedRow row, Table srcTable, String srcFieldName) {
+    static RealmResults<DynamicRealmObject> createDynamicBacklinkResults(DynamicRealm realm, UncheckedRow row, Table srcTable, String srcFieldName) {
         final String srcClassName = Table.getClassNameForTable(srcTable.getName());
         //noinspection ConstantConditions
         return new RealmResults<>(
@@ -82,11 +92,19 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz) {
-        super(realm, osResults, clazz);
+        this(realm, osResults, clazz, false);
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, Class<E> clazz, boolean forPrimitives) {
+        super(realm, osResults, clazz, getCollectionOperator(forPrimitives, realm, osResults, clazz, null));
     }
 
     RealmResults(BaseRealm realm, OsResults osResults, String className) {
-        super(realm, osResults, className);
+        this(realm, osResults, className, false);
+    }
+
+    RealmResults(BaseRealm realm, OsResults osResults, String className, boolean forPrimitives) {
+        super(realm, osResults, className, getCollectionOperator(forPrimitives, realm, osResults, null, className));
     }
 
     /**
@@ -94,7 +112,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     @Override
     public RealmQuery<E> where() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         return RealmQuery.createQueryFromResult(this);
     }
 
@@ -114,7 +132,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      */
     @Override
     public boolean isLoaded() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         return osResults.isLoaded();
     }
 
@@ -130,9 +148,514 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
         // Instead, accessing the OsResults will just trigger the execution of query if needed. We add this flag is
         // only to keep the original behavior of those APIs. eg.: For a async RealmResults, before query returns, the
         // size() call should return 0 instead of running the query get the real size.
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         osResults.load();
         return true;
+    }
+
+
+    /**
+     * Updates the field given by {@code fieldName} in all objects inside the query result.
+     * <p>
+     * This method will automatically try to convert numbers and booleans that are given as
+     * {@code String} to their appropriate type. For example {@code "10"} will be converted to
+     * {@code 10} if the field type is {@link RealmFieldType#INTEGER}.
+     * <p>
+     * Using the typed setters like {@link #setInt(String, int)} will be faster than using
+     * this method.
+     *
+     * @param fieldName field to update
+     * @param value value to update with.
+     * @throws IllegalArgumentException if the field could not be found, could not be updated or
+     * the argument didn't match the field type or could not be converted to match the underlying
+     * field type.
+     */
+    public void setValue(String fieldName, @Nullable Object value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        boolean isString = (value instanceof String);
+        String strValue = isString ? (String) value : null;
+
+        String className = osResults.getTable().getClassName();
+        RealmObjectSchema schema = getRealm().getSchema().get(className);
+        if (!schema.hasField(fieldName)) {
+            throw new IllegalArgumentException(String.format("Field '%s' could not be found in class '%s'", fieldName, className));
+        }
+
+        // null values exit early
+        if (value == null) {
+            osResults.setNull(fieldName);
+            return;
+        }
+
+        // Does implicit conversion if needed.
+        RealmFieldType type = schema.getFieldType(fieldName);
+        if (isString && type != RealmFieldType.STRING) {
+            switch (type) {
+                case BOOLEAN:
+                    value = Boolean.parseBoolean(strValue);
+                    break;
+                case INTEGER:
+                    value = Long.parseLong(strValue);
+                    break;
+                case FLOAT:
+                    value = Float.parseFloat(strValue);
+                    break;
+                case DOUBLE:
+                    value = Double.parseDouble(strValue);
+                    break;
+                case DATE:
+                    value = JsonUtils.stringToDate(strValue);
+                    break;
+                case DECIMAL128:
+                    value = Decimal128.parse(strValue);
+                    break;
+                case OBJECT_ID:
+                    value = new ObjectId(strValue);
+                    break;
+                case UUID:
+                    value = UUID.fromString(strValue);
+                    break;
+                default:
+                    throw new IllegalArgumentException(String.format(Locale.US,
+                            "Field %s is not a String field, " +
+                                    "and the provide value could not be automatically converted: %s. Use a typed" +
+                                    "setter instead", fieldName, value));
+            }
+        }
+
+        //noinspection ConstantConditions
+        Class<?> valueClass = value.getClass();
+        if (valueClass == Boolean.class) {
+            setBoolean(fieldName, (Boolean) value);
+        } else if (valueClass == Short.class) {
+            setShort(fieldName, (Short) value);
+        } else if (valueClass == Integer.class) {
+            setInt(fieldName, (Integer) value);
+        } else if (valueClass == Long.class) {
+            setLong(fieldName, (Long) value);
+        } else if (valueClass == Byte.class) {
+            setByte(fieldName, (Byte) value);
+        } else if (valueClass == Float.class) {
+            setFloat(fieldName, (Float) value);
+        } else if (valueClass == Double.class) {
+            setDouble(fieldName, (Double) value);
+        } else if (valueClass == String.class) {
+            //noinspection ConstantConditions
+            setString(fieldName, (String) value);
+        } else if (value instanceof Date) {
+            setDate(fieldName, (Date) value);
+        } else if (value instanceof Decimal128) {
+            setDecimal128(fieldName, (Decimal128) value);
+        } else if (value instanceof ObjectId) {
+            setObjectId(fieldName, (ObjectId) value);
+        } else if (value instanceof UUID) {
+            setUUID(fieldName, (UUID) value);
+        } else if (value instanceof byte[]) {
+            setBlob(fieldName, (byte[]) value);
+        } else if (value instanceof RealmModel) {
+            setObject(fieldName, (RealmModel) value);
+        } else if (valueClass == RealmList.class) {
+            RealmList<?> list = (RealmList<?>) value;
+            setList(fieldName, list);
+        } else {
+            throw new IllegalArgumentException("Value is of a type not supported: " + value.getClass());
+        }
+    }
+
+    /**
+     * Sets the value to {@code null} for the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @throws IllegalArgumentException if field name doesn't exist or is a primary key property.
+     * @throws IllegalStateException if the field cannot hold {@code null} values.
+     */
+    public void setNull(String fieldName) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        osResults.setNull(fieldName);
+    }
+
+    /**
+     * Sets the {@code boolean} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a boolean field.
+     */
+    public void setBoolean(String fieldName, boolean value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.BOOLEAN);
+        osResults.setBoolean(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code byte} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a byte field.
+     */
+    public void setByte(String fieldName, byte value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.INTEGER);
+        osResults.setInt(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code short} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a short field.
+     */
+    public void setShort(String fieldName, short value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.INTEGER);
+        osResults.setInt(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code int} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an integer field.
+     */
+    public void setInt(String fieldName, int value) {
+        checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.INTEGER);
+        baseRealm.checkIfValidAndInTransaction();
+        osResults.setInt(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code long} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a long field.
+     */
+    public void setLong(String fieldName, long value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.INTEGER);
+        osResults.setInt(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code float} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a float field.
+     */
+    public void setFloat(String fieldName, float value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.FLOAT);
+        osResults.setFloat(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code double} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a double field.
+     */
+    public void setDouble(String fieldName, double value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.DOUBLE);
+        osResults.setDouble(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code String} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a String field.
+     */
+    public void setString(String fieldName, @Nullable String value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.STRING);
+        osResults.setString(fieldName, value);
+    }
+
+    /**
+     * Sets the binary value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a binary field.
+     */
+    public void setBlob(String fieldName, @Nullable byte[] value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.BINARY);
+        osResults.setBlob(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code Date} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code Date} field.
+     */
+    public void setDate(String fieldName, @Nullable Date value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.DATE);
+        osResults.setDate(fieldName, value);
+    }
+
+    /**
+     * Sets a reference to another object on the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new object referenced by this field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't an Object reference field.
+     */
+    public void setObject(String fieldName, @Nullable RealmModel value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.OBJECT);
+        Row row = checkRealmObjectConstraints(fieldName, value);
+        osResults.setObject(fieldName, row);
+    }
+
+    /**
+     * Sets the {@code Decimal128} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code Decimal128} field.
+     */
+    public void setDecimal128(String fieldName, @Nullable Decimal128 value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.DECIMAL128);
+        osResults.setDecimal128(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code ObjectId} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code ObjectId} field.
+     */
+    public void setObjectId(String fieldName, @Nullable ObjectId value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.OBJECT_ID);
+        osResults.setObjectId(fieldName, value);
+    }
+
+    /**
+     * Sets the {@code UUID} value of the given field in all of the objects in the collection.
+     *
+     * @param fieldName name of the field to update.
+     * @param value new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, is a primary key property or isn't a {@code UUID} field.
+     */
+    public void setUUID(String fieldName, @Nullable UUID value) {
+        checkNonEmptyFieldName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+        fieldName = mapFieldNameToInternalName(fieldName);
+        checkType(fieldName, RealmFieldType.UUID);
+        osResults.setUUID(fieldName, value);
+    }
+
+    private Row checkRealmObjectConstraints(String fieldName, @Nullable RealmModel value) {
+        if (value != null) {
+            if (!(RealmObject.isManaged(value) && RealmObject.isValid(value))) {
+                throw new IllegalArgumentException("'value' is not a valid, managed Realm object.");
+            }
+            ProxyState proxyState = ((RealmObjectProxy) value).realmGet$proxyState();
+            if (!proxyState.getRealm$realm().getPath().equals(baseRealm.getPath())) {
+                throw new IllegalArgumentException("'value' does not belong to the same Realm as the RealmResults.");
+            }
+
+            // Check that type matches the expected one
+            Table currentTable = osResults.getTable();
+            long columnKey = currentTable.getColumnKey(fieldName);
+            Table expectedTable = currentTable.getLinkTarget(columnKey);
+            Table inputTable = proxyState.getRow$realm().getTable();
+            if (!expectedTable.hasSameSchema(inputTable)) {
+                throw new IllegalArgumentException(String.format(Locale.US,
+                        "Type of object is wrong. Was '%s', expected '%s'",
+                        inputTable.getClassName(), expectedTable.getClassName()));
+            }
+            return proxyState.getRow$realm();
+        }
+
+        return null;
+    }
+
+    /**
+     * Replaces the RealmList at the given field on all objects in this collection.
+     *
+     *
+     * @param fieldName name of the field to update.
+     * @param list new value for the field.
+     * @throws IllegalArgumentException if field name doesn't exist, isn't a RealmList field , if the
+     * objects in the list are not managed or the type of the objects in the list are wrong.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void setList(String fieldName, RealmList<T> list) {
+        checkNonEmptyFieldName(fieldName);
+        fieldName = mapFieldNameToInternalName(fieldName);
+        baseRealm.checkIfValidAndInTransaction();
+
+        //noinspection ConstantConditions
+        if (list == null) {
+            throw new IllegalArgumentException("Non-null 'list' required");
+        }
+
+        // Due to type erasure of generics it is not possible to have multiple overloaded methods with the same signature.
+        // So instead we fake  it by checking the first element in the list and verifies that
+        // against the underlying type.
+        RealmFieldType columnType = baseRealm.getSchema().getSchemaForClass(osResults.getTable().getClassName()).getFieldType(fieldName);
+        switch (columnType) {
+            case LIST:
+                checkTypeOfListElements(list, RealmModel.class);
+                checkRealmObjectConstraints(fieldName, (RealmModel) list.first(null));
+                osResults.setModelList(fieldName, (RealmList<RealmModel>) list);
+                break;
+            case INTEGER_LIST:
+                // Integers are a bit annoying as they are all stored as the same type in Core
+                // but the Java type system cannot seamlessly translate between e.g Short and Long.
+                Class<?> listType = getListType(list);
+                if (listType.equals(Integer.class)) {
+                    osResults.setIntegerList(fieldName, (RealmList<Integer>) list);
+                } else if (listType.equals(Long.class)) {
+                    osResults.setLongList(fieldName, (RealmList<Long>) list);
+                } else if (listType.equals(Short.class)) {
+                    osResults.setShortList(fieldName, (RealmList<Short>) list);
+                } else if (listType.equals(Byte.class)) {
+                    osResults.setByteList(fieldName, (RealmList<Byte>) list);
+                } else {
+                    throw new IllegalArgumentException(String.format("List contained the wrong type of elements. " +
+                                    "Elements that can be mapped to Integers was expected, but the actual type is '%s'",
+                            listType));
+                }
+                break;
+            case BOOLEAN_LIST:
+                checkTypeOfListElements(list, Boolean.class);
+                osResults.setBooleanList(fieldName, (RealmList<Boolean>) list);
+                break;
+            case STRING_LIST:
+                checkTypeOfListElements(list, String.class);
+                osResults.setStringList(fieldName, (RealmList<String>) list);
+                break;
+            case BINARY_LIST:
+                checkTypeOfListElements(list, byte[].class);
+                osResults.setByteArrayList(fieldName, (RealmList<byte[]>) list);
+                break;
+            case DATE_LIST:
+                checkTypeOfListElements(list, Date.class);
+                osResults.setDateList(fieldName, (RealmList<Date>) list);
+                break;
+            case DECIMAL128_LIST:
+                checkTypeOfListElements(list, Decimal128.class);
+                osResults.setDecimal128List(fieldName, (RealmList<Decimal128>) list);
+                break;
+            case OBJECT_ID_LIST:
+                checkTypeOfListElements(list, ObjectId.class);
+                osResults.setObjectIdList(fieldName, (RealmList<ObjectId>) list);
+                break;
+            case UUID_LIST:
+                checkTypeOfListElements(list, UUID.class);
+                osResults.setUUIDList(fieldName, (RealmList<UUID>) list);
+                break;
+            case FLOAT_LIST:
+                checkTypeOfListElements(list, Float.class);
+                osResults.setFloatList(fieldName, (RealmList<Float>) list);
+                break;
+            case DOUBLE_LIST:
+                checkTypeOfListElements(list, Double.class);
+                osResults.setDoubleList(fieldName, (RealmList<Double>) list);
+                break;
+            default: {
+//                // Handle Decimal128 and ObjectId in a special way since they might not be on the
+//                // classpath
+//                if (columnType == RealmFieldType.DECIMAL128_LIST) {
+//                    checkTypeOfListElements(list, Decimal128.class);
+//                    osResults.setDecimal128List(fieldName, (RealmList<Decimal128>) list);
+//                } else if (columnType == RealmFieldType.OBJECT_ID_LIST) {
+//                    checkTypeOfListElements(list, ObjectId.class);
+//                    osResults.setObjectIdList(fieldName, (RealmList<ObjectId>) list);
+//                }
+                throw new IllegalArgumentException(String.format("Field '%s' is not a list but a %s", fieldName, columnType));
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isFrozen() {
+        return baseRealm != null && baseRealm.isFrozen();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RealmResults<E> freeze() {
+        if (!isValid()) {
+            throw new IllegalStateException("Only valid, managed RealmResults can be frozen.");
+        }
+
+        BaseRealm frozenRealm = baseRealm.freeze();
+        OsResults frozenResults = osResults.freeze(frozenRealm.sharedRealm);
+        if (className != null) {
+            return new RealmResults<>(frozenRealm, frozenResults, className);
+        } else {
+            return new RealmResults<>(frozenRealm, frozenResults, classSpec);
+        }
+    }
+
+    private Class<?> getListType(RealmList list) {
+        if (!list.isEmpty()) {
+            return list.first().getClass();
+        } else {
+            return Long.class; // Any valid type that maps to INTEGER will do.
+        }
+    }
+
+    private <T> void checkTypeOfListElements(RealmList<T> list, Class<?> clazz) {
+        if (!list.isEmpty()) {
+            T element = list.first();
+            Class<?> elementType = element.getClass();
+            if (!(clazz.isAssignableFrom(elementType))) {
+                throw new IllegalArgumentException(String.format("List contained the wrong type of elements. Elements of type '%s' was " +
+                        "expected, but the actual type is '%s'", clazz, elementType));
+            }
+        }
     }
 
     /**
@@ -169,7 +692,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * {@link android.app.IntentService} thread.
      */
     public void addChangeListener(RealmChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        checkForAddListener(listener);
         osResults.addListener(this, listener);
     }
 
@@ -207,16 +730,27 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * {@link android.app.IntentService} thread.
      */
     public void addChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        checkForAddListener(listener);
         osResults.addListener(this, listener);
     }
 
-    private void checkForAddRemoveListener(@Nullable Object listener, boolean checkListener) {
+    private void checkForAddListener(@Nullable Object listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Listener should not be null");
+        }
+        baseRealm.checkIfValid();
+        baseRealm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+    }
+
+    private void checkForRemoveListener(@Nullable Object listener, boolean checkListener) {
         if (checkListener && listener == null) {
             throw new IllegalArgumentException("Listener should not be null");
         }
-        realm.checkIfValid();
-        realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+
+        if (baseRealm.isClosed()) {
+            RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                    "make sure to close all listeners before closing the Realm.", baseRealm.configuration.getPath());
+        }
     }
 
     /**
@@ -226,7 +760,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @see io.realm.RealmChangeListener
      */
     public void removeAllChangeListeners() {
-        checkForAddRemoveListener(null, false);
+        checkForRemoveListener(null, false);
         osResults.removeAllListeners();
     }
 
@@ -239,7 +773,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(RealmChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        checkForRemoveListener(listener, true);
         osResults.removeListener(this, listener);
     }
 
@@ -252,7 +786,7 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * @see io.realm.RealmChangeListener
      */
     public void removeChangeListener(OrderedRealmCollectionChangeListener<RealmResults<E>> listener) {
-        checkForAddRemoveListener(listener, true);
+        checkForRemoveListener(listener, true);
         osResults.removeListener(this, listener);
     }
 
@@ -260,6 +794,21 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * Returns an Rx Flowable that monitors changes to this RealmResults. It will emit the current RealmResults when
      * subscribed to. RealmResults will continually be emitted as the RealmResults are updated -
      * {@code onComplete} will never be called.
+     * <p>
+     * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Flowables always emit items from the thread holding the live RealmResults. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * realm.where(Foo.class).findAllAsync().asFlowable()
+     *   .observeOn(Schedulers.computation())
+     *   .map(rxResults -> doExpensiveWork(rxResults))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
      * <p>
      * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
@@ -273,28 +822,28 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * }
      * </pre>
      * <p>
-     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
      *
-     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
+     * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete}
+     * or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     @SuppressWarnings("unchecked")
     public Flowable<RealmResults<E>> asFlowable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().from((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
-            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+        if (baseRealm instanceof Realm) {
+            return baseRealm.configuration.getRxFactory().from((Realm) baseRealm, this);
+        }
+
+        if (baseRealm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) baseRealm;
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
             @SuppressWarnings("UnnecessaryLocalVariable")
-            Flowable results = realm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
+            Flowable results = baseRealm.configuration.getRxFactory().from(dynamicRealm, dynamicResults);
             return results;
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+            throw new UnsupportedOperationException(baseRealm.getClass() + " does not support RxJava2.");
         }
     }
 
@@ -305,25 +854,87 @@ public class RealmResults<E> extends OrderedRealmCollectionImpl<E> {
      * time an RealmResults is emitted.
      * <p>
      * RealmResults will continually be emitted as the RealmResults are updated - {@code onComplete} will never be called.
-     * <p>Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
+     * <p>
+     * Items emitted from Realm Observables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Observables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * realm.where(Foo.class).findAllAsync().asChangesetObservable()
+     *   .observeOn(Schedulers.computation())
+     *   .map((rxResults, changes) -> doExpensiveWork(rxResults, changes))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
-     * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
+     * @see <a href="https://github.com/realm/realm-java/tree/master/examples/rxJavaExample">RxJava and Realm</a>
      */
     public Observable<CollectionChange<RealmResults<E>>> asChangesetObservable() {
-        if (realm instanceof Realm) {
-            return realm.configuration.getRxFactory().changesetsFrom((Realm) realm, this);
-        } else if (realm instanceof DynamicRealm) {
-            DynamicRealm dynamicRealm = (DynamicRealm) realm;
+        if (baseRealm instanceof Realm) {
+            return baseRealm.configuration.getRxFactory().changesetsFrom((Realm) baseRealm, this);
+        } else if (baseRealm instanceof DynamicRealm) {
+            DynamicRealm dynamicRealm = (DynamicRealm) baseRealm;
             RealmResults<DynamicRealmObject> dynamicResults = (RealmResults<DynamicRealmObject>) this;
-            return (Observable) realm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
+            return (Observable) baseRealm.configuration.getRxFactory().changesetsFrom(dynamicRealm, dynamicResults);
         } else {
-            throw new UnsupportedOperationException(realm.getClass() + " does not support RxJava2.");
+            throw new UnsupportedOperationException(baseRealm.getClass() + " does not support RxJava2.");
         }
+    }
+
+    /**
+     * Returns a JSON representation of the matches of a {@link RealmQuery}. Cycles will be returned as row indices.
+     *
+     * This is a helper method used to inspect data, or for debugging purpose, this method could pull a large string which
+     * could cause an OutOfMemory error.
+     *
+     * @return string representation of a JSON array containing entries of the resulting {@link RealmQuery}.
+     */
+    public String asJSON() {
+        // maxDepth = -1:
+        // Follow links to infinite depth, but only follow each link exactly once.
+        // Cycle links are printed as a simple sequence of integers of row keys in the link column.
+        return osResults.toJSON(-1);
+    }
+
+    private void checkNonEmptyFieldName(String fieldName) {
+        if (Util.isEmptyString(fieldName)) {
+            throw new IllegalArgumentException("Non-empty 'fieldname' required.");
+        }
+    }
+
+    private void checkNotNull(@Nullable Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("Non-null 'value' required. Use 'setNull(fieldName)' instead.");
+        }
+    }
+
+    private void checkType(String fieldName, RealmFieldType expectedFieldType) {
+        String className = osResults.getTable().getClassName();
+        RealmFieldType fieldType = baseRealm.getSchema().get(className).getFieldType(fieldName);
+        if (fieldType != expectedFieldType) {
+            throw new IllegalArgumentException(String.format("The field '%s.%s' is not of the expected type. " +
+                    "Actual: %s, Expected: %s", className, fieldName, fieldType, expectedFieldType));
+        }
+    }
+
+    private String mapFieldNameToInternalName(String fieldName) {
+        if (baseRealm instanceof Realm) {
+            // We only need to map field names from typed Realms.
+            String className = osResults.getTable().getClassName();
+            String mappedFieldName = baseRealm.getSchema().getColumnInfo(className).getInternalFieldName(fieldName);
+            if (mappedFieldName == null) {
+                throw new IllegalArgumentException(String.format("Field '%s' does not exists.", fieldName));
+            } else {
+                fieldName = mappedFieldName;
+            }
+        }
+        return fieldName;
     }
 }

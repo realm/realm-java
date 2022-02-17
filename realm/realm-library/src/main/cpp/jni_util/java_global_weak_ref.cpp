@@ -60,12 +60,12 @@ JavaGlobalWeakRef& JavaGlobalWeakRef::operator=(const JavaGlobalWeakRef& rhs)
     return *this;
 }
 
-JavaGlobalRef JavaGlobalWeakRef::global_ref(JNIEnv* env) const
+JavaGlobalRefByMove JavaGlobalWeakRef::global_ref(JNIEnv* env) const
 {
     if (!env) {
         env = JniUtils::get_env(true);
     }
-    return JavaGlobalRef(env, m_weak);
+    return JavaGlobalRefByMove(env, m_weak);
 }
 
 bool JavaGlobalWeakRef::call_with_local_ref(JNIEnv* env, std::function<Callback> callback) const

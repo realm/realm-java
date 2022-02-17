@@ -50,7 +50,9 @@ public abstract class CollectionTests {
     }
 
     // Enumerates all methods from the RealmCollection interface that depend on Realm API's.
-    protected enum RealmCollectionMethod { WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID, IS_MANAGED
+    protected enum RealmCollectionMethod {
+        WHERE, MIN, MAX, SUM, AVERAGE, MIN_DATE, MAX_DATE, DELETE_ALL_FROM_REALM, IS_VALID,
+        IS_MANAGED, IS_FROZEN, FREEZE
     }
 
     // Enumerates all methods from the Collection interface
@@ -84,7 +86,7 @@ public abstract class CollectionTests {
     protected void populateRealm(Realm realm, int objects) {
         realm.beginTransaction();
         realm.delete(AllJavaTypes.class);
-         realm.delete(NonLatinFieldNames.class);
+        realm.delete(NonLatinFieldNames.class);
         if (objects > 0) {
             for (int i = 0; i < objects; i++) {
                 AllJavaTypes obj = realm.createObject(AllJavaTypes.class, i);

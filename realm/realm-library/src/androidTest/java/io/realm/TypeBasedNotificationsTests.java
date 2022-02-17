@@ -17,8 +17,8 @@ package io.realm;
 
 import android.content.Context;
 import android.os.Build;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Base64;
 
 import org.json.JSONException;
@@ -41,7 +41,6 @@ import io.realm.entities.Dog;
 import io.realm.entities.PrimaryKeyAsLong;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.junit.Assert.assertArrayEquals;
@@ -67,7 +66,7 @@ public class TypeBasedNotificationsTests {
 
     @Before
     public void setUp() {
-        context = InstrumentationRegistry.getTargetContext();
+        context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         globalCommitInvocations = new AtomicInteger(0);
         typebasedCommitInvocations = new AtomicInteger(0);
     }
@@ -252,7 +251,7 @@ public class TypeBasedNotificationsTests {
 
         final Realm realm = looperThread.getRealm();
         try {
-            InputStream in = TestHelper.loadJsonFromAssets(InstrumentationRegistry.getTargetContext(), "all_simple_types.json");
+            InputStream in = TestHelper.loadJsonFromAssets(InstrumentationRegistry.getInstrumentation().getTargetContext(), "all_simple_types.json");
             realm.beginTransaction();
             final AllTypes objectFromJson = realm.createObjectFromJson(AllTypes.class, in);
             realm.commitTransaction();

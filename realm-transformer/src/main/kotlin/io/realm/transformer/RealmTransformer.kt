@@ -17,9 +17,11 @@
 package io.realm.transformer
 
 import com.android.build.api.transform.*
+import io.realm.analytics.RealmAnalytics
+import io.realm.transformer.build.BuildTemplate
 import io.realm.transformer.build.FullBuild
 import io.realm.transformer.build.IncrementalBuild
-import io.realm.transformer.build.BuildTemplate
+import io.realm.transformer.ext.getBootClasspath
 import javassist.CtClass
 import org.gradle.api.Project
 import org.slf4j.Logger
@@ -29,13 +31,43 @@ import java.io.File
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
 
+val CONNECT_TIMEOUT = 4000L;
+val READ_TIMEOUT = 2000L;
+
+// Wrapper for storing data from org.gradle.api.Project as we cannot store a class variable to it
+// as that conflict with the Configuration Cache.
+data class ProjectMetaData(
+    val isOffline: Boolean,
+    val bootClassPath: List<File>)
+
 /**
  * This class implements the Transform API provided by the Android Gradle plugin.
  */
-class RealmTransformer(val project: Project) : Transform() {
+class RealmTransformer(project: Project) : Transform() {
+    private val logger: Logger = LoggerFactory.getLogger("realm-logger")
+    private lateinit var metadata: ProjectMetaData
+    private var analytics: RealmAnalytics? = null
 
-    val logger: Logger = LoggerFactory.getLogger("realm-logger")
+    init {
+        // Fetch project metadata when registering the transformer, but as some of the properties
+        // we need to read might not be initialized yet (e.g. the Android extension), we need
+        // to wait until after the build files have been evaluated.
+        project.afterEvaluate {
+            metadata = ProjectMetaData(
+                // Plugin requirements
+                project.gradle.startParameter.isOffline,
+                project.getBootClasspath()
+            )
 
+            try {
+                this.analytics = RealmAnalytics()
+                this.analytics!!.calculateAnalyticsData(project)
+            } catch (e: Exception) {
+                // Analytics should never crash the build.
+                logger.debug("Could not calculate Realm analytics data:\n$e" )
+            }
+        }
+    }
     override fun getName(): String {
         return "RealmTransformer"
     }
@@ -88,77 +120,31 @@ class RealmTransformer(val project: Project) : Transform() {
         val timer = Stopwatch()
         timer.start("Realm Transform time")
 
-        val build: BuildTemplate = if (isIncremental) IncrementalBuild(project, outputProvider!!, this)
-        else FullBuild(project, outputProvider!!, this)
+        val build: BuildTemplate = if (isIncremental) IncrementalBuild(metadata, outputProvider!!, this)
+        else FullBuild(metadata, outputProvider!!, this)
 
         build.prepareOutputClasses(inputs!!)
         timer.splitTime("Prepare output classes")
         if (build.hasNoOutput()) {
             // Abort transform as quickly as possible if no files where found for processing.
-            exitTransform(emptySet(), emptyList(), timer)
+            exitTransform(emptySet(), emptySet(), timer)
             return
         }
-        build.prepareReferencedClasses(referencedInputs!!);
+        build.prepareReferencedClasses(referencedInputs!!)
         timer.splitTime("Prepare referenced classes")
         build.markMediatorsAsTransformed()
         timer.splitTime("Mark mediators as transformed")
-        build.transformModelClasses();
+        build.transformModelClasses()
         timer.splitTime("Transform model classes")
-        build.transformDirectAccessToModelFields();
+        build.transformDirectAccessToModelFields()
         timer.splitTime("Transform references to model fields")
-        build.copyResourceFiles();
+        build.copyResourceFiles()
         timer.splitTime("Copy resource files")
         exitTransform(inputs, build.getOutputModelClasses(), timer)
     }
 
-    private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Collection<CtClass>, timer: Stopwatch) {
+    private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>, timer: Stopwatch) {
         timer.stop()
-        this.sendAnalytics(inputs, outputModelClasses)
+        analytics?.execute()
     }
-
-    /**
-     * Sends the analytics
-     *
-     * @param inputs the inputs provided by the Transform API
-     * @param inputModelClasses a list of ctClasses describing the Realm models
-     */
-    private fun sendAnalytics(inputs: Collection<TransformInput>, outputModelClasses: Collection<CtClass>) {
-        val disableAnalytics: Boolean = "true".equals(System.getenv()["REALM_DISABLE_ANALYTICS"])
-        if (inputs.isEmpty() || disableAnalytics) {
-            // Don't send analytics for incremental builds or if they have ben explicitly disabled.
-            return
-        }
-
-        var containsKotlin = false
-
-        outer@
-        for(input: TransformInput in inputs) {
-            for (di: DirectoryInput in input.directoryInputs) {
-                val path: String = di.file.absolutePath
-                val index: Int = path.indexOf("build${File.separator}intermediates${File.separator}classes")
-                if (index != -1) {
-                    val projectPath: String = path.substring(0, index)
-                    val buildFile = File(projectPath + "build.gradle")
-                    if (buildFile.exists() && buildFile.readText().contains("kotlin")) {
-                        containsKotlin = true
-                        break@outer
-                    }
-                }
-            }
-        }
-
-        val packages: Collection<String> = outputModelClasses.map {
-            it.packageName
-        }
-
-        val targetSdk: String? = GroovyUtil.getTargetSdk(project)
-        val minSdk: String?  = GroovyUtil.getMinSdk(project)
-
-        if (disableAnalytics) {
-            val sync: Boolean = GroovyUtil.isSyncEnabled(project)
-            val analytics = RealmAnalytics(packages as Set, containsKotlin, sync, targetSdk, minSdk)
-            analytics.execute()
-        }
-    }
-
 }

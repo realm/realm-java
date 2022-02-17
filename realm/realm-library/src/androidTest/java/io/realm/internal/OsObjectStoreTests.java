@@ -15,8 +15,10 @@
  */
 package io.realm.internal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -25,7 +27,9 @@ import org.junit.runner.RunWith;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.realm.RealmConfiguration;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.log.LogLevel;
+import io.realm.log.RealmLog;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -40,12 +44,22 @@ public class OsObjectStoreTests {
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
+    @Before
+    public void setUp() {
+        RealmLog.setLevel(LogLevel.ERROR);
+    }
+
+    @After
+    public void tearDown() {
+        RealmLog.setLevel(LogLevel.WARN);
+    }
+
     @Test
     public void callWithLock() {
         RealmConfiguration config = configFactory.createConfiguration();
 
         // Return false if there are opened OsSharedRealm instance
-        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config);
+        OsSharedRealm sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         assertFalse(OsObjectStore.callWithLock(config, new Runnable() {
             @Override
             public void run() {

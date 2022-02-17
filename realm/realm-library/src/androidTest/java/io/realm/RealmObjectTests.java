@@ -16,13 +16,9 @@
 
 package io.realm;
 
-import android.support.test.rule.UiThreadTestRule;
-import android.support.test.runner.AndroidJUnit4;
-
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,6 +38,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.UiThreadTestRule;
 import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AllTypesPrimaryKey;
@@ -59,7 +57,6 @@ import io.realm.internal.Row;
 import io.realm.internal.Table;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -112,7 +109,6 @@ public class RealmObjectTests {
         }
     }
 
-    // FIXME remove?
     @Test
     public void row_isValid() {
         realm.beginTransaction();
@@ -121,7 +117,7 @@ public class RealmObjectTests {
         realm.commitTransaction();
 
         assertNotNull("RealmObject.realmGetRow returns zero ", row);
-        assertEquals(17, row.getColumnCount());
+        assertEquals(26, row.getColumnCount());     // Update this value when adding new fields to AllTypes
     }
 
     @Test
@@ -443,7 +439,7 @@ public class RealmObjectTests {
     }
 
     @Test
-    public void equals_mixedCustomMethod() {
+    public void equals_realmAnyCustomMethod() {
         CustomMethods cm1 = new CustomMethods();
         cm1.setName("Bar");
         CustomMethods cm2 = new CustomMethods();
@@ -477,6 +473,17 @@ public class RealmObjectTests {
         realm.commitTransaction();
         String expected = CustomMethods.CUSTOM_TO_STRING;
         assertEquals(expected, cm.toString());
+    }
+
+    // Test for https://github.com/realm/realm-java/issues/7084
+    @Test
+    public void toString_nullBinary() {
+        realm.beginTransaction();
+        AllJavaTypes obj = realm.createObject(AllJavaTypes.class, 1);
+        obj.setFieldBinary(null);
+        realm.commitTransaction();
+        String desc = obj.toString();
+        assertTrue(desc.contains("fieldBinary:null"));
     }
 
     @Test
@@ -1225,7 +1232,7 @@ public class RealmObjectTests {
             }
         }).start();
         TestHelper.awaitOrFail(bgRealmDone);
-        realm.waitForChange();
+        realm.refresh();
 
         // Object should no longer be available.
         assertFalse(obj.isValid());
@@ -1360,16 +1367,15 @@ public class RealmObjectTests {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
                         final Table table = realm.getSchema().getTable(StringAndInt.class);
-                        final long strIndex = table.getColumnIndex("str");
-                        final long numberIndex = table.getColumnIndex("number");
+                        final long strColKey = table.getColumnKey("str");
+                        final long numberColKey = table.getColumnKey("number");
 
-                        while (0 < table.getColumnCount()) {
-                            table.removeColumn(0);
+                        for (String columnName :table.getColumnNames()) {
+                            table.removeColumn(table.getColumnKey(columnName));
                         }
-
                         final long newStrIndex;
                         // Swaps column indices.
-                        if (strIndex < numberIndex) {
+                        if (strColKey < numberColKey) {
                             table.addColumn(RealmFieldType.INTEGER, "number");
                             newStrIndex = table.addColumn(RealmFieldType.STRING, "str");
                         } else {

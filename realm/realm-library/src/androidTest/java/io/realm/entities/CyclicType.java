@@ -26,6 +26,7 @@ public class CyclicType extends RealmObject {
     public static final String FIELD_NAME = "name";
     public static final String FIELD_ID = "id";
     public static final String FIELD_DATE = "date";
+    public static final String FIELD_OBJECT = "object";
 
     private long id;
     private String name;

@@ -16,16 +16,21 @@
 
 package io.realm.exceptions;
 
-import io.realm.SyncConfiguration;
+import io.realm.annotations.Beta;
+import io.realm.mongodb.sync.SyncConfiguration;
 
 
 /**
  * Exception class used when a Realm was interrupted while downloading the initial data set.
  * This can only happen if {@link SyncConfiguration.Builder#waitForInitialRemoteData()} is set.
  */
+@Beta
 public class DownloadingRealmInterruptedException extends RuntimeException {
     public DownloadingRealmInterruptedException(SyncConfiguration syncConfig, Throwable exception) {
         super("Realm was interrupted while downloading the latest changes from the server: " + syncConfig.getPath(),
                 exception);
+    }
+    public DownloadingRealmInterruptedException(SyncConfiguration syncConfig, String message) {
+        super("Realm was interrupted while downloading the latest changes from the server: " + syncConfig.getPath() + "\n" + message);
     }
 }

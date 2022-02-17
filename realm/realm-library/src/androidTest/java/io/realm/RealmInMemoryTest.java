@@ -16,12 +16,13 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import junit.framework.AssertionFailedError;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,12 +34,12 @@ import java.util.concurrent.TimeUnit;
 
 import io.realm.entities.Dog;
 import io.realm.exceptions.RealmFileException;
-import io.realm.rule.TestRealmConfigurationFactory;
 
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
+@Ignore("FIXME: See https://github.com/realm/realm-java/issues/6790")
 @RunWith(AndroidJUnit4.class)
 public class RealmInMemoryTest {
 
@@ -182,6 +183,33 @@ public class RealmInMemoryTest {
         }
     }
 
+    // Tests writeCopyTo result when called in a transaction.
+    @Test
+    public void writeCopyToInTransaction() {
+        String fileName = IDENTIFIER + ".realm";
+        RealmConfiguration conf = configFactory.createConfigurationBuilder()
+                .name(fileName)
+                .build();
+
+        Realm.deleteRealm(conf);
+
+        testRealm.beginTransaction();
+        Dog dog = testRealm.createObject(Dog.class);
+        dog.setName("DinoDog");
+
+        // Write copy to destination file in transaction.
+        // Check if the new data would be written into the file.
+        testRealm.writeCopyTo(new File(configFactory.getRoot(), fileName));
+        Realm onDiskRealm = Realm.getInstance(conf);
+        assertEquals(1, onDiskRealm.where(Dog.class).count());
+
+        testRealm.commitTransaction();
+
+        assertEquals(1, testRealm.where(Dog.class).count());
+        onDiskRealm.close();
+    }
+
+
     // Test below scenario:
     // 1. Creates a in-memory Realm instance in the main thread.
     // 2. Creates a in-memory Realm with same name in another thread.
@@ -233,10 +261,12 @@ public class RealmInMemoryTest {
 
         // Waits until the worker thread started.
         workerCommittedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
-        if (threadError[0] != null) { throw threadError[0]; }
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
 
         // Refreshes will be ran in the next loop, manually refreshes it here.
-        testRealm.waitForChange();
+        testRealm.refresh();
         assertEquals(1, testRealm.where(Dog.class).count());
 
         // Step 3.
@@ -254,7 +284,9 @@ public class RealmInMemoryTest {
 
         // Waits until the worker thread finished.
         workerClosedLatch.await(TestHelper.SHORT_WAIT_SECS, TimeUnit.SECONDS);
-        if (threadError[0] != null) { throw threadError[0]; }
+        if (threadError[0] != null) {
+            throw threadError[0];
+        }
 
         // Since all previous Realm instances has been closed before, below will create a fresh new in-mem-realm instance.
         testRealm = Realm.getInstance(inMemConf);

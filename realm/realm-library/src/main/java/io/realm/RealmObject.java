@@ -18,13 +18,18 @@ package io.realm;
 
 import android.app.IntentService;
 
+import java.util.Collections;
+
+import javax.annotation.Nullable;
+
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
 import io.realm.annotations.RealmClass;
 import io.realm.internal.InvalidRow;
-import io.realm.internal.ManagableObject;
+import io.realm.internal.ManageableObject;
 import io.realm.internal.RealmObjectProxy;
 import io.realm.internal.Row;
+import io.realm.log.RealmLog;
 import io.realm.rx.ObjectChange;
 
 /**
@@ -44,8 +49,12 @@ import io.realm.rx.ObjectChange;
  * <li>byte[]</li>
  * <li>String</li>
  * <li>Date</li>
+ * <li>UUID</li>
+ * <li>org.bson.types.Decimal128</li>
+ * <li>org.bson.types.ObjectId</li>
  * <li>Any RealmObject subclass</li>
  * <li>RealmList</li>
+ * <li>RealmDictionary</li>
  * </ul>
  * <p>
  * The types <code>short</code>, <code>int</code>, and <code>long</code> are mapped to <code>long</code> when storing
@@ -64,11 +73,11 @@ import io.realm.rx.ObjectChange;
  * A RealmObject cannot be passed between different threads.
  *
  * @see Realm#createObject(Class)
- * @see Realm#copyToRealm(RealmModel)
+ * @see Realm#copyToRealm(RealmModel, ImportFlag...)
  */
 
 @RealmClass
-public abstract class RealmObject implements RealmModel, ManagableObject {
+public abstract class RealmObject implements RealmModel, ManageableObject {
     static final String MSG_NULL_OBJECT = "'model' is null.";
     static final String MSG_DELETED_OBJECT = "the object is already deleted.";
     static final String MSG_DYNAMIC_OBJECT = "the object is an instance of DynamicRealmObject. Use DynamicRealmObject.getDynamicRealm() instead.";
@@ -111,7 +120,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
 
         proxy.realmGet$proxyState().getRealm$realm().checkIfValid();
         Row row = proxy.realmGet$proxyState().getRow$realm();
-        row.getTable().moveLastOver(row.getIndex());
+        row.getTable().moveLastOver(row.getObjectKey());
         proxy.realmGet$proxyState().setRow$realm(InvalidRow.INSTANCE);
     }
 
@@ -145,14 +154,104 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @param object RealmObject to check validity for.
      * @return {@code true} if the object is still accessible or an unmanaged object, {@code false} otherwise.
      */
-    public static <E extends RealmModel> boolean isValid(E object) {
+    public static <E extends RealmModel> boolean isValid(@Nullable E object) {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             Row row = proxy.realmGet$proxyState().getRow$realm();
-            return row != null && row.isAttached();
+            return row != null && row.isValid();
         } else {
             //noinspection ConstantConditions
             return object != null;
+        }
+    }
+
+    /**
+     * Returns whether or not this RealmObject is frozen.
+     *
+     * @return {@code true} if the RealmObject is frozen, {@code false} if it is not.
+     * @see #freeze()
+     */
+    @Override
+    public final boolean isFrozen() {
+        return RealmObject.isFrozen(this);
+    }
+
+    /**
+     * Returns a frozen snapshot of this object. The frozen copy can be read and queried from any thread without throwing
+     * an {@link IllegalStateException}.
+     * <p>
+     * Freezing a RealmObject also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
+     * original collection is fully closed (i.e. all instances across all threads are closed), the frozen Realm and
+     * object will be closed as well.
+     * <p>
+     * Frozen objects can be queried as normal, but trying to mutate it in any way or attempting to register a listener will
+     * throw an {@link IllegalStateException}.
+     * <p>
+     * Note: Keeping a large number of frozen objects with different versions alive can have a negative impact on the filesize
+     * of the Realm. In order to avoid such a situation it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
+     *
+     * @return a frozen copy of this object.
+     * @throws IllegalStateException if this method is called from inside a write transaction.
+     */
+    @SuppressWarnings("TypeParameterUnusedInFormals") // FIXME: Consider adding type parameters to all RealmObject/RealmModel classes?
+    public final <E extends RealmModel> E freeze() {
+        //noinspection unchecked
+        return (E) RealmObject.freeze(this);
+    }
+
+    /**
+     * Returns whether or not this RealmObject is frozen.
+     *
+     * @return {@code true} if the RealmObject is frozen, {@code false} if it is not.
+     * @see #freeze()
+     */
+    public static <E extends RealmModel> boolean isFrozen(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            return proxy.realmGet$proxyState().getRealm$realm().isFrozen();
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns a frozen snapshot of this object. The frozen copy can be read and queried from any thread without throwing
+     * an {@link IllegalStateException}.
+     * <p>
+     * Freezing a RealmObject also creates a frozen Realm which has its own lifecycle, but if the live Realm that spawned the
+     * original collection is fully closed (i.e. all instances across all threads are closed), the frozen Realm and
+     * object will be closed as well.
+     * <p>
+     * Frozen objects can be queried as normal, but trying to mutate it in any way or attempting to register a listener will
+     * throw an {@link IllegalStateException}.
+     * <p>
+     * Note: Keeping a large number of frozen objects with different versions alive can have a negative impact on the filesize
+     * of the Realm. In order to avoid such a situation it is possible to set {@link RealmConfiguration.Builder#maxNumberOfActiveVersions(long)}.
+     *
+     * @return a frozen copy of this object.
+     * @throws IllegalStateException if this method is called from inside a write transaction.
+     */
+    public static <E extends RealmModel> E freeze(E object) {
+        if (object instanceof RealmObjectProxy) {
+            RealmObjectProxy proxy = (RealmObjectProxy) object;
+            BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
+            BaseRealm frozenRealm = (realm.isFrozen()) ? realm : realm.freeze();
+
+            Row frozenRow = proxy.realmGet$proxyState().getRow$realm().freeze(frozenRealm.sharedRealm);
+            if (frozenRealm instanceof DynamicRealm) {
+                //noinspection unchecked
+                return (E) new DynamicRealmObject(frozenRealm, frozenRow);
+            } else if (frozenRealm instanceof Realm) {
+                //noinspection unchecked
+                Class<E> modelClass = (Class<E>) object.getClass().getSuperclass();
+                return (E) frozenRealm.getConfiguration().getSchemaMediator().newInstance(
+                        modelClass, frozenRealm, frozenRow, realm.getSchema().getColumnInfo(modelClass),
+                        false, Collections.<String>emptyList());
+            } else {
+                throw new UnsupportedOperationException("Unknown Realm type: " + frozenRealm.getClass().getName());
+            }
+        } else {
+            throw new IllegalArgumentException("It is only possible to freeze valid managed Realm objects.");
         }
     }
 
@@ -258,7 +357,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * <p>
      * <p>
      * It is possible to create a managed object from an unmanaged object by using
-     * {@link Realm#copyToRealm(RealmModel)}. An unmanaged object can be created from a managed object by using
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)}. An unmanaged object can be created from a managed object by using
      * {@link Realm#copyFromRealm(RealmModel)}.
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
@@ -282,7 +381,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * <p>
      * <p>
      * It is possible to create a managed object from an unmanaged object by using
-     * {@link Realm#copyToRealm(RealmModel)}. An unmanaged object can be created from a managed object by using
+     * {@link Realm#copyToRealm(RealmModel, ImportFlag...)}. An unmanaged object can be created from a managed object by using
      * {@link Realm#copyFromRealm(RealmModel)}.
      *
      * @return {@code true} if the object is managed, {@code false} if it is unmanaged.
@@ -584,8 +683,10 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
-            realm.checkIfValid();
-            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+            if (realm.isClosed()) {
+                RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                        "make sure to close all listeners before closing the Realm.", realm.configuration.getPath());
+            }
             //noinspection unchecked
             proxy.realmGet$proxyState().removeChangeListener(listener);
         } else {
@@ -623,8 +724,10 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
         if (object instanceof RealmObjectProxy) {
             RealmObjectProxy proxy = (RealmObjectProxy) object;
             BaseRealm realm = proxy.realmGet$proxyState().getRealm$realm();
-            realm.checkIfValid();
-            realm.sharedRealm.capabilities.checkCanDeliverNotification(BaseRealm.LISTENER_NOT_ALLOWED_MESSAGE);
+            if (realm.isClosed()) {
+                RealmLog.warn("Calling removeChangeListener on a closed Realm %s, " +
+                        "make sure to close all listeners before closing the Realm.", realm.configuration.getPath());
+            }
             proxy.realmGet$proxyState().removeAllChangeListeners();
         } else {
             throw new IllegalArgumentException("Cannot remove listeners from this unmanaged RealmObject (created outside of Realm)");
@@ -639,6 +742,21 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * When chaining a RealmObject flowable use {@code obj.<MyRealmObjectClass>asFlowable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
      * <p>
+     * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Flowables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * obj.asFlowable()
+     *   .observeOn(Schedulers.computation())
+     *   .map((rxObj) -> doExpensiveWork(rxObj))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
+     * <p>
      * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * only emit only the first item by using the {@code first()} operator:
      * <p>
@@ -651,16 +769,12 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * }
      * </pre>
      * <p>
-     * <p>
-     * Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
      *
      * @param <E> RealmObject class that is being observed. Must be this class or its super types.
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public final <E extends RealmObject> Flowable<E> asFlowable() {
@@ -676,14 +790,25 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * <p>
      * The RealmObject will continually be emitted as it is updated - {@code onComplete} will never be called.
      * <p>
-     * Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
+     * Items emitted from Realm Observables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Observables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * obj.asChangesetObservable()
+     *   .observeOn(Schedulers.computation())
+     *   .map((rxObj, changes) -> doExpensiveWork(rxObj, changeså))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
      *
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public final <E extends RealmObject> Observable<ObjectChange<E>> asChangesetObservable() {
@@ -697,6 +822,21 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * <p>
      * When chaining a RealmObject observable use {@code obj.<MyRealmObjectClass>asFlowable()} to pass on
      * type information, otherwise the type of the following observables will be {@code RealmObject}.
+     * <p>
+     * Items emitted from Realm Flowables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Flowables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * obj.asFlowable()
+     *   .observeOn(Schedulers.computation())
+     *   .map((rxObj) -> doExpensiveWork(rxObj))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
      * <p>
      * If you would like the {@code asFlowable()} to stop emitting items you can instruct RxJava to
      * emit only the first item by using the {@code first()} operator:
@@ -713,6 +853,7 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * @param object RealmObject class that is being observed. Must be this class or its super types.
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath.
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public static <E extends RealmModel> Flowable<E> asFlowable(E object) {
@@ -746,15 +887,26 @@ public abstract class RealmObject implements RealmModel, ManagableObject {
      * <p>
      * The RealmObject will continually be emitted as it is updated - {@code onComplete} will never be called.
      * <p>
-     * Note that when the {@link Realm} is accessed from threads other than where it was created,
-     * {@link IllegalStateException} will be thrown. Care should be taken when using different schedulers
-     * with {@code subscribeOn()} and {@code observeOn()}. Consider using {@code Realm.where().find*Async()}
-     * instead.
+     * Items emitted from Realm Observables are frozen (See {@link #freeze()}. This means that they
+     * are immutable and can be read on any thread.
+     * <p>
+     * Realm Observables always emit items from the thread holding the live Realm. This means that if
+     * you need to do further processing, it is recommend to observe the values on a computation
+     * scheduler:
+     * <p>
+     * {@code
+     * obj.asChangesetObservable()
+     *   .observeOn(Schedulers.computation())
+     *   .map((rxObj, changes) -> doExpensiveWork(rxObj, changeså))
+     *   .observeOn(AndroidSchedulers.mainThread())
+     *   .subscribe( ... );
+     * }
      *
      * @param object RealmObject class that is being observed. Must be this class or its super types.
      * @return RxJava Observable that only calls {@code onNext}. It will never call {@code onComplete} or {@code OnError}.
      * @throws UnsupportedOperationException if the required RxJava framework is not on the classpath or the
      * corresponding Realm instance doesn't support RxJava.
+     * @throws IllegalStateException if the Realm wasn't opened on a Looper thread.
      * @see <a href="https://realm.io/docs/java/latest/#rxjava">RxJava and Realm</a>
      */
     public static <E extends RealmModel> Observable<ObjectChange<E>> asChangesetObservable(E object) {

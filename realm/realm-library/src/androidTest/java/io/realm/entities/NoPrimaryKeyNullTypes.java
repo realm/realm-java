@@ -16,7 +16,11 @@
 
 package io.realm.entities;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+
 import java.util.Date;
+import java.util.UUID;
 
 import io.realm.RealmObject;
 import io.realm.annotations.Required;
@@ -93,6 +97,18 @@ public class NoPrimaryKeyNullTypes extends RealmObject {
     @Required
     private Date fieldDateNotNull = new Date(0);
     private Date fieldDateNull;
+
+    @Required
+    private Decimal128 fieldDecimal128NotNull = new Decimal128(0);
+    private Decimal128 fieldDecimal128Null;
+
+    @Required
+    private ObjectId fieldObjectIdNotNull = new ObjectId();
+    private ObjectId fieldObjectIdNull;
+
+    @Required
+    private UUID fieldUUIDNotNull = UUID.randomUUID();
+    private UUID fieldUUIDNull;
 
     private NoPrimaryKeyNullTypes fieldObjectNull;
 
@@ -262,5 +278,53 @@ public class NoPrimaryKeyNullTypes extends RealmObject {
 
     public void setFieldObjectNull(NoPrimaryKeyNullTypes fieldObjectNull) {
         this.fieldObjectNull = fieldObjectNull;
+    }
+
+    public Decimal128 getFieldDecimal128NotNull() {
+        return fieldDecimal128NotNull;
+    }
+
+    public void setFieldDecimal128NotNull(Decimal128 fieldDecimal128NotNull) {
+        this.fieldDecimal128NotNull = fieldDecimal128NotNull;
+    }
+
+    public Decimal128 getFieldDecimal128Null() {
+        return fieldDecimal128Null;
+    }
+
+    public void setFieldDecimal128Null(Decimal128 fieldDecimal128Null) {
+        this.fieldDecimal128Null = fieldDecimal128Null;
+    }
+
+    public ObjectId getFieldObjectIdNotNull() {
+        return fieldObjectIdNotNull;
+    }
+
+    public void setFieldObjectIdNotNull(ObjectId fieldObjectIdNotNull) {
+        this.fieldObjectIdNotNull = fieldObjectIdNotNull;
+    }
+
+    public ObjectId getFieldObjectIdNull() {
+        return fieldObjectIdNull;
+    }
+
+    public void setFieldObjectIdNull(ObjectId fieldObjectIdNull) {
+        this.fieldObjectIdNull = fieldObjectIdNull;
+    }
+
+    public UUID getFieldUUIDNotNull() {
+        return fieldUUIDNotNull;
+    }
+
+    public void setFieldUUIDNotNull(UUID fieldUUIDNotNull) {
+        this.fieldUUIDNotNull = fieldUUIDNotNull;
+    }
+
+    public UUID getFieldUUIDNull() {
+        return fieldUUIDNull;
+    }
+
+    public void setFieldUUIDNull(UUID fieldUUIDNull) {
+        this.fieldUUIDNull = fieldUUIDNull;
     }
 }

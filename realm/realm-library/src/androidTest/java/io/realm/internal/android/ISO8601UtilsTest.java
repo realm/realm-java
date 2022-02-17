@@ -16,7 +16,11 @@
  */
 package io.realm.internal.android;
 
-import android.test.AndroidTestCase;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.text.ParseException;
 import java.text.ParsePosition;
@@ -26,17 +30,21 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 /**
  * @see ISO8601Utils
  * @see <a href="https://github.com/FasterXML/jackson-databind/blob/master/src/test/java/com/fasterxml/jackson/databind/util/ISO8601UtilsTest.java">Original Source</a>
  */
-public class ISO8601UtilsTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class ISO8601UtilsTest {
     private Date date;
     private Date dateWithoutTime;
     private Date dateZeroMillis;
     private Date dateZeroSecondAndMillis;
 
-    @Override
+    @Before
     public void setUp() {
         Calendar cal = new GregorianCalendar(2007, 8 - 1, 13, 19, 51, 23);
         cal.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -54,7 +62,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
 
     }
 
-    public void testParse() throws java.text.ParseException {
+    @Test
+    public void parse() throws java.text.ParseException {
         Date d = ISO8601Utils.parse("2007-08-13T19:51:23.789Z", new ParsePosition(0));
         assertEquals(date, d);
 
@@ -65,7 +74,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(date, d);
     }
 
-    public void testParseShortDate() throws java.text.ParseException {
+    @Test
+    public void parseShortDate() throws java.text.ParseException {
         Date d = ISO8601Utils.parse("20070813T19:51:23.789Z", new ParsePosition(0));
         assertEquals(date, d);
 
@@ -76,7 +86,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(date, d);
     }
 
-    public void testParseShortTime() throws java.text.ParseException {
+    @Test
+    public void parseShortTime() throws java.text.ParseException {
         Date d = ISO8601Utils.parse("2007-08-13T195123.789Z", new ParsePosition(0));
         assertEquals(date, d);
 
@@ -87,7 +98,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(date, d);
     }
 
-    public void testParseShortDateTime() throws java.text.ParseException {
+    @Test
+    public void parseShortDateTime() throws java.text.ParseException {
         Date d = ISO8601Utils.parse("20070813T195123.789Z", new ParsePosition(0));
         assertEquals(date, d);
 
@@ -98,7 +110,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(date, d);
     }
 
-    public void testParseWithoutTime() throws ParseException {
+    @Test
+    public void parseWithoutTime() throws ParseException {
         Date d = ISO8601Utils.parse("2007-08-13Z", new ParsePosition(0));
         assertEquals(dateWithoutTime, d);
 
@@ -112,7 +125,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(dateWithoutTime, d);
     }
 
-    public void testParseOptional() throws java.text.ParseException {
+    @Test
+    public void parseOptional() throws java.text.ParseException {
         Date d = ISO8601Utils.parse("2007-08-13T19:51Z", new ParsePosition(0));
         assertEquals(dateZeroSecondAndMillis, d);
 
@@ -123,7 +137,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(dateZeroSecondAndMillis, d);
     }
 
-    public void testTimeZoneDesignator() throws java.text.ParseException {
+    @Test
+    public void timeZoneDesignator() throws java.text.ParseException {
         Date d = ISO8601Utils.parse("2007-08-13T21:51+02:00", new ParsePosition(0));
         assertEquals(dateZeroSecondAndMillis, d);
 
@@ -134,7 +149,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(dateZeroSecondAndMillis, d);
     }
 
-    public void testParseRfc3339Examples() throws java.text.ParseException {
+    @Test
+    public void parseRfc3339Examples() throws java.text.ParseException {
         // Two digit milliseconds.
         Date d = ISO8601Utils.parse("1985-04-12T23:20:50.52Z", new ParsePosition(0));
         assertEquals(newDate(1985, 4, 12, 23, 20, 50, 520, 0), d);
@@ -155,7 +171,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(newDate(1937, 1, 1, 12, 0, 27, 870, 20), d);
     }
 
-    public void testFractionalSeconds() throws java.text.ParseException {
+    @Test
+    public void fractionalSeconds() throws java.text.ParseException {
         Date d = ISO8601Utils.parse("1970-01-01T00:00:00.9Z", new ParsePosition(0));
         assertEquals(newDate(1970, 1, 1, 0, 0, 0, 900, 0), d);
 
@@ -190,7 +207,8 @@ public class ISO8601UtilsTest extends AndroidTestCase {
         assertEquals(newDate(1970, 1, 1, 0, 0, 0, 214, 2 * 60), d);
     }
 
-    public void testDecimalWithoutDecimalPointButNoFractionalSeconds() throws java.text.ParseException {
+    @Test
+    public void decimalWithoutDecimalPointButNoFractionalSeconds() throws java.text.ParseException {
         try {
             ISO8601Utils.parse("1970-01-01T00:00:00.Z", new ParsePosition(0));
             fail();

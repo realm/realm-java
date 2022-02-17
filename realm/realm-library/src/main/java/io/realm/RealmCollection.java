@@ -22,7 +22,8 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
-import io.realm.internal.ManagableObject;
+import io.realm.internal.Freezable;
+import io.realm.internal.ManageableObject;
 
 
 /**
@@ -35,7 +36,7 @@ import io.realm.internal.ManagableObject;
  *
  * @param <E> type of {@link RealmObject} stored in the collection.
  */
-public interface RealmCollection<E> extends Collection<E>, ManagableObject {
+public interface RealmCollection<E> extends Collection<E>, ManageableObject, Freezable<RealmCollection<E>> {
 
     /**
      * Returns a {@link RealmQuery}, which can be used to query for specific objects from this collection.
@@ -54,7 +55,7 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      * returned. Otherwise the minimum value is returned. When determining the minimum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     @Nullable
     Number min(String fieldName);
@@ -67,7 +68,7 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      * returned. Otherwise the maximum value is returned. When determining the maximum value, objects with {@code null}
      * values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     @Nullable
     Number max(String fieldName);
@@ -79,7 +80,7 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      * @return the sum. If no objects exist or they all have {@code null} as the value for the given field, {@code 0}
      * will be returned. When computing the sum, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     Number sum(String fieldName);
 
@@ -91,7 +92,7 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      * types of number fields. If no objects exist or they all have {@code null} as the value for the given field,
      * {@code 0} will be returned. When computing the average, objects with {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if the field is not a number type.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     double average(String fieldName);
 
@@ -99,12 +100,12 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      * Finds the maximum date.
      *
      * @param fieldName the field to look for the maximum date. If fieldName is not of Date type, an exception is
-     * thrown.
+     *                  thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     @Nullable
     Date maxDate(String fieldName);
@@ -113,12 +114,12 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      * Finds the minimum date.
      *
      * @param fieldName the field to look for the minimum date. If fieldName is not of Date type, an exception is
-     * thrown.
+     *                  thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the minimum date is returned. When determining the minimum date, objects with
      * {@code null} values are ignored.
      * @throws java.lang.IllegalArgumentException if fieldName is not a Date field.
-     * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
+     * @throws java.lang.IllegalStateException    if the Realm has been closed or called from an incorrect thread.
      */
     @Nullable
     Date minDate(String fieldName);
@@ -127,7 +128,7 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      * This deletes all objects in the collection from the underlying Realm as well as from the collection.
      *
      * @return {@code true} if objects was deleted, {@code false} otherwise.
-     * @throws IllegalStateException if the corresponding Realm is closed or in an incorrect thread.
+     * @throws IllegalStateException           if the corresponding Realm is closed or in an incorrect thread.
      * @throws java.lang.IllegalStateException if the Realm has been closed or called from an incorrect thread.
      */
     boolean deleteAllFromRealm();
@@ -180,7 +181,7 @@ public interface RealmCollection<E> extends Collection<E>, ManagableObject {
      * @param object the object to search for.
      * @return {@code true} if object is an element of this {@code Collection}, {@code false} otherwise.
      * @throws NullPointerException if the object to look for is {@code null} and this {@code Collection} doesn't
-     * support {@code null} elements.
+     *                              support {@code null} elements.
      */
     @Override
     boolean contains(@Nullable Object object);

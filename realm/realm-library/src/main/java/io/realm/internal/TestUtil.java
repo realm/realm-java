@@ -23,4 +23,9 @@ class TestUtil {
     public static native String getExpectedMessage(long exceptionKind);
 
     public static native void testThrowExceptions(long exceptionKind);
+
+    /**
+     * Returns the Date representation of a Core timestamp
+     */
+    public static native long getDateFromTimestamp(long seconds, int nanoseconds);
 }

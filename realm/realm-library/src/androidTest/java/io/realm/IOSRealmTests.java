@@ -17,11 +17,13 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +35,6 @@ import io.realm.entities.IOSAllTypes;
 import io.realm.entities.IOSChild;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static io.realm.internal.test.ExtraTests.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -50,7 +51,7 @@ public class IOSRealmTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private static final String[] IOS_VERSIONS = new String[] {"0.98.0"};
+    private static final String[] IOS_VERSIONS = new String[] {"6.0.0-beta.2"};
     private static final String REALM_NAME = "alltypes.realm";
     private Realm realm;
     private Context context;
@@ -83,7 +84,7 @@ public class IOSRealmTests {
             // Verifies metadata.
             Table table = realm.getTable(IOSAllTypes.class);
             assertEquals("id", OsObjectStore.getPrimaryKeyForObject(realm.getSharedRealm(), IOSAllTypes.CLASS_NAME));
-            assertTrue(table.hasSearchIndex(table.getColumnIndex("id")));
+            assertTrue(table.hasSearchIndex(table.getColumnKey("id")));
             // Iterative check.
             for (int i = 0; i < 10; i++) {
                 IOSAllTypes obj = result.get(i);
@@ -157,18 +158,17 @@ public class IOSRealmTests {
             assertFalse(obj.isBoolCol());
             assertEquals(Short.MIN_VALUE, obj.getShortCol());
             assertEquals(Integer.MIN_VALUE, obj.getIntCol());
-            assertEquals(Integer.MIN_VALUE, obj.getLongCol());
+            assertEquals(Long.MIN_VALUE, obj.getLongCol());
             assertEquals(Long.MIN_VALUE, obj.getLongLongCol());
             assertEquals(-Float.MAX_VALUE, obj.getFloatCol(), 0F);
             assertEquals(-Double.MAX_VALUE, obj.getDoubleCol(), 0D);
             assertArrayEquals(new byte[0], obj.getByteCol());
             assertEquals("", obj.getStringCol());
-            assertEquals(0x8000000000000000L * 1000L, obj.getDateCol().getTime());
+            assertEquals(Long.MIN_VALUE, obj.getDateCol().getTime());
         }
     }
 
     @Test
-    @SuppressWarnings("ConstantOverflow")
     public void iOSDataTypesMaximumValues() throws IOException {
         for (String iosVersion : IOS_VERSIONS) {
             configFactory.copyRealmFromAssets(context,
@@ -178,13 +178,13 @@ public class IOSRealmTests {
             IOSAllTypes obj = realm.where(IOSAllTypes.class).findFirst();
             assertEquals(Short.MAX_VALUE, obj.getShortCol());
             assertEquals(Integer.MAX_VALUE, obj.getIntCol());
-            assertEquals(Integer.MAX_VALUE, obj.getLongCol());
+            assertEquals(Long.MAX_VALUE, obj.getLongCol());
             assertEquals(Long.MAX_VALUE, obj.getLongLongCol());
             assertEquals(Float.MAX_VALUE, obj.getFloatCol(), 0F);
             assertEquals(Double.MAX_VALUE, obj.getDoubleCol(), 0D);
             assertArrayEquals(new byte[0], obj.getByteCol());
             assertEquals("", obj.getStringCol());
-            assertEquals(0x8000000000000000L * 1000L, obj.getDateCol().getTime());
+            assertEquals(Long.MAX_VALUE, obj.getDateCol().getTime());
         }
     }
 
@@ -216,10 +216,11 @@ public class IOSRealmTests {
     }
 
     private byte[] getIOSKey() {
-        byte[] keyData = new byte[64];
+        byte[] keyData = new byte[Realm.ENCRYPTION_KEY_LENGTH];
         for (int i = 0; i < keyData.length; i++) {
             keyData[i] = 1;
         }
         return keyData;
     }
+    
 }

@@ -1,0 +1,34 @@
+{
+    "collection": "SyncDog",
+    "database": "test_data",
+    "id": "60489e7df5d9bdc94de663c8",
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "additional_fields": {}
+        }
+    ],
+    "schema": {
+        "properties": {
+            "_id": {
+                "bsonType": "objectId"
+            },
+            "breed": {
+                "bsonType": "string"
+            },
+            "name": {
+                "bsonType": "string"
+            },
+            "realm_id": {
+                "bsonType": "string"
+            }
+        },
+        "required": [
+            "name"
+        ],
+        "title": "SyncDog"
+    }
+}

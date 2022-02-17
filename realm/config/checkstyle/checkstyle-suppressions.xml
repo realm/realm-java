@@ -8,4 +8,5 @@
     <suppress checks="." files=".*\.properties" />
     <suppress checks="FileLength" files="RealmTests.java" />
     <suppress checks="FileLengthCheck" files="Realm.java|RealmAsyncQueryTests.java|RealmQuery.java|RealmQueryTests.java"/>
+    <suppress checks="VisibilityModifier" files=".*\.java"/>
 </suppressions>

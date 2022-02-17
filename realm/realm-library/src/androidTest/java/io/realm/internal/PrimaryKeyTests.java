@@ -16,18 +16,16 @@
 
 package io.realm.internal;
 
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Date;
 
 import io.realm.DynamicRealm;
 import io.realm.DynamicRealmObject;
@@ -36,10 +34,10 @@ import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
 import io.realm.RealmObjectSchema;
 import io.realm.RealmSchema;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
-import static junit.framework.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -49,14 +47,12 @@ public class PrimaryKeyTests {
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
 
-    private android.content.Context context;
     private RealmConfiguration config;
     private OsSharedRealm sharedRealm;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         config = configFactory.createConfiguration();
-        context = InstrumentationRegistry.getInstrumentation().getContext();
     }
 
     @After
@@ -67,7 +63,7 @@ public class PrimaryKeyTests {
     }
 
     private Table getTableWithStringPrimaryKey() {
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
         Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
@@ -78,7 +74,7 @@ public class PrimaryKeyTests {
     }
 
     private Table getTableWithIntegerPrimaryKey() {
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
         Table t = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
@@ -86,6 +82,11 @@ public class PrimaryKeyTests {
         t.addSearchIndex(column);
         OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable", "colName");
         return t;
+    }
+
+    private Table getTableWithPrimaryKey(RealmFieldType fieldType, boolean isNullable) {
+        OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
+        return sharedRealm.createTableWithPrimaryKey(Table.getTableNameForClass("TestTable"), "colName", fieldType, isNullable);
     }
 
     /**
@@ -158,7 +159,7 @@ public class PrimaryKeyTests {
         Table t = getTableWithStringPrimaryKey();
         UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
         assertEquals(1, t.size());
-        assertEquals("Foo", row.getString(0));
+        assertEquals("Foo", row.getString(row.getColumnKey("colName")));
         sharedRealm.cancelTransaction();
     }
 
@@ -167,95 +168,129 @@ public class PrimaryKeyTests {
         Table t = getTableWithIntegerPrimaryKey();
         UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
         assertEquals(1, t.size());
-        assertEquals(42L, row.getLong(0));
+        assertEquals(42L, row.getLong(row.getColumnKey("colName")));
         sharedRealm.cancelTransaction();
     }
 
     @Test
-    public void migratePrimaryKeyTableIfNeeded_first() throws IOException {
-        configFactory.copyRealmFromAssets(context, "080_annotationtypes.realm", "default.realm");
-        sharedRealm = OsSharedRealm.getInstance(config);
-        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-        Table t = sharedRealm.getTable("class_AnnotationTypes");
-        assertEquals("id", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "AnnotationTypes"));
-        assertEquals(RealmFieldType.STRING, sharedRealm.getTable("pk").getColumnType(0));
-    }
-
-    @Test
-    public void migratePrimaryKeyTableIfNeeded_second() throws IOException {
-        configFactory.copyRealmFromAssets(context, "0841_annotationtypes.realm", "default.realm");
-        sharedRealm = OsSharedRealm.getInstance(config);
-        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-        Table t = sharedRealm.getTable("class_AnnotationTypes");
-        assertEquals("id", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "AnnotationTypes"));
-        assertEquals("AnnotationTypes", sharedRealm.getTable("pk").getString(0, 0));
-    }
-
-    // See https://github.com/realm/realm-java/issues/1775
-    // Before 0.84.2, pk table added prefix "class_" to every class's name.
-    // After 0.84.2, the pk table should be migrated automatically to remove the "class_".
-    // In 0.84.2, the class names in pk table has been renamed to some incorrect names like "Thclass", "Mclass",
-    // "NClass", "Meclass" and etc..
-    // The 0841_pk_migration.realm is made to produce the issue.
-    @Test
-    public void migratePrimaryKeyTableIfNeeded_primaryKeyTableMigratedWithRightName() throws IOException {
-        List<String> tableNames = Arrays.asList(
-                "ChatList", "Drafts", "Member", "Message", "Notifs", "NotifyLink", "PopularPost",
-                "Post", "Tags", "Threads", "User");
-
-        configFactory.copyRealmFromAssets(context, "0841_pk_migration.realm", "default.realm");
-        sharedRealm = OsSharedRealm.getInstance(config);
-        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-
-        Table table = sharedRealm.getTable("pk");
-        for (int i = 0; i < table.size(); i++) {
-            UncheckedRow row = table.getUncheckedRow(i);
-            // io_realm_internal_Table_PRIMARY_KEY_CLASS_COLUMN_INDEX 0LL
-            assertTrue(tableNames.contains(row.getString(0)));
-        }
-    }
-
-    // PK table's column 'pk_table' needs search index in order to use set_string_unique.
-    // See https://github.com/realm/realm-java/pull/3488
-    @Test
-    public void migratePrimaryKeyTableIfNeeded_primaryKeyTableNeedSearchIndex() {
-        sharedRealm = OsSharedRealm.getInstance(config);
+    public void createTableWithIntegerPrimaryKeyNullable(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
-        OsObjectStore.setSchemaVersion(sharedRealm,0); // Create meta table
-        Table table = sharedRealm.createTable(Table.getTableNameForClass("TestTable"));
-        long column = table.addColumn(RealmFieldType.INTEGER, "PKColumn");
-        table.addSearchIndex(column);
-        OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable", "PKColumn");
-        sharedRealm.commitTransaction();
 
-        assertEquals("PKColumn", OsObjectStore.getPrimaryKeyForObject(sharedRealm, "TestTable"));
-        // Now we have a pk table with search index.
+        Table t = getTableWithPrimaryKey(RealmFieldType.INTEGER, true);
 
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
+        assertEquals(1, t.size());
+        assertEquals(42, row.getLong(row.getColumnKey("colName")));
+
+
+        row = OsObject.createWithPrimaryKey(t, null);
+        assertEquals(2, t.size());
+        assertTrue(row.isNull(row.getColumnKey("colName")));
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithStringPrimaryKeyNullable(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
-        Table pkTable = sharedRealm.getTable("pk");
-        long classColumn = pkTable.getColumnIndex("pk_table");
-        pkTable.removeSearchIndex(classColumn);
 
-        // Tries to add a pk for another table.
-        Table table2 = sharedRealm.createTable(Table.getTableNameForClass("TestTable2"));
-        long column2 = table2.addColumn(RealmFieldType.INTEGER, "PKColumn");
-        table2.addSearchIndex(column2);
+        Table t = getTableWithPrimaryKey(RealmFieldType.STRING, true);
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
+        assertEquals(1, t.size());
+        assertEquals("Foo", row.getString(row.getColumnKey("colName")));
+
+        row = OsObject.createWithPrimaryKey(t, null);
+        assertEquals(2, t.size());
+        assertTrue(row.isNull(row.getColumnKey("colName")));
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithObjectIdPrimaryKeyNullable(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.OBJECT_ID, true);
+
+        Date date = new Date();
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, new ObjectId(date, 0));
+        assertEquals(1, t.size());
+        assertEquals(new ObjectId(date, 0), row.getObjectId(row.getColumnKey("colName")));
+
+        row = OsObject.createWithPrimaryKey(t, null);
+        assertEquals(2, t.size());
+        assertTrue(row.isNull(row.getColumnKey("colName")));
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithIntegerPrimaryKey(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.INTEGER, false);
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, 42);
+        assertEquals(1, t.size());
+        assertEquals(42, row.getLong(row.getColumnKey("colName")));
+
         try {
-            OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable2", "PKColumn");
-        } catch (IllegalStateException ignored) {
-            // Column has no search index.
+            OsObject.createWithPrimaryKey(t, null);
+            fail("Non-nullable primary key created with a null value.");
+        } catch (IllegalArgumentException e){
+            assertEquals("Illegal Argument: This field(colName) is not nullable.", e.getMessage());
         }
-        sharedRealm.commitTransaction();
 
-        assertFalse(pkTable.hasSearchIndex(classColumn));
+        sharedRealm.cancelTransaction();
+    }
 
-        Table.migratePrimaryKeyTableIfNeeded(sharedRealm);
-        assertTrue(pkTable.hasSearchIndex(classColumn));
-
+    @Test
+    public void createTableWithStringPrimaryKey(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
-        // Now it works.
-        table2.addSearchIndex(column2);
-        OsObjectStore.setPrimaryKeyForObject(sharedRealm, "TestTable2", "PKColumn");
-        sharedRealm.commitTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.STRING, false);
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, "Foo");
+        assertEquals(1, t.size());
+        assertEquals("Foo", row.getString(row.getColumnKey("colName")));
+
+        try {
+            OsObject.createWithPrimaryKey(t, null);
+            fail("Non-nullable primary key created with a null value.");
+        } catch (IllegalArgumentException e){
+            assertEquals("Illegal Argument: This field(colName) is not nullable.", e.getMessage());
+        }
+
+        sharedRealm.cancelTransaction();
+    }
+
+    @Test
+    public void createTableWithObjectIdPrimaryKey(){
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
+        sharedRealm.beginTransaction();
+
+        Table t = getTableWithPrimaryKey(RealmFieldType.OBJECT_ID, false);
+
+        Date date = new Date();
+
+        UncheckedRow row = OsObject.createWithPrimaryKey(t, new ObjectId(date, 0));
+        assertEquals(1, t.size());
+        assertEquals(new ObjectId(date, 0), row.getObjectId(row.getColumnKey("colName")));
+
+        try {
+            OsObject.createWithPrimaryKey(t, null);
+            fail("Non-nullable primary key created with a null value.");
+        } catch (IllegalArgumentException e){
+            assertEquals("Illegal Argument: This field(colName) is not nullable.", e.getMessage());
+        }
+
+        sharedRealm.cancelTransaction();
     }
 }

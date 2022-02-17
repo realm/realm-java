@@ -22,12 +22,40 @@ import java.util.Locale;
 import io.realm.RealmFieldType;
 
 import static io.realm.RealmFieldType.BINARY_LIST;
+import static io.realm.RealmFieldType.BINARY_SET;
 import static io.realm.RealmFieldType.BOOLEAN_LIST;
+import static io.realm.RealmFieldType.BOOLEAN_SET;
 import static io.realm.RealmFieldType.DATE_LIST;
+import static io.realm.RealmFieldType.DATE_SET;
+import static io.realm.RealmFieldType.DECIMAL128_LIST;
+import static io.realm.RealmFieldType.DECIMAL128_SET;
 import static io.realm.RealmFieldType.DOUBLE_LIST;
+import static io.realm.RealmFieldType.DOUBLE_SET;
 import static io.realm.RealmFieldType.FLOAT_LIST;
+import static io.realm.RealmFieldType.FLOAT_SET;
 import static io.realm.RealmFieldType.INTEGER_LIST;
+import static io.realm.RealmFieldType.INTEGER_SET;
+import static io.realm.RealmFieldType.LINK_SET;
+import static io.realm.RealmFieldType.MIXED_LIST;
+import static io.realm.RealmFieldType.MIXED_SET;
+import static io.realm.RealmFieldType.OBJECT_ID_LIST;
+import static io.realm.RealmFieldType.OBJECT_ID_SET;
 import static io.realm.RealmFieldType.STRING_LIST;
+import static io.realm.RealmFieldType.STRING_SET;
+import static io.realm.RealmFieldType.STRING_TO_BINARY_MAP;
+import static io.realm.RealmFieldType.STRING_TO_BOOLEAN_MAP;
+import static io.realm.RealmFieldType.STRING_TO_DATE_MAP;
+import static io.realm.RealmFieldType.STRING_TO_DECIMAL128_MAP;
+import static io.realm.RealmFieldType.STRING_TO_DOUBLE_MAP;
+import static io.realm.RealmFieldType.STRING_TO_FLOAT_MAP;
+import static io.realm.RealmFieldType.STRING_TO_INTEGER_MAP;
+import static io.realm.RealmFieldType.STRING_TO_LINK_MAP;
+import static io.realm.RealmFieldType.STRING_TO_MIXED_MAP;
+import static io.realm.RealmFieldType.STRING_TO_OBJECT_ID_MAP;
+import static io.realm.RealmFieldType.STRING_TO_STRING_MAP;
+import static io.realm.RealmFieldType.STRING_TO_UUID_MAP;
+import static io.realm.RealmFieldType.UUID_LIST;
+import static io.realm.RealmFieldType.UUID_SET;
 
 
 /**
@@ -58,11 +86,23 @@ public class Property implements NativeObject {
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_LINKING_OBJECTS = 8;
     @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_DECIMAL128 = 11;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_OBJECT_ID = 10;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_UUID = 12;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_MIXED = 9;
+    @SuppressWarnings("WeakerAccess")
     public static final int TYPE_REQUIRED = 0;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_NULLABLE = 64;
     @SuppressWarnings("WeakerAccess")
     public static final int TYPE_ARRAY = 128;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_SET = 256;
+    @SuppressWarnings("WeakerAccess")
+    public static final int TYPE_DICTIONARY = 512;
 
     private long nativePtr;
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
@@ -102,6 +142,18 @@ public class Property implements NativeObject {
             case FLOAT:
                 type = TYPE_FLOAT;
                 break;
+            case DECIMAL128:
+                type = TYPE_DECIMAL128;
+                break;
+            case OBJECT_ID:
+                type = TYPE_OBJECT_ID;
+                break;
+            case UUID:
+                type = TYPE_UUID;
+                break;
+            case MIXED:
+                type = TYPE_MIXED;
+                break;
             case DOUBLE:
                 type = TYPE_DOUBLE;
                 break;
@@ -124,8 +176,92 @@ public class Property implements NativeObject {
             case FLOAT_LIST:
                 type = TYPE_FLOAT | TYPE_ARRAY;
                 break;
+            case DECIMAL128_LIST:
+                type = TYPE_DECIMAL128 | TYPE_ARRAY;
+                break;
+            case OBJECT_ID_LIST:
+                type = TYPE_OBJECT_ID | TYPE_ARRAY;
+                break;
+            case UUID_LIST:
+                type = TYPE_UUID | TYPE_ARRAY;
+                break;
             case DOUBLE_LIST:
                 type = TYPE_DOUBLE | TYPE_ARRAY;
+                break;
+            case MIXED_LIST:
+                type = TYPE_MIXED | TYPE_ARRAY;
+                break;
+            case STRING_TO_MIXED_MAP:
+                type = TYPE_MIXED | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_BOOLEAN_MAP:
+                type = TYPE_BOOL | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_STRING_MAP:
+                type = TYPE_STRING | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_INTEGER_MAP:
+                type = TYPE_INT | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_FLOAT_MAP:
+                type = TYPE_FLOAT | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_DOUBLE_MAP:
+                type = TYPE_DOUBLE | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_BINARY_MAP:
+                type = TYPE_DATA | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_DATE_MAP:
+                type = TYPE_DATE | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_DECIMAL128_MAP:
+                type = TYPE_DECIMAL128 | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_OBJECT_ID_MAP:
+                type = TYPE_OBJECT_ID | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_UUID_MAP:
+                type = TYPE_UUID | TYPE_DICTIONARY;
+                break;
+            case STRING_TO_LINK_MAP:
+                type = TYPE_OBJECT | TYPE_DICTIONARY;
+                break;
+            case BOOLEAN_SET:
+                type = TYPE_BOOL | TYPE_SET;
+                break;
+            case STRING_SET:
+                type = TYPE_STRING | TYPE_SET;
+                break;
+            case INTEGER_SET:
+                type = TYPE_INT | TYPE_SET;
+                break;
+            case FLOAT_SET:
+                type = TYPE_FLOAT | TYPE_SET;
+                break;
+            case DOUBLE_SET:
+                type = TYPE_DOUBLE | TYPE_SET;
+                break;
+            case BINARY_SET:
+                type = TYPE_DATA | TYPE_SET;
+                break;
+            case DATE_SET:
+                type = TYPE_DATE | TYPE_SET;
+                break;
+            case DECIMAL128_SET:
+                type = TYPE_DECIMAL128 | TYPE_SET;
+                break;
+            case OBJECT_ID_SET:
+                type = TYPE_OBJECT_ID | TYPE_SET;
+                break;
+            case UUID_SET:
+                type = TYPE_UUID | TYPE_SET;
+                break;
+            case LINK_SET:
+                type = TYPE_OBJECT | TYPE_SET;
+                return type;
+            case MIXED_SET:
+                type = TYPE_MIXED | TYPE_SET;
                 break;
             default:
                 throw new IllegalArgumentException(
@@ -159,6 +295,14 @@ public class Property implements NativeObject {
                 return RealmFieldType.FLOAT;
             case TYPE_DOUBLE:
                 return RealmFieldType.DOUBLE;
+            case TYPE_DECIMAL128:
+                return RealmFieldType.DECIMAL128;
+            case TYPE_OBJECT_ID:
+                return RealmFieldType.OBJECT_ID;
+            case TYPE_UUID:
+                return RealmFieldType.UUID;
+            case TYPE_MIXED:
+                return RealmFieldType.MIXED;
             //noinspection PointlessBitwiseExpression
             case TYPE_INT | TYPE_ARRAY:
                 return INTEGER_LIST;
@@ -174,6 +318,62 @@ public class Property implements NativeObject {
                 return FLOAT_LIST;
             case TYPE_DOUBLE | TYPE_ARRAY:
                 return DOUBLE_LIST;
+            case TYPE_DECIMAL128 | TYPE_ARRAY:
+                return DECIMAL128_LIST;
+            case TYPE_OBJECT_ID | TYPE_ARRAY:
+                return OBJECT_ID_LIST;
+            case TYPE_UUID | TYPE_ARRAY:
+                return UUID_LIST;
+            case TYPE_MIXED | TYPE_ARRAY:
+                return MIXED_LIST;
+            case TYPE_MIXED | TYPE_DICTIONARY:
+                return STRING_TO_MIXED_MAP;
+            case TYPE_BOOL | TYPE_DICTIONARY:
+                return STRING_TO_BOOLEAN_MAP;
+            case TYPE_STRING | TYPE_DICTIONARY:
+                return STRING_TO_STRING_MAP;
+            case TYPE_INT | TYPE_DICTIONARY:
+                return STRING_TO_INTEGER_MAP;
+            case TYPE_FLOAT | TYPE_DICTIONARY:
+                return STRING_TO_FLOAT_MAP;
+            case TYPE_DOUBLE | TYPE_DICTIONARY:
+                return STRING_TO_DOUBLE_MAP;
+            case TYPE_DATA | TYPE_DICTIONARY:
+                return STRING_TO_BINARY_MAP;
+            case TYPE_DATE | TYPE_DICTIONARY:
+                return STRING_TO_DATE_MAP;
+            case TYPE_DECIMAL128 | TYPE_DICTIONARY:
+                return STRING_TO_DECIMAL128_MAP;
+            case TYPE_OBJECT_ID | TYPE_DICTIONARY:
+                return STRING_TO_OBJECT_ID_MAP;
+            case TYPE_UUID | TYPE_DICTIONARY:
+                return STRING_TO_UUID_MAP;
+            case TYPE_OBJECT | TYPE_DICTIONARY:
+                return STRING_TO_LINK_MAP;
+            case TYPE_BOOL | TYPE_SET:
+                return BOOLEAN_SET;
+            case TYPE_STRING | TYPE_SET:
+                return STRING_SET;
+            case TYPE_INT | TYPE_SET:
+                return INTEGER_SET;
+            case TYPE_FLOAT | TYPE_SET:
+                return FLOAT_SET;
+            case TYPE_DOUBLE | TYPE_SET:
+                return DOUBLE_SET;
+            case TYPE_DATA | TYPE_SET:
+                return BINARY_SET;
+            case TYPE_DATE | TYPE_SET:
+                return DATE_SET;
+            case TYPE_DECIMAL128 | TYPE_SET:
+                return DECIMAL128_SET;
+            case TYPE_OBJECT_ID | TYPE_SET:
+                return OBJECT_ID_SET;
+            case TYPE_UUID | TYPE_SET:
+                return UUID_SET;
+            case TYPE_OBJECT | TYPE_SET:
+                return LINK_SET;
+            case TYPE_MIXED | TYPE_SET:
+                return MIXED_SET;
             default:
                 throw new IllegalArgumentException(
                         String.format(Locale.US, "Unsupported property type: '%d'", propertyType));
@@ -189,8 +389,8 @@ public class Property implements NativeObject {
         return nativeGetLinkedObjectName(nativePtr);
     }
 
-    public long getColumnIndex() {
-        return nativeGetColumnIndex(nativePtr);
+    public long getColumnKey() {
+        return nativeGetColumnKey(nativePtr);
     }
 
     @Override
@@ -207,17 +407,19 @@ public class Property implements NativeObject {
 
     // nativeCreateXxxProperty will be called by OsObjectSchemaInfo directly to avoid creating temporary Property
     // objects.
-    static native long nativeCreatePersistedProperty(
-            String name, int type, boolean isPrimary, boolean isIndexed);
+    static native long nativeCreatePersistedProperty(String internalName,
+                                                     String publicName,
+                                                     int type,
+                                                     boolean isPrimary,
+                                                     boolean isIndexed);
 
-    static native long nativeCreatePersistedLinkProperty(String name, int type, String linkedToName);
+    static native long nativeCreatePersistedLinkProperty(String internalName, String publicName, int type, String linkedToName);
 
-    static native long nativeCreateComputedLinkProperty(
-            String name, String sourceClassName, String sourceFieldName);
+    static native long nativeCreateComputedLinkProperty(String name, String sourceClassName, String sourceFieldName);
 
     private static native int nativeGetType(long nativePtr);
 
-    private static native long nativeGetColumnIndex(long nativePtr);
+    private static native long nativeGetColumnKey(long nativePtr);
 
     // Return null if the property is not OBJECT, LIST or LINKING_OBJECT type.
     private static native String nativeGetLinkedObjectName(long nativePtr);

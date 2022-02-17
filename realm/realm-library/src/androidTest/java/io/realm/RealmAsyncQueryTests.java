@@ -17,8 +17,8 @@
 package io.realm;
 
 import android.os.SystemClock;
-import android.support.test.rule.UiThreadTestRule;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -42,7 +42,6 @@ import io.realm.log.LogLevel;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 import io.realm.util.RealmBackgroundTask;
 
 import static org.junit.Assert.assertEquals;
@@ -58,8 +57,6 @@ public class RealmAsyncQueryTests {
     public final RunInLooperThread looperThread = new RunInLooperThread();
     @Rule
     public final TestRealmConfigurationFactory configFactory = new TestRealmConfigurationFactory();
-    @Rule
-    public final UiThreadTestRule uiThreadTestRule = new UiThreadTestRule();
     @Rule
     public final ExpectedException thrown = ExpectedException.none();
 
@@ -462,7 +459,6 @@ public class RealmAsyncQueryTests {
             public void run() {
                 // Manually call refresh, so the did_change will be triggered.
                 foregroundRealm.sharedRealm.refresh();
-                foregroundRealm.setAutoRefresh(true);
             }
         });
     }
@@ -1376,6 +1372,40 @@ public class RealmAsyncQueryTests {
         RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
         results.addChangeListener(listener);
         looperThread.keepStrongReference(results);
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void freezeAsyncResults() {
+        int DATA_SIZE = 10;
+        Realm realm = looperThread.getRealm();
+        populateTestRealm(realm, DATA_SIZE);
+        RealmResults<AllTypes> results = realm.where(AllTypes.class).findAllAsync();
+        looperThread.keepStrongReference(results);
+        assertFalse(results.isLoaded());
+        assertTrue(results.isValid());
+        assertEquals(0, results.size());
+        assertFalse(results.isFrozen());
+
+        RealmResults<AllTypes> frozenResults = results.freeze();
+        assertTrue(frozenResults.isFrozen());
+        assertFalse(frozenResults.isLoaded());
+        assertTrue(frozenResults.isValid());
+        assertEquals(0, frozenResults.size());
+
+        results.addChangeListener(new RealmChangeListener<RealmResults<AllTypes>>() {
+            @Override
+            public void onChange(RealmResults<AllTypes> results) {
+                assertTrue(results.isLoaded());
+                assertTrue(results.isValid());
+                assertEquals(DATA_SIZE, results.size());
+
+                assertFalse(frozenResults.isLoaded());
+                assertTrue(frozenResults.isValid());
+                assertEquals(0, frozenResults.size());
+                looperThread.testComplete();
+            }
+        });
     }
 
     // *** Helper methods ***

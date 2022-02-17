@@ -16,7 +16,9 @@
 
 package io.realm;
 
+import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.Table;
@@ -43,6 +45,21 @@ class MutableRealmSchema extends RealmSchema {
     }
 
     @Override
+    public Set<RealmObjectSchema> getAll() {
+        // Return all tables prefixed with class__ in the Realm file
+        String[] names = realm.getSharedRealm().getTablesNames();
+        int tableCount = names.length;
+        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
+        for (int i = 0; i < tableCount; i++) {
+            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(names[i]));
+            if (objectSchema != null) {
+                schemas.add(objectSchema);
+            }
+        }
+        return schemas;
+    }
+
+    @Override
     public RealmObjectSchema create(String className) {
         // Adding a class is always permitted.
         checkNotEmpty(className, EMPTY_STRING_MSG);
@@ -65,13 +82,15 @@ class MutableRealmSchema extends RealmSchema {
         RealmObjectSchema.checkLegalName(primaryKeyFieldName);
         String internalTableName = checkAndGetTableNameFromClassName(className);
 
-        RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.getSupportedSimpleFields().get(fieldType);
-        if (metadata == null || (metadata.fieldType != RealmFieldType.STRING &&
-                metadata.fieldType != RealmFieldType.INTEGER)) {
+        RealmObjectSchema.FieldMetaData metadata = RealmObjectSchema.SUPPORTED_LIST_SIMPLE_FIELDS.get(fieldType);
+        if ((metadata == null) || (
+                        (metadata.fieldType != RealmFieldType.STRING) &&
+                        (metadata.fieldType != RealmFieldType.INTEGER) &&
+                        (metadata.fieldType != RealmFieldType.OBJECT_ID)
+        )) {
             throw new IllegalArgumentException(String.format("Realm doesn't support primary key field type '%s'.",
                     fieldType));
         }
-        boolean isStringField = (metadata.fieldType == RealmFieldType.STRING);
 
         boolean nullable = metadata.defaultNullable;
         if (MutableRealmObjectSchema.containsAttribute(attributes, FieldAttribute.REQUIRED)) {
@@ -80,7 +99,7 @@ class MutableRealmSchema extends RealmSchema {
 
         return new MutableRealmObjectSchema(realm, this,
                 realm.getSharedRealm().createTableWithPrimaryKey(internalTableName, primaryKeyFieldName,
-                        isStringField, nullable));
+                        metadata.fieldType, nullable));
     }
 
     @Override
@@ -106,20 +125,8 @@ class MutableRealmSchema extends RealmSchema {
             throw new IllegalArgumentException(oldClassName + " cannot be renamed because the new class already exists: " + newClassName);
         }
 
-        // Checks if there is a primary key defined for the old class.
-        String pkField = OsObjectStore.getPrimaryKeyForObject(realm.sharedRealm, oldClassName);
-        if (pkField != null) {
-            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, oldClassName, null);
-        }
-
         realm.getSharedRealm().renameTable(oldInternalName, newInternalName);
         Table table = realm.getSharedRealm().getTable(newInternalName);
-
-        // Sets the primary key for the new class if necessary.
-        if (pkField != null) {
-            OsObjectStore.setPrimaryKeyForObject(realm.sharedRealm, newClassName, pkField);
-        }
-
         RealmObjectSchema objectSchema = removeFromClassNameToSchemaMap(oldInternalName);
         if (objectSchema == null || !objectSchema.getTable().isValid() || !objectSchema.getClassName().equals(newClassName)) {
             objectSchema = new MutableRealmObjectSchema(realm, this, table);

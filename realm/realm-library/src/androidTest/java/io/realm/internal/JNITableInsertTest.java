@@ -16,8 +16,10 @@
 
 package io.realm.internal;
 
-import android.support.test.InstrumentationRegistry;
+import androidx.test.platform.app.InstrumentationRegistry;
 
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,7 +36,7 @@ import java.util.List;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.TestHelper;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -56,7 +58,7 @@ public class JNITableInsertTest {
     public void setUp() throws Exception {
         Realm.init(InstrumentationRegistry.getInstrumentation().getContext());
         config = configFactory.createConfiguration();
-        sharedRealm = OsSharedRealm.getInstance(config);
+        sharedRealm = OsSharedRealm.getInstance(config, OsSharedRealm.VersionID.LIVE);
     }
 
     @After
@@ -76,6 +78,8 @@ public class JNITableInsertTest {
         value.add(4, 1234567.898d);
         value.add(5, new Date(645342));
         value.add(6, new byte[]{1, 2, 3, 4, 5});
+        value.add(7, new Decimal128(1));
+        value.add(8, new ObjectId());
         return Arrays.asList(
                 new Object[]{value},
                 new Object[]{value}
@@ -101,10 +105,10 @@ public class JNITableInsertTest {
                             assertTrue(true);
                         } else {
                             // Adds column.
-                            t.addColumn(TestHelper.getColumnType(valueJ), valueJ.getClass().getSimpleName());
+                            long colKey = t.addColumn(TestHelper.getColumnType(valueJ), valueJ.getClass().getSimpleName());
                             // Adds value.
                             try {
-                                TestHelper.addRowWithValues(t, valueI);
+                                TestHelper.addRowWithValues(t, new long[]{colKey}, new Object[]{valueI});
                                 fail("No matching type");
                             } catch (IllegalArgumentException ignored) {
                             }

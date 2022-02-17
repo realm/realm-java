@@ -17,7 +17,6 @@
 package io.realm;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,7 +26,7 @@ import io.realm.internal.ColumnIndices;
 import io.realm.internal.ColumnInfo;
 import io.realm.internal.Table;
 import io.realm.internal.Util;
-import io.realm.internal.util.Pair;
+import io.realm.internal.objectstore.OsKeyPathMapping;
 
 /**
  * Class for interacting with the Realm schema. This makes it possible to inspect, add, delete and change the classes in
@@ -51,7 +50,8 @@ public abstract class RealmSchema {
     private final Map<Class<? extends RealmModel>, RealmObjectSchema> classToSchema = new HashMap<>();
     // Caches Class Strings to their Schema object
     private final Map<String, RealmObjectSchema> dynamicClassToSchema = new HashMap<>();
-
+    // Native pointer
+    private OsKeyPathMapping keyPathMapping = null;
     final BaseRealm realm;
     // Cached field look up
     private final ColumnIndices columnIndices;
@@ -81,17 +81,7 @@ public abstract class RealmSchema {
      *
      * @return the set of all classes in this Realm or no RealmObject classes can be saved in the Realm.
      */
-    public Set<RealmObjectSchema> getAll() {
-        int tableCount = (int) realm.getSharedRealm().size();
-        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(tableCount);
-        for (int i = 0; i < tableCount; i++) {
-            RealmObjectSchema objectSchema = get(Table.getClassNameForTable(realm.getSharedRealm().getTableName(i)));
-            if (objectSchema != null) {
-                schemas.add(objectSchema);
-            }
-        }
-        return schemas;
-    }
+    public abstract Set<RealmObjectSchema> getAll();
 
     /**
      * Adds a new class to the Realm.
@@ -123,7 +113,7 @@ public abstract class RealmSchema {
      * to it will throw an {@link IllegalStateException}. Removes those classes or fields first.
      *
      * @param className name of the class to remove.
-     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable or of a synced Realm.
      */
     public abstract void remove(String className);
 
@@ -133,7 +123,7 @@ public abstract class RealmSchema {
      * @param oldClassName old class name.
      * @param newClassName new class name.
      * @return a schema object for renamed class.
-     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable.
+     * @throws UnsupportedOperationException if this {@link RealmSchema} is immutable or of a synced Realm.
      */
     public abstract RealmObjectSchema rename(String oldClassName, String newClassName);
 
@@ -241,12 +231,12 @@ public abstract class RealmSchema {
     }
 
     final ColumnInfo getColumnInfo(Class<? extends RealmModel> clazz) {
-        checkIndices();
+        checkColumnKeys();
         return columnIndices.getColumnInfo(clazz);
     }
 
     protected final ColumnInfo getColumnInfo(String className) {
-        checkIndices();
+        checkColumnKeys();
         return columnIndices.getColumnInfo(className);
     }
 
@@ -258,10 +248,21 @@ public abstract class RealmSchema {
         return dynamicClassToSchema.remove(name);
     }
 
-    private void checkIndices() {
+    final OsKeyPathMapping getKeyPathMapping() {
+        return keyPathMapping;
+    }
+
+    private void checkColumnKeys() {
         if (!haveColumnInfo()) {
-            throw new IllegalStateException("Attempt to use column index before set.");
+            throw new IllegalStateException("Attempt to use column key before set.");
         }
+    }
+
+    /**
+     * Create the underlying keypath mapping. Should only be called by typed Realms.
+     */
+    public void createKeyPathMapping() {
+        this.keyPathMapping = new OsKeyPathMapping(realm.sharedRealm.getNativePtr());
     }
 
     /**

@@ -16,16 +16,19 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -43,10 +46,10 @@ import io.realm.exceptions.RealmException;
 import io.realm.log.RealmLog;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -337,6 +340,59 @@ public class DynamicRealmTests {
             RealmLog.remove(testLogger);
         }
         assertEquals(0, realm.where("Owner").count());
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransaction_mainThreadWritesAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(true)
+                .name("ui_realm")
+                .build();
+
+        // Initializes schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+        Realm.getInstance(configuration).close();
+
+        DynamicRealm uiRealm = DynamicRealm.getInstance(configuration);
+        uiRealm.executeTransaction(new DynamicRealm.Transaction() {
+            @Override
+            public void execute(DynamicRealm realm) {
+                DynamicRealmObject owner = realm.createObject(Owner.CLASS_NAME);
+                owner.setString("name", "Mortimer Smith");
+            }
+        });
+
+        RealmResults<DynamicRealmObject> results = uiRealm.where(Owner.CLASS_NAME).equalTo("name", "Mortimer Smith").findAll();
+        assertEquals(1, results.size());
+        assertNotNull(results.first());
+        assertEquals("Mortimer Smith", Objects.requireNonNull(results.first()).getString(Dog.FIELD_NAME));
+
+        uiRealm.close();
+    }
+
+    @Test
+    @UiThreadTest
+    public void executeTransaction_mainThreadWritesNotAllowed() {
+        RealmConfiguration configuration = configFactory.createConfigurationBuilder()
+                .allowWritesOnUiThread(false)
+                .name("ui_realm")
+                .build();
+
+        // Initializes schema. DynamicRealm will not do that, so let a normal Realm create the file first.
+        Realm.getInstance(configuration).close();
+
+        // Try-with-resources
+        try (DynamicRealm uiRealm = DynamicRealm.getInstance(configuration);) {
+            uiRealm.executeTransaction(new DynamicRealm.Transaction() {
+                @Override
+                public void execute(DynamicRealm realm) {
+                    // no-op
+                }
+            });
+            fail("the call to executeTransaction should have failed, this line should not be reached.");
+        } catch (RealmException e) {
+            assertTrue(Objects.requireNonNull(e.getMessage()).contains("allowWritesOnUiThread"));
+        }
     }
 
     @Test
@@ -678,7 +734,7 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Invalid query: field 'nonExisting' not found in table 'NoField'.");
+        thrown.expectMessage("Illegal Argument: 'class_NoField' has no property: 'nonExisting'");
         dynamicRealm.where(className).equalTo("nonExisting", 1);
     }
 
@@ -695,19 +751,27 @@ public class DynamicRealmTests {
     @Test
     @RunTestInLooperThread
     public void getInstanceAsync_nullConfigShouldThrow() {
-        thrown.expect(IllegalArgumentException.class);
-        DynamicRealm.getInstanceAsync(null, new DynamicRealm.Callback() {
-            @Override
-            public void onSuccess(DynamicRealm realm) {
-                fail();
-            }
-        });
+        try {
+            //noinspection ConstantConditions
+            DynamicRealm.getInstanceAsync(null, new DynamicRealm.Callback() {
+                @Override
+                public void onSuccess(DynamicRealm realm) {
+                    fail();
+                }
+            });
+        } catch (IllegalArgumentException ignored) {
+        }
+        looperThread.testComplete();
     }
 
     @Test
     @RunTestInLooperThread
     public void getInstanceAsync_nullCallbackShouldThrow() {
-        thrown.expect(IllegalArgumentException.class);
-        DynamicRealm.getInstanceAsync(defaultConfig, null);
+        try {
+            //noinspection ConstantConditions
+            DynamicRealm.getInstanceAsync(defaultConfig, null);
+        } catch (IllegalArgumentException ignored) {
+        }
+        looperThread.testComplete();
     }
 }

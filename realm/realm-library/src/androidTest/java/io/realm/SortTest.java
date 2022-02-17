@@ -17,8 +17,8 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +37,6 @@ import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -521,7 +520,7 @@ public class SortTest {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
                 assertEquals(TEST_SIZE + 1, element.size());
-                int i = 0;
+                long i = 0;
                 for (AllTypes allTypes : element) {
                     assertEquals(new Date(i), allTypes.getColumnDate());
                     i++;
@@ -537,7 +536,7 @@ public class SortTest {
             @Override
             public void onChange(RealmResults<AllTypes> element) {
                 assertEquals(TEST_SIZE + 1, element.size());
-                int i = element.size() - 1;
+                long i = ((long) element.size()) - 1;
                 for (AllTypes allTypes : element) {
                     assertEquals(new Date(i), allTypes.getColumnDate());
                     i--;
@@ -578,14 +577,14 @@ public class SortTest {
     }
 
     @Test
-    public void sortAndDistinctMixed() {
+    public void sortAndDistinctRealmAny() {
         // Dataset:
         // (FIELD_INDEX_LONG, FIELD_INDEX_INT, FIELD_INDEX_STRING)
         // (1, 1, "A")
         // (2, 1, "B")
         // (3, 1, "C")
         // Depending on the sorting, distinct should pick the first element encountered.
-        // The order of sort/distinct in the query should not matter
+        // The order of sort/distinct in the query matters
 
         // Case 1: Selecting highest numbers
         RealmResults<AnnotationIndexTypes> results1a = realm.where(AnnotationIndexTypes.class)
@@ -600,7 +599,7 @@ public class SortTest {
                 .sort(AnnotationIndexTypes.FIELD_INDEX_LONG, Sort.DESCENDING)
                 .findAll();
         assertEquals(1, results1b.size());
-        assertEquals(3, results1b.get(0).getIndexLong());
+        assertEquals(1, results1b.get(0).getIndexLong());
 
         // Case 1: Selecting lowest number numbers
         RealmResults<AnnotationIndexTypes> results2a = realm.where(AnnotationIndexTypes.class)

@@ -16,7 +16,11 @@
 
 package io.realm;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import io.realm.internal.ColumnIndices;
+import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.Table;
 
 /**
@@ -41,6 +45,20 @@ class ImmutableRealmSchema extends RealmSchema {
         if (!realm.getSharedRealm().hasTable(internalClassName)) { return null; }
         Table table = realm.getSharedRealm().getTable(internalClassName);
         return new ImmutableRealmObjectSchema(realm, this, table, getColumnInfo(className));
+    }
+
+    @Override
+    public Set<RealmObjectSchema> getAll() {
+        // Only return schema objects for classes defined by the schema in the RealmConfiguration
+        RealmProxyMediator schemaMediator = realm.getConfiguration().getSchemaMediator();
+        Set<Class<? extends RealmModel>> classes = schemaMediator.getModelClasses();
+        Set<RealmObjectSchema> schemas = new LinkedHashSet<>(classes.size());
+        for (Class<? extends RealmModel> clazz : classes) {
+            String className = schemaMediator.getSimpleClassName(clazz);
+            RealmObjectSchema objectSchema = get(className);
+            schemas.add(objectSchema);
+        }
+        return schemas;
     }
 
     @Override

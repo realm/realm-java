@@ -1,6 +1,9 @@
-project.ext.sdkVersion = 27
-project.ext.minSdkVersion = 15
-project.ext.buildTools = '27.0.2'
+def projectDependencies = new Properties()
+projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
+project.ext.sdkVersion = 29
+project.ext.minSdkVersion = 16
+project.ext.buildTools = projectDependencies.get("ANDROID_BUILD_TOOLS")
+project.ext.kotlinVersion = projectDependencies.get('KOTLIN')
 
 // Don't cache SNAPSHOT (changing) dependencies.
 configurations.all {
@@ -20,22 +23,26 @@ allprojects {
     def currentVersion = file("${rootDir}/../version.txt").text.trim()
 
     def props = new Properties()
-    props.load(new FileInputStream("${rootDir}/../realm.properties"))
+    props.load(new FileInputStream("${rootDir}/../dependencies.list"))
     props.each { key, val ->
         project.ext.set(key, val)
     }
 
     buildscript {
+        ext {
+            kotlin_version = projectDependencies.get('KOTLIN')
+        }
         repositories {
-            google()
             mavenLocal()
-            jcenter()
+            mavenCentral()
             maven { url 'https://jitpack.io' }
+            google()
+            jcenter()
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.1.0-alpha06'
-            classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+            classpath "com.android.tools.build:gradle:${props.get("GRADLE_BUILD_TOOLS")}"
             classpath "io.realm:realm-gradle-plugin:${currentVersion}"
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         }
     }
 
@@ -44,8 +51,9 @@ allprojects {
 
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         google()
+        jcenter()
     }
 
     if (!project.name.startsWith("realm-examples")
@@ -56,25 +64,19 @@ allprojects {
                 doLast {
                     def numberOfEvents = 2000
                     def appId = getAppId("${project.projectDir}/build.gradle")
-                    def process = "adb shell monkey -p ${appId} ${numberOfEvents}".execute([], project.rootDir)
+                    def process = "adb shell monkey -p ${appId} --pct-syskeys 0 ${numberOfEvents}".execute([], project.rootDir)
 
                     def sout = new StringBuilder(), serr = new StringBuilder()
                     process.consumeProcessOutput(sout, serr)
                     process.waitFor()
 
                     if (process.exitValue() != 0
-                            || serr?.toString()?.trim()?.size() > 0
                             || !sout?.toString()?.trim()?.contains("Events injected: ${numberOfEvents}")) {
                         // fail Gradle build
-                        throw new GradleException("monkey failed for AppID: ${appId} \nStd out:  ${sout}\nStd err:  ${serr}")
+                        throw new GradleException("monkey failed for AppID: ${appId} \nExit code: ${process.exitValue()}\nStd out:  ${sout}\nStd err:  ${serr}")
                     }
                 }
             }
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.gradleVersion
-    distributionType = 'all'
 }

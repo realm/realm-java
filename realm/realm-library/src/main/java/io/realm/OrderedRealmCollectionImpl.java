@@ -1,6 +1,7 @@
 package io.realm;
 
 import java.util.AbstractList;
+import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.Date;
 import java.util.Iterator;
@@ -9,45 +10,56 @@ import java.util.Locale;
 
 import javax.annotation.Nullable;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.realm.internal.OsResults;
 import io.realm.internal.InvalidRow;
+import io.realm.internal.OsResults;
 import io.realm.internal.RealmObjectProxy;
-import io.realm.internal.SortDescriptor;
 import io.realm.internal.Table;
 import io.realm.internal.UncheckedRow;
-
+import io.realm.internal.core.NativeRealmAny;
 
 /**
  * General implementation for {@link OrderedRealmCollection} which is based on the {@code Collection}.
  */
-abstract class OrderedRealmCollectionImpl<E>
-        extends AbstractList<E> implements OrderedRealmCollection<E> {
-    private final static String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
+abstract class OrderedRealmCollectionImpl<E> extends AbstractList<E> implements OrderedRealmCollection<E> {
+    private static final String NOT_SUPPORTED_MESSAGE = "This method is not supported by 'RealmResults' or" +
             " 'OrderedRealmCollectionSnapshot'.";
 
-    final BaseRealm realm;
-    @Nullable final Class<E> classSpec;   // Return type
-    @Nullable final String className;     // Class name used by DynamicRealmObjects
-    // FIXME implement this
-    @SuppressFBWarnings("SS_SHOULD_BE_STATIC")
-    final boolean forValues = false;
+    /**
+     * The {@link BaseRealm} instance in which this collection resides.
+     * <p>
+     * Warning: This field is only exposed for internal usage, and should not be used.
+     */
+    public final BaseRealm baseRealm;
 
+    @Nullable
+    final Class<E> classSpec;   // Return type
+    @Nullable
+    final String className;     // Class name used by DynamicRealmObjects
     final OsResults osResults;
+    final CollectionOperator<E> operator;
 
-    OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, Class<E> clazz) {
-        this(realm, osResults, clazz, null);
+    OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, Class<E> clazz) {
+        this(baseRealm, osResults, clazz, null, getCollectionOperator(false, baseRealm, osResults, clazz, null));
     }
 
-    OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, String className) {
-        this(realm, osResults, null, className);
+    OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, Class<E> clazz, CollectionOperator<E> operator) {
+        this(baseRealm, osResults, clazz, null, operator);
     }
 
-    private OrderedRealmCollectionImpl(BaseRealm realm, OsResults osResults, @Nullable Class<E> clazz, @Nullable String className) {
-        this.realm = realm;
+    OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, String className) {
+        this(baseRealm, osResults, null, className, getCollectionOperator(false, baseRealm, osResults, null, className));
+    }
+
+    OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, String className, CollectionOperator<E> operator) {
+        this(baseRealm, osResults, null, className, operator);
+    }
+
+    private OrderedRealmCollectionImpl(BaseRealm baseRealm, OsResults osResults, @Nullable Class<E> clazz, @Nullable String className, CollectionOperator<E> operator) {
+        this.baseRealm = baseRealm;
         this.osResults = osResults;
         this.classSpec = clazz;
         this.className = className;
+        this.operator = operator;
     }
 
     Table getTable() {
@@ -96,8 +108,16 @@ abstract class OrderedRealmCollectionImpl<E>
             }
 
             for (E e : this) {
-                if (e.equals(object)) {
-                    return true;
+                if (e instanceof byte[] && object instanceof byte[]) {
+                    if (Arrays.equals((byte[]) e, (byte[]) object)) {
+                        return true;
+                    }
+                } else {
+                    if (e != null && e.equals(object)) {
+                        return true;
+                    } else if (e == null && object == null) {
+                        return true;
+                    }
                 }
             }
         }
@@ -114,14 +134,8 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     @Nullable
     public E get(int location) {
-        realm.checkIfValid();
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
-        //noinspection unchecked
-        return (E) realm.get((Class<? extends RealmModel>) classSpec, className, osResults.getUncheckedRow(location));
+        baseRealm.checkIfValid();
+        return operator.get(location);
     }
 
     /**
@@ -144,23 +158,7 @@ abstract class OrderedRealmCollectionImpl<E>
 
     @Nullable
     private E firstImpl(boolean shouldThrow, @Nullable E defaultValue) {
-        UncheckedRow row = osResults.firstUncheckedRow();
-
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
-        if (row != null) {
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
-        } else {
-            if (shouldThrow) {
-                throw new IndexOutOfBoundsException("No results were found.");
-            } else {
-                return defaultValue;
-            }
-        }
+        return operator.firstImpl(shouldThrow, defaultValue);
     }
 
     /**
@@ -184,23 +182,7 @@ abstract class OrderedRealmCollectionImpl<E>
 
     @Nullable
     private E lastImpl(boolean shouldThrow, @Nullable E defaultValue) {
-        UncheckedRow row = osResults.lastUncheckedRow();
-
-        if (forValues) {
-            // TODO implement this
-            return null;
-        }
-
-        if (row != null) {
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmModel>) classSpec, className, row);
-        } else {
-            if (shouldThrow) {
-                throw new IndexOutOfBoundsException("No results were found.");
-            } else {
-                return defaultValue;
-            }
-        }
+        return operator.lastImpl(shouldThrow, defaultValue);
     }
 
     /**
@@ -209,7 +191,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public void deleteFromRealm(int location) {
         // TODO: Implement the delete in OS level and do check there!
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         osResults.delete(location);
     }
 
@@ -218,7 +200,7 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public boolean deleteAllFromRealm() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         if (size() > 0) {
             osResults.clear();
             return true;
@@ -269,7 +251,7 @@ abstract class OrderedRealmCollectionImpl<E>
     // Sorting
 
     // aux. method used by sort methods
-    private long getColumnIndexForSort(String fieldName) {
+    private long getColumnKeyForSort(String fieldName) {
         //noinspection ConstantConditions
         if (fieldName == null || fieldName.isEmpty()) {
             throw new IllegalArgumentException("Non-empty field name required.");
@@ -277,11 +259,11 @@ abstract class OrderedRealmCollectionImpl<E>
         if (fieldName.contains(".")) {
             throw new IllegalArgumentException("Aggregates on child object fields are not supported: " + fieldName);
         }
-        long columnIndex = osResults.getTable().getColumnIndex(fieldName);
-        if (columnIndex < 0) {
+        long columnKey = osResults.getTable().getColumnKey(fieldName);
+        if (columnKey < 0) {
             throw new IllegalArgumentException(String.format(Locale.US, "Field '%s' does not exist.", fieldName));
         }
-        return columnIndex;
+        return columnKey;
     }
 
     /**
@@ -289,10 +271,7 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public RealmResults<E> sort(String fieldName) {
-        SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, Sort.ASCENDING);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldName, Sort.ASCENDING);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -301,10 +280,7 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public RealmResults<E> sort(String fieldName, Sort sortOrder) {
-        SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldName, sortOrder);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldName, sortOrder);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -312,11 +288,8 @@ abstract class OrderedRealmCollectionImpl<E>
      * {@inheritDoc}
      */
     @Override
-    public RealmResults<E> sort(String fieldNames[], Sort sortOrders[]) {
-        SortDescriptor sortDescriptor =
-                SortDescriptor.getInstanceForSort(getSchemaConnector(), osResults.getTable(), fieldNames, sortOrders);
-
-        OsResults sortedOsResults = osResults.sort(sortDescriptor);
+    public RealmResults<E> sort(String[] fieldNames, Sort[] sortOrders) {
+        OsResults sortedOsResults = osResults.sort(baseRealm.getSchema().getKeyPathMapping(), fieldNames, sortOrders);
         return createLoadedResults(sortedOsResults);
     }
 
@@ -325,7 +298,7 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public RealmResults<E> sort(String fieldName1, Sort sortOrder1, String fieldName2, Sort sortOrder2) {
-        return sort(new String[] {fieldName1, fieldName2}, new Sort[] {sortOrder1, sortOrder2});
+        return sort(new String[]{fieldName1, fieldName2}, new Sort[]{sortOrder1, sortOrder2});
     }
 
     // Aggregates
@@ -349,9 +322,9 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public Number min(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
-        return osResults.aggregateNumber(OsResults.Aggregate.MINIMUM, columnIndex);
+        baseRealm.checkIfValid();
+        long columnKey = getColumnKeyForSort(fieldName);
+        return osResults.aggregateNumber(OsResults.Aggregate.MINIMUM, columnKey);
     }
 
     /**
@@ -359,8 +332,8 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public Date minDate(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        baseRealm.checkIfValid();
+        long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateDate(OsResults.Aggregate.MINIMUM, columnIndex);
     }
 
@@ -369,8 +342,8 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public Number max(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        baseRealm.checkIfValid();
+        long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateNumber(OsResults.Aggregate.MAXIMUM, columnIndex);
     }
 
@@ -378,7 +351,7 @@ abstract class OrderedRealmCollectionImpl<E>
      * Finds the maximum date.
      *
      * @param fieldName the field to look for the maximum date. If fieldName is not of Date type, an exception is
-     * thrown.
+     *                  thrown.
      * @return if no objects exist or they all have {@code null} as the value for the given date field, {@code null}
      * will be returned. Otherwise the maximum date is returned. When determining the maximum date, objects with
      * {@code null} values are ignored.
@@ -387,8 +360,8 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     @Nullable
     public Date maxDate(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        baseRealm.checkIfValid();
+        long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateDate(OsResults.Aggregate.MAXIMUM, columnIndex);
     }
 
@@ -398,8 +371,8 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public Number sum(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        baseRealm.checkIfValid();
+        long columnIndex = getColumnKeyForSort(fieldName);
         return osResults.aggregateNumber(OsResults.Aggregate.SUM, columnIndex);
     }
 
@@ -408,8 +381,8 @@ abstract class OrderedRealmCollectionImpl<E>
      */
     @Override
     public double average(String fieldName) {
-        realm.checkIfValid();
-        long columnIndex = getColumnIndexForSort(fieldName);
+        baseRealm.checkIfValid();
+        long columnIndex = getColumnKeyForSort(fieldName);
 
         Number avg = osResults.aggregateNumber(OsResults.Aggregate.AVERAGE, columnIndex);
         return avg.doubleValue();
@@ -480,7 +453,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public boolean deleteLastFromRealm() {
         // TODO: Implement the deleteLast in OS level and do check there!
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         return osResults.deleteLast();
     }
 
@@ -492,7 +465,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     public boolean deleteFirstFromRealm() {
         // TODO: Implement the deleteLast in OS level and do check there!
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         return osResults.deleteFirst();
     }
 
@@ -537,7 +510,7 @@ abstract class OrderedRealmCollectionImpl<E>
     @Override
     @Deprecated
     public boolean addAll(int location,
-            @SuppressWarnings("NullableProblems") java.util.Collection<? extends E> collection) {
+                          @SuppressWarnings("NullableProblems") java.util.Collection<? extends E> collection) {
         throw new UnsupportedOperationException(NOT_SUPPORTED_MESSAGE);
     }
 
@@ -560,23 +533,23 @@ abstract class OrderedRealmCollectionImpl<E>
 
         @Override
         protected E convertRowToObject(UncheckedRow row) {
-            if (forValues) {
-                // TODO implement this
-                return null;
-            }
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
+            return operator.convertRowToObject(row);
+        }
+
+        @Override
+        protected E getInternal(int pos, OsResults iteratorOsResults) {
+            return operator.getFromResults(pos, iteratorOsResults);
         }
     }
 
     @Override
     public OrderedRealmCollectionSnapshot<E> createSnapshot() {
         if (className != null) {
-            return new OrderedRealmCollectionSnapshot<E>(realm, osResults, className);
+            return new OrderedRealmCollectionSnapshot<E>(baseRealm, osResults, className);
         } else {
             // 'classSpec' is non-null when 'className' is null.
             //noinspection ConstantConditions
-            return new OrderedRealmCollectionSnapshot<E>(realm, osResults, classSpec);
+            return new OrderedRealmCollectionSnapshot<E>(baseRealm, osResults, classSpec);
         }
     }
 
@@ -589,14 +562,14 @@ abstract class OrderedRealmCollectionImpl<E>
      *
      * @return {@link Realm} instance this collection belongs to.
      * @throws IllegalStateException if the Realm is an instance of {@link DynamicRealm} or the
-     * {@link Realm} was already closed.
+     *                               {@link Realm} was already closed.
      */
     public Realm getRealm() {
-        realm.checkIfValid();
-        if (!(realm instanceof Realm)) {
+        baseRealm.checkIfValid();
+        if (!(baseRealm instanceof Realm)) {
             throw new IllegalStateException("This method is only available for typed Realms");
         }
-        return (Realm) realm;
+        return (Realm) baseRealm;
     }
 
     // Custom RealmResults list iterator.
@@ -607,29 +580,304 @@ abstract class OrderedRealmCollectionImpl<E>
 
         @Override
         protected E convertRowToObject(UncheckedRow row) {
-            if (forValues) {
-                // TODO implement this
-                return null;
-            }
-            //noinspection unchecked
-            return (E) realm.get((Class<? extends RealmObject>) classSpec, className, row);
+            return operator.convertRowToObject(row);
+        }
+
+        @Override
+        protected E getInternal(int pos, OsResults iteratorOsResults) {
+            return operator.getFromResults(pos, iteratorOsResults);
         }
     }
 
     RealmResults<E> createLoadedResults(OsResults newOsResults) {
         RealmResults<E> results;
         if (className != null) {
-            results = new RealmResults<E>(realm, newOsResults, className);
+            results = new RealmResults<E>(baseRealm, newOsResults, className);
         } else {
             // 'classSpec' is non-null when 'className' is null.
             //noinspection ConstantConditions
-            results = new RealmResults<E>(realm, newOsResults, classSpec);
+            results = new RealmResults<E>(baseRealm, newOsResults, classSpec);
         }
         results.load();
         return results;
     }
 
-    private SchemaConnector getSchemaConnector() {
-        return new SchemaConnector(realm.getSchema());
+    protected static <T> CollectionOperator<T> getCollectionOperator(boolean forPrimitives,
+                                                                     BaseRealm baseRealm,
+                                                                     OsResults osResults,
+                                                                     @Nullable Class<T> clazz,
+                                                                     @Nullable String className) {
+        if (forPrimitives) {
+            if (clazz == Integer.class) {
+                //noinspection unchecked
+                return (CollectionOperator<T>) new IntegerValueOperator(baseRealm, osResults, Integer.class, className);
+            } else if (clazz == Short.class) {
+                //noinspection unchecked
+                return (CollectionOperator<T>) new ShortValueOperator(baseRealm, osResults, Short.class, className);
+            } else if (clazz == Byte.class) {
+                //noinspection unchecked
+                return (CollectionOperator<T>) new ByteValueOperator(baseRealm, osResults, Byte.class, className);
+            } else if (clazz == RealmAny.class) {
+                //noinspection unchecked
+                return (CollectionOperator<T>) new RealmAnyValueOperator(baseRealm, osResults, RealmAny.class, className);
+            } else {
+                return new PrimitiveValueOperator<>(baseRealm, osResults, clazz, className);
+            }
+        } else {
+            return new ModelCollectionOperator<>(baseRealm, osResults, clazz, className);
+        }
+    }
+
+    /**
+     * Used to abstract operations from the collection itself depending on whether it is a primitive
+     * value collection or a model collection.
+     *
+     * @param <T> the type of the collection.
+     */
+    abstract static class CollectionOperator<T> {
+
+        protected final BaseRealm baseRealm;
+        protected final OsResults osResults;
+        @Nullable
+        protected final Class<T> classSpec;
+        @Nullable
+        protected final String className;
+
+        CollectionOperator(BaseRealm baseRealm,
+                                  OsResults osResults,
+                                  @Nullable Class<T> classSpec,
+                                  @Nullable String className) {
+            this.baseRealm = baseRealm;
+            this.osResults = osResults;
+            this.classSpec = classSpec;
+            this.className = className;
+        }
+
+        public abstract T get(int location);
+
+        @Nullable
+        public abstract T firstImpl(boolean shouldThrow, @Nullable T defaultValue);
+
+        @Nullable
+        public abstract T lastImpl(boolean shouldThrow, @Nullable T defaultValue);
+
+        public abstract T convertRowToObject(UncheckedRow row);
+
+        public abstract T getFromResults(int pos, OsResults iteratorOsResults);
+
+        protected T convertToObject(@Nullable UncheckedRow row,
+                                    boolean shouldThrow,
+                                    @Nullable T defaultValue) {
+            if (row != null) {
+                //noinspection unchecked
+                return (T) baseRealm.get((Class<? extends RealmModel>) classSpec, className, row);
+            } else {
+                if (shouldThrow) {
+                    throw new IndexOutOfBoundsException("No results were found.");
+                } else {
+                    return defaultValue;
+                }
+            }
+        }
+    }
+
+    /**
+     * Operator for models.
+     *
+     * @param <T> the type of the collection, must extend {@link RealmModel}.
+     */
+    static class ModelCollectionOperator<T> extends CollectionOperator<T> {
+
+        ModelCollectionOperator(BaseRealm baseRealm,
+                                       OsResults osResults,
+                                       @Nullable Class<T> clazz,
+                                       @Nullable String className) {
+            super(baseRealm, osResults, clazz, className);
+        }
+
+        @Override
+        public T get(int location) {
+            //noinspection unchecked
+            return (T) baseRealm.get((Class<? extends RealmModel>) classSpec, className, osResults.getUncheckedRow(location));
+        }
+
+        @Nullable
+        @Override
+        public T firstImpl(boolean shouldThrow, @Nullable T defaultValue) {
+            return convertToObject(osResults.firstUncheckedRow(), shouldThrow, defaultValue);
+        }
+
+        @Nullable
+        @Override
+        public T lastImpl(boolean shouldThrow, @Nullable T defaultValue) {
+            return convertToObject(osResults.lastUncheckedRow(), shouldThrow, defaultValue);
+        }
+
+        @Override
+        public T convertRowToObject(UncheckedRow row) {
+            //noinspection unchecked
+            return (T) baseRealm.get((Class<? extends RealmObject>) classSpec, className, row);
+        }
+
+        @Override
+        public T getFromResults(int pos, OsResults iteratorOsResults) {
+            return convertRowToObject(iteratorOsResults.getUncheckedRow(pos));
+        }
+    }
+
+    /**
+     * Operator for Realm primitive types.
+     *
+     * @param <T> the type of the collection.
+     */
+    static class PrimitiveValueOperator<T> extends CollectionOperator<T> {
+
+        PrimitiveValueOperator(BaseRealm baseRealm,
+                                      OsResults osResults,
+                                      @Nullable Class<T> classSpec,
+                                      @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public T get(int location) {
+            Object value = osResults.getValue(location);
+
+            //noinspection unchecked
+            return (T) value;
+        }
+
+        @Nullable
+        @Override
+        public T firstImpl(boolean shouldThrow, @Nullable T defaultValue) {
+            if (osResults.size() != 0) {
+                //noinspection unchecked
+                return (T) osResults.getValue(0);
+            }
+            return defaultValue;
+        }
+
+        @Nullable
+        @Override
+        public T lastImpl(boolean shouldThrow, @Nullable T defaultValue) {
+            int size = (int) osResults.size();
+            if (size != 0) {
+                //noinspection unchecked
+                return (T) osResults.getValue(size - 1);
+            }
+            return defaultValue;
+        }
+
+        @Override
+        public T convertRowToObject(UncheckedRow row) {
+            throw new UnsupportedOperationException("Method 'convertRowToObject' cannot be used on primitive Realm collections.");
+        }
+
+        @Override
+        public T getFromResults(int pos, OsResults iteratorOsResults) {
+            //noinspection unchecked
+            return (T) iteratorOsResults.getValue(pos);
+        }
+    }
+
+    static class IntegerValueOperator extends PrimitiveValueOperator<Integer> {
+
+        IntegerValueOperator(BaseRealm baseRealm,
+                                    OsResults osResults,
+                                    @Nullable Class<Integer> classSpec,
+                                    @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public Integer get(int location) {
+            Object value = osResults.getValue(location);
+            Long longValue = (Long) value;
+            return longValue.intValue();
+        }
+
+        @Override
+        public Integer getFromResults(int pos, OsResults iteratorOsResults) {
+            Long longValue = (Long) iteratorOsResults.getValue(pos);
+            if (longValue == null) {
+                return null;
+            }
+            return longValue.intValue();
+        }
+    }
+
+    static class ShortValueOperator extends PrimitiveValueOperator<Short> {
+
+        ShortValueOperator(BaseRealm baseRealm,
+                                  OsResults osResults,
+                                  @Nullable Class<Short> classSpec,
+                                  @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public Short get(int location) {
+            Object value = osResults.getValue(location);
+            Long longValue = (Long) value;
+            return longValue.shortValue();
+        }
+
+        @Override
+        public Short getFromResults(int pos, OsResults iteratorOsResults) {
+            Long longValue = (Long) iteratorOsResults.getValue(pos);
+            if (longValue == null) {
+                return null;
+            }
+            return longValue.shortValue();
+        }
+    }
+
+    static class ByteValueOperator extends PrimitiveValueOperator<Byte> {
+
+        ByteValueOperator(BaseRealm baseRealm,
+                                 OsResults osResults,
+                                 @Nullable Class<Byte> classSpec,
+                                 @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public Byte get(int location) {
+            Object value = osResults.getValue(location);
+            Long longValue = (Long) value;
+            return longValue.byteValue();
+        }
+
+        @Override
+        public Byte getFromResults(int pos, OsResults iteratorOsResults) {
+            Long longValue = (Long) iteratorOsResults.getValue(pos);
+            if (longValue == null) {
+                return null;
+            }
+            return longValue.byteValue();
+        }
+    }
+
+    static class RealmAnyValueOperator extends PrimitiveValueOperator<RealmAny> {
+
+        RealmAnyValueOperator(BaseRealm baseRealm,
+                                  OsResults osResults,
+                                  @Nullable Class<RealmAny> classSpec,
+                                  @Nullable String className) {
+            super(baseRealm, osResults, classSpec, className);
+        }
+
+        @Override
+        public RealmAny get(int location) {
+            Object value = osResults.getValue(location);
+            NativeRealmAny nativeRealmAny = (NativeRealmAny) value;
+            return new RealmAny(RealmAnyOperator.fromNativeRealmAny(baseRealm, nativeRealmAny));
+        }
+
+        @Override
+        public RealmAny getFromResults(int pos, OsResults iteratorOsResults) {
+            NativeRealmAny nativeRealmAny = (NativeRealmAny) iteratorOsResults.getValue(pos);
+            return new RealmAny(RealmAnyOperator.fromNativeRealmAny(baseRealm, nativeRealmAny));
+        }
     }
 }

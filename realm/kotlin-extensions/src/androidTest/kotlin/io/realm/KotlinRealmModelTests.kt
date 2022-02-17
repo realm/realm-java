@@ -1,13 +1,12 @@
 package io.realm
 
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.entities.PrimaryKeyClass
 import io.realm.entities.SimpleClass
 import io.realm.kotlin.*
 import io.realm.rule.RunInLooperThread
 import io.realm.rule.RunTestInLooperThread
-import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
@@ -17,17 +16,19 @@ import org.junit.runner.RunWith
 class KotlinRealmModelTests {
 
     @Suppress("MemberVisibilityCanPrivate")
-    @get:Rule
+    @Rule
+    @JvmField
     val configFactory = TestRealmConfigurationFactory()
 
-    @get:Rule
+    @Rule
+    @JvmField
     val looperThread = RunInLooperThread()
 
     private lateinit var realm: Realm
 
     @Before
     fun setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext())
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         realm = Realm.getInstance(configFactory.createConfiguration())
     }
 

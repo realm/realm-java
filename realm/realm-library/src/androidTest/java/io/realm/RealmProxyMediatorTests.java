@@ -15,7 +15,7 @@
  */
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +31,6 @@ import java.util.Set;
 
 import io.realm.entities.Cat;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 
@@ -65,21 +64,21 @@ public class RealmProxyMediatorTests {
         final Set<Long> indexSet = new HashSet<Long>();
         int indexCount = 0;
 
-        indexSet.add(columnInfo.nameIndex);
+        indexSet.add(columnInfo.nameColKey);
         indexCount++;
-        indexSet.add(columnInfo.ageIndex);
+        indexSet.add(columnInfo.ageColKey);
         indexCount++;
-        indexSet.add(columnInfo.heightIndex);
+        indexSet.add(columnInfo.heightColKey);
         indexCount++;
-        indexSet.add(columnInfo.weightIndex);
+        indexSet.add(columnInfo.weightColKey);
         indexCount++;
-        indexSet.add(columnInfo.hasTailIndex);
+        indexSet.add(columnInfo.hasTailColKey);
         indexCount++;
-        indexSet.add(columnInfo.birthdayIndex);
+        indexSet.add(columnInfo.birthdayColKey);
         indexCount++;
-        indexSet.add(columnInfo.ownerIndex);
+        indexSet.add(columnInfo.ownerColKey);
         indexCount++;
-        indexSet.add(columnInfo.scaredOfDogIndex);
+        indexSet.add(columnInfo.scaredOfDogColKey);
         indexCount++;
 
         assertEquals(indexCount, indexSet.size());
@@ -91,7 +90,7 @@ public class RealmProxyMediatorTests {
         io_realm_entities_CatRealmProxy.CatColumnInfo columnInfo;
         columnInfo = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
-        final Set<Long> indexSet = new HashSet<Long>();
+        final Set<Long> columnKeySet = new HashSet<Long>();
         int indexCount = 0;
 
         // Gets index for each field and then put into set.
@@ -99,11 +98,11 @@ public class RealmProxyMediatorTests {
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
-            indexSet.add(columnInfo.getColumnIndex(field.getName()));
+            columnKeySet.add(columnInfo.getColumnKey(field.getName()));
             indexCount++;
         }
 
         assertEquals("if no duplicates, size of set equals to field count.",
-                indexCount, indexSet.size());
+                indexCount, columnKeySet.size());
     }
 }

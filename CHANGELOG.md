@@ -1,8 +1,1696 @@
-## 5.3.0 (YYYY-MM-DD)
+## 10.10.1 (2022-01-26)
+
+### Enhancements
+* [RealmApp] Add support for setting the filename on Flexible and Partition Sync configurations.
+
+### Fixed
+* [RealmApp] Creating multiple anonymous subscriptions for a Realm would throw an exception.
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Android Gradle Plugin 7.1.0
+* Updated to Gradle 7.3.3.
+
+
+## 10.10.0 (2022-01-18)
+
+### Enhancements
+* [RealmApp] Add support for a new mode for synchronized realms: Flexible Sync that only synchronizes selective parts of the backend data. The following classes have been added to support this: `Subscription`, `SubscriptionSet` and `MutableSubscriptionSet`. This mode and all APIs are marked as Beta.
+
+### Fixed
+* [RealmApp] The sync client will now drain the receive queue when send fails with ECONNRESET - ensuring that any error message from the server gets received and processed. (Realm Core issue [#5078](https://github.com/realm/realm-core/pull/5078))
+* [RealmApp] UserIdentity metadata table grows indefinitely. (Realm Core issue [#5152](https://github.com/realm/realm-core/issues/5152))
+* Schema validation was missing for embedded objects in sets, resulting in an unhelpful error being thrown if the user attempted to define one.
+* Output from the annotation processor was not deterministic, which could result in cache misses. (Issue [#7615](https://github.com/realm/realm-java/issues/7615))
+* Crashes when using `RealmAny` inside `RealmList` on ARM 32 devices. (Issue [#7626](https://github.com/realm/realm-java/issues/7626))
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Update to Realm Core 11.9.0, commit: 733f12702d16ab0d0c7fea0831a2aee5ca5c26db.
+
+### Credits
+* Thanks to @jprinet for making the annotation processor output deterministic.
+
+
+## 10.9.0 (2021-12-06)
+
+### Enhancements
+* [RealmApp] Add support for UUID's as partition values. (Issue [#7598](https://github.com/realm/realm-java/issues/7598))
+* [RealmApp] Reduced native memory usage when working with synchronized Realms.
+* [RealmApp] Make it possible to bundle synchronized Realms in apps using `Realm.writeCopyTo()` and `SyncConfiguration.Builder.assetFile()`.
+* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
+* [RealmApp] Introduced `SyncSession.DiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that doesn't require the Realm to be closed, but discards any unsynced data from the client. This is now the default policy if not overridden.
+
+### Deprecated
+* [RealmApp] `SyncSession.ClientResetHandler()`. Use `SyncSession.ManuallyRecoverUnsyncedChangesStrategy()` instead.
+* [RealmApp] `AppConfiguration.Builder.defaultClientResetHandler()`. Use `AppConfiguration.Builder.setDefaultSyncClientResetStrategy()` instead.
+* [RealmApp] `AppConfiguration.getDefaultClientResetHandler()`. Use `AppConfiguration.getDefaultSyncClientResetStrategy()` instead.
+* [RealmApp] `SyncConfiguration.Builder.clientResetHandler()`. Use `SyncConfiguration.Builder.setSyncClientResetStrategy()` instead.
+* [RealmApp] `SyncConfiguration.getClientResetHandler()`. Use `SyncConfiguration.getSyncClientResetStrategy()` instead.
+
+### Fixed
+* [RealmApp] Setting `AppConfiguration.syncRootDirectory()` didn't have any effect beside creating the new folder. Realms were still placed in the default location. 
+* [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919)) 
+* [RealmApp] User being left in the logged in state when the user's refresh token expires. (Issue [Realm Core #4882](https://github.com/realm/realm-core/issues/4882), since v10)
+* Using "sort", "distinct", or "limit" as field name in query expression would cause an "Invalid predicate" error. (Issue [#7545](), since v10.X.X)
+* Crash when quering with 'Not()' followed by empty group. (Issue [Realm Core #4168]() since v1.0.0)
+* Streaming download notifiers reported incorrect values for transferrable bytes. (Issue [Realm Core #5008]() since v11.5.2)
+* `@sum` and `@avg` queries on Dictionaries of floats or doubles used too much precision for intermediates, resulting in incorrect rounding.
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.7.0, commit: 81eafa44879eb5f5829b345005abf99adb306133.
+* Building the SDK now requires JDK 11.
+* Updated to Gradle 7.2.
+* Updated to Android Gradle Plugin 7.1.0-beta03.
+* Updated to Kotlin 1.5.31.
+* Updated to Kotlin Coroutines 1.5.2.
+* Updated to CMake 3.21.4.
+* Updated to NDK 23.1.7779620.
+* Disable analytics for any value of the `REALM_DISABLE_ANALYTICS` environment variable, not just `true`.
+* Disable analytics whenever the `CI` environment variable is set.
+
+
+## 10.8.1 (2021-10-28)
+
+### Enhancements
+* None.
+
+### Fixed
+* [RealmApp] Failing to refresh the access token due to a 401/403 error will now correctly emit an error with `ErrorCode.BAD_AUTHENTICATION` rather than `ErrorCode.PERMISSION_DENIED`. (Realm Core [#4881](https://github.com/realm/realm-core/issues/4881), since 10.6.1)
+* [RealmApp] If an object with a null primary key was deleted by another sync client, the exception `KeyNotFound: No such object` could be triggered. ([Realm Core #4885](https://github.com/realm/realm-core/issues/4885), since 10.0.0)
+* Exceptions inside change listeners running on background looper threads would crash the Looper with a native `JNI DETECTED ERROR IN APPLICATION: JNI NewLocalRef called with pending exception` instead of the original Java exception. This could also happen when canceling a corutine using a background looper as a Dispatcher.
+* [RealmApp] Reduced native memory use when synchronizing changes with the server in the background.
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.4.1, commit: 23f60515a00f076a9e3f2dc672fe1ae07601ee90.
+
+
+## 10.8.0 (2021-08-27)
+
+### Enhancements
+* [RealmApp] `ErrorCode.INVALID_EMAIL_PASSWORD` has been added, and is now thrown instead of `ErrorCode.SERVICE_UNKNOWN` when loggin in with the wrong credentials.
+* `RealmQuery.rawPredicate()` now accepts a "BETWEEN" operator. Can be used like "age BETWEEN {20, 60}" which means "'Age' must be in the open interval ]20;60[".
+* [RealmApp] Added `User.remove()` and `User.removeAsync()` that makes it possible to delete a user's Realm(s) from the device.
+
+### Fixed
+* [RealmApp] Crash when integrating a schema from the server with a `RealmAny` property to a Realm File that already had that property defined locally. ([Realm Core #4873](https://github.com/realm/realm-core/issues/4873), since 10.0.0)
+* [RealmApp] Refreshing the access token after 30 minutes would fail silently, causing infinite retries every 10 seconds. This would also block opening Realms when opening an app with an already logged in user. (Issue [#7501](https://github.com/realm/realm-java/issues/7501), since 10.0.0)
+* [RealmApp] Clarified Javadoc for `User.logOut()` and `User.logOutAsync()` as these methods do not delete a user's Realm(s).
+* Build error when having cross module model references (Issue [#7474](https://github.com/realm/realm-java/issues/7474), since v10.4.0)
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.3.0, commit: 321c79a67119db8177af13eefd5378586648ba73.
+
+
+## 10.7.1 (2021-08-03)
+
+### Enhancements
+* None.
+
+### Fixed
+* [RealmApp] Crash when an object which is linked to by a `RealmAny` is invalidated (Sync only). ([Realm Core #4828](https://github.com/realm/realm-core/issues/4828), since v10.6.0)
+* Object change listeners did not handle the object being deleted properly, which could result in assertion failures mentioning "m_table" in ObjectNotifier ([Realm Core #4824](https://github.com/realm/realm-core/issues/4824), since v10.6.0).
+* Crash when delivering notifications over a nested hierarchy of lists of `RealmAny` that contain object references. ([Realm Core #4803](https://github.com/realm/realm-core/issues/4803), since v10.6.0)
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.2.0, commit: 583fc73040709383470797813096bee17802398e.
+
+
+## 10.7.0 (2021-07-27)
+
+### Breaking Changes
+* Removed automatic injection of repositories from Gradle plugin. From now on `mavenCentral()` repository needs to be added manually. (Issue [#7365](https://github.com/realm/realm-java/issues/7365))
+
+### Enhancements
+* None.
+
+### Fixed
+* [RealmApp] Realm.getInstanceAsync does not wait for the initial remote data. (Issue [#7517](https://github.com/realm/realm-java/issues/7517))
+* Build errors when doing incremental builds with Android Studio's _Apply Changes..._-actions. (Issue [#7473](https://github.com/realm/realm-java/issues/7473))
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.1.1, commit: 71db56caba8f8ef0398eedfffb82a908cb94ccec.
+
+
+## 10.6.1 (2021-07-01)
+
+### Enhancements
+* None.
+
+### Fixed
+* [RealmApp] Configuring HTTP timeout through `AppConfiguration.Builder.requestTimeout()` did not work correctly. (Issue [#7455](https://github.com/realm/realm-java/issues/7455))
+* [RealmApp] A recursive loop that would eventually crash trying to refresh a user app token when it had been revoked by an admin. Now this situation logs the user out and reports an error. (Issue [#7501](https://github.com/realm/realm-java/issues/7501))
+* En endless recursive loop that could cause a stack overflow when computing changes on a set of objects which contained cycles. (Realm Core Issue [#4767](https://github.com/realm/realm-core/issues/4767))
+* Opening cached Realms no longer trigger `android.os.strictmode.DiskReadViolation`. (Issue [#7500](https://github.com/realm/realm-java/issues/7500]))
+* `NullPointerException` was thrown instead of `IllegalStateException` when calling `Realm.executeTransaction()` on a closed Realm. (Issue [#7511](https://github.com/realm/realm-java/issues/7511), since 10.0.0)
+* `RealmDictionary` did not handle hash collisions correctly. (Realm Core issue [#4776](https://github.com/realm/realm-core/issues/4767))
+* Crash after clearing a List or Set of `RealmAny` containing references to objects (Realm Core issue [#4774](https://github.com/realm/realm-core/issues/4774))
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.0.4, commit: 44304ce6104c4a9fc7e2359990c75be3b867b8fe.
+
+
+## 10.6.0 (2021-06-15)
+
+This release combines all changes from 10.6.0-BETA.1 and 10.6.0-BETA.2.
+
+### Breaking Changes
+* [RealmApp] Sync protocol version increased to 3. This version adds support for the new data types introduced in file format version 21.
+* Primary keys now have automatic indexes again. Indexes was removed in v10.0.0 because they were not needed, but it caused issues when upgrading from a pre v10 version of Realm, and in some cases resulted in large delays when upgrading the fileformat. (Issue [#7426](https://github.com/realm/realm-java/issues/7426), since 10.0.0).
+* Queries no longer do nullability checks on non-nullable fields, so using `null` as an argument will not throw an `IllegalArgumentException`.
+* String query filters `contains`, `beginsWith`, `endsWith`, and `like`, now throw a null pointer exception on null values.
+* The query builder no longer throw `IllegalStateException` but `IllegalArgumentException`.
+* The `distinct` query filter on unsupported fields no longer throws an exception when applied through when querying across relationships.
+* The `distinct` query filter no longer throws an exception when applied on non-existent fields.
+* `RealmFieldType` has been updated to account for the new types being added.
+
+### Enhancements
+* Added support for `java.util.UUID` as supported field in model classes.
+* Added support for `java.util.UUID` as a primary key.
+* Added support for `RealmAny` as supported field in model classes. A `RealmAny` is used to represent a polymorphic Realm value or Realm Object, is indexable but cannot be used as a primary key. See [Javadoc for RealmAny](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmAny.html).
+* Added support for `RealmDictionary` as supported field in model classes. A `RealmDictionary` is a `Map` of strings to values - all types under the `RealmAny` umbrella can be used as values. See [Javadoc for RealmDictionary](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmDictionary.html) and [Javadoc for RealmMap](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmMap.html). `RealmDictionary` is not yet supported by any of the `Realm.insert` and `Realm.createFromJson` methods - This support will be added in a future release.
+* Added support for `RealmSet` as supported field in model classes. A `RealmSet` is a collection that implements the Java `Set` interface and contains no duplicate values - all types under the `RealmAny` umbrella can be used as values. See [Javadoc for RealmSet](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmSet.html). `RealmSet` is not yet supported by any of the `Realm.insert` and `Realm.createFromJson` methods - This support will be added in a future release.
+* Allow UTF8 encoded characters in property names in string-based queries ([#4467](https://github.com/realm/realm-core/issues/4467))
+* The error message when the initial steps of opening a Realm file fails is now more descriptive.
+* Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. ([#4548](https://github.com/realm/realm-core/issues/4548))
+* Remove type coercion on bool and ObjectId when doing queries.
+* Allow passing arguments into string-based query predicates.
+* Queries across relationships now support the `between` operator.
+* Queries on numerical fields (byte, short, int, long, float, double, decimal128) now accept any numerical value as an argument.
+* `isEmpty` query filter can now be applied on `RealmList` and `RealmObject` fields.
+
+### Fixed
+* Fix assertion failures such as "!m_notifier_skip_version.version" or "m_notifier_sg->get_version() + 1 == new_version.version" when performing writes inside change notification callbacks. Previously refreshing the Realm by beginning a write transaction would skip delivering notifications, leaving things in an inconsistent state. Notifications are now delivered recursively when needed instead. ([Cocoa #7165](https://github.com/realm/realm-cocoa/issues/7165)).
+* Fixed name aliasing not working in sort/distinct clauses when doing string-based queries. ([#4550](https://github.com/realm/realm-core/issues/4550), never before working).
+* Potential/unconfirmed fix for crashes associated with failure to memory map (low on memory, low on virtual address space). For example ([#4514](https://github.com/realm/realm-core/issues/4514)).
+* Syncing large Decimal128 values will cause "Assertion failed: cx.w[1] == 0" ([#4519](https://github.com/realm/realm-core/issues/4519), since v10.0.0)
+* Classes names "class_class_..." were not handled correctly when doing queries ([#4480](https://github.com/realm/realm-core/issues/4480))
+* Fix collection notification reporting for modifications. This could be observed by receiving the wrong indices of modifications on sorted or distinct results, or notification blocks sometimes not being called when only modifications have occurred. ([#4573](https://github.com/realm/realm-core/pull/4573) since v6).
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.0.3, commit de25ad9db783f931e7652d5c1431d5610b2ad67b.
+
+
+## 10.6.0-BETA.2 (2021-06-14)
+
+### Breaking Changes
+* `MapChangeSet.getDeletionsCount()` has been replaced with `MapChangeSet.getDeletions()` that return the keys for entries that has been deleted instead of just the number of deleted entries.
+* Primary keys now have automatic indexes again. Indexes was removed in v10.0.0 because they were not needed, but it caused issues when upgrading from a pre v10 version of Realm, and in some cases resulted in large delays when upgrading the fileformat. (Issue [#7426](https://github.com/realm/realm-java/issues/7426), since 10.0.0).
+
+### Enhancements
+* Allow `insert` and `insertOrUpdate` operations on `RealmObject` or `RealmObject` collections containing `RealmDictionary` or `RealmSet` fields.
+* Added support for `RealmDictionary` in `DynamicRealmObject` with `setDictionary(String fieldName, RealmDictionary<?> dictionary)`, `getDictionary(String fieldName, Class<?> primitiveType)`, and `getDictionary(String fieldName)`.
+* Added support for `RealmSet` in `DynamicRealmObject` with `setRealmSet(String fieldName, RealmSet<?> realmSet)`, `getRealmSet(String fieldName, Class<?> primitiveType)`, and `getRealmSet(String fieldName)`.
+
+### Fixed
+* Removed wrong `@Nullable` annotation on `RealmQuery.maxRealmAny()`.
+* Fixed `RealmAny.getValueClass()` returning the `RealmObject` proxy class instead of the model class on a `RealmAny` referencing a managed `RealmObject`.
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.0.2, commit a30382469eb72c0cf1824b44e7062071c2f3f3a9.
+* Updated to Gradle 6.8.3.
+
+
+## 10.6.0-BETA.1 (2021-05-17)
+
+### Breaking Changes
+* [RealmApp] Sync protocol version increased to 3. This version adds support for the new data types introduced in file format version 21.
+* File format version bumped to 21. In this version we support new basic datatypes `UUID` and `RealmAny`, as well as `RealmSet` and `RealmMap` collections with string-based keys (i.e. `RealmDictionary`).
+* Queries no longer do nullability checks on non-nullable fields, so using `null` as an argument will not throw an `IllegalArgumentException`.
+* String query filters `contains`, `beginsWith`, `endsWith`, and `like`, now throw a null pointer exception on null values.
+* The query builder no longer throw `IllegalStateException` but `IllegalArgumentException`.
+* The `distinct` query filter on unsupported fields no longer throws an exception when applied through when querying across relationships.
+* The `distinct` query filter no longer throws an exception when applied on non-existent fields.
+
+### Enhancements
+* Added support for `java.util.UUID` as supported field in model classes.
+* Added support for `java.util.UUID` as a primary key.
+* Added support for `RealmAny` as supported field in model classes. A `RealmAny` is used to represent a polymorphic Realm value or Realm Object, is indexable but cannot be used as a primary key. See [Javadoc for RealmAny](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmAny.html).
+* Added support for `RealmDictionary` as supported field in model classes. A `RealmDictionary` is a `Map` of strings to values - all types under the `RealmAny` umbrella can be used as values. See [Javadoc for RealmDictionary](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmDictionary.html) and [Javadoc for RealmMap](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmMap.html). `RealmDictionary` is not yet supported by any of the `Realm.insert` and `Realm.createFromJson` methods - This support will be added in a future release.
+* Added support for `RealmSet` as supported field in model classes. A `RealmSet` is a collection that implements the Java `Set` interface and contains no duplicate values - all types under the `RealmAny` umbrella can be used as values. See [Javadoc for RealmSet](https://docs.mongodb.com/realm-sdks/java/latest/io/realm/RealmSet.html). `RealmSet` is not yet supported by any of the `Realm.insert` and `Realm.createFromJson` methods - This support will be added in a future release.
+* Allow UTF8 encoded characters in property names in string-based queries ([#4467](https://github.com/realm/realm-core/issues/4467))
+* The error message when the initial steps of opening a Realm file fails is now more descriptive.
+* Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. ([#4548](https://github.com/realm/realm-core/issues/4548))
+* Remove type coercion on bool and ObjectId when doing queries.
+* Allow passing arguments into string-based query predicates.
+* Queries across relationships now support the `between` operator.
+* Queries on numerical fields (byte, short, int, long, float, double, decimal128) now accept any numerical value as an argument.
+* `isEmpty` query filter can now be applied on `RealmList` and `RealmObject` fields.
+
+### Fixed
+* Fix assertion failures such as "!m_notifier_skip_version.version" or "m_notifier_sg->get_version() + 1 == new_version.version" when performing writes inside change notification callbacks. Previously refreshing the Realm by beginning a write transaction would skip delivering notifications, leaving things in an inconsistent state. Notifications are now delivered recursively when needed instead. ([Cocoa #7165](https://github.com/realm/realm-cocoa/issues/7165)).
+* Fixed name aliasing not working in sort/distinct clauses when doing string-based queries. ([#4550](https://github.com/realm/realm-core/issues/4550), never before working).
+* Potential/unconfirmed fix for crashes associated with failure to memory map (low on memory, low on virtual address space). For example ([#4514](https://github.com/realm/realm-core/issues/4514)).
+* Syncing large Decimal128 values will cause "Assertion failed: cx.w[1] == 0" ([#4519](https://github.com/realm/realm-core/issues/4519), since v10.0.0)
+* Classes names "class_class_..." were not handled correctly when doing queries ([#4480](https://github.com/realm/realm-core/issues/4480))
+* Fix collection notification reporting for modifications. This could be observed by receiving the wrong indices of modifications on sorted or distinct results, or notification blocks sometimes not being called when only modifications have occurred. ([#4573](https://github.com/realm/realm-core/pull/4573) since v6).
+
+### Compatibility
+* File format: Generates Realms with format v21. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 11.0.0-beta.4, commit: d50aef63a8aaf435e3afed82b589b47d8e1ab1ab.
+
+
+## 10.5.1 (2021-06-14)
+
+### Enhancements
+* None.
+
+### Fixes
+* [RealmApp] Errors related to "uncaught exception in notifier thread: N5realm11KeyNotFoundE: No such object". This could happen in a sync'd app when a linked object was deleted by another client.
+* [RealmApp] Replacing a referenced embedded object could result in a "ERROR: ArrayInsert: Invalid" error. (Issue [#7480](https://github.com/realm/realm-java/issues/7480))
+* Notifications now trigger correctly on Linux kernel 5.5 and above. So far this only impacted the preview emulator image for Android 12. (Issue[#7321](https://github.com/realm/realm-java/issues/7321))
+* Raw query predicates not supporting integer constants above 32 bits on a 32 bit platform.
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 10.8.1, commit 2a67b996faf9e0b5d47ac402c4d3926713f99418.
+
+
+## 10.5.0 (2021-05-07)
+
+### Breaking Changes
+* [RealmApp] `SyncSession.State.WaitingForAccessToken` has been added. It represents the local access token not longer being valid, but is automatically being refreshed.
+
+### Enhancements
+* We now make a backup of a Realm file prior to any file format upgrade. The backup is retained for 3 months. Backups from before a file format upgrade allows for better analysis of any upgrade failure. We also restore a backup, if a) an attempt is made to open a realm file whith a "future" file format and b) a backup file exist that fits the current file format. The backup file is placed next to the real Realm file and is named `<fileName>.v<realmFileFormatVersion>.backup.realm`.
+* The error message when the intial steps of opening a Realm file fails is now more descriptive.
+
+### Fixes
+* [RealmApp] Client Reset errors now correctly forward the server error message. (Issue [#7363](https://github.com/realm/realm-java/issues/7363), since 10.0.0)
+* [RealmApp] All `AppException`s now correctly report the error message through `RuntimeException.getMessage()` instead of only through `AppException.getErrorMessage()`.
+* [RealmApp] Proactively check the expiry time on the access token and refresh it before attempting to initiate a sync session. This prevents some error logs from appearing on the client such as: "ERROR: Connection[1]: Websocket: Expected HTTP response 101 Switching Protocols, but received: HTTP/1.1 401 Unauthorized" (RCORE-473, since v10.0.0).
+* Fix name aliasing not working in sort/distinct clauses of raw string predicates.
+* Fix collection notification reporting for modifications. This could be observed by receiving the wrong indices of modifications on sorted or distinct results, or notification sometimes not being called when only modifications have occured. (since v7.0.0).
+* Make conversion of Decimal128 to/from string work for numbers with more than 19 significant digits. (#4548)
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 10.7.1, commit 5043c25e1d8f5971002e0fec85dea5ea3d7eb3d7.
+
+
+## 10.4.0 (2021-03-26)
+
+All releases from 10.4.0 and forward are now found on `mavenCentral()` instead of `jcenter()`.
+
+A minimal supported setup will therefore now look like this:
+
+```
+allprojects {
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            classpath "io.realm:realm-gradle-plugin:10.4.0"
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
+`SNAPSHOT` releases have also been moved from `http://oss.jfrog.org/artifactory/oss-snapshot-local`
+to `https://oss.sonatype.org/content/repositories/snapshots/`. See [here](https://github.com/realm/realm-java/blob/master/README.md#using-snapshots)
+for more information.
+
+### Enhancements
+* Added support for the string-based Realm Query Language through `RealmQuery.rawPredicate(...)`. This allows many new type of queries not previously supported by the typed query API. See the Javadoc on this method for further details. (Issue [#6116](https://github.com/realm/realm-java/pull/6116))
+* Performance of sorting on more than one property has been improved. Especially important if many elements match on the first property.
+
+### Fixes
+* Calling max/min/sum/avg on a List may give wrong results (Realm Core [#4252](https://github.com/realm/realm-core/issues/4252), since v10.0.0)
+* Fix an issue when using `RealmResults.freeze()` across threads with different transaction versions. Previously, copying the `RealmsResults`' native resource could result in a stale state or objects from a future version. (Realm Core [#4254](https://github.com/realm/realm-core/pull/4254)).
+* On 32-bit devices you may get exception with "No such object" when upgrading to v10.* ([#7314](https://github.com/realm/realm-java/issues/7314), since v10.0.0)
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 10.5.6, commit 92129110dece2cee59839e20be3a7067084a1196.
+* Updated to NDK 22.0.7026061.
+* Updated to ReLinker 1.4.3.
+
+## 10.3.1 (2021-01-28)
+
+### Enhancements
+* None.
+
+### Fixes
+* RxJava Flowables/Observables and Coroutine Flows would crash if they were created from a `RealmList` and the parent object holding the list was deleted. Now, the stream is disposed/closed instead. (Issue [#7242](https://github.com/realm/realm-java/issues/7242))
+* Fixes Realm models default values containing objects with a PK might crash with a `RealmPrimaryKeyConstraintException`. (Issue [#7269] (https://github.com/realm/realm-java/issues/7269))
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* None.
+
+
+## 10.3.0 (2021-01-08)
+
+### Enhancements
+* [RealmApp] Upgraded to OpenSSL 1.1.1g.
+
+### Fixes
+* [RealmApp] Integrating a remote Sync changeset into the local Realm could result in an `Index out of range error`.
+* Change notifications not firing when removing and adding an object with the same primary key within a transaction (Issue [#7098](https://github.com/realm/realm-java/issues/7098)).
+* Race condition which would lead to "uncaught exception in notifier thread: N5realm15InvalidTableRefE: transaction_ended" and a crash when the source Realm was closed or invalidated at a very specific time during the first run of a collection notifier (Core issue [#3761](https://github.com/realm/realm-core/issues/3761), since v7.0.0).
+* Deleting and recreating objects with embedded objects could fail (Core issue [#4240](https://github.com/realm/realm-core/pull/4240), since v10.0.0)
+* Added `@Nullable` annotation to input parameter in `RealmObject.isValid(item)` to avoid mismatch warnings from Kotlin code (Issue [#7216](https://github.com/realm/realm-java/issues/7216)).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core: 10.3.3 (Monorepo).
+* Updated to Realm Core commit: 8af0f8d609491986b49f2c986e771d9dc445664d.
+
+
+## 10.2.0 (2020-12-02)
+
+### Deprecated
+* [RealmApp] `Credentials.google(authenticationCode: String)`. Use `Credentials.google(token: String, authType: GoogleAuthType)` instead.
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* [RealmApp] Added `Credentials.google(token: String, authType: GoogleAuthType)`, as MongoDB Realm now supports multiple ways of logging into Google Accounts.
+
+### Fixes
+* [RealmApp] Bug that would prevent eventual consistency during conflict resolution. Affected clients would experience data divergence and potentially consistency errors as a result if they experienced conflict resolution between cycles of Create-Erase-Create for objects with primary keys.
+* Clean up JNI references to prevent crash from JNI reference table overflow (Issue [#7217](https://github.com/realm/realm-java/issues/7217))
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.4.
+* Updated to Object Store commit: f838a27402c5b5243280102014defd844420abba66eb93c10334507d9c0fd513.
+
+
+## 10.1.2 (2020-12-02)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* Complementary fix for missed edge case in https://github.com/realm/realm-java/pull/7220 where KAPT crash if we process a RealmObject referencing a type in RealmList defined in another module. (Issue [#7213](https://github.com/realm/realm-java/issues/7213), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+
+## 10.1.1 (2020-11-27)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixes
+* KAPT crash when processing a RealmObject referenced from another module (changed revealed after we started checking for embedded types). (Issue [#7213](https://github.com/realm/realm-java/issues/7213), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.3.
+* Updated to Realm Core: 10.1.3.
+* Updated to Object Store commit: fc6daca61133aa9601e4cb34fbeb9ec7569e162e.
+
+
+## 10.1.0 (2020-11-23)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* Added `FlowFactory` interface that allows customization of `Flow` emissions, just as we do with `RxObservableFactory`. A default implementation, `RealmFlowFactory`, is provided when building `RealmConfiguration`s.
+* Added `toChangeSetFlow` methods (similar to the Rx `asChangesetFlowable` methods) for `RealmObject`, `RealmResults` and `RealmList`.
+
+### Fixes
+* Fixed crash when adding classes containing an `ObjectId` as primary key to the schema. (Issue [#7189](https://github.com/realm/realm-java/issues/7189), since v10.0.0)
+* Fixed crash when creating proxy classes containing an `ObjectId` as primary key. (Issue [#7197](https://github.com/realm/realm-java/issues/7197), since v10.0.0)
+* Fixed crash where calls to `toFlow` could crash if the Flow job is canceled and object updates are emitted after that happens. (Issue [7211](https://github.com/realm/realm-java/issues/7211), since v10.0.1)
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.3.
+* Updated to Realm Core: 10.1.3.
+* Updated to Object Store commit: fc6daca61133aa9601e4cb34fbeb9ec7569e162e.
+
+
+## 10.0.1 (2020-11-06)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* Improved the error message for `NoSuchTable` errors. In some cases an outdated native reference was used,but the table was still there. In those cases an `InvalidTableRef` error is now used.
+
+### Fixes
+* [RealmApp] The `SyncConfiguration.Builder.allowQueriesOnUiThread` flag was wrongly initialized to `false` keeping users from running queries from the UI thread when using synced Realms. It now defaults to `true`, allowing queries to be run from the UI. (Issue [#7177](https://github.com/realm/realm-java/issues/7177), since 10.0.0)
+* Crash with `Assertion failed: m_method_id != nullptr with (method_name, signature) =  ["<init>", "(Ljava/lang/String;)V"]` when `Minify` is enabled. (Issue [#7159](https://github.com/realm/realm-java/pull/7159), since 10.0.0)
+* Fix crash in case insensitive query on indexed string columns when nothing matches (Cocoa issue [#6836](https://github.com/realm/realm-cocoa/issues/6836), since v10.0.0)
+* Fix list of primitives with nullable values where `Lst::is_null(ndx)` always false even on null values, (Core issue [#3987](https://github.com/realm/realm-core/pull/3987), since v10.0.0).
+* Fix queries for the size of a list of primitive nullable ints returning size + 1. (Core issue [#4016](https://github.com/realm/realm-core/pull/4016), since v10.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.1.0.
+* Updated to Realm Core: 10.1.0.
+* Updated to Object Store commit: fd246c54de7d1fee6bcbeb3609de75a4eccd5b70.
+
+
+## 10.0.0 (2020-10-15)
+
+NOTE: This is a unified release note covering all v10.0.0-BETA.X v10.0.0-RC.X releases.
+
+NOTE: Support for syncing with realm.cloud.io and/or Realm Object Server has been replaced with support for syncing with MongoDB Realm Cloud.
+
+NOTE: This version upgrades the Realm file format to version 20. It is not possible to downgrade to earlier versions than v10.0.0-BETA.7. Non-sync Realms will be upgraded automatically. Synced Realms can only be automatically upgraded if created with Realm Java v10.0.0-BETA.1 and above.
+
+### Breaking Changes
+* [RealmApp] Most APIs for interacting with Realm Cloud have changed significantly. All new APIs can be found in the `io.realm.mongodb` package. The entry point is through the `App` class from which you can create and login users and otherwise interact with MongoDB Realm. See [the docs](https://docs.mongodb.com/realm/android/) for further details. Synced Realms still use a `SyncConfiguration` that are largely created the same way.
+* [RealmApp] Client Resets are now handled through a custom `SyncConfiguration.Builder.clientResetHandler()` instead of through the default session error handler `SyncConfiguration.Builder.errorHandler()`
+* [RealmApp] Realm files have changed location on disk. They are now located in `getFiles()/mongodb-realm`.
+* [RealmApp] All synced model classes not marked as embedded are required to have a primary key named `_id`. It is possible to use `@RealmField(name = "_id")` to map from any Java or Kotlin property.
+* From now on it is by default not allowed to run transactions with either `Realm.executeTransaction()` or `DynamicRealm.executeTransaction()` from the UI thread. Doing so will yield a `RealmException`. Users can override this behavior by using `RealmConfiguration.Builder.allowWritesOnUiThread(true)` when building a `RealmConfiguration` to obtain a Realm or DynamicRealm instance, however, we do not recommend doing so. Instead, we recommend using `executeTransactionAsync()` or, alternatively, using non-UI threads when calling `executeTransaction()` for both `Realm`s and `DynamicRealm`s.
+
+### Enhancements
+* Users can now opt out from allowing queries to be launched from the UI thread by using `RealmConfiguration.Builder.allowQueriesOnUiThread(false)`. A `RealmException` will be thrown when calling `RealmQuery.findAll()`, `RealmQuery.findFirst()`, `RealmQuery.minimumDate()`, `RealmQuery.maximumDate()`, `RealmQuery.count()`, `RealmQuery.sum()`, `RealmQuery.max()`, `RealmQuery.min()`, `RealmQuery.average()` and `RealmQuery.averageDecimal128()` from the UI thread after having used `allowQueriesOnUiThread(false)`. Queries will be allowed from the thread from which the Realm instance was obtained as it always has been by default, although we recommend using `RealmQuery.findAllAsync()` or `RealmQuery.findFirstAsync()`, or, alternatively, using a non-UI thread to launch them.
+* `BaseRealm.refresh()` will throw a `RealmException` if it is being called from the UI thread if `allowQueriesOnUiThread` is set to `false`, though it will be allowed by default.
+* Added `DynamicRealm.executeTransactionAsync()`.
+* Added Kotlin extension suspend function `Realm.executeTransactionAwait()` which runs transactions inside coroutines.
+* Added Kotlin extension function `RealmResults.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* Added Kotlin extension function `RealmList.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* Added Kotlin extension function `RealmModel.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* RealmLists can now be marked final. (Issue [#6892](https://github.com/realm/realm-java/issues/6892))
+* Added support for `distinct` queries on non-index and linked fields. (Issue [#1906](https://github.com/realm/realm-java/issues/1906))
+* Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
+* Added support for `org.bson.types.ObjectId` as a primary key.
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://docs.mongodb.com/realm/android/embedded-objects/). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))
+
+
+### Fixes
+* None.
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Sync: 10.0.0.
+* Updated to Realm Core: 10.0.0.
+
+
+## 10.0.0-RC.2 (2020-10-12)
+
+### Enhancements
+* [RealmApp] Illegal schemas where embedded object classes referenced each other is now correctly detected and throws and exception when opening a Realm with such a schema.
+
+### Fixed
+* [RealmApp] It is now possible to use types different than `ObjectId` for the `_id` field in documents inserted with `MongoCollection.insertOne` and `MongoCollection.insertMany`.
+* [RealmApp] Lossy round trip of Double and Timestamps through functions when using Bson. (ObjectStore issue (#1106)[https://github.com/realm/realm-object-store/issues/1106])
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: 6b44209e6fcac0137e193c96444f93c50d184d06.
+
+
+## 10.0.0-RC.1 (2020-10-02)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes
+* From now on it is not allowed by default to run transactions with either `Realm.executeTransaction()` or `DynamicRealm.executeTransaction()` from the UI thread. Doing so will yield a `RealmException`. Users can override this behavior by using `RealmConfiguration.Builder.allowWritesOnUiThread(true)` when building a `RealmConfiguration` to obtain a Realm or DynamicRealm instance, though we do not recommend doing so. Instead, we recommend using `executeTransactionAsync()` or, alternatively, using non-UI threads when calling `executeTransaction()` for both `Realm`s and `DynamicRealm`s.
+
+### Enhancements
+* Users can now opt out from allowing queries to be launched from the UI thread by using `RealmConfiguration.Builder.allowQueriesOnUiThread(false)`. A `RealmException` will be thrown when calling `RealmQuery.findAll()`, `RealmQuery.findFirst()`, `RealmQuery.minimumDate()`, `RealmQuery.maximumDate()`, `RealmQuery.count()`, `RealmQuery.sum()`, `RealmQuery.max()`, `RealmQuery.min()`, `RealmQuery.average()` and `RealmQuery.averageDecimal128()` from the UI thread after having used `allowQueriesOnUiThread(false)`. Queries will be allowed from the thread from which the Realm instance was obtained as it always has been by default, although we recommend using `RealmQuery.findAllAsync()` or `RealmQuery.findFirstAsync()`, or, alternatively, using a non-UI thread to launch them.
+* `BaseRealm.refresh()` will throw a `RealmException` if it is being called from the UI thread if `allowQueriesOnUiThread` is set to `false`, though it will be allowed by default.
+* Added `DynamicRealm.executeTransactionAsync()`.
+* Added Kotlin extension suspend function `Realm.executeTransactionAwait()` which runs transactions inside coroutines.
+* Added Kotlin extension function `RealmResults.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* Added Kotlin extension function `RealmList.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+* Added Kotlin extension function `RealmModel.toFlow()` which returns a Kotlin flow, similar to our RxJava convenience method `asFlowable()`.
+
+### Fixed
+* Using `Realm.copyToRealmOrUpdate()` and `Realm.insertOrUpdate()` did not correctly update objects if they contained lists of embedded objets. Instead of replacing the original list, list items was appended to the original list. Note, some corner cases are still not supported. See [#7138](https://github.com/realm/realm-java/issues/7138) for more information. (Issue [#7131](https://github.com/realm/realm-java/issues/7131), since 10.0.0-BETA.1).
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: ef6736cc07a8b94d1242c522969114bb8047deef
+* Updated to Realm Sync 10.0.0-beta.14.
+* Updated to Realm Core 10.0.0-beta.9.
+
+
+## 10.0.0-BETA.8 (2020-09-23)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Fixed
+* [RealmApp] Logging in caused an `token contains an invalid number of segments` error. (Issue [#7117](https://github.com/realm/realm-java/issues/7117), since 10.0.0-BETA.7)
+* [RealmApp] The order of arguments to `EmailPassword.resetPassword()` was not handled correctly, resulting in resetting the password failing. (Issue [#7116](https://github.com/realm/realm-java/issues/7116), since 10.0.0-BETA.1)
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: 035eb07f3ef313bfb78c046be9cf6b4f065d6772.
+
+
+## 10.0.0-BETA.7 (2020-09-16)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+WARNING: This release upgrades the fileformat to 20. Non-sync Realms will be upgraded automatically. Synced Realms can only be automatically upgraded if created with Realm Java 10.0.0-BETA.1 and above.
+
+
+### Breaking Changes
+* [RealmApp] Moved `User.remove()` to `App.removeUser()`.
+* [RealmApp] Renamed `ApiKeyAuth.createApiKey()` to `ApiKeyAuth.create()` and `ApiKeyAuth.createApiKeyAsync()` to `ApiKeyAuth.createAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.fetchApiKey()` to `ApiKeyAuth.fetch()` and `ApiKeyAuth.fetchApiKeyAsync()` to `ApiKeyAuth.fetchAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.fetchAllApiKeys()` to `ApiKeyAuth.fetchAll()` and `ApiKeyAuth.fetchAllApiKeysAsync()` to `ApiKeyAuth.fetchAllAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.deleteApiKey()` to `ApiKeyAuth.delete()` and `ApiKeyAuth.deleteApiKeyAsync()` to `ApiKeyAuth.deleteAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.enableApiKey()` to `ApiKeyAuth.enable()` and `ApiKeyAuth.enableApiKeyAsync()` to `ApiKeyAuth.enableAsync()`.
+* [RealmApp] Renamed `ApiKeyAuth.disableApiKey()` to `ApiKeyAuth.disable()` and `ApiKeyAuth.disableApiKeyAsync()` to `ApiKeyAuth.disableAsync()`.
+* [RealmApp] Renamed `User.getApiKeysAuth()` to `User.getApiKeys()`.
+* [RealmApp] Renamed `UserApiKey` class to `ApiKey`.
+* [RealmApp] Removed support for `Credentials.serverApiKey()`.
+* [RealmApp] Renamed `App.getEmailPasswordAuth()` to `App.getEmailPassword()`.
+* [RealmApp] User profile methods `getName()`, `getEmail()`, `getPictureUrl()`, `getFirstName()`, `getLastName()`, `getGender()`, `getBirthday()`, `getMinAge()` and `getMaxAge()` are now available under a new class `UserProfile`. It can be accessed using `User.getProfile()`.
+* [RealmApp] Renamed `Sync.refreshConnections()` to `Sync.reconnect()`.
+* [RealmApp] Renamed `Credentials.IdentityProvider` to `Credentials.Provider`.
+* [RealmApp] Removed support for `User.getLocalId()`.
+* [RealmApp] Client Resets are now handled through a custom `SyncConfiguration.Builder.clientResetHandler()` instead of through the default session error handler `SyncConfiguration.Builder.errorHandler()`
+
+### Enhancements
+* [RealmApp] It is now possible to create App instances with different app id's.
+* [RealmApp] Support for using `null` as a partition value.
+* [RealmApp] Improve errors exception messages from `SyncSession.downloadAllServerChanges()` and `SyncSession.uploadAllLocalChanges()`.
+* [RealmApp] Support for watching MongoCollection change streams (Issue [#6912](https://github.com/realm/realm-java/issues/6912))
+* [RealmApp] Support for retrying a custom confirmation function on an User for a given email (Issue [#7079](https://github.com/realm/realm-java/pull/7079))
+* [RealmApp] Support for getting all app sessions via `Sync.getAllSessions()`.
+* [RealmApp] Support to retrieve the MongoClient service name using `MongoClient.getServiceName()`
+* [RealmApp] Support to retrieve the MongoDatabase name using `MongoDatabase.getName()`
+* [RealmApp] Support to retrieve the MongoCollection name using `MongoCollection.getName()`
+
+### Fixed
+* If you have a realm file growing towards 2Gb and have a table with more than 16 columns, then you may get a "Key not found" exception when updating an object. If asserts are enabled at the sdk level, you may get an "assert(m_has_refs)" instead. ([#3194](https://github.com/realm/realm-js/issues/3194), since v7.0.0)
+* In cases where you have more than 32 columns in a table, you may get a currrupted file resulting in various crashes ([#7057](https://github.com/realm/realm-java/issues/7057), since v7.0.0)
+
+### Compatibility
+* File format: Generates Realms with format v20. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java 10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: 6ab48d3b4b1e0865f68b84d5993bb2aad910320b.
+* Updated to Realm Sync 10.0.0-beta.11.
+* Updated to Realm Core 10.0.0-beta.7.
+
+
+## 10.0.0-BETA.6 (2020-08-17)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy APIs have undergone significant refactoring. The new APIs are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes
+* [RealmApp] Realm files have changed location on disk, so Realms should upload all their data to the server before upgrading.
+* [RealmApp] Removed GMS Task framework and added RealmResultTask to provide with a mechanism to operate with asynchronous operations. MongoCollection has been updated to reflect this change.
+
+### Enhancements
+* [RealmApp] Credentials information (e.g. username, password) displayed in Logcat is now obfuscated by default, even if [LogLevel] is set to DEBUG, TRACE or ALL.
+* RealmLists can now be marked final. (Issue [#6892](https://github.com/realm/realm-java/issues/6892))
+* It is now possible to create embedded objects using [DynamicRealm]s. (Issue [#6982](https://github.com/realm/realm-java/pull/6982))
+* Added extra validation and more meaningful error messages when creating embedded objects pointing to the wrong parent property. (See issue above)
+
+### Fixed
+* [RealmApp] The same user opening different Realms with different partion key values would crash with an IllegalArgumentException. (Issue [#6882](https://github.com/realm/realm-java/issues/6882), since 10.0.0-BETA.1)
+* [RealmApp] Sync would not refresh the access token if started with an expired one. (Since 10.0.0-BETA.1)
+* [RealmApp] Leaking objects when registering session listeners. (Issue [#6916](https://github.com/realm/realm-java/issues/6916))
+* Added support for Json-import of objects containing embedded objects. (Issue [#6896](https://github.com/realm/realm-java/issues/6896))
+* Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)
+* Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Realm Core PR [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
+* It was possible to use `RealmObjectSchema` to mark a Class as embedded even if some of the objects broke the constraints for being embedded.
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Upgraded to Object Store commit: 5b5fb8a90192cb4ee6799e7465745cd2067f939b.
+* Upgraded to Realm Sync 10.0.0-beta.6.
+* Upgraded to Realm Core 10.0.0-beta.4.
+
+
+## 10.0.0-BETA.5 (2020-06-19)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Enhancements
+* [RealmApp] Added support for Api Keys, Server Api Keys and Custom Functions as Credential types when logging in.
+* Added support for `distinct` queries on non-index and linked fields. (Issue [#1906](https://github.com/realm/realm-java/issues/1906))
+
+### Fixed
+* None.
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Upgraded to Object Store commit: e1570f8d3d7cf4d77f049933e6a241a501301383.
+
+## 10.0.0-BETA.4 (2020-06-11)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* [RealmApp] Added support for Custom Data using `User.customData()` and `User.refreshCustomData()`.
+* [RealmApp] Added support for managing push notifications using `App.getPush()`.
+
+### Fixed
+* [RealmApp] Opening a synced Realm for a cached user with expired access token would crash the app with `Assertion failed: cls with (class_name) = ["io/realm/internal/objectstore/OsJavaNetworkTransport$Response"]`. (Issue [#6937](https://github.com/realm/realm-java/issues/6937), since 10.0.0-BETA.1)
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: 017d58fbec8a18ab003976b4c346308df88349a6.
+
+
+## 10.0.0-BETA.3 (2020-06-09)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixed
+* [RealmApp] When restarting an app, the base URL used would in some cases be incorrect. (Since 10.0.0-BETA.2)
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: c02707bc28e1886970c5da29ef481dc0cb6c3dd8.
+
+
+## 10.0.0-BETA.2 (2020-06-08)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixed
+* [RealmApp] `AppConfiguration` did not fallback to the correct default baseUrl if none was provided. (Since 10.0.0-BETA.1)
+* [RealmApp] When restarting an app, re-using the already logged in user would result in Sync not resuming. (Since 10.0.0-BETA.1)
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: c50be4dd178ef7e11d453f61a5ac2afa8c1c10bf.
+* Updated to Realm Sync 10.0.0-beta.2.
+
+
+## 10.0.0-BETA.1 (2020-06-05)
+
+We no longer support Realm Cloud (legacy), but instead the new MongoDB Realm Cloud. MongoDB Realm is a serverless platform that enables developers to quickly build applications without having to set up server infrastructure. MongoDB Realm is built on top of MongoDB Atlas, automatically integrating the connection to your database.
+
+The old Realm Cloud legacy API's have undergone significant refactoring. The new API's are all located in the `io.realm.mongodb` package with `io.realm.mongodb.App` as the entry point.
+
+### Breaking Changes
+* [RealmApp] Removed all references and API's releated to permissions. These are now managed through MongoDB Realm.
+* [RealmApp] Query Based Sync API's and Subscriptions. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release. `SyncConfiguration.partitionKey()` has been added as a replacement.
+* [RealmApp] Removed support for Client Resync. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
+* [RealmApp] Removed suppport for custom SSL certificates. These API's are not initially supported by MongoDB Realm. They will be re-introduced in a future release.
+* [RealmApp] Destructive updates of a schema of a synced Realm will now consistently throw an `UnsupportedOperationException` instead of some methods throwing `IllegalArgumentException`. The affected methods are `RealmSchema.remove(String)`, `RealmSchema.rename(String, String)`, `RealmObjectSchema.setClassName(String)`, `RealmObjectSchema.removeField(String)`, `RealmObjectSchema.renameField(String, String)`, `RealmObjectSchema.removeIndex(String)`, `RealmObjectSchema.removePrimaryKey()`, `RealmObjectSchema.addPrimaryKey(String)` and `RealmObjectSchema.addField(String, Class<?>, FieldAttribute)`
+
+### Enhancements
+* Added support for `org.bson.types.Decimal128` and `org.bson.types.ObjectId` as supported fields in model classes.
+* Added support for `org.bson.types.ObjectId` as a primary key.
+* Added support for "Embedded Objects". They are enabled using `@RealmClass(embedded = true)`. An embedded object must have exactly one parent object linking to it and it will be deleted when the the parent is. Embedded objects can also be the parent of other embedded classes. Read more [here](https://realm.io/docs/java/latest/#embedded-objects). (Issue [#6713](https://github.com/realm/realm-java/issues/6713))
+
+### Fixed
+* After upgrading a Realm file, you may at some point receive a 'NoSuchTable' exception. (Issue [Core#3701](https://github.com/realm/realm-core/issues/3701), since 7.0.0)
+* If the Realm file upgrade process was interrupted/killed for various reasons, the following run would some assertions failing. (Issue [#6866](https://github.com/realm/realm-java/issues/6866), since 7.0.0).
+
+### Compatibility
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 10.x.y series.
+* Realm Studio 10.0.0 and above is required to open Realms created by this version.
+
+### Internal
+* Updated to Object Store commit: 6d081a53377514f9b77736cb03051a03d829da922.
+* Updated to Realm Sync 10.0.0-beta.1.
+* Updated to Realm Core 10.0.0-beta.1.
+* OKHttp was upgraded to 3.12.0 from 3.10.0.
+* Updated Android Gradle Plugin to 3.6.1.
+* Updated Gradle to 5.6.4
+* Updated Dokka to 0.10.1
+* Updated Android Build Tools to 29.0.2.
+* Updated compileSdkVersion to 29.
+
+
+## 7.0.8 (2020-10-01)
+
+### Enhancements
+* Slightly improve performance of most operations which read data from the Realm file.
+
+### Fixes
+* Making a query in an indexed property may give a "Key not found" exception. (.NET issue [#2025](https://github.com/realm/realm-dotnet/issues/2025), since 7.0.0)
+* Queries for null on non-nullable indexed integer properties could return wrong results if 0 entries should be found. (Since 7.0.0)
+* Rerunning an equals query on an indexed string column which previously had more than one match and now has one match would sometimes throw a "key not found" exception. (Cocoa issue [#6536](https://github.com/realm/realm-cocoa/issues/6536), Since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 8a68df3e9fa7743c13d927eb7fc330ed9bb06693.
+* Upgraded to Realm Sync: 5.0.28.
+* Upgraded to Realm Core: 6.1.3.
+
+
+## 7.0.7 (2020-09-25)
+
+### Enhancements
+* None.
+
+### Fixes
+* When querying a class where object references are part of the condition, the application may crash if objects have recently been added to the target table. (Issue [#7118](https://github.com/realm/realm-java/issues/7118), since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 37e86c2905bfd424c16fc5d7860a1298bfc0ffa2.
+* Upgraded to Realm Sync: 5.0.25.
+* Upgraded to Realm Core: 6.1.1.
+
+
+## 7.0.6 (2020-09-18)
+
+### Enhancements
+* Better exception messaging for UTF encoding errors. ([Issue #7093](https://github.com/realm/realm-java/pull/7093))
+
+### Fixes
+* Fixes concurrent modification exceptions in the schema when refreshing a Realm (Issue [#6876](https://github.com/realm/realm-java/issues/6876))
+* If you use encryption your application cound crash with a message like "Opening Realm files of format version 0 is not supported by this version of Realm". ([#6889](https://github.com/realm/realm-java/issues/6889) among others, since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: e29b5515df8b8adfe2454424b78878bb63879307.
+* Upgraded to Realm Sync: 5.0.23.
+* Upgraded to Realm Core: 6.0.26.
+
+
+## 7.0.5 (2020-09-09)
+
+### Enhancements
+* None.
+
+### Fixes
+* If you have a Realm file growing towards 2Gb and have a model class with more than 16 properties, then you may get a "Key not found" exception when updating an object. (Realm JS issue [#3194](https://github.com/realm/realm-js/issues/3194), since v7.0.0)
+* In cases where you have more than 32 properties in a model class, you may get a currrupted file resulting in various crashes (Issue [#7057](https://github.com/realm/realm-java/issues/7057), since v7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Realm Sync: 5.0.22.
+* Upgraded to Realm Core: 6.0.25.
+
+
+## 7.0.4 (2020-09-08)
+
+Note: Fileformat has been bumped from 10 to 11. This means that downgrading to an earlier version of Realm is not possible and Realm Studio 5.0.0 must be used to view Realm files.
+
+### Enhancements
+* None.
+
+### Fixes
+* In some cases a frozen Realm of the wrong version could be returned. ([ObjectStore issue #1078](https://github.com/realm/realm-object-store/pull/1078))
+* Upgrading files with string primary keys would result in a file where it was not possible to find the objects by primary key. ([Core issue #3893](https://github.com/realm/realm-core/pull/3893), since 7.0.0)
+* NullPointerException when calling `toString` on RealmObjects with a binary field containing `null`. (Issue [#7084](https://github.com/realm/realm-java/issues/7084), since 7.0.0)
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 5.0.0 or later.
+* File format: Generates Realms with format v11 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: 286d7cb2f10c41f89a2efb43b22938610ccad4cf.
+* Upgraded to Realm Sync: 5.0.21.
+* Upgraded to Realm Core: 6.0.24.
+
+## 7.0.3 (2020-09-01)
+
+### Enhancements
+* Added `Realm.getNumberOfActiveVersions()`, which returns the current number of active versions maintained by the Realm file.
+
+### Fixes
+* Creating a query inside a change listener could in some cases result in the version being pinned, which would either drastically increase filesize or cause `RealmConfiguration.maxNumberOfActiveVersions()` to trigger. (Issue [#6977](https://github.com/realm/realm-java/issues/6977), since 7.0.0)
+* If you upgrade a Realm file where you have "" elements in a list of non-nullable strings, the upgrade would crash.
+* If an attempt to upgrade a Realm file has ended with a crash with "migrate_links" in the call stack, the Realm ended in a corrupt state where further upgrade was not possible. A remedy for this situation is now provided.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Object Store commit: eef80f42e6ede2294eb60f048228012d9b7bc627.
+* Upgraded to Realm Sync: 5.0.19.
+* Upgraded to Realm Core: 6.0.22.
+* The upgrade logic for upgrading fileformats has changed so that progress is now recorded explicitly in a table. This makes the logic simpler and reduces the chance of errors. It will also make it easier to detect if a file has only been partially upgraded.
+
+
+## 7.0.2 (2020-08-14)
+
+### Enhancements
+* None.
+
+### Fixes
+* [ObjectServer] Calling `SyncManager.refreshConnections()` did not correctly refresh connections in all cases, which could delay reconnects up to 5 minutes. (Issue [#7003](https://github.com/realm/realm-java/issues/7003))
+* Upgrading the file format result did in some cases not work correctly. This could result in a number of crashes, e.g. `FORMAT_UPGRADE_REQUIRED`. (Issue [#6889](https://github.com/realm/realm-java/issues/6889), since 7.0.0)
+* Bug in memory mapping management. This bug could result in multiple different asserts as well as segfaults. In many cases stack backtraces would include members of the EncyptedFileMapping near the top - even if encryption was not used at all. In other cases asserts or crashes would be in methods reading an array header or array element. In all cases the application would terminate immediately. (Issue [#3838](https://github.com/realm/realm-core/pull/3838), since 7.0.0)
+* Crash when retrieving `null` valued primitive fields from dynamic realm. (Issue [#7025](https://github.com/realm/realm-java/issues/7025))
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Realm Sync 5.0.15.
+* Upgraded to Realm Core 6.0.17.
+
+
+## 7.0.1 (2020-07-01)
+
+### Enhancements
+* None.
+
+### Fixes
+* Upgrading older Realm files with String indexes was very slow. (Issue [#6875](https://github.com/realm/realm-java/issues/6875), since 7.0.0)
+* Aborting upgrading a Realm file could result in the file getting corrupted. (Isse [#6866](https://github.com/realm/realm-java/issues/6866), since 7.0.0)
+* Automatic indexes on primary keys are now correctly stripped when upgrading the file as they are no longer needed. (Since 7.0.0)
+* `NoSuchTable` was thrown after comitting a transaction. (Issue [#6947](https://github.com/realm/realm-java/issues/6947))
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* Upgraded to Realm Sync 5.0.7.
+* Upgraded to Realm Core 6.0.8.
+
+
+## 7.0.0 (2020-05-16)
+
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Studio 3.11](https://github.com/realm/realm-studio/releases/tag/v3.11.0) or later will be able to open the new file format.
+NOTE: This version bumps the Realm file format to version 10. Files created with previous versions of Realm will be automatically upgraded. It is not possible to downgrade to version 9 or earlier. Only [Realm Studio 4](https://github.com/realm/realm-studio/releases/tag/v4.0.0) or later will be able to open the new file format.
+
+### Breaking Changes
+* [ObjectServer] Removed deprecated method `SyncConfiguration.Builder.partialRealm()`. Use `SyncConfiguration.Builder.fullSynchronization()` instead.
+* [ObjectServer] Removed deprecated methods `SyncConfiguration.automatic()` and `SyncConfiguration.automatic(User, Uri)`. Use `SyncUser.getDefaultConfiguration()` and `SyncUser.createConfiguration(Url)`.
+* [ObjectServer] Removed deprecated method `ErrorCode.fromInt(int)`.
+* [ObjectServer] Removed deprecated method `SyncCredentials.nickname(name)` and `SyncCredentials.nickname(name, isAdmin)`. Use `SyncCredentials.usernamePassword(username, password)` instead.
+* [ObjectServer] Deprecated state `SyncSession.State.ERROR` has been removed. Use `SyncConfiguration.Builder.errorHandler(ErrorHandler)` instead.
+* [ObjectServer] `IncompatibleSyncedFileException` is removed as it is no longer used.
+* [ObjectServer] New error codes thrown by the underlying sync layers now have proper enum mappings in `ErrorCode.java`. A few other errors have been renamed in order to have consistent naming. (Issue [#6387](https://github.com/realm/realm-java/issues/6387))
+* RxJava Flowables and Observables are now subscribed to and unsubscribed to asynchronously on the thread holding the live Realm, instead of previously where this was done synchronously.
+* All RxJava Flowables and Observables now return frozen objects instead of live objects. This can be configured using `RealmConfiguration.Builder.rxFactory(new RealmObservableFactory(true|false))`. By using frozen objects, it is possible to send RealmObjects across threads, which means that all RxJava operators should now be supported without the need to copy Realm data into unmanaged objects.
+* MIPS is not supported anymore.
+* Realm now requires `minSdkVersion` 16. Up from 9.
+* [ObjectServer] `IncompatibleSyncedFileException` is removed and no longer thrown.
+
+### Enhancements
+* Added `Realm.freeze()`, `RealmObject.freeze()`, `RealmResults.freeze()` and `RealmList.freeze()`. These methods will return a frozen version of the current Realm data. This data can be read from any thread without throwing an `IllegalStateException`, but will never change. All frozen Realms and data can be closed by calling `Realm.close()` on the frozen Realm, but fully closing all live Realms will also close the frozen ones. Frozen data can be queried as normal, but trying to mutate it in any way will throw an `IllegalStateException`. This includes all methods that attempt to refresh or add change listeners. (Issue [#6590](https://github.com/realm/realm-java/pull/6590))
+* Added `Realm.isFrozen()`, `RealmObject.isFrozen()`, `RealmObject.isFrozen(RealmModel)`, `RealmResults.isFrozen()` and `RealmList.isFrozen()`, which returns whether or not the data is frozen.
+* Added `RealmConfiguration.Builder.maxNumberOfActiveVersions(long number)`. Setting this will cause Realm to throw an `IllegalStateException` if too many versions of the Realm data are live at the same time. Having too many versions can dramatically increase the filesize of the Realm.
+* Storing large binary blobs in Realm files no longer forces the file to be at least 8x the size of the largest blob.
+* Reduce the size of transaction logs stored inside the Realm file, reducing file size growth from large transactions.
+* `RealmResults.asJSON()` is no longer `@Beta`
+* The default `toString()` for proxy objects now print the length of binary fields. (Issue [#6767](https://github.com/realm/realm-java/pull/6767))
+
+### Fixes
+* If a DynamicRealm and Realm was opened for the same file they would share transaction state by accident. The implication was that writes to a `Realm` would immediately show up in the `DynamicRealm`. This has been fixed, so now it is required to call `refresh()` on the other Realm or wait for normal change listeners to detect the change.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* Realm Studio: 4.0.0 or later.
+* File format: Generates Realms with format v10 (Reads and upgrades all previous formats from Realm Java 2.0 and later).
+* APIs are backwards compatible with all previous release of realm-java in the 7.x.y series.
+
+### Internal
+* `OsSharedRealm.VersionID.hashCode()` was not implemented correctly and included the memory location in the hashcode.
+* OKHttp was upgraded to 3.10.0 from 3.9.0.
+* The NDK has been upgraded from r10e to r21.
+* The compiler used for C++ code has changed from GCC to Clang.
+* OpenSSL used by Realms encryption layer has been upgraded from 1.0.2k to 1.1.1b.
+* Updated to Object Store commit: 820b74e2378f111991877d43068a95d2b7a2e404.
+* Updated to Realm Sync 5.0.3.
+* Updated to Realm Core 6.0.4.
+
+### Credits
+* Thanks to @joxon for better support for binary fields in proxy objects.
+
+
+## 6.1.0(2020-01-17)
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* None.
+
+
+
+## 6.1.0(2020-01-17)
+
+### Enhancements
+* The Realm Gradle plugin now applies `kapt` when used in Kotlin Multiplatform projects. Note, Realm Java still only works for the Android part of a Kotlin Multiplatform project. (Issue [#6653](https://github.com/realm/realm-java/issues/6653))
+* The error message shown when no native code could be found for the device is now much more descriptive. This is particular helpful if an app is using App Bundle or APK Split and the resulting APK was side-loaded outside the Google Play Store. (Issue [#6673](https://github.com/realm/realm-java/issues/6673))
+* `RealmResults.asJson()` now encode binary data as Base64 and null object links are reported as `null` instead of `[]`.
+
+### Fixed
+* Fixed using `RealmList` with a primitive type sometimes crashing with `Destruction of mutex in use`. (Issue [#6689](https://github.com/realm/realm-java/issues/6689))
+* `RealmObjectSchema.transform()` would crash if one of the `DynamicRealmObject` provided are deleted from the Realm. (Issue [#6657](https://github.com/realm/realm-java/issues/6657), since 0.86.0)
+* The Realm Transformer will no longer attempt to send anonymous metrics when Gradle is invoked with `--offline`. (Issue [#6691](https://github.com/realm/realm-java/issues/6691))
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to ReLinker 1.4.0.
+* Updated to Object Store commit: 2a204063e1e1a366efbdd909fbea9effceb7d3c4.
+* Updated to Realm Sync 4.9.4.
+* Updated to Realm Core 5.23.8.
+
+### Credits
+* Thanks to @sellmair (Sebastian Sellmair) for improving Kotlin Multiplatform support.
+
+
+## 6.0.2(2019-11-21)
+
+### Enhancements
+* None.
+
+### Fixed
+* [ObjectServer] `SyncSession` progress listeners now work correctly in combination with `SyncConfiguration.waitForInitialRemoteData()`.
+* The `@RealmModule` annotation would be stripped on an empty class when using R8 resulting in apps crashing on startup with `io.realm.DefaultRealmModule is not a RealmModule. Add @RealmModule to the class definition.`. ([#6449](https://github.com/realm/realm-java/issues/6449))
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to Object Store commit: ad96a4c334b475dd67d50c1ca419e257d7a21e18.
+* Updated to Realm Sync v4.8.3.
+
+## 6.0.1(2019-11-11)
+
+NOTE: Anyone using encrypted Realms are strongly advised to upgrade to this version.
+
+### Enhancements
+* None
+
+### Fixed
+* When using encrypted Realms a race condition could lead to the Realm ending up corrupted when the file increased in size. This could manifest as a wide array of different error messages. Most commonly seen has been "Fatal signal 11 (SIGSEGV) from Java_io_realm_internal_UncheckedRow_nativeGetString", "RealmFileException: Top ref outside file" and "Unable to open a realm at path. ACCESS_ERROR: Invalid mnemonic". ([#6152](https://github.com/realm/realm-java/issues/6152), since 5.0.0)
+* `RealmResults.asJSON()` now prints lists with primitive values directly instead of wrapping each value in an object with an `!ARRAY_VALUE` property.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* Updated to Realm Sync 4.7.12.
+* Updated to Realm Core 5.23.6.
+
+### Credits
+* Thanks to Vladimir Konkov (@vladimirfx) for help with isolating ([#6152](https://github.com/realm/realm-java/issues/6152)).
+
+
+## 6.0.0(2019-10-01)
+
+### Breaking Changes
+* [ObjectServer] The `PermissionManager` is no longer backed by Realms but instead a REST API. This means that the `PermissionManager` class has been removed and all methods have been moved to `SyncUser`. Some method names have been renamed slightly and return values for methods have changed from `RealmResults<Permission>` to `List<Permission>`. This should only have an impact if change listeners were used to listen for changes. In these cases, you must now manually retry the request.
+
+### Enhancements
+None.
+
+### Fixed
+None.
+
+### Compatibility
+* Realm Object Server: 3.23.1 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 6.x.y series.
+
+### Internal
+* [ObjectServer] The OKHttp client will now follow redirects from the Realm Object Server.
+
+
+## 5.15.2(2019-09-30)
+
+### Enhancements
+* None.
+
+### Fixed
+* `null` values were not printed correctly when using `RealmResults.asJSON()` (Realm Core Issue [#3399](https://github.com/realm/realm-core/pull/3399))
+* [ObjectServer] Queries with nullable `Date`'s did not serialize correctly. Only relevant if using Query-based Synchronization. (Realm Core issue [#3388](https://github.com/realm/realm-core/pull/3388))
+* [ObjectServer] Fixed crash with `java.lang.IllegalStateException: The following changes cannot be made in additive-only schema mode` when opening an old Realm created between Realm Java 5.10.0 and Realm Java 5.13.0. (Issue [#6619](https://github.com/realm/realm-java/issues/6619), since 5.13.0).
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: 8416010e4be5e32ba552ff3fb29e500f3102d3db.
+* Updated to Realm Sync 4.7.8.
+* Updated to Realm Core 5.23.5.
+* Updated Docker image used on CI to Node 10.
+
+
+## 5.15.1(2019-09-09)
+
+### Enhancements
+* None.
+
+### Fixed
+* Projects with `flatDirs` repositories defined crashed the build with `MissingPropertyException`. (Issue [#6610](https://github.com/realm/realm-java/issues/6610), since 5.15.0).
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+## 5.15.0(2019-09-05)
+
+### Enhancements
+* [ObjectServer] Added support for Client Resync for fully synchronized Realms which automatically will recover the local Realm in case the server is rolled back. This largely replaces the Client Reset mechanism. Can be configured using `SyncConfiguration.Builder.clientResyncMode()`. (Issue [#6487](https://github.com/realm/realm-java/issues/6487))
+
+### Fixed
+* Huawei devices reporting `Permission denied` when opening a Realm file after an app upgrade or factory reset. This does not automatically fix already existing Realm files. See [this FAQ entry](https://realm.io/docs/java/latest/#huawei-permission-denied) for more details. (Issue [#5715](https://github.com/realm/realm-java/issues/5715))
+* `Realm.copyToRealm()` and `Realm.insertOrUpdate()` crashed on model classes if `@LinkingObjects` was used to target a field with a re-defined internal name in the parent class (e.g. by using `@RealmField`). (Issue [#6581](https://github.com/realm/realm-java/issues/6581))
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Implemented direct access to sync workers on Cloud, bypassing the Sync Proxy: the binding will override the sync session's url prefix if the token refresh response for a realm contains a sync worker path field.
+* Updated to Object Store commit: 9f19d79fde248ba37cef0bd52fe64984f9d71be0.
+* Updated to Realm Sync 4.7.4.
+* Updated to Realm Core 5.23.2.
+
+
+## 5.14.0(2019-08-12)
+
+### Deprecated
+* [ObjectServer] `SyncCredentials.nickname()` has been deprecated in favour of `SyncCredentials.usernamePassword()`.
+* [ObjectServer] `SyncCredentials.IdentityProvider.NICKNAME` has been deprecated in favour of `SyncCredentials.IdentityProvider.USERNAME_PASSWORD`.
+
+### Enhancements
+* None.
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None.
+
+
+## 5.13.1(2019-08-05)
+
+### Enhancements
+* None.
+
+### Fixed
+* [ObjectServer] The C++ networking layer now correctly uses any system defined proxy the same way the Java networking layer does. (Issue [#6574](https://github.com/realm/realm-java/pull/6574)).
+* The Realm bytecode transformer now works correctly with Android Gradle Plugin 3.6.0-alpha01 and beyond. (Issue [#6531](https://github.com/realm/realm-java/issues/6531)).
+* Queries on RealmLists with objects containing indexed integers could return the wrong result. (Issue [#6522](https://github.com/realm/realm-java/issues/6522), since 5.11.0)
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated JavaAssist in the Realm Transformer to 3.25.0-GA.
+* Updated to Realm Core 5.23.1.
+* Updated to Realm Sync 4.7.1.
+* Updated to Object Store commit: bcc6a7524e52071bfcd35cf740f506e0cc6a595e
+
+
+## 5.13.0(2019-07-23)
+
+### Enhancements
+* [ObjectServer] Added support for faster initial synchronization for fully synchronized Realms. (Issue [#6469](https://github.com/realm/realm-java/issues/6469))
+* [ObjectServer] Improved session lifecycle debug output. (Issue [#6552](https://github.com/realm/realm-java/pull/6552)).
+
+### Fixed
+* None.
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Realm Core 5.22.0.
+* Updated to Realm Sync 4.6.1.
+* Updated to Object Store commit f0d75261fc8d332c20dc82f643dd795c0f4c7aec
+
+
+## 5.12.0(2019-06-20)
+
+### Enhancements
+* [ObjectServer] Added `SyncManager.refreshConnections()` that can be used to manually trigger a reconnect for all sessions. This is useful if the device has been offline for a long time or fail to detect that it regained connectivity. (Issue [#259](https://github.com/realm/realm-java-private/issues/259))
+* Added `RealmResults.asJson()` in `@Beta` that returns the result of the query as a JSON payload (#6540).
+
+### Fixed
+* [ObjectServer] `PermissionManager` stopped working if an intermittent network error was reported. (Issue [#6492](https://github.com/realm/realm-java/issues/6492), since 3.7.0)
+* The Kotlin extensions library no longer defines a `app_name`, which in some cases conflicted with the `app_name` defined by applications. (Issue [#6536](https://github.com/realm/realm-java/issues/6536), since 4.3.0)
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Realm Core 5.22.0.
+* Updated to Realm Sync 4.6.1.
+* Updated to Object Store commit 7c3ff8235579550a3e3c6060c47140b2005174f5
+
+## 5.11.0(2019-05-01)
+
+NOTE: This version is only compatible with Realm Object Server 3.21.0 or later.
+
+### Enhancements
+* [ObjectServer] Added `RealmQuery.includeLinkingObjects()`. This is only relevant for Query-based Realms and tells subscriptions to include objects linked through `@LinkingObjects` fields as part of the subscription as well. Objects referenced through objects and lists are always included as a default. (Issue [#6426](https://github.com/realm/realm-java/issues/6426))
+* Encryption now uses hardware optimized functions, which significantly improves the performance of encrypted Realms. ([Realm Core PR #3241](https://github.com/realm/realm-core/pull/3241))
+* Improved query performance when using `RealmQuery.in()` queries. ([Realm Core PR #3250](https://github.com/realm/realm-core/pull/3250)).
+* Improved query performance when querying Integer fields with indexes, e.g. primary key fields. ([Realm Core PR #3272](https://github.com/realm/realm-core/pull/3272)).
+* Improved write performance when writing changes to disk ([Realm Core PR #2927](https://github.com/realm/realm-sync/issues/2927))
+* Added support for incremental annotation processing added in Gradle 4.7. (Issue [#5906](https://github.com/realm/realm-java/issues/5906)).
+
+### Fixed
+* [ObjectServer] Fix an error in the calculation of the `downloadableBytes` value sent by `ProgressListeners`.
+* [ObjectServer] HTTP requests made by the Sync client now always include a Host: header, as required by HTTP/1.1, although its value will be empty if no value is specified by the application.
+* [ObjectServer] The server no longer rejects subscriptions based on queries with distinct and/or limit clauses.
+* [ObjectServer] If a user had `canCreate` but not `canUpdate` privileges on a class, the user would be able to create the object, but not actually set any meaningful values on that object, despite the rule that objects created within the same transaction can always be modified.
+*  Native crash happening if bulk updating a field in a `RealmResult` would cause the object to no longer be part of the query result. (Issue [#6478](https://github.com/realm/realm-java/issues/6478), since 5.8.0).
+
+### Compatibility
+* Realm Object Server: 3.21.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Realm Core 5.19.1.
+* Updated to Relm Sync 4.4.2.
+* Updated to Object Store commit e4b1314d21b521fd604af7f1aacf3ca94272c19a
+
+
+## 5.10.0(2019-03-22)
+
+### Enhancements
+* [ObjectServer] Added 4 new fields to query-based Subscriptions: `createdAt`, `updatedAt`, `expiresAt` and `timeToLive`. These make it possible to better reason about and control current subscriptions. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
+* [ObjectServer] Added the option of updating the query controlled by a Subscription using either `RealmQuery.findAllAsync(String name, boolean update)`,  `RealmQuery.subscribe(String name, boolean update)` or `Subscription.setQuery(RealmQuery query)`. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
+* [ObjectServer] Added the option of setting a time-to-live for subscriptions. Setting this will automatically delete the subscription after the provided TTL has expired and the subscription hasn't been used. (Issue [#6453](https://github.com/realm/realm-java/issues/6453))
+
+### Fixed
+* Dates returned from the Realm file no longer overflow or underflow if they exceed `Long.MAX_VALUE` or `Long.MIN_VALUE` but instead clamp to their respective value. (Issue [#2722](https://github.com/realm/realm-java/issues/2722))
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats).
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: e9819ed9c77ed87b5d7bed416a76cd5bcf255802
+
+
+## 5.9.1(2019-02-21)
+
+### Enhancements
+* None
+
+### Fixed
+* [ObjectServer] Reporting too many errors from the native layer resulted in a native crash with `local reference table overflow`. (Issue [#249](https://github.com/realm/realm-java-private/issues/249), since 5.9.0)
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None
+
+## 5.9.0(2019-01-15)
+
+### Enhancements
+* [ObjectServer] Added `ObjectServerError.getErrorType()` and `ObjectServerError.getErrorType()` which returns the underlying native error information. This is especially relevant if `ObjectServerError.getErrorCode()` returns `UNKNOWN`. [#6364](https://github.com/realm/realm-java/issues/6364)
+* Added better checks for detecting corrupted files, both before and after the file is written to disk.
+
+### Fixed
+* [ObjectServer] Native errors sometimes mapped to the wrong Java ErrorCode. (Issue [#6364](https://github.com/realm/realm-java/issues/6364), since 2.0.0)
+* [ObjectServer] Query-based Sync queries involving LIMIT, limited the result before permissions were evaluated. This could sometimes result in the wrong number of elements being returned.
+* Removed Java 8 bytecode. Resulted in errors like `D8: Invoke-customs are only supported starting with Android O (--min-api 26)` if not compiled with Java 8. (Issue [#6300](https://github.com/realm/realm-java/issues/6300), since 5.8.0).
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: f964c2640f635e76839559cb703732e9e906ba4c
+* Updated Realm Sync to 3.14.13
+* Updated Realm Core to 5.12.7
+
+
+## 5.8.0 (2018-11-06)
+
+This release also contains all changes from 5.8.0-BETA1 and 5.8.0-BETA2.
+
+### Enhancements
+* [ObjectServer] Added Subscription class available to Query-based Realms. This exposes a Subscription more directly. This class is in beta. [#6231](https://github.com/realm/realm-java/pull/6231).
+  * [ObjectServer] Added `Realm.getSubscriptions()`, `Realm.getSubscriptions(String pattern)` and `Realm.getSubscription` to make it easier to find existing subscriptions. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231)
+  * [ObjectServer] Added `RealmQuery.subscribe()` and `RealmQuery.subscribe(String name)` to subscribe immediately inside a transaction. These API's are in beta. [#6231](https://github.com/realm/realm-java/pull/6231)
+  * [ObjectServer] Added support for subscribing directly inside `SyncConfiguration.initialData()`. This can be coupled with `SyncConfiguration.waitForInitialRemoteData()` in order to block a Realm from opening until the initial subscriptions are ready and have downloaded data. This API are in beta. [#6231](https://github.com/realm/realm-java/pull/6231)
+* [ObjectServer] Improved performance when merging changes from the server.
+* [ObjectServer] Added support for timeouts when uploading or downloading data manually using `SyncSession.downloadAllServerChanges(long timeout, TimeUnit unit)` and `SyncSession.uploadAllLocalChanges(long timeout, TimeUnit unit)`. [#6073](https://github.com/realm/realm-java/pull/6073)
+* [ObjectServer] Added support for timing out when downloading initial data for synchronized Realms using `SyncConfiguration.waitForInitialRemoteData(long timeout, TimeUnit unit)`. [#6247](https://github.com/realm/realm-java/issues/6247)
+* [ObjectServer] Added `Realm.init(Context, String)` which defines a custom User-Agent String sent to the Realm Object Server when a session is created. Using this requires Realm Object Server 3.12.4 or later. [#6267](https://github.com/realm/realm-java/issues/6267)
+* Added support for `ImportFlag`s to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()`. This makes it possible to choose a mode so only fields that actually changed are written to disk. This improves notifications and Object Server performance. [#6224](https://github.com/realm/realm-java/pull/6224)
+* Added support for bulk updating the same property in all objects that are part of a query result using `RealmResults.setValue(String fieldName, Object value)` or one of the specialized overrides that have been added for all supported types, e.g. `RealmResults.setString(String fieldName, String value)`. [#762](https://github.com/realm/realm-java/issues/762)
+
+### Fixed
+* All known bugs introduced in 5.8.0-BETA1 and 5.8.0-BETA2. See the release notes for these releases.
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: f0dfe6c03be49194bc40777901059eaf55e7bff6
+* Updated Realm Sync to 3.13.1
+* Updated Realm Core to 5.12.0
+
+
+## 5.8.0-BETA2 (2018-10-19)
+
+### Enhancements
+* None
+
+### Fixed
+* `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline [#6235](https://github.com/realm/realm-java/issues/6235).
+
+### Known Bugs
+* `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
+* IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
+* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists will still be written and reported as changed, even if they didn't change.
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* None
+
+
+## 5.8.0-BETA1 (2018-10-11)
+
+### Enhancements
+* Added new `ImportFlag` class that is used to specify additional behaviour when importing
+  data into Realm [#6224](https://github.com/realm/realm-java/pull/6224).
+* Added support for `ImportFlag` to `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate()` [#6224](https://github.com/realm/realm-java/pull/6224).
+
+### Fixed
+* None
+
+### Known Bugs
+* `Realm.copyToRealm()` and `Realm.copyToRealmOrUpdate` has been rewritten to support import flags. It is currently ~30% slower than in 5.7.0.
+* IllegalStateException thrown when trying to create an object with a primary key that already exists when using `Realm.copyToRealm`, will always report "null" instead of the correct primary key value.
+* When using `ImportFlag.DO_NOT_SET_SAME_VALUES`, lists will still be written and reported as changed, even if they didn't change.
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+
+## 5.7.1 (2018-10-22)
+
+### Enhancements
+* None
+
+### Fixed
+* [ObjectServer] `RealmResults` listeners not triggering the initial callback for Query-based Realm when the device is offline. (Issue [#6235](https://github.com/realm/realm-java/issues/6235), since 5.0.0).
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated to Object Store commit: 362b886628b3aefc5b7a0bc32293d794dc1d4ad5
+
+
+## 5.7.0 (2018-09-24)
+
+### Enhancements
+* [ObjectServer] Devices will now report download progress for read-only Realms which
+  will allow the server to compact files sooner, saving server space. This does not affect
+  the client. You will need to upgrade your Realm Object Server to at least version 3.11.0
+  or use [Realm Cloud](https://cloud.realm.io). If you try to connect to a ROS v3.10.x or
+  previous, you will see an error like `Wrong protocol version in Sync HTTP request,
+  client protocol version = 25, server protocol version = 24`.
+
+### Fixed
+* None
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Sync Protocol version increased to 25.
+* Updated Realm Sync to 3.10.1
+* Updated Realm Core to 5.10.2
+
+
+## 5.6.0 (2018-09-24)
+
+### Enhancements
+* [ObjectServer] Added `RealmPermissions.findOrCreate(String roleName)` and
+  `ClassPermissions.findOrCreate(String roleName)` ([#6168](https://github.com/realm/realm-java/issues/6168)).
+* `@RealmClass("name")` and `@RealmField("name")` can now be used as a shorthand for defining custom
+  name mappings ([#6145](https://github.com/realm/realm-java/issues/6145)).
+* Added support for `RealmQuery.limit(long limit)` ([#544](https://github.com/realm/realm-java/issues/544)).
+  When building a `RealmQuery`, `sort()`, `distinct()` and `limit()` will now be applied in the order
+  they are called. Before this release, `sort()`  and `distinct()` could be called any order, but
+  `sort()` would always be applied before `distinct()`.
+* Building with Android App Bundle is now supported ([#5977](https://github.com/realm/realm-java/issues/5977)).
+
+### Fixed
+* None
+
+### Compatibility
+* Realm Object Server: 3.11.0 or later.
+* File format: Generates Realms with format v9 (Reads and upgrades all previous formats)
+* APIs are backwards compatible with all previous release of realm-java in the 5.x.y series.
+
+### Internal
+* Updated ReLinker to 1.3.0.
+* Updated to Object Store commit: 7e19c51af72c3343b453b8a13c82dfda148e4bbc
+
+
+## 5.5.0 (2018-08-31)
+
+### Enhancements
+* [ObjectServer] Added `ConnectionState` enum describing the states a connection can be in.
+* [ObjectServer] Added `SyncSession.isConnected()` and `SyncSession.getConnectionState()`.
+* [ObjectServer] Added support for observing connection changes for a session using `SyncSession.addConnectionChangeListener()` and `SyncSession.removeConnectionChangeListener()`.
+* [ObjectServer] Added Kotlin extension property `Realm.syncSession` for synchronized Realms.
+* [ObjectServer] Added Kotlin extension method `Realm.classPermissions<RealmModel>()`.
+* [ObjectServer] Added support for starting and stopping synchronization using `SyncSession.start()` and `SyncSession.stop()` (#6135).
+* [ObjectServer] Added API's for making it easier to work with network proxies (#6163):
+  * `SyncManager.setAuthorizationHeaderName(String headerName)`
+  * `SyncManager.setAuthorizationHeaderName(String headerName, String host)`
+  * `SyncManager.addCustomRequestHeader(String headerName, String headerValue)`
+  * `SyncManager.addCustomRequestHeader(String headerName, String headerValue, String host)`
+  * `SyncManager.addCustomRequestHeaders(Map<String, String> headers)`
+  * `SyncManager.addCustomRequestHeaders(Map<String, String> headers, String host)`
+  * `SyncConfiguration.Builder.urlPrefix(String prefix)`
+
+### Fixed
+* Methods and classes requiring synchronized Realms have been removed from the standard AAR package. They are now only visible when enabling synchronized Realms in Gradle. The methods and classes will still be visible in the source files and docs, but annotated with `@ObjectServer` (#5799).
+
+### Internal
+* Updated to Realm Sync 3.9.4
+* Updated to Realm Core 5.8.0
+* Updated to Object Store commit: b0fc2814d9e6061ce5ba1da887aab6cfba4755ca
+
+### Credits
+* Thanks to @lucasdornelasv for improving the performance of `Realm.copyToRealm()`, `Realm.copyToRealmOrUpdate()` and `Realm.copyFromRealm()` #(6124).
+
+
+## 5.4.3 (YYYY-MM-DD)
+
+### Bug Fixes
+
+* [ObjectServer] ProGuard was not configured correctly when working with Subscriptions for Query-based Realms.
+
+
+## 5.4.2 (2018-08-09)
+
+### Bug Fixes
+
+* [ObjectServer] Fixed bugs in the Sync Client that could lead to memory corruption and crashes.
+
+### Internal
+
+* Upgraded to Realm Sync 3.8.8
+
+
+## 5.4.1 (2018-08-03)
+
+### Bug Fixes
+
+* Compile time crash if no `targetSdk` was defined in Gradle. This was introduced in 5.4.0 (#6082).
+* Fix Realm Gradle Plugin adding dependencies in a way incompatible with Kotlin Android Extensions. This was introduced in Realm Java 5.4.0 (#6080).
+
+
+## 5.4.0 (2018-07-22)
 
 ### Enhancements
 
+* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+
+### Bug Fixes
+
+* [ObjectServer] Using Android Network Security Configuration is necessary to install the custom root CA for tests (API >= 24) (#5970).
+* Fixes issue with the incremental build causing direct access to model without accessor to fail (#6056).
+* `RealmQuery.distinct()` is now correctly applied when calling `RealmQuery.count()` (#5958).
+
+### Internal
+
+* Upgraded to Realm Core 5.7.2
+* Upgraded to Realm Sync 3.8.1
+* [ObjectServer] Improved performance when integrating changes from the server.
+* Added extra information about the state of the Realm file if an exception is thrown due to Realm not being able to open it.
+* Removed internal dependency on Groovy in the Realm Transformer (#3971).
+
+### Credits
+
+* Thanks to @kageiit for removing Groovy from the Realm Transformer (#3971).
+
+
+## 5.3.1 (2018-06-19)
+
+### Bug Fixes
+
+* [ObjectServer] Fixed a bug which could potentially flood Realm Object Server with PING messages.
+* Calling `Realm.deleteAll()` on a Realm file that contains more classes than in the schema throws exception (#5745).
+* `Realm.isEmpty()` returning false in some cases, even if all tables part of the schema are empty (#5745).
+* Fixed rare native crash materializing as `Assertion failed: ref + size <= after_ref with (ref, size, after_ref, ndx, m_free_positions.size())` (#5300).
+
+### Internal
+
+* Upgraded to Realm Core 5.6.2
+* Upgraded to Realm Sync 3.5.6
+* Upgraded to Object Store commit `0bcb9643b8fb14323df697999b79c4a5341a8a21`
+
+
+## 5.3.0 (2018-06-12)
+
+### Enhancements
+
+* [ObjectServer] `Realm.compactRealm(config)` now works on synchronized Realms (#5937).
+* [ObjectServer] `SyncConfiguration.compactOnLaunch()` and `SyncConfiguration.compactOnLaunch(callback)` has been added (#5937).
 * Added `RealmQuery.getRealm()`, `RealmResults.getRealm()`, `RealmList.getRealm()` and `OrderedRealmCollectionSnapshot.getRealm()` (#5997).
+* Removing a ChangeListener on invalid objects or `RealmResults` should warn instead of throwing (fixes #5855).
+
+
+### Internal
+
+* Upgraded to Realm Core 5.6.0
+* Upgraded to Realm Sync 3.5.2
 
 
 ## 5.2.0 (2018-06-06)
@@ -14,7 +1702,7 @@ This has impacted a number of API's. See below for the details.
 
 * [ObjectServer] `SyncConfiguration.automatic()` has been deprecated in favour of `SyncUser.getDefaultConfiguration()`.
 * [ObjectServer] `new SyncConfiguration.Builder(user, url)` has been deprecated in favour of `SyncUser.createConfiguration(url)`. NOTE: Creating configurations using `SyncUser` will default to using query-based Realms, while creating them using `new SyncConfiguration.Builder(user, url)` will default to fully synchronized Realms.
-* [ObjectServer] With query-based sync being the default `SyncConfiguration.Builder.partialRealm()` has been deprecated. Use ``SyncConfiguration.Builder.fullSynchronization()` if you want full synchronisation instead.
+* [ObjectServer] With query-based sync being the default `SyncConfiguration.Builder.partialRealm()` has been deprecated. Use `SyncConfiguration.Builder.fullSynchronization()` if you want full synchronisation instead.
 
 ### Enhancements
 
@@ -581,7 +2269,7 @@ and `SyncUser#retrieveInfoForUserAsync` which returns a `SyncUserInfo` with mode
 
 ### Enhancements
 
-* Added support for reverse relationships through the `@LinkingObjects` annotation. See `io.realm.annotations.LinkingObjects` for documentation.  
+* Added support for reverse relationships through the `@LinkingObjects` annotation. See `io.realm.annotations.LinkingObjects` for documentation.
   * This feature is in `@Beta`.
   * Queries on linking objects do not work.  Queries like `where(...).equalTo("field.linkingObjects.id", 7).findAll()` are not yet supported.
   * Backlink verification is incomplete.  Evil code can cause native crashes.
@@ -1069,9 +2757,9 @@ No changes since 0.91.1.
 * `Realm.distinct*()`. Use `Realm.where(clazz).distinct*()` instead.
 * `DynamicRealm.allObjects*()`. Use `DynamicRealm.where(className).findAll*()` instead.
 * `DynamicRealm.distinct*()`. Use `DynamicRealm.where(className).distinct*()` instead.
-* `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
-* `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])`` instead.
-* `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])`` instead.
+* `Realm.allObjectsSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])` instead.
+* `RealmQuery.findAllSorted(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSorted(field[], sort[])` instead.
+* `RealmQuery.findAllSortedAsync(field, sort, field, sort, field, sort)`. Use `RealmQuery.findAllSortedAsync(field[], sort[])` instead.
 * `RealmConfiguration.setModules()`. Use `RealmConfiguration.modules()` instead.
 * `Realm.refresh()` and `DynamicRealm.refresh()`. Use `Realm.waitForChange()`/`stopWaitForChange()` or `DynamicRealm.waitForChange()`/`stopWaitForChange()` instead.
 

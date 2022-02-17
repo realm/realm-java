@@ -34,11 +34,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import io.realm.entities.AllJavaTypes;
-import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.NullTypes;
 import io.realm.entities.Owner;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -321,7 +319,6 @@ public class ManagedOrderedRealmCollectionTests extends CollectionTests {
         assertEquals(2, sortedList.last().getId());
     }
 
-    // Tests sort on nullable fields with null values partially.
     @Test
     public void sort_rowsWithPartialNullValues() {
         if (isSnapshot(collectionClass)) {

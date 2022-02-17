@@ -15,7 +15,7 @@
  */
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -26,11 +26,11 @@ import org.junit.runner.RunWith;
 
 import io.realm.entities.Cat;
 import io.realm.internal.RealmProxyMediator;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
 import static junit.framework.Assert.fail;
+import static org.junit.Assert.assertFalse;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -66,36 +66,36 @@ public class ColumnInfoTests {
 
         // Checks precondition.
         assertNotSame(sourceColumnInfo, targetColumnInfo);
-        assertNotSame(sourceColumnInfo.getIndicesMap(), targetColumnInfo.getIndicesMap());
+        assertFalse(sourceColumnInfo.getColumnKeysMap().equals(targetColumnInfo.getColumnKeysMap()));
 
-        sourceColumnInfo.nameIndex = 1;
-        sourceColumnInfo.ageIndex = 2;
-        sourceColumnInfo.heightIndex = 3;
-        sourceColumnInfo.weightIndex = 4;
-        sourceColumnInfo.hasTailIndex = 5;
-        sourceColumnInfo.birthdayIndex = 6;
-        sourceColumnInfo.ownerIndex = 7;
-        sourceColumnInfo.scaredOfDogIndex = 8;
+        sourceColumnInfo.nameColKey = 1;
+        sourceColumnInfo.ageColKey = 2;
+        sourceColumnInfo.heightColKey = 3;
+        sourceColumnInfo.weightColKey = 4;
+        sourceColumnInfo.hasTailColKey = 5;
+        sourceColumnInfo.birthdayColKey = 6;
+        sourceColumnInfo.ownerColKey = 7;
+        sourceColumnInfo.scaredOfDogColKey = 8;
 
-        targetColumnInfo.nameIndex = 0;
-        targetColumnInfo.ageIndex = 0;
-        targetColumnInfo.heightIndex = 0;
-        targetColumnInfo.weightIndex = 0;
-        targetColumnInfo.hasTailIndex = 0;
-        targetColumnInfo.birthdayIndex = 0;
-        targetColumnInfo.ownerIndex = 0;
-        targetColumnInfo.scaredOfDogIndex = 0;
+        targetColumnInfo.nameColKey = 0;
+        targetColumnInfo.ageColKey = 0;
+        targetColumnInfo.heightColKey = 0;
+        targetColumnInfo.weightColKey = 0;
+        targetColumnInfo.hasTailColKey = 0;
+        targetColumnInfo.birthdayColKey = 0;
+        targetColumnInfo.ownerColKey = 0;
+        targetColumnInfo.scaredOfDogColKey = 0;
 
         targetColumnInfo.copyFrom(sourceColumnInfo);
 
-        assertEquals(sourceColumnInfo.nameIndex, targetColumnInfo.nameIndex);
-        assertEquals(sourceColumnInfo.ageIndex, targetColumnInfo.ageIndex);
-        assertEquals(sourceColumnInfo.heightIndex, targetColumnInfo.heightIndex);
-        assertEquals(sourceColumnInfo.weightIndex, targetColumnInfo.weightIndex);
-        assertEquals(sourceColumnInfo.hasTailIndex, targetColumnInfo.hasTailIndex);
-        assertEquals(sourceColumnInfo.birthdayIndex, targetColumnInfo.birthdayIndex);
-        assertEquals(sourceColumnInfo.ownerIndex, targetColumnInfo.ownerIndex);
-        assertEquals(sourceColumnInfo.scaredOfDogIndex, targetColumnInfo.scaredOfDogIndex);
+        assertEquals(sourceColumnInfo.nameColKey, targetColumnInfo.nameColKey);
+        assertEquals(sourceColumnInfo.ageColKey, targetColumnInfo.ageColKey);
+        assertEquals(sourceColumnInfo.heightColKey, targetColumnInfo.heightColKey);
+        assertEquals(sourceColumnInfo.weightColKey, targetColumnInfo.weightColKey);
+        assertEquals(sourceColumnInfo.hasTailColKey, targetColumnInfo.hasTailColKey);
+        assertEquals(sourceColumnInfo.birthdayColKey, targetColumnInfo.birthdayColKey);
+        assertEquals(sourceColumnInfo.ownerColKey, targetColumnInfo.ownerColKey);
+        assertEquals(sourceColumnInfo.scaredOfDogColKey, targetColumnInfo.scaredOfDogColKey);
     }
 
     @Test
@@ -103,48 +103,48 @@ public class ColumnInfoTests {
         final io_realm_entities_CatRealmProxy.CatColumnInfo columnInfo
                 = (io_realm_entities_CatRealmProxy.CatColumnInfo) mediator.createColumnInfo(Cat.class, realm.sharedRealm.getSchemaInfo());
 
-        columnInfo.nameIndex = 1;
-        columnInfo.ageIndex = 2;
-        columnInfo.heightIndex = 3;
-        columnInfo.weightIndex = 4;
-        columnInfo.hasTailIndex = 5;
-        columnInfo.birthdayIndex = 6;
-        columnInfo.ownerIndex = 7;
-        columnInfo.scaredOfDogIndex = 8;
+        columnInfo.nameColKey = 1;
+        columnInfo.ageColKey = 2;
+        columnInfo.heightColKey = 3;
+        columnInfo.weightColKey = 4;
+        columnInfo.hasTailColKey = 5;
+        columnInfo.birthdayColKey = 6;
+        columnInfo.ownerColKey = 7;
+        columnInfo.scaredOfDogColKey = 8;
 
         io_realm_entities_CatRealmProxy.CatColumnInfo copy = (io_realm_entities_CatRealmProxy.CatColumnInfo) columnInfo.copy(true);
 
         // verify that the copy is identical
         assertNotSame(columnInfo, copy);
-        assertEquals(columnInfo.getIndicesMap(), copy.getIndicesMap());
-        assertEquals(columnInfo.nameIndex, copy.nameIndex);
-        assertEquals(columnInfo.ageIndex, copy.ageIndex);
-        assertEquals(columnInfo.heightIndex, copy.heightIndex);
-        assertEquals(columnInfo.weightIndex, copy.weightIndex);
-        assertEquals(columnInfo.hasTailIndex, copy.hasTailIndex);
-        assertEquals(columnInfo.birthdayIndex, copy.birthdayIndex);
-        assertEquals(columnInfo.ownerIndex, copy.ownerIndex);
-        assertEquals(columnInfo.scaredOfDogIndex, copy.scaredOfDogIndex);
+        assertEquals(columnInfo.getColumnKeysMap(), copy.getColumnKeysMap());
+        assertEquals(columnInfo.nameColKey, copy.nameColKey);
+        assertEquals(columnInfo.ageColKey, copy.ageColKey);
+        assertEquals(columnInfo.heightColKey, copy.heightColKey);
+        assertEquals(columnInfo.weightColKey, copy.weightColKey);
+        assertEquals(columnInfo.hasTailColKey, copy.hasTailColKey);
+        assertEquals(columnInfo.birthdayColKey, copy.birthdayColKey);
+        assertEquals(columnInfo.ownerColKey, copy.ownerColKey);
+        assertEquals(columnInfo.scaredOfDogColKey, copy.scaredOfDogColKey);
 
         // Modify original object
-        columnInfo.nameIndex = 0;
-        columnInfo.ageIndex = 0;
-        columnInfo.heightIndex = 0;
-        columnInfo.weightIndex = 0;
-        columnInfo.hasTailIndex = 0;
-        columnInfo.birthdayIndex = 0;
-        columnInfo.ownerIndex = 0;
-        columnInfo.scaredOfDogIndex = 0;
+        columnInfo.nameColKey = 0;
+        columnInfo.ageColKey = 0;
+        columnInfo.heightColKey = 0;
+        columnInfo.weightColKey = 0;
+        columnInfo.hasTailColKey = 0;
+        columnInfo.birthdayColKey = 0;
+        columnInfo.ownerColKey = 0;
+        columnInfo.scaredOfDogColKey = 0;
 
         // the copy should not change
-        assertEquals(1, copy.nameIndex);
-        assertEquals(2, copy.ageIndex);
-        assertEquals(3, copy.heightIndex);
-        assertEquals(4, copy.weightIndex);
-        assertEquals(5, copy.hasTailIndex);
-        assertEquals(6, copy.birthdayIndex);
-        assertEquals(7, copy.ownerIndex);
-        assertEquals(8, copy.scaredOfDogIndex);
+        assertEquals(1, copy.nameColKey);
+        assertEquals(2, copy.ageColKey);
+        assertEquals(3, copy.heightColKey);
+        assertEquals(4, copy.weightColKey);
+        assertEquals(5, copy.hasTailColKey);
+        assertEquals(6, copy.birthdayColKey);
+        assertEquals(7, copy.ownerColKey);
+        assertEquals(8, copy.scaredOfDogColKey);
     }
 
     @Test

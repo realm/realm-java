@@ -1,4 +1,5 @@
 #!/bin/sh
 
-docker stop sync-test-server -t0
-docker rm sync-test-server
+docker stop mongodb-realm -t0
+docker stop mongodb-realm-command-server -t0
+docker network rm mongodb-realm-network

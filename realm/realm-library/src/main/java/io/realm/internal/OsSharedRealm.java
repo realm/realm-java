@@ -26,17 +26,23 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
-import io.realm.RealmModel;
-import io.realm.exceptions.RealmException;
+import io.realm.RealmFieldType;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
-import io.realm.sync.permissions.RealmPrivileges;
+import io.realm.internal.async.RealmThreadPoolExecutor;
+import io.realm.internal.objectstore.OsSubscriptionSet;
+import io.realm.mongodb.sync.SubscriptionSet;
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
 
     public static class VersionID implements Comparable<VersionID> {
+        // Realm Core uses unsigned integers to represent versions. This means
+        // they could theoretically hit this value (maximum value of unsigned + overflow)
+        // but very unlikely
+        public static final VersionID LIVE = new VersionID(-1, -1);
+
         public final long version;
         public final long index;
 
@@ -83,8 +89,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
         @Override
         public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (int) (version ^ (version >>> 32));
+            int result = (int) (version ^ (version >>> 32));
             result = 31 * result + (int) (index ^ (index >>> 32));
             return result;
         }
@@ -141,7 +146,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
     private final OsRealmConfig osRealmConfig;
-    final NativeContext context;
+    public final NativeContext context;
     private final OsSchemaInfo schemaInfo;
     private static volatile File temporaryDirectory;
     // JNI will only hold a weak global ref to this.
@@ -153,14 +158,14 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     // SharedRealm which means the SharedRealm won't be closed automatically if there is any exception throws during
     // construction. GC will clear them later, but that would be too late. So we are tracking the temp OsSharedRealm
     // during the construction stage and manually close them if exception throws.
-    private final static List<OsSharedRealm> sharedRealmsUnderConstruction = new CopyOnWriteArrayList<OsSharedRealm>();
+    private static final List<OsSharedRealm> sharedRealmsUnderConstruction = new CopyOnWriteArrayList<OsSharedRealm>();
     private final List<OsSharedRealm> tempSharedRealmsForCallback = new ArrayList<OsSharedRealm>();
 
     private final List<WeakReference<PendingRow>> pendingRows = new CopyOnWriteArrayList<>();
     // Package protected for testing
     final List<WeakReference<OsResults.Iterator>> iterators = new ArrayList<>();
 
-    private OsSharedRealm(OsRealmConfig osRealmConfig) {
+    private OsSharedRealm(OsRealmConfig osRealmConfig, VersionID version) {
         Capabilities capabilities = new AndroidCapabilities();
         RealmNotifier realmNotifier = new AndroidRealmNotifier(this, capabilities);
 
@@ -168,10 +173,10 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         this.context = osRealmConfig.getContext();
         sharedRealmsUnderConstruction.add(this);
         try {
-            this.nativePtr = nativeGetSharedRealm(osRealmConfig.getNativePtr(), realmNotifier);
+            this.nativePtr = nativeGetSharedRealm(osRealmConfig.getNativePtr(), version.version, version.index, realmNotifier);
         } catch (Throwable t) {
             // The SharedRealm instances have to be closed before throw.
-            for (OsSharedRealm sharedRealm: tempSharedRealmsForCallback) {
+            for (OsSharedRealm sharedRealm : tempSharedRealmsForCallback) {
                 if (!sharedRealm.isClosed()) {
                     sharedRealm.close();
                 }
@@ -187,7 +192,9 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
         this.capabilities = capabilities;
         this.realmNotifier = realmNotifier;
-        nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
+        if (version.equals(VersionID.LIVE)) {
+            nativeSetAutoRefresh(nativePtr, capabilities.canDeliverNotification());
+        }
     }
 
     /**
@@ -197,17 +204,8 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * are different {@code shared_ptr}, they point to the same {@code SharedGroup} instance. The {@code context} has
      * to be the same one to ensure core's destructor thread safety.
      */
-    private OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
-        this.nativePtr = nativeSharedRealmPtr;
-        this.osRealmConfig = osRealmConfig;
-        this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
-        this.context = osRealmConfig.getContext();
-        this.context.addReference(this);
-
-        this.capabilities = new AndroidCapabilities();
-        // This instance should never need notifications.
-        this.realmNotifier = null;
-        nativeSetAutoRefresh(nativePtr, false);
+    OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig) {
+        this(nativeSharedRealmPtr, osRealmConfig, osRealmConfig.getContext());
 
         boolean foundParentSharedRealm = false;
         for (OsSharedRealm sharedRealm : sharedRealmsUnderConstruction) {
@@ -222,23 +220,45 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         }
     }
 
+    /**
+     * Creates a {@code OsSharedRealm} instance from a given Object Store's {@code OsSharedRealm}
+     * pointer with a given NativeContext. This is used to create {@code OsSharedRealm} from the
+     * callback functions.
+     */
+    OsSharedRealm(long nativeSharedRealmPtr, OsRealmConfig osRealmConfig, NativeContext nativeContext) {
+        this.nativePtr = nativeSharedRealmPtr;
+        this.osRealmConfig = osRealmConfig;
+        this.schemaInfo = new OsSchemaInfo(nativeGetSchemaInfo(nativePtr), this);
+        this.context = nativeContext;
+        this.context.addReference(this);
+
+        this.capabilities = new AndroidCapabilities();
+        // This instance should never need notifications.
+        this.realmNotifier = null;
+        nativeSetAutoRefresh(nativePtr, false);
+    }
 
     /**
      * Creates a {@code OsSharedRealm} instance in dynamic schema mode.
+     *
+     * @param config configuration to use
+     * @param version which version to use for a frozen instance or {@link VersionID#LIVE} for a live Realm.
      */
-    public static OsSharedRealm getInstance(RealmConfiguration config) {
+    public static OsSharedRealm getInstance(RealmConfiguration config, VersionID version) {
         OsRealmConfig.Builder builder = new OsRealmConfig.Builder(config);
-        return getInstance(builder);
+        return getInstance(builder, version);
     }
 
     /**
      * Creates a {@code ShareRealm} instance from the given {@link OsRealmConfig.Builder}.
+     *
+     * @param configBuilder configuration to use
+     * @param version which version to use for a frozen instance or {@link VersionID#LIVE} for a live Realm.
      */
-    public static OsSharedRealm getInstance(OsRealmConfig.Builder configBuilder) {
+    public static OsSharedRealm getInstance(OsRealmConfig.Builder configBuilder, VersionID version) {
         OsRealmConfig osRealmConfig = configBuilder.build();
         ObjectServerFacade.getSyncFacadeIfPossible().wrapObjectStoreSessionIfRequired(osRealmConfig);
-
-        return new OsSharedRealm(osRealmConfig);
+        return new OsSharedRealm(osRealmConfig, version);
     }
 
     public static void initialize(File tempDirectory) {
@@ -293,8 +313,8 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * @throws IllegalArgumentException if the table doesn't exist.
      */
     public Table getTable(String name) {
-        long tablePtr = nativeGetTable(nativePtr, name);
-        return new Table(this, tablePtr);
+        long tableRefPtr = nativeGetTableRef(nativePtr, name);
+        return new Table(this, tableRefPtr);
     }
 
     /**
@@ -319,18 +339,18 @@ public final class OsSharedRealm implements Closeable, NativeObject {
      * @param isNullable          if the primary key field is nullable or not.
      * @return a newly created {@link Table} object.
      */
-    public Table createTableWithPrimaryKey(String tableName, String primaryKeyFieldName, boolean isStringType,
+    public Table createTableWithPrimaryKey(String tableName, String primaryKeyFieldName, RealmFieldType primaryKeyFieldType,
                                            boolean isNullable) {
-        return new Table(this, nativeCreateTableWithPrimaryKeyField(nativePtr, tableName, primaryKeyFieldName,
-                isStringType, isNullable));
+        return new Table(this, nativeCreateTableWithPrimaryKeyField(nativePtr, tableName, primaryKeyFieldName, primaryKeyFieldType.getNativeValue(), isNullable));
     }
 
     public void renameTable(String oldName, String newName) {
         nativeRenameTable(nativePtr, oldName, newName);
     }
 
-    public String getTableName(int index) {
-        return nativeGetTableName(nativePtr, index);
+    public String[] getTablesNames() {
+        String[] names = nativeGetTablesName(nativePtr);
+        return names != null? names : new String[]{};
     }
 
     public long size() {
@@ -346,27 +366,28 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     public void refresh() {
+        if (isFrozen()) {
+            throw new IllegalStateException("It is not possible to refresh frozen Realms.");
+        }
         nativeRefresh(nativePtr);
     }
 
     public OsSharedRealm.VersionID getVersionID() {
         long[] versionId = nativeGetVersionID(nativePtr);
+        if (versionId == null) {
+            throw new IllegalStateException("Cannot get versionId, this could be related to a non existing read/write transaction");
+        }
         return new OsSharedRealm.VersionID(versionId[0], versionId[1]);
     }
 
     @ObjectServer
-    public int getPrivileges() {
-        return nativeGetRealmPrivileges(nativePtr);
-    }
-
-    @ObjectServer
-    public int getClassPrivileges(String className) {
-        return nativeGetClassPrivileges(nativePtr, className);
-    }
-
-    @ObjectServer
-    public int getObjectPrivileges(UncheckedRow row) {
-        return nativeGetObjectPrivileges(nativePtr, ((UncheckedRow) row).getNativePtr());
+    public SubscriptionSet getSubscriptions(RealmProxyMediator schema,
+                                            RealmThreadPoolExecutor listenerExecutor,
+                                            RealmThreadPoolExecutor writeExecutor) {
+        ObjectServerFacade facade = ObjectServerFacade.getSyncFacadeIfPossible();
+        facade.checkFlexibleSyncEnabled(getConfiguration());
+        long ptr = nativeGetLatestSubscriptionSet(nativePtr);
+        return new OsSubscriptionSet(ptr, schema, listenerExecutor, writeExecutor);
     }
 
     public boolean isClosed() {
@@ -377,15 +398,21 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         if (file.isFile() && file.exists()) {
             throw new IllegalArgumentException("The destination file must not exist");
         }
-        nativeWriteCopy(nativePtr, file.getAbsolutePath(), key);
-    }
-
-    public boolean waitForChange() {
-        return nativeWaitForChange(nativePtr);
-    }
-
-    public void stopWaitForChange() {
-        nativeStopWaitForChange(nativePtr);
+        if (isSyncRealm()) {
+            Util.checkNotOnMainThread("writeCopyTo() cannot be called from the main " +
+                    "thread when using synchronized Realms.");
+        }
+        try {
+            nativeWriteCopy(nativePtr, file.getAbsolutePath(), key);
+        } catch (RuntimeException e) {
+            // Remap Core vague exception type to better IllegalStateException
+            String msg = e.getMessage();
+            if (msg.contains("Could not write file as not all client changes are integrated in server")) {
+                throw new IllegalStateException(msg);
+            } else {
+                throw e;
+            }
+        }
     }
 
     public boolean compact() {
@@ -397,12 +424,24 @@ public final class OsSharedRealm implements Closeable, NativeObject {
         nativeSetAutoRefresh(nativePtr, enabled);
     }
 
+    public boolean waitForChange() {
+        return nativeWaitForChange(nativePtr);
+    }
+
+    public void stopWaitForChange() {
+        nativeStopWaitForChange(nativePtr);
+    }
+
     public boolean isAutoRefresh() {
         return nativeIsAutoRefresh(nativePtr);
     }
 
     public RealmConfiguration getConfiguration() {
         return osRealmConfig.getRealmConfiguration();
+    }
+
+    public long getNumberOfVersions() {
+        return nativeNumberOfVersions(nativePtr);
     }
 
     @Override
@@ -445,18 +484,24 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     /**
-     * Returns {@code true} if this Realm is a query-based synchronized Realm.
-     */
-    public boolean isPartial() {
-        return nativeIsPartial(nativePtr);
-    }
-
-    /**
-     * Returns {@code true} if this Realm is a synchronized Realm, either query-based or fully
-     * synchronized.
+     * Returns {@code true} if this Realm is a synchronized Realm.
      */
     public boolean isSyncRealm() {
         return osRealmConfig.getResolvedRealmURI() != null;
+    }
+
+    /**
+     * Returns whether or not this Realm is frozen.
+     */
+    public boolean isFrozen() {
+        return nativeIsFrozen(nativePtr);
+    }
+
+    /**
+     * Returns a frozen copy of this Realm.
+     */
+    public OsSharedRealm freeze() {
+        return new OsSharedRealm(osRealmConfig, getVersionID());
     }
 
     // addIterator(), detachIterators() and invalidateIterators() are used to make RealmResults stable iterators work.
@@ -546,7 +591,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native void nativeInit(String temporaryDirectoryPath);
 
-    private static native long nativeGetSharedRealm(long nativeConfigPtr, RealmNotifier notifier);
+    private static native long nativeGetSharedRealm(long nativeConfigPtr, long versionNo, long versionIndex, RealmNotifier notifier);
 
     private static native void nativeCloseSharedRealm(long nativeSharedRealmPtr);
 
@@ -567,7 +612,7 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     private static native long[] nativeGetVersionID(long nativeSharedRealmPtr);
 
     // Throw IAE if the table doesn't exist.
-    private static native long nativeGetTable(long nativeSharedRealmPtr, String tableName);
+    private static native long nativeGetTableRef(long nativeSharedRealmPtr, String tableName);
 
     // Throw IAE if the table exists already.
     private static native long nativeCreateTable(long nativeSharedRealmPtr, String tableName);
@@ -576,9 +621,9 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     // If isStringType is false, the PK field will be created as an integer PK field.
     private static native long nativeCreateTableWithPrimaryKeyField(long nativeSharedRealmPtr, String tableName,
                                                                     String primaryKeyFieldName,
-                                                                    boolean isStringType, boolean isNullable);
+                                                                    int primaryKeyFieldType, boolean isNullable);
 
-    private static native String nativeGetTableName(long nativeSharedRealmPtr, int index);
+    private static native String[] nativeGetTablesName(long nativeSharedRealmPtr);
 
     private static native boolean nativeHasTable(long nativeSharedRealmPtr, String tableName);
 
@@ -605,11 +650,12 @@ public final class OsSharedRealm implements Closeable, NativeObject {
 
     private static native void nativeRegisterSchemaChangedCallback(long nativePtr, SchemaChangedCallback callback);
 
-    private static native int nativeGetRealmPrivileges(long nativePtr);
+    private static native boolean nativeIsFrozen(long nativePtr);
 
-    private static native int nativeGetClassPrivileges(long nativePtr, String className);
+    private static native long nativeFreeze(long nativePtr);
 
-    private static native int nativeGetObjectPrivileges(long nativePtr, long rowNativePtr);
-    private static native boolean nativeIsPartial(long nativePtr);
+    private static native long nativeNumberOfVersions(long nativePtr);
 
+    private static native long nativeGetLatestSubscriptionSet(long realmNativePtr);
+    private static native long nativeGetActiveSubscriptionSet(long realmNativePtr);
 }

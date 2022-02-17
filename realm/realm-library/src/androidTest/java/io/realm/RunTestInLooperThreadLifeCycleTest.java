@@ -16,7 +16,7 @@
 
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -43,7 +43,8 @@ import static org.junit.Assert.assertTrue;
  * - @Before()
  * - @RunTestInLooperThread/@Test
  * - @After : This is called when exiting the test method. Warning: Looper test is still running.
- * - looperThread.runAfterTest(Runnable) : This is called when the LooperTest either succeed or fails.
+ * - looperThread.runAfterTest(Runnable) : This is called when `testComplete()` is called. This can
+ *   be both before and after `@After` has run.
  */
 
 @RunWith(AndroidJUnit4.class)

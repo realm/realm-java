@@ -23,12 +23,12 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
 import java.util.Locale;
 
 
-public class ThreadExampleActivity extends ActionBarActivity implements android.support.v7.app.ActionBar.TabListener {
+public class ThreadExampleActivity extends AppCompatActivity implements android.support.v7.app.ActionBar.TabListener {
 
     private ViewPager viewPager;
 

@@ -18,6 +18,7 @@ package io.realm;
 
 import java.util.Locale;
 
+import io.realm.internal.Freezable;
 import io.realm.internal.OsResults;
 import io.realm.internal.UncheckedRow;
 
@@ -156,8 +157,16 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public OrderedRealmCollectionSnapshot<E> createSnapshot() {
-        realm.checkIfValid();
+        baseRealm.checkIfValid();
         return this;
+    }
+
+    @Override
+    public OrderedRealmCollection<E> freeze() {
+        // Technically, nothing prevents us from supporting this, but there isn't any good use
+        // case for supporting it, since snapshots should only be used when modifying Results.
+        // So for now, this is disabled.
+        throw getUnsupportedException("freeze");
     }
 
     /**
@@ -170,9 +179,9 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public void deleteFromRealm(int location) {
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.getUncheckedRow(location);
-        if (row.isAttached()) {
+        if (row.isValid()) {
             osResults.delete(location);
         }
     }
@@ -185,9 +194,9 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public boolean deleteFirstFromRealm() {
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.firstUncheckedRow();
-        return row != null && row.isAttached() && osResults.deleteFirst();
+        return row != null && row.isValid() && osResults.deleteFirst();
     }
 
     /**
@@ -198,9 +207,9 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
      */
     @Override
     public boolean deleteLastFromRealm() {
-        realm.checkIfValidAndInTransaction();
+        baseRealm.checkIfValidAndInTransaction();
         UncheckedRow row = osResults.lastUncheckedRow();
-        return row != null && row.isAttached() && osResults.deleteLast();
+        return row != null && row.isValid() && osResults.deleteLast();
     }
 
     /**
@@ -214,5 +223,10 @@ public class OrderedRealmCollectionSnapshot<E> extends OrderedRealmCollectionImp
     @Override
     public boolean deleteAllFromRealm() {
         return super.deleteAllFromRealm();
+    }
+
+    @Override
+    public boolean isFrozen() {
+        return false;
     }
 }

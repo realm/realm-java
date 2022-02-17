@@ -16,7 +16,7 @@
 
 package io.realm.internal;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
@@ -30,7 +30,7 @@ import java.util.List;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
-import io.realm.rule.TestRealmConfigurationFactory;
+import io.realm.TestRealmConfigurationFactory;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
@@ -51,22 +51,22 @@ public class OsListTests {
 
     @Before
     public void setUp() {
-        OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel",14, 0)
-                .addPersistedValueListProperty("longList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED)
-                .addPersistedValueListProperty("doubleList", RealmFieldType.DOUBLE_LIST,  !Property.REQUIRED)
-                .addPersistedValueListProperty("floatList", RealmFieldType.FLOAT_LIST, !Property.REQUIRED)
-                .addPersistedValueListProperty("booleanList", RealmFieldType.BOOLEAN_LIST, !Property.REQUIRED)
-                .addPersistedValueListProperty("binaryList", RealmFieldType.BINARY_LIST, !Property.REQUIRED)
-                .addPersistedValueListProperty("dateList", RealmFieldType.DATE_LIST, !Property.REQUIRED)
-                .addPersistedValueListProperty("stringList", RealmFieldType.STRING_LIST, !Property.REQUIRED)
+        OsObjectSchemaInfo objectSchemaInfo = new OsObjectSchemaInfo.Builder("TestModel", false,14, 0)
+                .addPersistedValueListProperty("", "longList", RealmFieldType.INTEGER_LIST, !Property.REQUIRED)
+                .addPersistedValueListProperty("", "doubleList", RealmFieldType.DOUBLE_LIST,  !Property.REQUIRED)
+                .addPersistedValueListProperty("", "floatList", RealmFieldType.FLOAT_LIST, !Property.REQUIRED)
+                .addPersistedValueListProperty("", "booleanList", RealmFieldType.BOOLEAN_LIST, !Property.REQUIRED)
+                .addPersistedValueListProperty("", "binaryList", RealmFieldType.BINARY_LIST, !Property.REQUIRED)
+                .addPersistedValueListProperty("", "dateList", RealmFieldType.DATE_LIST, !Property.REQUIRED)
+                .addPersistedValueListProperty("", "stringList", RealmFieldType.STRING_LIST, !Property.REQUIRED)
 
-                .addPersistedValueListProperty("requiredLongList", RealmFieldType.INTEGER_LIST, Property.REQUIRED)
-                .addPersistedValueListProperty("requiredDoubleList", RealmFieldType.DOUBLE_LIST, Property.REQUIRED)
-                .addPersistedValueListProperty("requiredFloatList", RealmFieldType.FLOAT_LIST, Property.REQUIRED)
-                .addPersistedValueListProperty("requiredBooleanList", RealmFieldType.BOOLEAN_LIST, Property.REQUIRED)
-                .addPersistedValueListProperty("requiredBinaryList", RealmFieldType.BINARY_LIST, Property.REQUIRED)
-                .addPersistedValueListProperty("requiredDateList", RealmFieldType.DATE_LIST, Property.REQUIRED)
-                .addPersistedValueListProperty("requiredStringList", RealmFieldType.STRING_LIST, Property.REQUIRED)
+                .addPersistedValueListProperty("", "requiredLongList", RealmFieldType.INTEGER_LIST, Property.REQUIRED)
+                .addPersistedValueListProperty("", "requiredDoubleList", RealmFieldType.DOUBLE_LIST, Property.REQUIRED)
+                .addPersistedValueListProperty("", "requiredFloatList", RealmFieldType.FLOAT_LIST, Property.REQUIRED)
+                .addPersistedValueListProperty("", "requiredBooleanList", RealmFieldType.BOOLEAN_LIST, Property.REQUIRED)
+                .addPersistedValueListProperty("", "requiredBinaryList", RealmFieldType.BINARY_LIST, Property.REQUIRED)
+                .addPersistedValueListProperty("", "requiredDateList", RealmFieldType.DATE_LIST, Property.REQUIRED)
+                .addPersistedValueListProperty("", "requiredStringList", RealmFieldType.STRING_LIST, Property.REQUIRED)
 
                 .build();
         List<OsObjectSchemaInfo> objectSchemaInfoList = new ArrayList<OsObjectSchemaInfo>();
@@ -78,7 +78,7 @@ public class OsListTests {
         OsRealmConfig.Builder configBuilder = new OsRealmConfig.Builder(config)
                 .autoUpdateNotification(true)
                 .schemaInfo(schemaInfo);
-        sharedRealm = OsSharedRealm.getInstance(configBuilder);
+        sharedRealm = OsSharedRealm.getInstance(configBuilder, OsSharedRealm.VersionID.LIVE);
         sharedRealm.beginTransaction();
         Table table = sharedRealm.getTable(Table.getTableNameForClass("TestModel"));
         row = table.getUncheckedRow(OsObject.createRow(table));
@@ -154,8 +154,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_get_Long() {
-        long index = testObjectSchemaInfo.getProperty("longList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("longList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         add_insert_set_values_long(osList);
         addNull_insertNull_setNull_nullableList(osList);
@@ -163,8 +163,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_get_set_required_Long() {
-        long index = testObjectSchemaInfo.getProperty("requiredLongList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("requiredLongList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         add_insert_set_values_long(osList);
         addNull_insertNull_setNull_requiredList(osList);
@@ -189,8 +189,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_get_Double() {
-        long index = testObjectSchemaInfo.getProperty("doubleList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("doubleList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         add_insert_set_values_double(osList);
         addNull_insertNull_setNull_nullableList(osList);
@@ -198,8 +198,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_get_required_Double() {
-        long index = testObjectSchemaInfo.getProperty("requiredDoubleList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("requiredDoubleList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         add_insert_set_values_double(osList);
         addNull_insertNull_setNull_requiredList(osList);
@@ -224,8 +224,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_get_Float() {
-        long index = testObjectSchemaInfo.getProperty("floatList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("floatList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         add_insert_set_values_float(osList);
         addNull_insertNull_setNull_nullableList(osList);
@@ -233,8 +233,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_get_required_Float() {
-        long index = testObjectSchemaInfo.getProperty("requiredFloatList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("requiredFloatList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         add_insert_set_values_float(osList);
         addNull_insertNull_setNull_requiredList(osList);
@@ -259,8 +259,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_get_Boolean() {
-        long index = testObjectSchemaInfo.getProperty("booleanList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("booleanList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         add_insert_set_values_boolean(osList);
         addNull_insertNull_setNull_nullableList(osList);
@@ -268,8 +268,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_get_required_Boolean() {
-        long index = testObjectSchemaInfo.getProperty("requiredBooleanList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("requiredBooleanList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         add_insert_set_values_boolean(osList);
         addNull_insertNull_setNull_requiredList(osList);
@@ -277,8 +277,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_get_Date() {
-        long index = testObjectSchemaInfo.getProperty("dateList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("dateList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         Date date42 = new Date(42);
         Date date24 = new Date(24);
@@ -320,8 +320,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_null_required_Date() {
-        long index = testObjectSchemaInfo.getProperty("requiredDateList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("requiredDateList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         addNull_insertNull_setNull_requiredList(osList);
 
@@ -346,8 +346,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_get_String() {
-        long index = testObjectSchemaInfo.getProperty("stringList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("stringList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         osList.addString(null);
         String value = (String) osList.getValue(0);
@@ -386,8 +386,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_null_required_String() {
-        long index = testObjectSchemaInfo.getProperty("requiredStringList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("requiredStringList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         addNull_insertNull_setNull_requiredList(osList);
 
@@ -412,8 +412,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_get_Binary() {
-        long index = testObjectSchemaInfo.getProperty("binaryList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("binaryList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         byte[] bytes42 = new byte[1];
         bytes42[0] = 42;
@@ -458,8 +458,8 @@ public class OsListTests {
 
     @Test
     public void add_insert_set_null_required_Binary() {
-        long index = testObjectSchemaInfo.getProperty("requiredBinaryList").getColumnIndex();
-        OsList osList = new OsList(row, index);
+        long columnKey = testObjectSchemaInfo.getProperty("requiredBinaryList").getColumnKey();
+        OsList osList = new OsList(row, columnKey);
 
         addNull_insertNull_setNull_requiredList(osList);
 

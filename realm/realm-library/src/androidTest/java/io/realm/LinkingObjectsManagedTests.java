@@ -17,8 +17,8 @@
 package io.realm;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
@@ -31,9 +31,11 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.realm.entities.AllJavaTypes;
+import io.realm.entities.BacklinkWithOverridenNames;
 import io.realm.entities.BacklinksSource;
 import io.realm.entities.BacklinksTarget;
 import io.realm.exceptions.RealmException;
@@ -43,7 +45,6 @@ import io.realm.internal.Property;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -434,10 +435,13 @@ public class LinkingObjectsManagedTests {
         // precondition
         assertFalse(targetAsync.isLoaded());
 
-        thrown.expect(IllegalStateException.class);
-        //noinspection ResultOfMethodCallIgnored
-        targetAsync.getParents();
-        fail();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            targetAsync.getParents();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+        looperThread.testComplete();
     }
 
     @Test
@@ -471,10 +475,13 @@ public class LinkingObjectsManagedTests {
         // precondition
         assertFalse(target.isValid());
 
-        thrown.expect(IllegalStateException.class);
-        //noinspection ResultOfMethodCallIgnored
-        target.getParents();
-        fail();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            target.getParents();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+        looperThread.testComplete();
     }
 
     @Test
@@ -509,10 +516,13 @@ public class LinkingObjectsManagedTests {
         // precondition
         assertFalse(target.isValid());
 
-        thrown.expect(IllegalStateException.class);
-        //noinspection ResultOfMethodCallIgnored
-        target.getParents();
-        fail();
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            target.getParents();
+            fail();
+        } catch (IllegalStateException ignore) {
+        }
+        looperThread.testComplete();
     }
 
     /**
@@ -593,13 +603,13 @@ public class LinkingObjectsManagedTests {
 
         // Mock the schema info so the only difference compared with the original schema is that the LinkingObject field
         // points to BacklinksSource.childNotExist.
-        OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", 1, 1)
-                .addPersistedProperty("id", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
+        OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 1, 1)
+                .addPersistedProperty("id", "",RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
                 .addComputedLinkProperty("parents", "BacklinksSource", "childNotExist" /*"child" is the original value*/)
                 .build();
-        OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", 2, 0)
-                .addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
-                .addPersistedLinkProperty("child", RealmFieldType.OBJECT, "BacklinksTarget")
+        OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", false, 2, 0)
+                .addPersistedProperty("name", "",RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
+                .addPersistedLinkProperty("child", "",RealmFieldType.OBJECT, "BacklinksTarget")
                 .build();
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
                 new HashMap<Class<? extends RealmModel>, OsObjectSchemaInfo>();
@@ -636,13 +646,12 @@ public class LinkingObjectsManagedTests {
 
         // Mock the schema info so the only difference compared with the original schema is that BacklinksSource.child
         // type is changed to BacklinksSource from BacklinksTarget.
-        OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", 1, 1)
-                .addPersistedProperty("id", RealmFieldType.INTEGER, !Property.PRIMARY_KEY, !Property.INDEXED, Property.REQUIRED)
+        OsObjectSchemaInfo targetSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksTarget", false, 0, 1)
                 .addComputedLinkProperty("parents", "BacklinksSource", "child")
                 .build();
-        OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", 2, 0)
-                .addPersistedProperty("name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
-                .addPersistedLinkProperty("child", RealmFieldType.OBJECT,
+        OsObjectSchemaInfo sourceSchemaInfo = new OsObjectSchemaInfo.Builder("BacklinksSource", false, 2, 0)
+                .addPersistedProperty("", "name", RealmFieldType.STRING, !Property.PRIMARY_KEY, !Property.INDEXED, !Property.REQUIRED)
+                .addPersistedLinkProperty("","child", RealmFieldType.OBJECT,
                         "BacklinksSource"/*"BacklinksTarget" is the original value*/)
                 .build();
         Map<Class<? extends RealmModel>, OsObjectSchemaInfo> infoMap =
@@ -655,14 +664,18 @@ public class LinkingObjectsManagedTests {
         RealmConfiguration spyConfig = spy(realmConfig);
         when(spyConfig.getSchemaMediator()).thenReturn(mediator);
 
+        Realm localRealm = null;
         try {
-            Realm localRealm = Realm.getInstance(spyConfig);
-            localRealm.close();
+            localRealm = Realm.getInstance(spyConfig);
             fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(), CoreMatchers.containsString(
                     "Property 'BacklinksSource.child' declared as origin of linking objects property 'BacklinksTarget.parents' links to type 'BacklinksSource'"
             ));
+        } finally {
+            if (localRealm != null) {
+                localRealm.close();
+            }
         }
     }
 
@@ -682,6 +695,32 @@ public class LinkingObjectsManagedTests {
         assertEquals(1, distinctParents.size());
         assertTrue(child.getListParents().contains(parent));
     }
+
+
+    @Test
+    public void copyToRealm_modelWithRenamedTargetFields() {
+        realm.beginTransaction();
+        BacklinkWithOverridenNames obj = new BacklinkWithOverridenNames(UUID.randomUUID().toString());
+        realm.copyToRealmOrUpdate(obj);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(BacklinkWithOverridenNames.class).count());
+    }
+
+    @Test
+    public void insert_modelWithRenamedTargetFields() {
+        realm.beginTransaction();
+        BacklinkWithOverridenNames obj = new BacklinkWithOverridenNames(UUID.randomUUID().toString());
+        realm.insertOrUpdate(obj);
+        realm.commitTransaction();
+        assertEquals(1, realm.where(BacklinkWithOverridenNames.class).count());
+    }
+
+    @Test
+    public void query_modelWithRenamedFields() {
+        assertEquals(0, realm.where(BacklinkWithOverridenNames.class).equalTo("child.id", "foo").count());
+        assertEquals(0, realm.where(BacklinkWithOverridenNames.class).equalTo("parents.id", "foo").count());
+    }
+
 
     // Based on a quick conversation with Christian Melchior and Mark Rowe,
     // it appears that notifications are enqueued, briefly, on a non-Java

@@ -23,7 +23,7 @@ import java.util.IdentityHashMap;
  * without a huge overhead in space complexity.
  */
 public class IdentitySet<K> extends IdentityHashMap<K, Integer> {
-    private final static Integer PLACE_HOLDER = 0;
+    private static final Integer PLACE_HOLDER = 0;
 
     public void add(K key) {
         put(key, PLACE_HOLDER);

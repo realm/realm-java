@@ -19,9 +19,9 @@ package io.realm;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.support.test.annotation.UiThreadTest;
-import android.support.test.rule.UiThreadTestRule;
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.rule.UiThreadTestRule;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import android.util.Log;
 
 import junit.framework.AssertionFailedError;
@@ -43,13 +43,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.realm.entities.AllJavaTypes;
 import io.realm.entities.AllTypes;
 import io.realm.entities.Dog;
 import io.realm.log.RealmLog;
 import io.realm.log.RealmLogger;
 import io.realm.rule.RunInLooperThread;
 import io.realm.rule.RunTestInLooperThread;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -987,5 +987,140 @@ public class NotificationsTest {
             fail();
         } catch (IllegalStateException ignored) {
         }
+    }
+
+    // Checks that we can attach change listeners to queries involving `limit()` and that
+    // they do the right thing
+    @Test
+    @RunTestInLooperThread
+    public void limitedQueryResult_fromTable_finegrainedListener() {
+        realm = looperThread.getRealm();
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                r.createObject(AllTypes.class).setColumnLong(i % 5);
+            }
+        });
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+                .limit(2) // [4, 3]
+                .findAll();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((objects, changeSet) -> {
+            assertEquals(2, objects.size());
+            assertEquals(5, objects.first().getColumnLong());
+            assertEquals(4, objects.last().getColumnLong());
+            assertEquals(1, changeSet.getInsertions().length);
+            assertEquals(0, changeSet.getInsertions()[0]);
+            assertEquals(1, changeSet.getDeletions().length);
+            assertEquals(1, changeSet.getDeletions()[0]);
+            assertEquals(0, changeSet.getChanges().length);
+            looperThread.testComplete();
+        });
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class).setColumnLong(5);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void limitedQueryResult_fromTable_finegrainedListener_withModifications() {
+        realm = looperThread.getRealm();
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                r.createObject(AllTypes.class).setColumnLong(i % 5);
+            }
+        });
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+                .limit(2) // [4, 3]
+                .findAll();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((objects, changeSet) -> {
+            assertEquals(2, objects.size());
+            assertEquals(6, objects.first().getColumnLong());
+            assertEquals(5, objects.last().getColumnLong());
+            assertEquals(1, changeSet.getInsertions().length);
+            assertEquals(0, changeSet.getInsertions()[0]);
+            assertEquals(1, changeSet.getDeletions().length);
+            assertEquals(1, changeSet.getDeletions()[0]);
+            assertEquals(1, changeSet.getChanges().length);
+            assertEquals(1, changeSet.getChanges()[0]);
+            looperThread.testComplete();
+        });
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class).setColumnLong(6);
+                for (AllTypes obj : realm.where(AllTypes.class).equalTo(AllTypes.FIELD_LONG, 4).findAll()) {
+                    obj.setColumnLong(5);
+                }
+            }
+        });
+    }
+
+    // Checks that we can attach change listeners to queries involving `limit()` and that
+    // they do the right thing
+    @Test
+    @RunTestInLooperThread
+    public void limitedQueryResult_fromTable_simpleChangeListener() {
+        realm = looperThread.getRealm();
+        realm.executeTransaction(r -> {
+            for (int i = 0; i < 5; i++) {
+                r.createObject(AllTypes.class).setColumnLong(i % 5);
+            }
+        });
+        RealmResults<AllTypes> results = realm.where(AllTypes.class)
+                .sort(AllTypes.FIELD_LONG, Sort.DESCENDING) // [4, 4, 3, 3, 2, 2, 1, 1, 0, 0]
+                .distinct(AllTypes.FIELD_LONG) // [4, 3, 2, 1, 0]
+                .limit(2) // [4, 3]
+                .findAll();
+        looperThread.keepStrongReference(results);
+        results.addChangeListener((objects) -> {
+            assertEquals(2, objects.size());
+            assertEquals(5, objects.first().getColumnLong());
+            assertEquals(4, objects.last().getColumnLong());
+            looperThread.testComplete();
+        });
+
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.createObject(AllTypes.class).setColumnLong(5);
+            }
+        });
+    }
+
+    @Test
+    @RunTestInLooperThread
+    public void diffedUpdates_ignoredFieldsAreNotListedAsChanged() {
+        realm = looperThread.getRealm();
+        AllJavaTypes obj;
+        realm.beginTransaction();
+        AllJavaTypes childObject = realm.copyToRealm(new AllJavaTypes(1));
+        obj = realm.copyToRealmOrUpdate(new AllJavaTypes(42));
+        obj.setFieldObject(childObject);
+        obj.setFieldList(new RealmList<>(childObject));
+        looperThread.keepStrongReference(obj);
+        realm.commitTransaction();
+        obj.addChangeListener((RealmObjectChangeListener<AllJavaTypes>) (object, changeSet) -> {
+            assertEquals(1, changeSet.getChangedFields().length);
+            assertEquals("fieldString", changeSet.getChangedFields()[0]);
+            looperThread.testComplete();
+        });
+
+        realm.beginTransaction();
+        AllJavaTypes updatedObj = new AllJavaTypes(42);
+        updatedObj.setFieldString("updated");
+        updatedObj.setFieldObject(childObject);
+        updatedObj.setFieldList(new RealmList<>(childObject));
+        realm.copyToRealmOrUpdate(updatedObj, ImportFlag.CHECK_SAME_VALUES_BEFORE_SET);
+        realm.commitTransaction();
     }
 }

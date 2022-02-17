@@ -24,230 +24,255 @@ using namespace realm;
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnCount(JNIEnv* env, jobject obj,
                                                                                jlong nativeRowPtr)
 {
-    if (!ROW(nativeRowPtr)->is_attached()) {
+    if (!OBJ(nativeRowPtr)->is_valid()) {
         return 0;
     }
 
     return Java_io_realm_internal_UncheckedRow_nativeGetColumnCount(env, obj, nativeRowPtr);
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnName(JNIEnv* env, jobject obj,
-                                                                                jlong nativeRowPtr, jlong columnIndex)
-{
-    if (!ROW_AND_COL_INDEX_VALID(env, ROW(nativeRowPtr), columnIndex)) {
-        return nullptr;
-    }
-
-    return Java_io_realm_internal_UncheckedRow_nativeGetColumnName(env, obj, nativeRowPtr, columnIndex);
-}
-
-JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnIndex(JNIEnv* env, jobject obj,
+JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnKey(JNIEnv* env, jobject obj,
                                                                                jlong nativeRowPtr, jstring columnName)
 {
-    if (!ROW(nativeRowPtr)->is_attached())
-        return 0;
+    if (!OBJ(nativeRowPtr)->is_valid()) {
+        ThrowException(env, IllegalArgument, "Object passed is not valid");
+    }
 
-    jlong ndx = Java_io_realm_internal_UncheckedRow_nativeGetColumnIndex(env, obj, nativeRowPtr, columnName);
-    if (ndx == to_jlong_or_not_found(realm::not_found)) {
+    ColKey col_key (Java_io_realm_internal_UncheckedRow_nativeGetColumnKey(env, obj, nativeRowPtr, columnName));
+    if (!bool(col_key)) {
         JStringAccessor column_name(env, columnName);
         ThrowException(env, IllegalArgument, concat_stringdata("Field not found: ", column_name));
-        return 0;
     }
-    else {
-        return ndx;
-    }
+    return col_key.value;
 }
 
 JNIEXPORT jint JNICALL Java_io_realm_internal_CheckedRow_nativeGetColumnType(JNIEnv* env, jobject obj,
-                                                                             jlong nativeRowPtr, jlong columnIndex)
+                                                                             jlong nativeRowPtr, jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_VALID(env, ROW(nativeRowPtr), columnIndex)) {
-        return 0;
-    }
-
-    return Java_io_realm_internal_UncheckedRow_nativeGetColumnType(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetColumnType(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetLong(JNIEnv* env, jobject obj, jlong nativeRowPtr,
-                                                                        jlong columnIndex)
+                                                                        jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Int)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Int)) {
         return 0;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetLong(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetLong(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeGetBoolean(JNIEnv* env, jobject obj,
-                                                                              jlong nativeRowPtr, jlong columnIndex)
+                                                                              jlong nativeRowPtr, jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Bool)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Bool)) {
         return JNI_FALSE;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetBoolean(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetBoolean(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jfloat JNICALL Java_io_realm_internal_CheckedRow_nativeGetFloat(JNIEnv* env, jobject obj,
-                                                                          jlong nativeRowPtr, jlong columnIndex)
+                                                                          jlong nativeRowPtr, jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Float)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Float)) {
         return 0;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetFloat(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetFloat(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jdouble JNICALL Java_io_realm_internal_CheckedRow_nativeGetDouble(JNIEnv* env, jobject obj,
-                                                                            jlong nativeRowPtr, jlong columnIndex)
+                                                                            jlong nativeRowPtr, jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Double)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Double)) {
         return 0;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetDouble(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetDouble(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetTimestamp(JNIEnv* env, jobject obj,
-                                                                             jlong nativeRowPtr, jlong columnIndex)
+                                                                             jlong nativeRowPtr, jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Timestamp)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Timestamp)) {
         return 0;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetTimestamp(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetTimestamp(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetString(JNIEnv* env, jobject obj,
-                                                                            jlong nativeRowPtr, jlong columnIndex)
+                                                                            jlong nativeRowPtr, jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_String)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_String)) {
         return nullptr;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetString(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetString(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jbyteArray JNICALL Java_io_realm_internal_CheckedRow_nativeGetByteArray(JNIEnv* env, jobject obj,
                                                                                   jlong nativeRowPtr,
-                                                                                  jlong columnIndex)
+                                                                                  jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Binary)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Binary)) {
         return nullptr;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetByteArray(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetByteArray(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jlong JNICALL Java_io_realm_internal_CheckedRow_nativeGetLink(JNIEnv* env, jobject obj, jlong nativeRowPtr,
-                                                                        jlong columnIndex)
+                                                                        jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Link)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Link)) {
         return 0;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeGetLink(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeGetLink(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_internal_CheckedRow_nativeIsNullLink(JNIEnv* env, jobject obj,
-                                                                              jlong nativeRowPtr, jlong columnIndex)
+                                                                              jlong nativeRowPtr, jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Link)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Link)) {
         return JNI_FALSE;
     }
 
-    return Java_io_realm_internal_UncheckedRow_nativeIsNullLink(env, obj, nativeRowPtr, columnIndex);
+    return Java_io_realm_internal_UncheckedRow_nativeIsNullLink(env, obj, nativeRowPtr, columnKey);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetLong(JNIEnv* env, jobject obj, jlong nativeRowPtr,
-                                                                       jlong columnIndex, jlong value)
+                                                                       jlong columnKey, jlong value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Int)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Int)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeSetLong(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetLong(env, obj, nativeRowPtr, columnKey, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetBoolean(JNIEnv* env, jobject obj,
-                                                                          jlong nativeRowPtr, jlong columnIndex,
+                                                                          jlong nativeRowPtr, jlong columnKey,
                                                                           jboolean value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Bool)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Bool)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeSetBoolean(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetBoolean(env, obj, nativeRowPtr, columnKey, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetFloat(JNIEnv* env, jobject obj, jlong nativeRowPtr,
-                                                                        jlong columnIndex, jfloat value)
+                                                                        jlong columnKey, jfloat value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Float)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Float)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeSetFloat(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetFloat(env, obj, nativeRowPtr, columnKey, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDouble(JNIEnv* env, jobject obj, jlong nativeRowPtr,
-                                                                         jlong columnIndex, jdouble value)
+                                                                         jlong columnKey, jdouble value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Double)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Double)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeSetDouble(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetDouble(env, obj, nativeRowPtr, columnKey, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetTimestamp(JNIEnv* env, jobject obj,
-                                                                            jlong nativeRowPtr, jlong columnIndex,
+                                                                            jlong nativeRowPtr, jlong columnKey,
                                                                             jlong value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Timestamp)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Timestamp)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeSetTimestamp(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetTimestamp(env, obj, nativeRowPtr, columnKey, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetString(JNIEnv* env, jobject obj, jlong nativeRowPtr,
-                                                                         jlong columnIndex, jstring value)
+                                                                         jlong columnKey, jstring value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_String)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_String)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeSetString(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetString(env, obj, nativeRowPtr, columnKey, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetByteArray(JNIEnv* env, jobject obj,
-                                                                            jlong nativeRowPtr, jlong columnIndex,
+                                                                            jlong nativeRowPtr, jlong columnKey,
                                                                             jbyteArray value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Binary)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Binary)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeSetByteArray(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetByteArray(env, obj, nativeRowPtr, columnKey, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetLink(JNIEnv* env, jobject obj, jlong nativeRowPtr,
-                                                                       jlong columnIndex, jlong value)
+                                                                       jlong columnKey, jlong value)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Link)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Link)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeSetLink(env, obj, nativeRowPtr, columnIndex, value);
+    Java_io_realm_internal_UncheckedRow_nativeSetLink(env, obj, nativeRowPtr, columnKey, value);
 }
 
 JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeNullifyLink(JNIEnv* env, jobject obj,
-                                                                           jlong nativeRowPtr, jlong columnIndex)
+                                                                           jlong nativeRowPtr, jlong columnKey)
 {
-    if (!ROW_AND_COL_INDEX_AND_TYPE_VALID(env, ROW(nativeRowPtr), columnIndex, type_Link)) {
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Link)) {
         return;
     }
 
-    Java_io_realm_internal_UncheckedRow_nativeNullifyLink(env, obj, nativeRowPtr, columnIndex);
+    Java_io_realm_internal_UncheckedRow_nativeNullifyLink(env, obj, nativeRowPtr, columnKey);
+}
+
+
+JNIEXPORT jlongArray JNICALL Java_io_realm_internal_CheckedRow_nativeGetDecimal128(JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnKey)
+{
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Decimal)) {
+        return nullptr;
+    }
+
+    return Java_io_realm_internal_UncheckedRow_nativeGetDecimal128(env, obj, nativeRowPtr, columnKey);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetDecimal128(JNIEnv* env, jobject obj, jlong nativeRowPtr, jlong columnKey, jlong low, jlong high)
+{
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_Decimal)) {
+        return;
+    }
+
+    Java_io_realm_internal_UncheckedRow_nativeSetDecimal128(env, obj, nativeRowPtr, columnKey, low, high);
+}
+
+JNIEXPORT jstring JNICALL Java_io_realm_internal_CheckedRow_nativeGetObjectId(JNIEnv* env, jobject obj,
+                                                                                    jlong nativeRowPtr,
+                                                                                    jlong columnKey)
+{
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_ObjectId)) {
+        return nullptr;
+    }
+
+    return Java_io_realm_internal_UncheckedRow_nativeGetObjectId(env, obj, nativeRowPtr, columnKey);
+}
+
+JNIEXPORT void JNICALL Java_io_realm_internal_CheckedRow_nativeSetObjectId(JNIEnv* env, jobject obj,
+                                                                              jlong nativeRowPtr, jlong columnKey,
+                                                                              jstring j_value)
+{
+    if (!TYPE_VALID(env, OBJ(nativeRowPtr)->get_table(), columnKey, col_type_ObjectId)) {
+        return;
+    }
+
+    Java_io_realm_internal_UncheckedRow_nativeSetObjectId(env, obj, nativeRowPtr, columnKey, j_value);
 }

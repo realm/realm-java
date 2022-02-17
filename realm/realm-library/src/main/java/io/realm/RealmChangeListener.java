@@ -22,7 +22,8 @@ package io.realm;
  * to receive a notification about updates.
  * <p>
  * When registered against a {@code Realm} you'll get notified when a Realm instance has been updated.
- * Register against a {@code RealmResults} or {@code RealmObject} to only get notified about changes to them.
+ * Register against a {@code RealmResults}, {@code RealmList}, {@code RealmDictionary} or {@code RealmObject} to only
+ * get notified about changes to them.
  * <p>
  * Realm instances on a thread without an {@link android.os.Looper} cannot register a RealmChangeListener.
  * <p>
@@ -31,7 +32,7 @@ package io.realm;
  * objects, but just invalidate any UI elements that are using them. If there is a chance that a object has been been
  * deleted, it can be verified by using {@link RealmObject#isValid()}.
  *
- * @param <T> The <a href="https://realm.io/docs/java/latest/#auto-updating-objects">live object</a> being returned
+ * @param <T> The <a href="https://docs.mongodb.com/realm/sdk/android/fundamentals/live-queries/">live object</a> being returned
  * ({@link Realm}, {@link DynamicRealm}, {@link RealmObject}, {@link RealmResults}, {@link DynamicRealmObject}
  * or your model implementing {@link RealmModel})
  * @see Realm#addChangeListener(RealmChangeListener)

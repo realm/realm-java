@@ -1,0 +1,35 @@
+{
+    "collection": "FlexSyncColor",
+    "database": "test_data",
+    "id": "60489e7df5d9bdc94de663ce",
+    "roles": [
+        {
+            "name": "default",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "additional_fields": {}
+        }
+    ],
+    "schema": {
+        "properties": {
+            "_id": {
+                "bsonType": "objectId"
+              },
+              "realm_id": {
+                "bsonType": "string"
+              },
+              "section": {
+                "bsonType": "int"
+              },
+              "color": {
+                "bsonType": "string"
+              }
+        },
+        "required": [
+            "color",
+            "section"
+        ],
+        "title": "FlexSyncColor"
+    }
+}

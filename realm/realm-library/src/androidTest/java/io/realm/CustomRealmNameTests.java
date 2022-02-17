@@ -15,21 +15,23 @@
  */
 package io.realm;
 
-import android.support.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import io.realm.entities.realmname.ClassNameOverrideModulePolicy;
 import io.realm.entities.realmname.ClassWithPolicy;
+import io.realm.entities.realmname.ClassWithValueDefinedNames;
 import io.realm.entities.realmname.CustomRealmNamesModule;
 import io.realm.entities.realmname.FieldNameOverrideClassPolicy;
-import io.realm.rule.TestRealmConfigurationFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -204,6 +206,18 @@ public class CustomRealmNameTests {
         for (String fieldName : ClassWithPolicy.ALL_FIELDS) {
             assertTrue("Could not find: " + fieldName, classSchema.hasField(fieldName));
         }
+    }
+
+    // Verify that names using the default value() parameter on annotations are used correctly
+    @Test
+    public void valueParameterDefinedNamesInsteadOfExplicit() {
+        RealmSchema schema = realm.getSchema();
+        assertTrue(schema.contains(ClassWithValueDefinedNames.REALM_CLASS_NAME));
+        assertFalse(schema.contains(ClassWithValueDefinedNames.JAVA_CLASS_NAME));
+
+        RealmObjectSchema classSchema = schema.get(ClassWithValueDefinedNames.REALM_CLASS_NAME);
+        assertTrue(classSchema.hasField(ClassWithValueDefinedNames.REALM_FIELD_NAME));
+        assertFalse(classSchema.hasField(ClassWithValueDefinedNames.JAVA_FIELD_NAME));
     }
 
     //

@@ -26,16 +26,7 @@
 
 #include "io_realm_log_LogLevel.h"
 
-#include "realm/util/logger.hpp"
-
-#define TR_ENTER()                                                                                                   \
-    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
-        realm::jni_util::Log::t(" --> %1", __FUNCTION__);                                                            \
-    }
-#define TR_ENTER_PTR(ptr)                                                                                            \
-    if (realm::jni_util::Log::s_level <= realm::jni_util::Log::trace) {                                              \
-        realm::jni_util::Log::t(" --> %1 %2", __FUNCTION__, static_cast<int64_t>(ptr));                              \
-    }
+#include <realm/util/logger.hpp>
 
 namespace realm {
 
@@ -164,6 +155,7 @@ private:
 class JniLogger {
 protected:
     JniLogger();
+    virtual ~JniLogger();
     // Used by JavaLogger.
     JniLogger(bool is_java_logger);
     // Indicate if this is a wrapper for Java RealmLogger class. See JavaLogger
@@ -189,7 +181,7 @@ public:
     CoreLoggerBridge(CoreLoggerBridge&) = delete;
     CoreLoggerBridge operator=(CoreLoggerBridge&&) = delete;
     CoreLoggerBridge operator=(CoreLoggerBridge&) = delete;
-    void do_log(Logger::Level, std::string msg) override;
+    void do_log(Logger::Level, const std::string& msg) override;
 
 private:
     // Set log level for all logger bridges.

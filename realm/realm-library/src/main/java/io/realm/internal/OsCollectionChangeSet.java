@@ -18,10 +18,7 @@ package io.realm.internal;
 
 import java.util.Arrays;
 
-import javax.annotation.Nullable;
-
 import io.realm.OrderedCollectionChangeSet;
-import io.realm.internal.sync.OsSubscription;
 
 /**
  * Implementation of {@link OrderedCollectionChangeSet}. This class holds a pointer to the Object Store's
@@ -46,18 +43,10 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
     private static long finalizerPtr = nativeGetFinalizerPtr();
     private final long nativePtr;
     private final boolean firstAsyncCallback;
-    protected final OsSubscription subscription;
-    protected final boolean isPartialRealm;
 
     public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback) {
-        this(nativePtr, firstAsyncCallback, null, false);
-    }
-
-    public OsCollectionChangeSet(long nativePtr, boolean firstAsyncCallback, @Nullable OsSubscription subscription, boolean isPartialRealm) {
         this.nativePtr = nativePtr;
         this.firstAsyncCallback = firstAsyncCallback;
-        this.subscription = subscription;
-        this.isPartialRealm = isPartialRealm;
         NativeContext.dummyContext.addReference(this);
     }
 
@@ -116,27 +105,7 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
 
     @Override
     public Throwable getError() {
-        if (subscription != null && subscription.getState() == OsSubscription.SubscriptionState.ERROR) {
-            return subscription.getError();
-        }
         return null;
-    }
-
-    @Override
-    public boolean isCompleteResult() {
-        throw new UnsupportedOperationException("This method should be overridden in a subclass");
-    }
-
-    public boolean isRemoteDataLoaded() {
-        if (!isPartialRealm) {
-            return true;
-        } else if (subscription == null) {
-            // This will in some cases return false positives, like adding change listeners
-            // to synchronous queries. For now this is acceptable.
-            return false;
-        } else {
-            return subscription.getState() == OsSubscription.SubscriptionState.COMPLETE;
-        }
     }
 
     /**
@@ -202,11 +171,11 @@ public class OsCollectionChangeSet implements OrderedCollectionChangeSet, Native
         return finalizerPtr;
     }
 
-    private native static long nativeGetFinalizerPtr();
+    private static native long nativeGetFinalizerPtr();
 
     // Returns the ranges as a long array. eg.: [startIndex1, length1, startIndex2, length2, ...]
-    private native static int[] nativeGetRanges(long nativePtr, int type);
+    private static native int[] nativeGetRanges(long nativePtr, int type);
 
     // Returns the indices array.
-    private native static int[] nativeGetIndices(long nativePtr, int type);
+    private static native int[] nativeGetIndices(long nativePtr, int type);
 }

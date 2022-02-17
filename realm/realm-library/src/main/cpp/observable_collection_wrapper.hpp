@@ -22,7 +22,7 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/log.hpp"
 
-#include <results.hpp>
+#include <realm/object-store/results.hpp>
 #include <realm/util/optional.hpp>
 
 namespace realm {
@@ -34,10 +34,22 @@ namespace _impl {
 template <typename T>
 class ObservableCollectionWrapper {
 public:
+
+    // Default to the listener class we already use
     ObservableCollectionWrapper(T& collection)
         : m_collection_weak_ref()
         , m_notification_token()
         , m_collection(std::move(collection))
+        , listener_class_name("io/realm/internal/ObservableCollection")
+    {
+    }
+
+    // Give the option of specifying a different listener class (e.g. for sets)
+    ObservableCollectionWrapper(T& collection, const char* listener_class_name)
+            : m_collection_weak_ref()
+            , m_notification_token()
+            , m_collection(std::move(collection))
+            , listener_class_name(listener_class_name)
     {
     }
 
@@ -59,12 +71,15 @@ private:
     jni_util::JavaGlobalWeakRef m_collection_weak_ref;
     NotificationToken m_notification_token;
     T m_collection;
+
+public:
+    const char* listener_class_name;
 };
 
 template <typename T>
 void ObservableCollectionWrapper<T>::start_listening(JNIEnv* env, jobject j_collection_object)
 {
-    static jni_util::JavaClass os_results_class(env, "io/realm/internal/ObservableCollection");
+    static jni_util::JavaClass os_results_class(env, listener_class_name);
     static jni_util::JavaMethod notify_change_listeners(env, os_results_class, "notifyChangeListeners", "(J)V");
 
     if (!m_collection_weak_ref) {

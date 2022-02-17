@@ -28,8 +28,10 @@ import io.realm.RealmFieldType;
 public class OsObjectSchemaInfo implements NativeObject {
 
     public static class Builder {
-        private final String className;
+        private final String internalClassName;
+        private final String publicClassName; // If "", it is equal to the internal class name
         private final long[] persistedPropertyPtrArray;
+        private final boolean embedded;
         private int persistedPropertyPtrCurPos = 0;
         private final long[] computedPropertyPtrArray;
         private int computedPropertyPtrCurPos = 0;
@@ -38,27 +40,39 @@ public class OsObjectSchemaInfo implements NativeObject {
          * Creates an empty builder for {@code OsObjectSchemaInfo}. This constructor is intended to be used by
          * the validation of schema, object schemas and properties through the object store.
          *
-         * @param className name of the class
+         * @param internalClassName name of the class
          */
-        public Builder(String className, int persistedPropertyCapacity, int computedPropertyCapacity) {
-            this.className = className;
+        public Builder(String internalClassName, boolean embedded, int persistedPropertyCapacity, int computedPropertyCapacity) {
+            this.publicClassName = "";
+            this.internalClassName = internalClassName;
+            this.embedded = embedded;
             this.persistedPropertyPtrArray = new long[persistedPropertyCapacity];
             this.computedPropertyPtrArray = new long[computedPropertyCapacity];
         }
 
+        public Builder(String publicClassName, String internalClassName, boolean embedded, int persistedPropertyCapacity, int computedPropertyCapacity) {
+            this.publicClassName = publicClassName;
+            this.internalClassName = internalClassName;
+            this.embedded = embedded;
+            this.persistedPropertyPtrArray = new long[persistedPropertyCapacity];
+            this.computedPropertyPtrArray = new long[computedPropertyCapacity];
+        }
+
+
         /**
          * Adds a persisted non-link, non value list property to this builder.
          *
-         * @param name the name of the property.
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
          * @param type the type of the property.
          * @param isPrimaryKey set to true if this property is the primary key.
          * @param isIndexed set to true if this property needs an index.
          * @param isRequired set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
-        public Builder addPersistedProperty(String name, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
+        public Builder addPersistedProperty(String publicName, String internalName, RealmFieldType type, boolean isPrimaryKey, boolean isIndexed,
                 boolean isRequired) {
-            long propertyPtr = Property.nativeCreatePersistedProperty(name,
+            long propertyPtr = Property.nativeCreatePersistedProperty(internalName, publicName,
                     Property.convertFromRealmFieldType(type, isRequired), isPrimaryKey, isIndexed);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
@@ -68,14 +82,60 @@ public class OsObjectSchemaInfo implements NativeObject {
         /**
          * Adds a persisted value list property to this builder.
          *
-         * @param name the name of the property.
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
          * @param type the type of the property. It must be one of value list type.
          * @param isRequired set to true if this property is not nullable.
          * @return this {@code OsObjectSchemaInfo}.
          */
-        public Builder addPersistedValueListProperty(String name, RealmFieldType type, boolean isRequired) {
-            long propertyPtr = Property.nativeCreatePersistedProperty(name,
-                    Property.convertFromRealmFieldType(type, isRequired), !Property.PRIMARY_KEY, !Property.INDEXED);
+        public Builder addPersistedValueListProperty(String publicName, String internalName, RealmFieldType type, boolean isRequired) {
+            long propertyPtr = Property.nativeCreatePersistedProperty(internalName,
+                    publicName,
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    !Property.PRIMARY_KEY,
+                    !Property.INDEXED);
+            persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
+            persistedPropertyPtrCurPos++;
+            return this;
+        }
+
+        /**
+         * Adds a persisted map property to this builder.
+         *
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
+         * @param type the type of the property. It must be one of value list type.
+         * @param isRequired set to true if this property is not nullable.
+         * @return this {@code OsObjectSchemaInfo}.
+         */
+        public Builder addPersistedMapProperty(String publicName, String internalName, RealmFieldType type, boolean isRequired) {
+            long propertyPtr = Property.nativeCreatePersistedProperty(internalName,
+                    publicName,
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    !Property.PRIMARY_KEY,
+                    !Property.INDEXED);
+            persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
+            persistedPropertyPtrCurPos++;
+            return this;
+        }
+
+        /**
+         * TODO: UNIFY THIS AND THE TWO ABOVE
+         *
+         * Adds a persisted set property to this builder.
+         *
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
+         * @param type the type of the property. It must be one of value list type.
+         * @param isRequired set to true if this property is not nullable.
+         * @return this {@code OsObjectSchemaInfo}.
+         */
+        public Builder addPersistedSetProperty(String publicName, String internalName, RealmFieldType type, boolean isRequired) {
+            long propertyPtr = Property.nativeCreatePersistedProperty(internalName,
+                    publicName,
+                    Property.convertFromRealmFieldType(type, isRequired),
+                    !Property.PRIMARY_KEY,
+                    !Property.INDEXED);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
             return this;
@@ -85,13 +145,14 @@ public class OsObjectSchemaInfo implements NativeObject {
          * Adds a persisted link property to this {@code OsObjectSchemaInfo}. A persisted link property will be stored
          * in the Realm file's schema.
          *
-         * @param name the name of the link property.
+         * @param publicName the name of the property as defined in the Java/Kotlin model class.
+         * @param internalName the internal name of the property if different from the public name, otherwise "".
          * @param type the type of the link property. Can only be {@link RealmFieldType#OBJECT} or
          * {@link RealmFieldType#LIST}.
          * @return this {@code OsObjectSchemaInfo.Builder}.
          */
-        public Builder addPersistedLinkProperty(String name, RealmFieldType type, String linkedClassName) {
-            long propertyPtr = Property.nativeCreatePersistedLinkProperty(name,
+        public Builder addPersistedLinkProperty(String publicName, String internalName, RealmFieldType type, String linkedClassName) {
+            long propertyPtr = Property.nativeCreatePersistedLinkProperty(internalName, publicName,
                     Property.convertFromRealmFieldType(type, false), linkedClassName);
             persistedPropertyPtrArray[persistedPropertyPtrCurPos] = propertyPtr;
             persistedPropertyPtrCurPos++;
@@ -125,7 +186,7 @@ public class OsObjectSchemaInfo implements NativeObject {
             if (persistedPropertyPtrCurPos == -1 || computedPropertyPtrCurPos == -1) {
                 throw new IllegalStateException("'OsObjectSchemaInfo.build()' has been called before on this object.");
             }
-            OsObjectSchemaInfo info = new OsObjectSchemaInfo(className);
+            OsObjectSchemaInfo info = new OsObjectSchemaInfo(publicClassName, internalClassName, embedded);
             nativeAddProperties(info.nativePtr, persistedPropertyPtrArray, computedPropertyPtrArray);
             persistedPropertyPtrCurPos = -1;
             computedPropertyPtrCurPos = -1;
@@ -142,8 +203,8 @@ public class OsObjectSchemaInfo implements NativeObject {
      *
      * @param className name of the class
      */
-    private OsObjectSchemaInfo(String className) {
-        this(nativeCreateRealmObjectSchema(className));
+    private OsObjectSchemaInfo(String publicClassName, String className, boolean embedded) {
+        this(nativeCreateRealmObjectSchema(publicClassName, className, embedded));
     }
 
     /**
@@ -158,7 +219,7 @@ public class OsObjectSchemaInfo implements NativeObject {
     }
 
     /**
-     * @return the class name of this {@code OsObjectSchema} represents for.
+     * @return the internal class name of this {@code OsObjectSchema} represents for.
      */
     public String getClassName() {
         return nativeGetClassName(nativePtr);
@@ -185,6 +246,11 @@ public class OsObjectSchemaInfo implements NativeObject {
         return propertyPtr == 0 ? null : new Property(nativeGetPrimaryKeyProperty(nativePtr));
     }
 
+
+    public boolean isEmbedded() {
+        return nativeIsEmbedded(nativePtr);
+    }
+
     @Override
     public long getNativePtr() {
         return nativePtr;
@@ -195,7 +261,7 @@ public class OsObjectSchemaInfo implements NativeObject {
         return nativeFinalizerPtr;
     }
 
-    private static native long nativeCreateRealmObjectSchema(String className);
+    private static native long nativeCreateRealmObjectSchema(String publicClassName, String internalClassName, boolean embedded);
 
     private static native long nativeGetFinalizerPtr();
 
@@ -209,4 +275,6 @@ public class OsObjectSchemaInfo implements NativeObject {
 
     // Return nullptr if it doesn't have a primary key.
     private static native long nativeGetPrimaryKeyProperty(long nativePtr);
+
+    private static native boolean nativeIsEmbedded(long nativePtr);
 }

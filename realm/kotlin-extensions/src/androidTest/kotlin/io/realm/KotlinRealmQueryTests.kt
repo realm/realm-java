@@ -1,12 +1,11 @@
 package io.realm
 
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.entities.AllPropTypesClass
 import io.realm.kotlin.createObject
 import io.realm.kotlin.oneOf
 import io.realm.kotlin.where
-import io.realm.rule.TestRealmConfigurationFactory
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -20,14 +19,15 @@ import java.util.*
 class KotlinRealmQueryTests {
 
     @Suppress("MemberVisibilityCanPrivate")
-    @get:Rule
+    @Rule
+    @JvmField
     val configFactory = TestRealmConfigurationFactory()
 
     private lateinit var realm: Realm
 
     @Before
     fun setUp() {
-        Realm.init(InstrumentationRegistry.getTargetContext())
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         realm = Realm.getInstance(configFactory.createConfiguration())
     }
 

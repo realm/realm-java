@@ -24,6 +24,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.SystemClock;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -152,8 +153,35 @@ public class RemoteProcessService extends Service {
         }
     };
 
+    public final static Step stepCreateObjects = new Step(30) {
+
+        @Override
+        void run() {
+            thiz.testRealm = Realm.getInstance(getConfiguration());
+            thiz.testRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.createObject(AllTypes.class);
+                }
+            });
+            SystemClock.sleep(1000);
+            thiz.testRealm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.createObject(AllTypes.class);
+                }
+            });
+            thiz.testRealm.close();
+            response(null);
+            Runtime.getRuntime().exit(0);
+        }
+    };
+
     private static RealmConfiguration getConfiguration() {
-        return new RealmConfiguration.Builder().modules(new AllTypesModelModule()).build();
+        return new RealmConfiguration.Builder()
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
+                .modules(new AllTypesModelModule()).build();
     }
 
 }

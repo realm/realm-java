@@ -19,7 +19,7 @@
 
 #include <jni.h>
 
-#include "java_global_ref.hpp"
+#include "java_global_ref_by_move.hpp"
 
 namespace realm {
 namespace jni_util {
@@ -58,9 +58,9 @@ public:
     JavaClass& operator=(JavaClass&&) = delete;
 
 private:
-    JavaGlobalRef m_ref_owner;
+    JavaGlobalRefByMove m_ref_owner;
     jclass m_class;
-    static JavaGlobalRef get_jclass(JNIEnv* env, const char* class_name);
+    static JavaGlobalRefByMove get_jclass(JNIEnv* env, const char* class_name);
 };
 
 } // jni_util

@@ -16,6 +16,7 @@
 
 #include "realm/array_blob.hpp"
 
+#include "java_object_accessor.hpp"
 #include "java_class_global_def.hpp"
 #include "java_exception_def.hpp"
 #include "jni_util/java_exception_thrower.hpp"
@@ -40,4 +41,36 @@ jbyteArray JavaClassGlobalDef::new_byte_array(JNIEnv* env, const BinaryData& bin
 
     env->SetByteArrayRegion(ret, 0, size, reinterpret_cast<const jbyte*>(binary_data.data()));
     return ret;
+}
+
+
+jobject JavaClassGlobalDef::new_decimal128(JNIEnv* env, const Decimal128& decimal128)
+{
+    if (decimal128.is_null()) {
+        return nullptr;
+    }
+    static jni_util::JavaMethod fromIEEE754BIDEncoding(env, instance()->m_bson_decimal128, "fromIEEE754BIDEncoding", "(JJ)Lorg/bson/types/Decimal128;", true);
+    const Decimal128::Bid128* raw = decimal128.raw();
+    return env->CallStaticObjectMethod(instance()->m_bson_decimal128, fromIEEE754BIDEncoding, static_cast<jlong>(raw->w[1]), static_cast<jlong>(raw->w[0]));
+}
+
+jobject JavaClassGlobalDef::new_object_id(JNIEnv* env, const ObjectId& objectId)
+{
+    static jni_util::JavaMethod init(env, instance()->m_bson_object_id, "<init>", "(Ljava/lang/String;)V");
+    return env->NewObject(instance()->m_bson_object_id, init, to_jstring(env, objectId.to_string().data()));
+}
+
+jobject JavaClassGlobalDef::new_uuid(JNIEnv* env, const UUID& uuid)
+{
+    static jni_util::JavaMethod from_string(env, instance()->m_java_util_uuid, "fromString", "(Ljava/lang/String;)Ljava/util/UUID;", true);
+    return env->CallStaticObjectMethod(instance()->m_java_util_uuid, from_string, to_jstring(env, uuid.to_string().data()));
+}
+
+jobject JavaClassGlobalDef::new_mixed(JNIEnv* env, const Mixed& mixed)
+{
+    static jni_util::JavaMethod init(env, instance()->m_io_realm_internal_core_native_mixed, "<init>", "(J)V");
+    JavaValue *pValue = new JavaValue(from_mixed(mixed));
+    // ARM 32 doesn't convert the pointer correct, so do explicit cast
+    jlong nativePtr = reinterpret_cast<jlong>(pValue);
+    return env->NewObject(instance()->m_io_realm_internal_core_native_mixed, init, nativePtr);
 }

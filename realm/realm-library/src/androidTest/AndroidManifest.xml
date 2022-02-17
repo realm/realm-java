@@ -10,13 +10,15 @@
     <uses-permission android:name="android.permission.SET_DEBUG_APP"/>
 
     <uses-sdk
-        android:minSdkVersion="9"
-        android:targetSdkVersion="22"/>
+        android:minSdkVersion="16"
+        android:targetSdkVersion="29"/>
 
     <application
         android:debuggable="true"
-        android:largeHeap="true">
+        android:largeHeap="true"
+        android:networkSecurityConfig="@xml/network_security_config">
         <uses-library android:name="android.test.runner"/>
+
         <service
             android:name=".services.RemoteProcessService"
             android:enabled="true"
