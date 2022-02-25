@@ -74,7 +74,7 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nat
                 return io_realm_internal_objectstore_OsSubscriptionSet_STATE_VALUE_COMPLETE;
             case sync::SubscriptionSet::State::Error:
                 return io_realm_internal_objectstore_OsSubscriptionSet_STATE_VALUE_ERROR;
-            case sync::SubscriptionSet::State::Superceded:
+            case sync::SubscriptionSet::State::Superseded:
                 return io_realm_internal_objectstore_OsSubscriptionSet_STATE_VALUE_SUPERSEDED;
         }
     }

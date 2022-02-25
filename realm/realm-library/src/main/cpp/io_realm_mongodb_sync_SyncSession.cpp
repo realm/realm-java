@@ -289,7 +289,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnecti
                 throw std::runtime_error("An unexpected Error was thrown from Java. See LogCat");
             }
         };
-        uint64_t token = session->register_connection_change_callback(callback);
+        uint64_t token = session->register_connection_change_callback(std::move(callback));
         return static_cast<jlong>(token);
     }
     CATCH_STD()
