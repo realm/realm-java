@@ -34,7 +34,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsJavaNetworkTransport
                                                                                                       jlong j_completion_block_ptr)
 {
     try {
-        auto& completion_block = *reinterpret_cast<std::function<void(const Response)>*>(j_completion_block_ptr);
+        util::UniqueFunction<void(const Response &)> &completion_block = *reinterpret_cast<util::UniqueFunction<void(const Response &)>*>(j_completion_block_ptr);
 
         // Read response
         static const JavaClass& response_class(JavaClassGlobalDef::network_transport_response_class());
