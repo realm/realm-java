@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,7 +58,6 @@ import io.realm.exceptions.RealmPrimaryKeyConstraintException;
 import io.realm.internal.ColumnIndices;
 import io.realm.internal.ObjectServerFacade;
 import io.realm.internal.OsObject;
-import io.realm.internal.OsObjectSchemaInfo;
 import io.realm.internal.OsObjectStore;
 import io.realm.internal.OsSchemaInfo;
 import io.realm.internal.OsSharedRealm;
@@ -310,6 +310,24 @@ public class Realm extends BaseRealm {
         initializeRealm(context, userAgent);
     }
 
+    // Checks whether the app is an Instant App or not. It first tries to invoke, via reflection,
+    // `PackageManagerCompat.isInstantApp` as it has support back to SDK 21, if not available it
+    // then uses the system `PackageManager.isInstantApp` available from SDK 26.
+    private static boolean isInstantApp(Context context) {
+        try {
+            Class instantAppsClass = Class.forName("com.google.android.gms.instantapps.InstantApps");
+            Method getPackageManagerCompatMethod = instantAppsClass.getMethod("getPackageManagerCompat", Context.class);
+            Object packageManagerCompatInstance = getPackageManagerCompatMethod.invoke(null, context);
+
+            Class packageManagerClass = Class.forName("com.google.android.gms.instantapps.PackageManagerCompat");
+            Method isInstantAppMethod = packageManagerClass.getMethod("isInstantApp");
+            return (boolean) isInstantAppMethod.invoke(packageManagerCompatInstance);
+        } catch (Exception ignored) {
+            // PackageManagerCompat not found use system package manager
+            return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) && context.getPackageManager().isInstantApp();
+        }
+    }
+
     private static void initializeRealm(Context context, String userAgent) {
         if (BaseRealm.applicationContext == null) {
             //noinspection ConstantConditions
@@ -319,7 +337,7 @@ public class Realm extends BaseRealm {
             checkFilesDirAvailable(context);
 
             // https://github.com/realm/realm-java/issues/7640
-            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) && context.getPackageManager().isInstantApp()) {
+            if (isInstantApp(context)) {
                 throw new RealmError("Could not initialize Realm: Instant apps are not supported");
             }
 
