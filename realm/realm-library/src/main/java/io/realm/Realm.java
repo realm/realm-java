@@ -18,6 +18,7 @@ package io.realm;
 
 import android.app.IntentService;
 import android.content.Context;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.JsonReader;
 
@@ -48,6 +49,7 @@ import javax.annotation.Nullable;
 
 import io.reactivex.Flowable;
 import io.realm.annotations.RealmClass;
+import io.realm.exceptions.RealmError;
 import io.realm.exceptions.RealmException;
 import io.realm.exceptions.RealmFileException;
 import io.realm.exceptions.RealmMigrationNeededException;
@@ -315,6 +317,11 @@ public class Realm extends BaseRealm {
                 throw new IllegalArgumentException("Non-null context required.");
             }
             checkFilesDirAvailable(context);
+
+            // https://github.com/realm/realm-java/issues/7640
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) && context.getPackageManager().isInstantApp()) {
+                throw new RealmError("Could not initialize Realm: Instant apps are not supported");
+            }
 
             RealmCore.loadLibrary(context);
             setDefaultConfiguration(new RealmConfiguration.Builder(context).build());
