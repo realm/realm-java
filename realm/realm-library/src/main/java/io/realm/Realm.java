@@ -338,7 +338,7 @@ public class Realm extends BaseRealm {
 
             // https://github.com/realm/realm-java/issues/7640
             if (isInstantApp(context)) {
-                throw new RealmError("Could not initialize Realm: Instant apps are not supported");
+                throw new RealmError("Could not initialize Realm: Instant apps are not currently supported.");
             }
 
             RealmCore.loadLibrary(context);
