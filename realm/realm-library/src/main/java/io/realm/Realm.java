@@ -310,21 +310,25 @@ public class Realm extends BaseRealm {
         initializeRealm(context, userAgent);
     }
 
-    // Checks whether the app is an Instant App or not. It first tries to invoke, via reflection,
-    // `PackageManagerCompat.isInstantApp` as it has support back to SDK 21, if not available it
-    // then uses the system `PackageManager.isInstantApp` available from SDK 26.
+    // Checks whether the app is an Instant App or not. It first it tries with the system
+    // `PackageManager.isInstantApp` available from SDK 26. If not available it tries to invoke,
+    // via reflection, `PackageManagerCompat.isInstantApp` as it has support back to SDK 21.
     private static boolean isInstantApp(Context context) {
-        try {
-            Class instantAppsClass = Class.forName("com.google.android.gms.instantapps.InstantApps");
-            Method getPackageManagerCompatMethod = instantAppsClass.getMethod("getPackageManagerCompat", Context.class);
-            Object packageManagerCompatInstance = getPackageManagerCompatMethod.invoke(null, context);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return context.getPackageManager().isInstantApp();
+        } else {
+            try {
+                Class instantAppsClass = Class.forName("com.google.android.gms.instantapps.InstantApps");
+                Method getPackageManagerCompatMethod = instantAppsClass.getMethod("getPackageManagerCompat", Context.class);
+                Object packageManagerCompatInstance = getPackageManagerCompatMethod.invoke(null, context);
 
-            Class packageManagerClass = Class.forName("com.google.android.gms.instantapps.PackageManagerCompat");
-            Method isInstantAppMethod = packageManagerClass.getMethod("isInstantApp");
-            return (boolean) isInstantAppMethod.invoke(packageManagerCompatInstance);
-        } catch (Exception ignored) {
-            // PackageManagerCompat not found use system package manager
-            return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) && context.getPackageManager().isInstantApp();
+                Class packageManagerClass = Class.forName("com.google.android.gms.instantapps.PackageManagerCompat");
+                Method isInstantAppMethod = packageManagerClass.getMethod("isInstantApp");
+                return (boolean) isInstantAppMethod.invoke(packageManagerCompatInstance);
+            } catch (Exception ignored) {
+                // PackageManagerCompat not found and could not determine if it is instant app
+                return false;
+            }
         }
     }
 
