@@ -4,7 +4,7 @@
 * Throw a more comprehensive error when initializing Realm on an Instant App.
 
 ### Fixed
-* None.
+* Fix issues resolving class information for `copyToRealmOrUpdate` for already managed objects in multi module projects. (Issue [#7650](https://github.com/realm/realm-java/issues/7650))
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.

@@ -200,7 +200,7 @@ public class CompositeMediator extends RealmProxyMediator {
 
     // Returns the mediator for a given model class (not RealmProxy) or throws exception
     private RealmProxyMediator getMediator(Class<? extends RealmModel> clazz) {
-        RealmProxyMediator mediator = mediators.get(clazz);
+        RealmProxyMediator mediator = mediators.get(Util.getOriginalModelClass(clazz));
         if (mediator == null) {
             throw new RealmException(clazz.getSimpleName() + " is not part of the schema for this Realm");
         }
