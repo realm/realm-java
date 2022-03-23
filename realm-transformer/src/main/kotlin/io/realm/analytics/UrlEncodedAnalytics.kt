@@ -52,7 +52,7 @@ class UrlEncodedAnalytics private constructor(private val prefix: String, privat
     companion object {
         fun create(): UrlEncodedAnalytics {
             val ADDRESS_PREFIX =
-                "https://webhooks.mongodb-realm.com/api/client/v2.0/app/realmsdkmetrics-zmhtm/service/metric_webhook/incoming_webhook/metric?data="
+                "https://data.mongodb-api.com/app/realmsdkmetrics-zmhtm/endpoint/metric_webhook/metric?data="
             val ADDRESS_SUFFIX = ""
             return UrlEncodedAnalytics(ADDRESS_PREFIX, ADDRESS_SUFFIX)
         }
