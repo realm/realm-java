@@ -1,3 +1,14 @@
+## 10.10.2 (YYYY-MM-DD)
+
+### Fixed
+* Fixed `RealmQuery.distinct` when it receives three or more arguments - see credits section.
+
+### Credits
+* Thanks to @Mr4Mike4 for fixing `RealmQuery.distinct` when it receives three or more arguments ([#7639](https://github.com/realm/realm-java/pull/7639)).
+* Thanks to @Waboodoo for fixing some typos ([#7646](https://github.com/realm/realm-java/pull/7646)).
+* Thanks to @ZherebtsovAlexandr for updating the use of the deprecated method `offer` to `trySend` ([#7648](https://github.com/realm/realm-java/pull/7648)).
+
+
 ## 10.10.1 (2022-01-26)
 
 ### Enhancements
@@ -46,7 +57,7 @@
 * [RealmApp] Add support for UUID's as partition values. (Issue [#7598](https://github.com/realm/realm-java/issues/7598))
 * [RealmApp] Reduced native memory usage when working with synchronized Realms.
 * [RealmApp] Make it possible to bundle synchronized Realms in apps using `Realm.writeCopyTo()` and `SyncConfiguration.Builder.assetFile()`.
-* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
+* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299))
 * [RealmApp] Introduced `SyncSession.DiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that doesn't require the Realm to be closed, but discards any unsynced data from the client. This is now the default policy if not overridden.
 
 ### Deprecated
@@ -57,8 +68,8 @@
 * [RealmApp] `SyncConfiguration.getClientResetHandler()`. Use `SyncConfiguration.getSyncClientResetStrategy()` instead.
 
 ### Fixed
-* [RealmApp] Setting `AppConfiguration.syncRootDirectory()` didn't have any effect beside creating the new folder. Realms were still placed in the default location. 
-* [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919)) 
+* [RealmApp] Setting `AppConfiguration.syncRootDirectory()` didn't have any effect beside creating the new folder. Realms were still placed in the default location.
+* [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919))
 * [RealmApp] User being left in the logged in state when the user's refresh token expires. (Issue [Realm Core #4882](https://github.com/realm/realm-core/issues/4882), since v10)
 * Using "sort", "distinct", or "limit" as field name in query expression would cause an "Invalid predicate" error. (Issue [#7545](), since v10.X.X)
 * Crash when quering with 'Not()' followed by empty group. (Issue [Realm Core #4168]() since v1.0.0)
