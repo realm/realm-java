@@ -159,7 +159,7 @@ public class DynamicRealm extends BaseRealm {
      * @return the new object. All fields will have default values for their type, except for the
      * primary key field which will have the provided value.
      * @throws RealmException if object could not be created due to the primary key being invalid.
-     * @throws IllegalStateException if the model clazz does not have an primary key defined.
+     * @throws IllegalStateException if the model clazz does not have a primary key defined.
      * @throws IllegalArgumentException if the {@code primaryKeyValue} doesn't have a value that can be converted to the
      * expected value.
      */

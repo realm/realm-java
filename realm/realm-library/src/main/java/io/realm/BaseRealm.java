@@ -163,8 +163,8 @@ abstract class BaseRealm implements Closeable {
      * <p>
      * Auto-refresh is a feature that enables automatic update of the current Realm instance and all its derived objects
      * (RealmResults and RealmObject instances) when a commit is performed on a Realm acting on the same file in
-     * another thread. This feature is only available if the Realm instance lives on a {@link android.os.Looper} enabled
-     * thread.
+     * another thread. This feature is only available if the Realm instance lives on an {@link android.os.Looper}
+     * enabled thread.
      *
      * @param autoRefresh {@code true} will turn auto-refresh on, {@code false} will turn it off.
      * @throws IllegalStateException if called from a non-Looper thread.

@@ -42,7 +42,7 @@ import io.realm.internal.OsSet;
  * managed mode a RealmSet persists all its contents inside a Realm whereas in unmanaged mode
  * it functions like a {@link HashSet}.
  * <p>
- * Managed RealmSets can only be created by Realm and will automatically update its content
+ * Managed RealmSets can only be created by Realm and will automatically update their content
  * whenever the underlying Realm is updated. Managed RealmSet can only be accessed using the getter
  * that points to a RealmSet field of a {@link RealmObject}.
  * <p>
