@@ -1,6 +1,6 @@
 # Support
 
-The Realm team is here to help you with your Realm-related issues!
+The Realm team is here to help you with your Realm-related issues.
 
 ## Documentation
 
