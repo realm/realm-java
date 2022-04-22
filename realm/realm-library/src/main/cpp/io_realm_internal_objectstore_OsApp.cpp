@@ -182,7 +182,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsApp_nativeLogin(JNIE
             return JavaClassGlobalDef::new_long(env, reinterpret_cast<int64_t>(java_user));
         };
         auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, mapper);
-        app->log_in_with_credentials(*credentials, callback);
+        app->log_in_with_credentials(*credentials, std::move(callback));
     }
     CATCH_STD()
 }

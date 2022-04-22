@@ -79,36 +79,36 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_ApiKeyAuthImpl_nativeCallFunction(J
             case io_realm_mongodb_ApiKeyAuthImpl_TYPE_CREATE: {
                 JStringAccessor name(env, j_arg);
                 auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, single_key_mapper);
-                client.create_api_key(name, user, callback);
+                client.create_api_key(name, user, std::move(callback));
                 break;
             }
             case io_realm_mongodb_ApiKeyAuthImpl_TYPE_FETCH_SINGLE: {
                 auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, single_key_mapper);
                 std::string str_id = JStringAccessor(env, static_cast<jstring>(j_arg));
-                client.fetch_api_key(ObjectId(str_id.c_str()), user, callback);
+                client.fetch_api_key(ObjectId(str_id.c_str()), user, std::move(callback));
                 break;
             }
             case io_realm_mongodb_ApiKeyAuthImpl_TYPE_FETCH_ALL: {
                 auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, multi_key_mapper);
-                client.fetch_api_keys(user, callback);
+                client.fetch_api_keys(user, std::move(callback));
                 break;
             }
             case io_realm_mongodb_ApiKeyAuthImpl_TYPE_DELETE: {
                 auto callback = JavaNetworkTransport::create_void_callback(env, j_callback);
                 std::string str_id = JStringAccessor(env, static_cast<jstring>(j_arg));
-                client.delete_api_key(ObjectId(str_id.c_str()), user, callback);
+                client.delete_api_key(ObjectId(str_id.c_str()), user, std::move(callback));
                 break;
             }
             case io_realm_mongodb_ApiKeyAuthImpl_TYPE_ENABLE: {
                 auto callback = JavaNetworkTransport::create_void_callback(env, j_callback);
                 std::string str_id = JStringAccessor(env, static_cast<jstring>(j_arg));
-                client.enable_api_key(ObjectId(str_id.c_str()), user, callback);
+                client.enable_api_key(ObjectId(str_id.c_str()), user, std::move(callback));
                 break;
             }
             case io_realm_mongodb_ApiKeyAuthImpl_TYPE_DISABLE: {
                 auto callback = JavaNetworkTransport::create_void_callback(env, j_callback);
                 std::string str_id = JStringAccessor(env, static_cast<jstring>(j_arg));
-                client.disable_api_key(ObjectId(str_id.c_str()), user, callback);
+                client.disable_api_key(ObjectId(str_id.c_str()), user, std::move(callback));
                 break;
             }
             default:

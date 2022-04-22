@@ -51,8 +51,8 @@ static_assert(SchemaMode::Immutable==
 static_assert(SchemaMode::ReadOnly ==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_READONLY),
               "");
-static_assert(SchemaMode::ResetFile ==
-                  static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_RESET_FILE),
+static_assert(SchemaMode::SoftResetFile ==
+                  static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_SOFT_RESET_FILE),
               "");
 static_assert(SchemaMode::AdditiveDiscovered ==
                   static_cast<SchemaMode>(io_realm_internal_OsRealmConfig_SCHEMA_MODE_VALUE_ADDITIVE_DISCOVERED),
