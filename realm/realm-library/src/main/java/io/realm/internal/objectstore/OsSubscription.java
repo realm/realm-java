@@ -54,13 +54,7 @@ public class OsSubscription implements NativeObject, Subscription {
 
     @Override
     public String getName() {
-        String result = nativeName(nativePtr);
-        if (result.isEmpty()) {
-            // Work-around until is ready https://github.com/realm/realm-core/pull/5160/files
-            return null;
-        } else {
-            return result;
-        }
+        return nativeName(nativePtr);
     }
 
     @Override
