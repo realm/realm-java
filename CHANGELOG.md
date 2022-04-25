@@ -1,7 +1,7 @@
 ## 10.10.2 (YYYY-MM-DD)
 
 ### Fixed
-* Fixed various corruption bugs when encryption is used. (Realm Core issue [#5360](https://github.com/realm/realm-core/issues/5360))
+* Fixed various corruption bugs when encryption is used. (Realm Core issue [#5360](https://github.com/realm/realm-core/issues/5360), since 10.10.0)
 * Fixed imprecise conversion from double/float to Decimal128. (Realm Core issue [#5191](https://github.com/realm/realm-core/pull/5191))
 
 ### Compatibility
