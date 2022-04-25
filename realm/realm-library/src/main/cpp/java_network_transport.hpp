@@ -30,6 +30,8 @@ using namespace realm::_impl;
 
 namespace realm {
 
+using ResponseFunction = util::UniqueFunction<void(const app::Response&)>;
+
 struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
     JavaNetworkTransport(jobject java_network_transport_impl) {
@@ -42,7 +44,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         REALM_ASSERT_RELEASE_EX(m_send_request_method != nullptr, method_name, signature);
     }
 
-    void send_request_to_server(const app::Request request, std::function<void(const app::Response)> completionBlock)
+    void send_request_to_server(app::Request&& request, ResponseFunction&& completionBlock)
     {
         JNIEnv* env = JniUtils::get_env(true);
 
@@ -82,7 +84,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
                 static_cast<jlong>(request.timeout_ms),
                 request_headers,
                 jbody,
-                new std::function<void(const app::Response)>(std::move(completionBlock))
+                new ResponseFunction(std::move(completionBlock))
         );
         env->DeleteLocalRef(jmethod);
         env->DeleteLocalRef(jurl);
@@ -92,8 +94,8 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
     // Helper method for constructing callbacks for REST calls that must return an actual result to Java
     template<typename T>
-    static std::function<void(T, util::Optional<app::AppError>)> create_result_callback(JNIEnv* env, jobject j_callback, const std::function<jobject (JNIEnv*, T)>& success_mapper) {
-        return [callback = JavaGlobalRefByCopy(env, j_callback), success_mapper](T result, util::Optional<app::AppError> error) {
+    static util::UniqueFunction<void(T, util::Optional<app::AppError>&&)> create_result_callback(JNIEnv* env, jobject j_callback, const std::function<jobject (JNIEnv*, T)>& success_mapper) {
+        return [callback = JavaGlobalRefByCopy(env, j_callback), success_mapper](T result, util::Optional<app::AppError>&& error) {
             JNIEnv* env = JniUtils::get_env(true);
 
             static JavaClass java_callback_class(env, "io/realm/internal/network/NetworkRequest");
@@ -116,7 +118,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
     }
 
     // Helper method for constructing callbacks for REST calls that doesn't return any results to Java.
-    static std::function<void(util::Optional<app::AppError>)> create_void_callback(JNIEnv* env, jobject j_callback) {
+    static util::UniqueFunction<void(util::Optional<app::AppError>)> create_void_callback(JNIEnv* env, jobject j_callback) {
         return [callback = JavaGlobalRefByCopy(env, j_callback)](util::Optional<app::AppError> error) {
             JNIEnv* env = JniUtils::get_env(true);
 

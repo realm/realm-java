@@ -270,7 +270,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnecti
         static JavaClass java_syncmanager_class(env, "io/realm/mongodb/sync/SyncSession");
         static JavaMethod java_notify_connection_listener(env, java_syncmanager_class, "notifyConnectionListeners", "(JJ)V");
 
-        std::function<SyncSession::ConnectionStateChangeCallback > callback = [session_ref = JavaGlobalRefByCopy(env, j_session_object)](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
+        auto callback = [session_ref = JavaGlobalRefByCopy(env, j_session_object)](SyncSession::ConnectionState old_state, SyncSession::ConnectionState new_state) {
             JNIEnv* local_env = jni_util::JniUtils::get_env(true);
 
             jlong old_connection_value = get_connection_value(old_state);
@@ -289,7 +289,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddConnecti
                 throw std::runtime_error("An unexpected Error was thrown from Java. See LogCat");
             }
         };
-        uint64_t token = session->register_connection_change_callback(callback);
+        uint64_t token = session->register_connection_change_callback(std::move(callback));
         return static_cast<jlong>(token);
     }
     CATCH_STD()

@@ -45,7 +45,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_User_nativeLinkUser(JNIEnv* env,
             return JavaClassGlobalDef::new_long(env, reinterpret_cast<int64_t>(java_user));
         };
         auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, mapper);
-        app->link_user(user, *credentials, callback);
+        app->link_user(user, *credentials, std::move(callback));
     }
     CATCH_STD()
 }

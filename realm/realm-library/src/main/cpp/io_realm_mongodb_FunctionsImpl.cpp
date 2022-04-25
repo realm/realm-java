@@ -44,15 +44,11 @@ Java_io_realm_mongodb_FunctionsImpl_nativeCallFunction(JNIEnv* env, jclass , jlo
         auto app = *reinterpret_cast<std::shared_ptr<App>*>(j_app_ptr);
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_user_ptr);
 
-        std::function<void(util::Optional<Bson>, util::Optional<app::AppError>)> callback = JavaNetworkTransport::create_result_callback(env, j_callback, success_mapper);
-
-        auto handler = [callback](util::Optional<app::AppError> error, util::Optional<Bson> response) {
-            callback(response, error);
-        };
+        auto callback = JavaNetworkTransport::create_result_callback(env, j_callback, success_mapper);
 
         JStringAccessor name(env, j_name);
         BsonArray args(JniBsonProtocol::parse_checked(env, j_args_json, Bson::Type::Array, "BSON argument must be an BsonArray"));
-        app->call_function(user, name, args, handler);
+        app->call_function(user, name, args, std::move(callback));
     }
     CATCH_STD()
 }

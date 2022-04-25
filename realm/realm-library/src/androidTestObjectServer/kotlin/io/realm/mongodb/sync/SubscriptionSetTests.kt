@@ -208,13 +208,9 @@ class SubscriptionSetTests {
     @Test
     fun waitForSynchronizationInitialSubscriptions() {
         val subscriptions = realm.subscriptions
-        assertFailsWith<RuntimeException> {
-            subscriptions.waitForSynchronization()
-        }
-        // TODO Ideally this should work, but capture Core's current behaviour.
-        // assertTrue(subscriptions.waitForSynchronization())
-        // assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
-        // assertEquals(0, subscriptions.size())
+         assertTrue(subscriptions.waitForSynchronization())
+         assertEquals(SubscriptionSet.State.COMPLETE, subscriptions.state)
+         assertEquals(0, subscriptions.size())
     }
 
     @Test
