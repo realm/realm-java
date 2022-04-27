@@ -3,7 +3,7 @@
 ### Fixed
 * Fixed various corruption bugs when encryption is used. (Realm Core issue [#5360](https://github.com/realm/realm-core/issues/5360), since 10.10.0)
 * Fixed imprecise conversion from double/float to Decimal128. (Realm Core issue [#5191](https://github.com/realm/realm-core/pull/5191))
-* Fixed `RealmQuery.distinct` when it receives three or more arguments - see credits section.
+* Fixed `RealmQuery.distinct` when it receives three or more arguments. (Issue [#7639](https://github.com/realm/realm-java/pull/7639))
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
