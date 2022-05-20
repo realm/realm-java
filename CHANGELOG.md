@@ -1,4 +1,4 @@
-## 10.10.2 (2022-05-20)
+## 10.11.0 (2022-05-20)
 
 ### Enhancements
 * Throw a more comprehensive error when initializing Realm on an Instant App.
