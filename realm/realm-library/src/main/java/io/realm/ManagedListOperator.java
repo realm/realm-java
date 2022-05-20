@@ -37,7 +37,7 @@ import static io.realm.CollectionUtils.LIST_TYPE;
  * This class provides facade for against {@link OsList}. {@link OsList} is used for both {@link RealmModel}s
  * and values, but there are some subtle differences in actual operation.
  * <p>
- * This class provides common interface for them.
+ * This class provides a common interface for them.
  * <p>
  * You need to use appropriate sub-class for underlying field type.
  *

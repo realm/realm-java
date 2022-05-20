@@ -34,7 +34,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsJavaNetworkTransport
                                                                                                       jlong j_completion_block_ptr)
 {
     try {
-        auto& completion_block = *reinterpret_cast<std::function<void(const Response)>*>(j_completion_block_ptr);
+        std::unique_ptr<ResponseFunction> completion_block(reinterpret_cast<ResponseFunction*>(j_completion_block_ptr));
 
         // Read response
         static const JavaClass& response_class(JavaClassGlobalDef::network_transport_response_class());
@@ -56,8 +56,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsJavaNetworkTransport
         std::string body = java_body;
 
         // Trigger callback into ObjectStore and cleanup
-        completion_block(Response{(int) http_code, (int) custom_code, response_headers, body});
-        delete& completion_block;
+        (*completion_block)({(int) http_code, (int) custom_code, response_headers, body});
     }
     CATCH_STD()
 }

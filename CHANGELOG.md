@@ -1,9 +1,12 @@
-## 10.10.2 (YYYY-MM-DD)
+## 10.10.2 (2022-05-20)
 
 ### Enhancements
 * Throw a more comprehensive error when initializing Realm on an Instant App.
 
 ### Fixed
+* Fixed various corruption bugs when encryption is used. (Realm Core issue [#5360](https://github.com/realm/realm-core/issues/5360), since 10.10.0)
+* Fixed imprecise conversion from double/float to Decimal128. (Realm Core issue [#5191](https://github.com/realm/realm-core/pull/5191))
+* Fixed `RealmQuery.distinct` when it receives three or more arguments. (Issue [#7639](https://github.com/realm/realm-java/pull/7639))
 * Fix issues resolving class information for `copyToRealmOrUpdate` for already managed objects in multi module projects. (Issue [#7650](https://github.com/realm/realm-java/issues/7650))
 
 ### Compatibility
@@ -12,7 +15,13 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* None
+* Update to Realm Core 11.14.0, commit: db7ca86cf7ff8c9c3da6c7e742ecd46315ddc280.
+
+### Credits
+* Thanks to @Mr4Mike4 for fixing `RealmQuery.distinct` when it receives three or more arguments ([#7639](https://github.com/realm/realm-java/pull/7639)).
+* Thanks to @Waboodoo for fixing some typos ([#7646](https://github.com/realm/realm-java/pull/7646)).
+* Thanks to @ZherebtsovAlexandr for updating the use of the deprecated method `offer` to `trySend` ([#7648](https://github.com/realm/realm-java/pull/7648)).
+
 
 ## 10.10.1 (2022-01-26)
 
@@ -62,7 +71,7 @@
 * [RealmApp] Add support for UUID's as partition values. (Issue [#7598](https://github.com/realm/realm-java/issues/7598))
 * [RealmApp] Reduced native memory usage when working with synchronized Realms.
 * [RealmApp] Make it possible to bundle synchronized Realms in apps using `Realm.writeCopyTo()` and `SyncConfiguration.Builder.assetFile()`.
-* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299)) 
+* The Realm Transformer and Realm Gradle Plugin now supports the Gradle Configuration Cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299))
 * [RealmApp] Introduced `SyncSession.DiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that doesn't require the Realm to be closed, but discards any unsynced data from the client. This is now the default policy if not overridden.
 
 ### Deprecated
@@ -73,8 +82,8 @@
 * [RealmApp] `SyncConfiguration.getClientResetHandler()`. Use `SyncConfiguration.getSyncClientResetStrategy()` instead.
 
 ### Fixed
-* [RealmApp] Setting `AppConfiguration.syncRootDirectory()` didn't have any effect beside creating the new folder. Realms were still placed in the default location. 
-* [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919)) 
+* [RealmApp] Setting `AppConfiguration.syncRootDirectory()` didn't have any effect beside creating the new folder. Realms were still placed in the default location.
+* [RealmApp] Bug where progress notifiers continue to be called after the download of a synced realm is complete. (Issue [Realm Core #4919](https://github.com/realm/realm-core/issues/4919))
 * [RealmApp] User being left in the logged in state when the user's refresh token expires. (Issue [Realm Core #4882](https://github.com/realm/realm-core/issues/4882), since v10)
 * Using "sort", "distinct", or "limit" as field name in query expression would cause an "Invalid predicate" error. (Issue [#7545](), since v10.X.X)
 * Crash when quering with 'Not()' followed by empty group. (Issue [Realm Core #4168]() since v1.0.0)
@@ -189,7 +198,7 @@
 ### Fixed
 * [RealmApp] Configuring HTTP timeout through `AppConfiguration.Builder.requestTimeout()` did not work correctly. (Issue [#7455](https://github.com/realm/realm-java/issues/7455))
 * [RealmApp] A recursive loop that would eventually crash trying to refresh a user app token when it had been revoked by an admin. Now this situation logs the user out and reports an error. (Issue [#7501](https://github.com/realm/realm-java/issues/7501))
-* En endless recursive loop that could cause a stack overflow when computing changes on a set of objects which contained cycles. (Realm Core Issue [#4767](https://github.com/realm/realm-core/issues/4767))
+* An endless recursive loop that could cause a stack overflow when computing changes on a set of objects which contained cycles. (Realm Core Issue [#4767](https://github.com/realm/realm-core/issues/4767))
 * Opening cached Realms no longer trigger `android.os.strictmode.DiskReadViolation`. (Issue [#7500](https://github.com/realm/realm-java/issues/7500]))
 * `NullPointerException` was thrown instead of `IllegalStateException` when calling `Realm.executeTransaction()` on a closed Realm. (Issue [#7511](https://github.com/realm/realm-java/issues/7511), since 10.0.0)
 * `RealmDictionary` did not handle hash collisions correctly. (Realm Core issue [#4776](https://github.com/realm/realm-core/issues/4767))

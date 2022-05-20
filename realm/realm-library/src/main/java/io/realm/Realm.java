@@ -92,7 +92,7 @@ import io.realm.log.RealmLog;
  * onStart/onStop.
  * <p>
  * Realm instances coordinate their state across threads using the {@link android.os.Handler} mechanism. This also means
- * that Realm instances on threads without a {@link android.os.Looper} cannot receive updates unless {@link #refresh()}
+ * that Realm instances on threads without an {@link android.os.Looper} cannot receive updates unless {@link #refresh()}
  * is manually called.
  * <p>
  * A standard pattern for working with Realm in Android activities can be seen below:

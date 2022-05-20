@@ -131,7 +131,7 @@ class RealmAnyQueryTests {
     fun sum() {
         initializeTestData()
         val value = realm.where<RealmAnyNotIndexed>().sum(RealmAnyNotIndexed.FIELD_REALM_ANY)
-        assertEquals(Decimal128.parse("279.0"), value)
+        assertEquals(Decimal128.parse("279.00000000000000"), value)
     }
 
     @Test

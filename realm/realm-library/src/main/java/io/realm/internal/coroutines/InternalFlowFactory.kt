@@ -46,9 +46,9 @@ class InternalFlowFactory(
             val listener = RealmChangeListener<Realm> { listenerRealm ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(realm.freeze())
+                        trySend(realm.freeze())
                     } else {
-                        offer(listenerRealm)
+                        trySend(listenerRealm)
                     }
                 }
             }
@@ -56,9 +56,9 @@ class InternalFlowFactory(
             flowRealm.addChangeListener(listener)
 
             if (returnFrozenObjects) {
-                offer(flowRealm.freeze())
+                trySend(flowRealm.freeze())
             } else {
-                offer(flowRealm)
+                trySend(flowRealm)
             }
 
             awaitClose {
@@ -79,9 +79,9 @@ class InternalFlowFactory(
             val listener = RealmChangeListener<DynamicRealm> { listenerRealm ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(dynamicRealm.freeze())
+                        trySend(dynamicRealm.freeze())
                     } else {
-                        offer(listenerRealm)
+                        trySend(listenerRealm)
                     }
                 }
             }
@@ -89,9 +89,9 @@ class InternalFlowFactory(
             flowRealm.addChangeListener(listener)
 
             if (returnFrozenObjects) {
-                offer(flowRealm.freeze())
+                trySend(flowRealm.freeze())
             } else {
-                offer(flowRealm)
+                trySend(flowRealm)
             }
 
             awaitClose {
@@ -123,9 +123,9 @@ class InternalFlowFactory(
             val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(listenerResults.freeze())
+                        trySend(listenerResults.freeze())
                     } else {
-                        offer(listenerResults)
+                        trySend(listenerResults)
                     }
                 }
             }
@@ -134,9 +134,9 @@ class InternalFlowFactory(
 
             // Emit current value
             if (returnFrozenObjects) {
-                offer(results.freeze())
+                trySend(results.freeze())
             } else {
-                offer(results)
+                trySend(results)
             }
 
             awaitClose {
@@ -173,9 +173,9 @@ class InternalFlowFactory(
             val listener = OrderedRealmCollectionChangeListener<RealmResults<T>> { listenerResults, changeSet ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(CollectionChange(listenerResults.freeze(), changeSet))
+                        trySend(CollectionChange(listenerResults.freeze(), changeSet))
                     } else {
-                        offer(CollectionChange(listenerResults, changeSet))
+                        trySend(CollectionChange(listenerResults, changeSet))
                     }
                 }
             }
@@ -184,9 +184,9 @@ class InternalFlowFactory(
 
             // Emit current value
             if (returnFrozenObjects) {
-                offer(CollectionChange(results.freeze(), null))
+                trySend(CollectionChange(results.freeze(), null))
             } else {
-                offer(CollectionChange(results, null))
+                trySend(CollectionChange(results, null))
             }
 
             awaitClose {
@@ -223,9 +223,9 @@ class InternalFlowFactory(
             val listener = RealmChangeListener<RealmResults<T>> { listenerResults ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(listenerResults.freeze())
+                        trySend(listenerResults.freeze())
                     } else {
-                        offer(listenerResults)
+                        trySend(listenerResults)
                     }
                 }
             }
@@ -234,9 +234,9 @@ class InternalFlowFactory(
 
             // Emit current value
             if (returnFrozenObjects) {
-                offer(results.freeze())
+                trySend(results.freeze())
             } else {
-                offer(results)
+                trySend(results)
             }
 
             awaitClose {
@@ -273,9 +273,9 @@ class InternalFlowFactory(
             val listener = OrderedRealmCollectionChangeListener<RealmResults<T>> { listenerResults, changeSet ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(CollectionChange(listenerResults.freeze(), changeSet))
+                        trySend(CollectionChange(listenerResults.freeze(), changeSet))
                     } else {
-                        offer(CollectionChange(listenerResults, changeSet))
+                        trySend(CollectionChange(listenerResults, changeSet))
                     }
                 }
             }
@@ -284,9 +284,9 @@ class InternalFlowFactory(
 
             // Emit current value
             if (returnFrozenObjects) {
-                offer(CollectionChange(results.freeze(), null))
+                trySend(CollectionChange(results.freeze(), null))
             } else {
-                offer(CollectionChange(results, null))
+                trySend(CollectionChange(results, null))
             }
 
             awaitClose {
@@ -323,9 +323,9 @@ class InternalFlowFactory(
                     if (!listenerResults.isValid) {
                         close()
                     } else if (returnFrozenObjects) {
-                        offer(listenerResults.freeze())
+                        trySend(listenerResults.freeze())
                     } else {
-                        offer(listenerResults)
+                        trySend(listenerResults)
                     }
                 }
             }
@@ -334,9 +334,9 @@ class InternalFlowFactory(
 
             // Emit current value
             if (returnFrozenObjects) {
-                offer(realmList.freeze())
+                trySend(realmList.freeze())
             } else {
-                offer(realmList)
+                trySend(realmList)
             }
 
             awaitClose {
@@ -375,9 +375,9 @@ class InternalFlowFactory(
                     if (!listenerList.isValid) {
                         close()
                     } else if (returnFrozenObjects) {
-                        offer(CollectionChange(listenerList.freeze(), changeSet))
+                        trySend(CollectionChange(listenerList.freeze(), changeSet))
                     } else {
-                        offer(CollectionChange(listenerList, changeSet))
+                        trySend(CollectionChange(listenerList, changeSet))
                     }
                 }
             }
@@ -386,9 +386,9 @@ class InternalFlowFactory(
 
             // Emit current value
             if (returnFrozenObjects) {
-                offer(CollectionChange(list.freeze(), null))
+                trySend(CollectionChange(list.freeze(), null))
             } else {
-                offer(CollectionChange(list, null))
+                trySend(CollectionChange(list, null))
             }
 
             awaitClose {
@@ -424,9 +424,9 @@ class InternalFlowFactory(
                     if (!listenerResults.isValid) {
                         close()
                     } else if (returnFrozenObjects) {
-                        offer(listenerResults.freeze())
+                        trySend(listenerResults.freeze())
                     } else {
-                        offer(listenerResults)
+                        trySend(listenerResults)
                     }
                 }
             }
@@ -435,9 +435,9 @@ class InternalFlowFactory(
 
             // Emit current value
             if (returnFrozenObjects) {
-                offer(realmList.freeze())
+                trySend(realmList.freeze())
             } else {
-                offer(realmList)
+                trySend(realmList)
             }
 
             awaitClose {
@@ -476,9 +476,9 @@ class InternalFlowFactory(
                     if (!listenerList.isValid) {
                         close()
                     } else if (returnFrozenObjects) {
-                        offer(CollectionChange(listenerList.freeze(), changeSet))
+                        trySend(CollectionChange(listenerList.freeze(), changeSet))
                     } else {
-                        offer(CollectionChange(listenerList, changeSet))
+                        trySend(CollectionChange(listenerList, changeSet))
                     }
                 }
             }
@@ -487,9 +487,9 @@ class InternalFlowFactory(
 
             // Emit current value
             if (returnFrozenObjects) {
-                offer(CollectionChange(list.freeze(), null))
+                trySend(CollectionChange(list.freeze(), null))
             } else {
-                offer(CollectionChange(list, null))
+                trySend(CollectionChange(list, null))
             }
 
             awaitClose {
@@ -524,9 +524,9 @@ class InternalFlowFactory(
             val listener = RealmChangeListener<T> { listenerObj ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(RealmObject.freeze(listenerObj) as T)
+                        trySend(RealmObject.freeze(listenerObj) as T)
                     } else {
-                        offer(listenerObj)
+                        trySend(listenerObj)
                     }
                 }
             }
@@ -536,9 +536,9 @@ class InternalFlowFactory(
             // Emit current value
             if (RealmObject.isLoaded(realmObject)) {
                 if (returnFrozenObjects) {
-                    offer(RealmObject.freeze(realmObject))
+                    trySend(RealmObject.freeze(realmObject))
                 } else {
-                    offer(realmObject)
+                    trySend(realmObject)
                 }
             }
 
@@ -576,9 +576,9 @@ class InternalFlowFactory(
             val listener = RealmObjectChangeListener<T> { listenerObject, changeSet ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
+                        trySend(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
                     } else {
-                        offer(ObjectChange(listenerObject, changeSet))
+                        trySend(ObjectChange(listenerObject, changeSet))
                     }
                 }
             }
@@ -588,9 +588,9 @@ class InternalFlowFactory(
             // Emit current value
             if (RealmObject.isLoaded(realmObject)) {
                 if (returnFrozenObjects) {
-                    offer(ObjectChange(RealmObject.freeze(realmObject), null))
+                    trySend(ObjectChange(RealmObject.freeze(realmObject), null))
                 } else {
-                    offer(ObjectChange(realmObject, null))
+                    trySend(ObjectChange(realmObject, null))
                 }
             }
 
@@ -629,9 +629,9 @@ class InternalFlowFactory(
             val listener = RealmChangeListener<DynamicRealmObject> { listenerObj ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(listenerObj.freeze())
+                        trySend(listenerObj.freeze())
                     } else {
-                        offer(listenerObj)
+                        trySend(listenerObj)
                     }
                 }
             }
@@ -641,9 +641,9 @@ class InternalFlowFactory(
             // Emit current value
             if (RealmObject.isLoaded(dynamicRealmObject)) {
                 if (returnFrozenObjects) {
-                    offer(RealmObject.freeze(dynamicRealmObject))
+                    trySend(RealmObject.freeze(dynamicRealmObject))
                 } else {
-                    offer(dynamicRealmObject)
+                    trySend(dynamicRealmObject)
                 }
             }
 
@@ -681,9 +681,9 @@ class InternalFlowFactory(
             val listener = RealmObjectChangeListener<DynamicRealmObject> { listenerObject, changeSet ->
                 if (isActive) {
                     if (returnFrozenObjects) {
-                        offer(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
+                        trySend(ObjectChange(RealmObject.freeze(listenerObject), changeSet))
                     } else {
-                        offer(ObjectChange(listenerObject, changeSet))
+                        trySend(ObjectChange(listenerObject, changeSet))
                     }
                 }
             }
@@ -693,9 +693,9 @@ class InternalFlowFactory(
             // Emit current value
             if (RealmObject.isLoaded(dynamicRealmObject)) {
                 if (returnFrozenObjects) {
-                    offer(ObjectChange(RealmObject.freeze(dynamicRealmObject), null))
+                    trySend(ObjectChange(RealmObject.freeze(dynamicRealmObject), null))
                 } else {
-                    offer(ObjectChange(dynamicRealmObject, null))
+                    trySend(ObjectChange(dynamicRealmObject, null))
                 }
             }
 

@@ -258,7 +258,7 @@ public abstract class RealmObject implements RealmModel, ManageableObject {
     /**
      * Checks if the query used to find this RealmObject has completed.
      * <p>
-     * Async methods like {@link RealmQuery#findFirstAsync()} return an {@link RealmObject} that represents the future
+     * Async methods like {@link RealmQuery#findFirstAsync()} return a {@link RealmObject} that represents the future
      * result of the {@link RealmQuery}. It can be considered similar to a {@link java.util.concurrent.Future} in this
      * regard.
      * <p>

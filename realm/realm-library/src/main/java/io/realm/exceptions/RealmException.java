@@ -20,7 +20,7 @@ import io.realm.internal.Keep;
 
 
 /**
- * RealmException is Realm specific exceptions.
+ * RealmException is for Realm specific exceptions.
  */
 @Keep
 public final class RealmException extends RuntimeException {

@@ -273,8 +273,8 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeRefre
         (JNIEnv* env, jclass, jlong j_native_ptr, jobject j_callback) {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        std::function<void(util::Optional<app::AppError>)> callback = JavaNetworkTransport::create_void_callback(env, j_callback);
-        user->refresh_custom_data(callback);
+        auto callback = JavaNetworkTransport::create_void_callback(env, j_callback);
+        user->refresh_custom_data(std::move(callback));
     }
     CATCH_STD()
 }
