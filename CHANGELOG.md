@@ -1,4 +1,4 @@
-## 10.11.1 (YYYY-MM-DD)
+## 10.12.0 (YYYY-MM-DD)
 
 ### Enhancements
 
