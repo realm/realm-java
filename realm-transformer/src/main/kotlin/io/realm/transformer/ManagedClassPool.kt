@@ -16,18 +16,21 @@
 
 package io.realm.transformer
 
-import com.android.build.api.transform.TransformInput
 import javassist.ClassPath
 import javassist.ClassPool
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
+import org.gradle.api.provider.ListProperty
 import java.io.Closeable
+import java.io.File
 
 /**
  * This class is a wrapper around JavaAssists {@code ClassPool} class that allows for correct cleanup
  * of the resources used.
  */
-class ManagedClassPool(inputs: Collection<TransformInput>, referencedInputs: Collection<TransformInput>) : ClassPool(), Closeable {
+class ManagedClassPool(inputs: ListProperty<Directory>, referencedInputs: ConfigurableFileCollection) : ClassPool(), Closeable {
 
-    val pathElements: ArrayList<ClassPath> = arrayListOf()
+    private val pathElements: ArrayList<ClassPath> = arrayListOf()
 
     /**
      * Constructor for creating and populating the JavAssist class pool.
@@ -42,24 +45,14 @@ class ManagedClassPool(inputs: Collection<TransformInput>, referencedInputs: Col
         // will use a cached object and all the classes will be frozen.
         appendSystemPath()
 
-        inputs.forEach{
-            it.directoryInputs.forEach {
-                pathElements.add(appendClassPath(it.file.absolutePath))
-            }
-
-            it.jarInputs.forEach {
-                pathElements.add(appendClassPath(it.file.absolutePath))
+        inputs.get().forEach{ directory: Directory ->
+            directory.asFile.walk().filter(File::isDirectory).forEach {
+                pathElements.add(appendClassPath(it.absolutePath))
             }
         }
 
         referencedInputs.forEach {
-            it.directoryInputs.forEach {
-                pathElements.add(appendClassPath(it.file.absolutePath))
-            }
-
-            it.jarInputs.forEach {
-                pathElements.add(appendClassPath(it.file.absolutePath))
-            }
+            pathElements.add(appendClassPath(it.absolutePath))
         }
     }
 

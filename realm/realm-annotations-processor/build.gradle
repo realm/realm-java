@@ -1,8 +1,8 @@
 apply plugin: 'kotlin'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+sourceCompatibility = '11'
+targetCompatibility = '11'
 
 def properties = new Properties()
 properties.load(new FileInputStream("${projectDir}/../../dependencies.list"))

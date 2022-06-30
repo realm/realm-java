@@ -107,8 +107,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 
     packagingOptions {
@@ -149,18 +149,19 @@ android {
     }
 }
 
-android.registerTransform(new io.realm.transformer.RealmTransformer(project))
-android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
-        "base",
-        "io.realm.internal.annotations.ObjectServer",
-        [
-                "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
-                "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
-                "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
-                "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
-                "io_realm_sync_permissions_RoleRealmProxyInterface.class"
-        ].toSet()
-))
+io.realm.transformer.RealmTransformer.@Companion.register(project)
+// TODO 
+//android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
+//        "base",
+//        "io.realm.internal.annotations.ObjectServer",
+//        [
+//                "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
+//                "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
+//                "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
+//                "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
+//                "io_realm_sync_permissions_RoleRealmProxyInterface.class"
+//        ].toSet()
+//))
 
 project.afterEvaluate {
     tasks.withType(JavaCompile) {

@@ -78,8 +78,8 @@ dependencies {
 }
 
 task generateVersionClass(type: Copy) {
-    from 'src/main/templates/Version.java'
-    into 'build/generated-src/main/java/io/realm'
+    from 'src/main/templates/Version.kt'
+    into 'build/generated-src/main/kotlin/io/realm'
     filter(ReplaceTokens, tokens: [version: version])
     outputs.upToDateWhen { false }
 }
@@ -88,12 +88,12 @@ task generateVersionClass(type: Copy) {
 sourceSets {
     main {
         java {
-            srcDir 'build/generated-src/main/java'
+            srcDirs += ['build/generated-src/main/kotlin', 'src/main/kotlin']
         }
     }
 }
 
-compileJava.dependsOn generateVersionClass
+compileKotlin.dependsOn generateVersionClass
 
 apply from: "${rootDir}/../mavencentral-publications.gradle"
 apply from: "${rootDir}/../mavencentral-publish.gradle"

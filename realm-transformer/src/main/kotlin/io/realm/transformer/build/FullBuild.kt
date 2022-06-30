@@ -16,9 +16,6 @@
 
 package io.realm.transformer.build
 
-import com.android.build.api.transform.Format
-import com.android.build.api.transform.TransformInput
-import com.android.build.api.transform.TransformOutputProvider
 import io.realm.transformer.BytecodeModifier
 import io.realm.transformer.ProjectMetaData
 import io.realm.transformer.RealmTransformer
@@ -26,41 +23,46 @@ import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
 import javassist.CtField
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.ListProperty
 import java.io.File
 import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
 
-class FullBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvider, transformer: RealmTransformer)
-    : BuildTemplate(metadata, outputProvider, transformer) {
+class FullBuild(metadata: ProjectMetaData, allJars: ListProperty<RegularFile>, outputProvider: JarOutputStream, transformer: RealmTransformer)
+    : BuildTemplate(metadata, allJars, outputProvider, transformer) {
 
     private val allModelClasses: ArrayList<CtClass> = arrayListOf()
 
-    override fun prepareOutputClasses(inputs: MutableCollection<TransformInput>) {
+    override fun prepareOutputClasses(inputs: ListProperty<Directory>) {
         this.inputs = inputs;
-        categorizeClassNames(inputs, outputClassNames, outputReferencedClassNames)
+        categorizeClassNames(inputs, outputClassNames)
         logger.debug("Full build. Files being processed: ${outputClassNames.size}.")
     }
 
-    override fun categorizeClassNames(inputs: Collection<TransformInput>,
-                                      directoryFiles: MutableSet<String>,
-                                      jarFiles: MutableSet<String>) {
-        inputs.forEach {
-            it.directoryInputs.forEach {
-                val dirPath: String = it.file.absolutePath
-                // Non-incremental build: Include all files
-                it.file.walkTopDown().forEach {
-                    if (it.isFile) {
-                        if (it.absolutePath.endsWith(DOT_CLASS)) {
-                            val className: String = it.absolutePath
-                                    .substring(dirPath.length + 1, it.absolutePath.length - DOT_CLASS.length)
-                                    .replace(File.separatorChar, '.')
-                            directoryFiles.add(className)
-                        }
-                    }
+    override fun categorizeClassNames(inputs: ListProperty<Directory>,
+                                      directoryFiles: MutableSet<String>) {
+
+        inputs.get().forEach { directory ->
+            val dirPath: String = directory.asFile.absolutePath
+            directory.asFile.walk().filter(File::isFile).forEach { file ->
+                if (file.absolutePath.endsWith(DOT_CLASS)) {
+                    val className: String = file.absolutePath
+                        .substring(dirPath.length + 1, file.absolutePath.length - DOT_CLASS.length)
+                        .replace(File.separatorChar, '.')
+                    directoryFiles.add(className)
                 }
             }
+        }
+    }
 
-            it.jarInputs.forEach {
-                val jarFile = JarFile(it.file)
+    override fun categorizeClassNames(referencedInputs: ConfigurableFileCollection,
+                                      jarFiles: MutableSet<String>) {
+
+        referencedInputs.forEach {
+                val jarFile = JarFile(it)
                 jarFile.entries()
                         .toList()
                         .filter {
@@ -79,7 +81,6 @@ class FullBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvid
                         }
                 jarFile.close() // Crash transformer if this fails
             }
-        }
     }
 
     override fun findModelClasses(classNames: Set<String>): Collection<CtClass> {
@@ -133,8 +134,11 @@ class FullBuild(metadata: ProjectMetaData, outputProvider: TransformOutputProvid
             logger.debug("Modifying accessors in class: $it")
             try {
                 val ctClass: CtClass = classPool.getCtClass(it)
+                if (ctClass.isFrozen) {
+                    ctClass.defrost()
+                }
                 BytecodeModifier.useRealmAccessors(classPool, ctClass, allManagedFields)
-                ctClass.writeFile(getOutputFile(outputProvider, Format.DIRECTORY).canonicalPath)
+                processedClasses[it] = ctClass
             } catch (e: Exception) {
                 throw RuntimeException("Failed to transform $it.", e)
             }
