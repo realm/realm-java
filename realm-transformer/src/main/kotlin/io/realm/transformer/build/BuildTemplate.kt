@@ -149,42 +149,6 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
         classPool.close()
     }
 
-//    private fun copyResourceFiles(inputs: ListProperty<Directory>) {
-//        inputs.get().forEach { input: Directory ->
-//            input.asFile.walkTopDown().forEach { directory: File ->
-//                val dirPath: String = directory.absolutePath
-//                directory.walkTopDown().forEach { file: File ->
-//                    if (file.isFile) {
-//                        if (!file.absolutePath.endsWith(DOT_CLASS)) {
-//                            val dest = File(outputProvider.asFile.get(), file.absolutePath.substring(dirPath.length))
-//                            logger.debug("  Copying resource file from = $file into = $dest mkdir is = ${dest.parentFile.mkdirs()}")
-//                            Files.copy(file, dest)
-//                        }
-//                    }
-//                }
-//            }
-//
-////            input.jarInputs.forEach { jar: JarInput ->
-////                logger.debug("Found JAR file: ${jar.file.absolutePath}")
-////                val dirPath: String = jar.file.absolutePath
-////                jar.file.walkTopDown().forEach { file: File ->
-////                    if (file.isFile) {
-////                        if (file.absolutePath.endsWith(DOT_JAR)) {
-////                            logger.debug("  Copying jar file: $file")
-//////                            val dest = File(getOutputFile(outputProvider, Format.JAR), file.absolutePath.substring(dirPath.length))
-//////                            dest.parentFile.mkdirs()
-//////                            Files.copy(file, dest)
-////                        }
-////                    }
-////                }
-////            }
-//        }
-//    }
-
-//    protected fun getOutputFile(outputProvider: TransformOutputProvider, format: Format): File {
-//        return outputProvider.getContentLocation("realm", transform.inputTypes, transform.scopes, format)
-//    }
-
     /**
      * There is no official way to get the path to android.jar for transform.
      * See https://code.google.com/p/android/issues/detail?id=209426
