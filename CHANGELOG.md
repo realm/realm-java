@@ -3,6 +3,7 @@
 ### Enhancements
 
 ### Fixed
+* Fixed deadlock while trying to close all Realm instances during a manual client reset. Issue [#7696](https://github.com/realm/realm-java/pull/7696))
 
 ### Compatibility
 
