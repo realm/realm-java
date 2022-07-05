@@ -236,10 +236,13 @@ public abstract class Sync {
     private void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
         ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
 
-        // Avoid deadlock while trying to close realm instances during a client reset
         if (errCode == ErrorCode.CLIENT_RESET) {
+            // Avoid deadlock while trying to close realm instances during a client reset
+            // Not acquiring the lock here would allow acquiring it later on when we try to close the
+            // session in `Sync.removeSession()`.
             doNotifyError(nativeErrorCategory, nativeErrorCode, errorMessage, clientResetPathInfo, path);
         } else {
+            // Maintain the logic for the rest of the sync errors
             synchronized (this) {
                 doNotifyError(nativeErrorCategory, nativeErrorCode, errorMessage, clientResetPathInfo, path);
             }
