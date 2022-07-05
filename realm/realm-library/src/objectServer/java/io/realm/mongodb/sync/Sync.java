@@ -320,7 +320,7 @@ public abstract class Sync {
      * @param session Session to trigger Client Reset for.
      */
     void simulateClientReset(SyncSession session) {
-        simulateClientReset(session, ErrorCode.DIVERGING_HISTORIES);
+        new Thread(() -> simulateClientReset(session, ErrorCode.DIVERGING_HISTORIES)).start();
     }
 
     /**

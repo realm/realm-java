@@ -18,6 +18,7 @@ import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage
+import kotlinx.coroutines.runBlocking
 import org.bson.BsonInt32
 import org.bson.BsonInt64
 import org.bson.BsonString
@@ -636,7 +637,9 @@ class SyncSessionTests {
                 //.directory(looperThread.getRoot())
                 .clientResetHandler { session, error ->
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(looperThread.asDispatcher()) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Try to re-open Realm and download it again
