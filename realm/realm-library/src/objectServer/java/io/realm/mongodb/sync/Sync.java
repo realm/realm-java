@@ -233,7 +233,20 @@ public abstract class Sync {
      * session to contact.
      */
     @SuppressWarnings("unused")
-    private synchronized void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
+    private void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
+        ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+
+        // Avoid deadlock while trying to close realm instances during a client reset
+        if (errCode == ErrorCode.CLIENT_RESET) {
+            doNotifyError(nativeErrorCategory, nativeErrorCode, errorMessage, clientResetPathInfo, path);
+        } else {
+            synchronized (this) {
+                doNotifyError(nativeErrorCategory, nativeErrorCode, errorMessage, clientResetPathInfo, path);
+            }
+        }
+    }
+
+    private void doNotifyError(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
         SyncSession syncSession = sessions.get(path);
         if (syncSession != null) {
             try {
