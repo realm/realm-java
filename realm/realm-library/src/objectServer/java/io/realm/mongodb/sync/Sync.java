@@ -323,7 +323,9 @@ public abstract class Sync {
      * @param session Session to trigger Client Reset for.
      */
     void simulateClientReset(SyncSession session) {
-        new Thread(() -> simulateClientReset(session, ErrorCode.DIVERGING_HISTORIES)).start();
+        // Client reset events are thrown from the sync client thread. We need to invoke the `simulateClientReset`
+        // on a different thread to fully simulate the scenario.
+        new Thread(() -> simulateClientReset(session, ErrorCode.DIVERGING_HISTORIES), "Simulated sync thread").start();
     }
 
     /**
