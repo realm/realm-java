@@ -395,9 +395,11 @@ JNIEXPORT void JNICALL Java_io_realm_internal_OsSharedRealm_nativeWriteCopy(JNIE
         RealmConfig write_copy_config;
 
         write_copy_config.path = std::string(path_str);
-        write_copy_config.encryption_key = jarray_accessor.transform<std::vector<char>>();
+        write_copy_config.force_sync_history = true;
+        if(!jarray_accessor.is_null())
+            write_copy_config.encryption_key = jarray_accessor.transform<std::vector<char>>();
 
-        shared_realm->convert(write_copy_config, false);
+        shared_realm->convert(write_copy_config);
     }
     CATCH_STD()
 }
