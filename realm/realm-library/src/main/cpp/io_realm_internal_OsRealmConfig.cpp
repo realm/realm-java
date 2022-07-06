@@ -397,10 +397,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     SharedRealm* before_frozen_ptr = new SharedRealm(before_frozen);
 
                     // Resolve ThreadSafeReference
-                    SharedRealm after_ptr = after.resolve<std::shared_ptr<Realm>>(nullptr);
+                    SharedRealm* after_ptr = new SharedRealm(after.resolve<std::shared_ptr<Realm>>(nullptr));
                     
                     j_on_after_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
-                        env->CallVoidMethod(obj, on_after_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), reinterpret_cast<jlong>(&after_ptr), config_global.get());
+                        env->CallVoidMethod(obj, on_after_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), reinterpret_cast<jlong>(after_ptr), config_global.get());
                     });
                     TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
                 };
