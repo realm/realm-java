@@ -41,6 +41,7 @@ import io.realm.internal.objectstore.OsAsyncOpenTask;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.User;
+import io.realm.mongodb.sync.AutomaticRecoveryStrategy;
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.MutableSubscriptionSet;
@@ -120,6 +121,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
             } else if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
                 clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_DISCARD_LOCAL;
+            } else if (clientResetStrategy instanceof AutomaticRecoveryStrategy) {
+                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_RECOVER;
             }
 
             BeforeClientResetHandler beforeClientResetHandler = (localPtr, osRealmConfig) -> {

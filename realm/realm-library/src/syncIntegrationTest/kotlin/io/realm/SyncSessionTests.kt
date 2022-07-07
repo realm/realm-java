@@ -128,19 +128,19 @@ class SyncSessionTests {
                 looperThread.testComplete()
             }
         }
-        
+
         val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
                 .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-                .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy{
+                .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(realm: Realm) {
-                        kotlin.test.assertTrue(realm.isFrozen)
+                        assertTrue(realm.isFrozen)
                         Assert.assertEquals(1, realm.where<SyncColor>().count())
                         incrementAndValidate()
                     }
 
                     override fun onAfterReset(before: Realm, after: Realm) {
-                        kotlin.test.assertTrue(before.isFrozen)
-                        kotlin.test.assertFalse(after.isFrozen)
+                        assertTrue(before.isFrozen)
+                        assertFalse(after.isFrozen)
 
                         Assert.assertEquals(1, before.where<SyncColor>().count())
                         Assert.assertEquals(0, after.where<SyncColor>().count())
@@ -154,7 +154,7 @@ class SyncSessionTests {
                     }
 
                     override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                        kotlin.test.fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onError()")
+                        fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onError()")
                     }
 
                 })
@@ -164,6 +164,28 @@ class SyncSessionTests {
         val realm = Realm.getInstance(config)
         Assert.assertEquals(1, realm.where<SyncColor>().count())
         looperThread.closeAfterTest(realm)
+    }
+
+    // Check that an Automatic Client Reset is correctly handled.
+    // Placed here instead of in SessionTests.kt because it would fails to run if executed with the
+    // whole test suite.
+    @Test
+    fun errorHandler_automaticRecoveryStrategy() {
+        val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
+            .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
+            .syncClientResetStrategy(object: AutomaticRecoveryStrategy {
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
+                }
+            })
+            .modules(ColorSyncSchema())
+            .build()
+
+        Realm.getInstance(config).use { realm ->
+            // Downloading would trigger the client reset if any
+            realm.syncSession.downloadAllServerChanges()
+            Assert.assertEquals(1, realm.where<SyncColor>().count())
+        }
     }
 
     @Test

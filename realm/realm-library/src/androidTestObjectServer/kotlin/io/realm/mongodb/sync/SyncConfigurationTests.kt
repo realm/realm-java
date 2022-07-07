@@ -97,11 +97,19 @@ class SyncConfigurationTests {
     }
 
     @Test
-    fun clientResetHandler() {
+    fun clientResetStrategy_manual() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
-        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
-        val config = builder.syncClientResetStrategy(handler).build()
-        assertEquals(handler, config.syncClientResetStrategy)
+        val strategy = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+        val config = builder.syncClientResetStrategy(strategy).build()
+        assertEquals(strategy, config.syncClientResetStrategy)
+    }
+
+    @Test
+    fun clientResetStrategy_automatic() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val strategy = AutomaticRecoveryStrategy { _, _ -> }
+        val config = builder.syncClientResetStrategy(strategy).build()
+        assertEquals(strategy, config.syncClientResetStrategy)
     }
 
     @Test

@@ -23,6 +23,7 @@ import io.realm.log.RealmLog
 import io.realm.log.RealmLogger
 import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
+import io.realm.mongodb.sync.AutomaticRecoveryStrategy
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy
 import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy
 import io.realm.mongodb.sync.SyncSession
@@ -290,13 +291,23 @@ class AppConfigurationTests {
     }
 
     @Test
-    fun setDefaultSyncClientStrategy() {
-        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+    fun setDefaultSyncClientStrategy_manual() {
+        val strategy = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
 
         val config = AppConfiguration.Builder("app-id")
-                .defaultSyncClientResetStrategy(handler)
-                .build()
-        assertEquals(config.defaultSyncClientResetStrategy, handler)
+            .defaultSyncClientResetStrategy(strategy)
+            .build()
+        assertEquals(config.defaultSyncClientResetStrategy, strategy)
+    }
+
+    @Test
+    fun setDefaultSyncClientStrategy_automaticRecovery() {
+        val strategy = AutomaticRecoveryStrategy { _, _ -> }
+
+        val config = AppConfiguration.Builder("app-id")
+            .defaultSyncClientResetStrategy(strategy)
+            .build()
+        assertEquals(config.defaultSyncClientResetStrategy, strategy)
     }
 
     @Test
