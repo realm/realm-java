@@ -816,7 +816,7 @@ class SyncedRealmTests {
         val config: SyncConfiguration = createCustomConfig(user, "foo")
         val realm = Realm.getInstance(config)
         realm.use { r: Realm ->
-            assertFailsWith<IllegalStateException> { r.writeCopyTo(File("dummy.realm")) }
+            assertFailsWith<IllegalStateException> { r.writeCopyTo(File(File(config.path).parent, "dummy.realm")) }
         }
     }
 
@@ -831,7 +831,7 @@ class SyncedRealmTests {
         }
         realm.use { r: Realm ->
             assertFailsWith<IllegalStateException> {
-                r.writeCopyTo(File("dummy.realm"))
+                r.writeCopyTo(File(File(config.path).parent, "dummy.realm"))
             }
         }
     }

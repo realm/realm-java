@@ -24,6 +24,7 @@ import io.realm.mongodb.close
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import kotlin.random.Random
+import kotlin.test.assertFailsWith
 
 /**
  * Integration smoke tests for Flexible Sync. This is not intended to cover all cases, but just
@@ -97,15 +98,12 @@ class FlexibleSyncIntegrationTests {
         val user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(FlexSyncColor::class.java)
-            .syncClientResetStrategy { session, error ->
-                assertTrue(error.toString(), error.message!!.contains("Client attempted a write that is outside of permissions or query filters"))
-                looperThread.testComplete()
-            }
             .build()
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
         realm.executeTransaction {
-            it.insert(FlexSyncColor().apply { color = "red" })
+            assertFailsWith<RuntimeException> { it.insert(FlexSyncColor().apply { color = "red" }) }
+            looperThread.testComplete()
         }
     }
 
