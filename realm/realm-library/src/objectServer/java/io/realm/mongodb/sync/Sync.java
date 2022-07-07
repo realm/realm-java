@@ -233,7 +233,23 @@ public abstract class Sync {
      * session to contact.
      */
     @SuppressWarnings("unused")
-    private synchronized void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
+    private void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
+        ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+
+        if (errCode == ErrorCode.CLIENT_RESET) {
+            // Avoid deadlock while trying to close realm instances during a client reset
+            // Not acquiring the lock here would allow acquiring it later on when we try to close the
+            // session in `Sync.removeSession()`.
+            doNotifyError(nativeErrorCategory, nativeErrorCode, errorMessage, clientResetPathInfo, path);
+        } else {
+            // Keep the logic for the rest of the sync errors
+            synchronized (this) {
+                doNotifyError(nativeErrorCategory, nativeErrorCode, errorMessage, clientResetPathInfo, path);
+            }
+        }
+    }
+
+    private void doNotifyError(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
         SyncSession syncSession = sessions.get(path);
         if (syncSession != null) {
             try {
@@ -307,7 +323,9 @@ public abstract class Sync {
      * @param session Session to trigger Client Reset for.
      */
     void simulateClientReset(SyncSession session) {
-        simulateClientReset(session, ErrorCode.DIVERGING_HISTORIES);
+        // Client reset events are thrown from the sync client thread. We need to invoke the `simulateClientReset`
+        // on a different thread to fully simulate the scenario.
+        new Thread(() -> simulateClientReset(session, ErrorCode.DIVERGING_HISTORIES), "Simulated sync thread").start();
     }
 
     /**
