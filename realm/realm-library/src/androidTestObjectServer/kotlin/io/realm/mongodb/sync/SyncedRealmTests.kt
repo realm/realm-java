@@ -940,6 +940,7 @@ class SyncedRealmTests {
     }
 
     @Test
+    @Ignore("Temporary")
     fun assetFile_wrongPartitionValue() = looperThread.runBlocking {
         val user = createNewUser()
         val config = SyncConfiguration.Builder(user, "foo")
