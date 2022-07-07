@@ -242,7 +242,7 @@ public abstract class Sync {
             // session in `Sync.removeSession()`.
             doNotifyError(nativeErrorCategory, nativeErrorCode, errorMessage, clientResetPathInfo, path);
         } else {
-            // Maintain the logic for the rest of the sync errors
+            // Keep the logic for the rest of the sync errors
             synchronized (this) {
                 doNotifyError(nativeErrorCategory, nativeErrorCode, errorMessage, clientResetPathInfo, path);
             }
