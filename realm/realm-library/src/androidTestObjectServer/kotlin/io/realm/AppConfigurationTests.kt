@@ -23,10 +23,7 @@ import io.realm.log.RealmLog
 import io.realm.log.RealmLogger
 import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
-import io.realm.mongodb.sync.AutomaticRecoveryStrategy
-import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy
-import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy
-import io.realm.mongodb.sync.SyncSession
+import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import org.bson.codecs.StringCodec
@@ -303,6 +300,28 @@ class AppConfigurationTests {
     @Test
     fun setDefaultSyncClientStrategy_automaticRecovery() {
         val strategy = AutomaticRecoveryStrategy { _, _ -> }
+
+        val config = AppConfiguration.Builder("app-id")
+            .defaultSyncClientResetStrategy(strategy)
+            .build()
+        assertEquals(config.defaultSyncClientResetStrategy, strategy)
+    }
+
+    @Test
+    fun setDefaultSyncClientStrategy_automaticRecoveryOrDiscard() {
+        val strategy = object: AutomaticRecoveryOrDiscardUnsyncedChangesStrategy {
+            override fun onBeforeReset(realm: Realm) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onAfterReset(before: Realm, after: Realm) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                TODO("Not yet implemented")
+            }
+        }
 
         val config = AppConfiguration.Builder("app-id")
             .defaultSyncClientResetStrategy(strategy)

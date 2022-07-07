@@ -162,6 +162,42 @@ class SessionTests {
         user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
     }
 
+    @Test
+    fun errorHandler_automaticRecoveryOrDiscard_resetErrorHandled() = looperThread.runBlocking {
+        val email = TestHelper.getRandomEmail()
+        val user: User = app.registerUserAndLogin(email, "123456")
+
+        val config = configFactory.createSyncConfigurationBuilder(user)
+            .testSchema(SyncStringOnly::class.java)
+            .syncClientResetStrategy(object: AutomaticRecoveryOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onAfterReset()")
+                }
+
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    val filePathFromError = error.originalFile.absolutePath
+                    val filePathFromConfig = session.configuration.path
+                    assertEquals(filePathFromError, filePathFromConfig)
+                    assertFalse(error.backupFile.exists())
+                    assertTrue(error.originalFile.exists())
+                    // Note, this error message is just the one created by ObjectStore for testing
+                    // The server will send a different message. This just ensures that we don't
+                    // accidentially modify or remove the message.
+                    assertEquals("Simulate Client Reset", error.message)
+                    looperThread.testComplete()
+                }
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
+    }
+
     // Check that a Client Reset is correctly reported.
     @Test
     @Deprecated("clientResetHandler deprecated in favor of syncClientResetStrategy")

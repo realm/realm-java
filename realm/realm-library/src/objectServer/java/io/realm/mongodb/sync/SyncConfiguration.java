@@ -1036,6 +1036,19 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
+         * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * This strategy is only available for synced realms using partition based sync. Realms using
+         * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
+         *
+         * @param strategy custom automatic recover in case of a Client Reset.
+         */
+        public Builder syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy strategy) {
+            return syncClientResetStrategyInternal(strategy);
+        }
+
+        /**
          * Setting this will cause the Realm to download all known changes from the server the first time a Realm is
          * opened. The Realm will not open until all the data has been downloaded. This means that if a device is
          * offline the Realm will not open.

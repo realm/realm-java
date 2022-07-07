@@ -177,6 +177,7 @@ public class OsRealmConfig implements NativeObject {
     public static final byte CLIENT_RESYNC_MODE_MANUAL = 0;
     public static final byte CLIENT_RESYNC_MODE_DISCARD_LOCAL = 1;
     public static final byte CLIENT_RESYNC_MODE_RECOVER = 2;
+    public static final byte CLIENT_RESYNC_MODE_RECOVER_OR_DISCARD = 3;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 

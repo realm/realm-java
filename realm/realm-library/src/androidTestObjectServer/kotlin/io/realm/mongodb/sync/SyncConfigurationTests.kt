@@ -113,6 +113,26 @@ class SyncConfigurationTests {
     }
 
     @Test
+    fun clientResetStrategy_automaticOrDiscard() {
+        val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
+        val strategy = object: AutomaticRecoveryOrDiscardUnsyncedChangesStrategy {
+            override fun onBeforeReset(realm: Realm) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onAfterReset(before: Realm, after: Realm) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                TODO("Not yet implemented")
+            }
+        }
+        val config = builder.syncClientResetStrategy(strategy).build()
+        assertEquals(strategy, config.syncClientResetStrategy)
+    }
+
+    @Test
     fun clientResetHandler_fromAppConfiguration() {
         val user: User = createTestUser(app)
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)

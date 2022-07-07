@@ -228,8 +228,12 @@ public class SyncSession {
                 ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
-            }else if (clientResetHandler instanceof AutomaticRecoveryStrategy) {
+            } else if (clientResetHandler instanceof AutomaticRecoveryStrategy) {
                 ((AutomaticRecoveryStrategy) clientResetHandler).onError(this,
+                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
+                                configuration, backupRealmConfiguration));
+            } else if (clientResetHandler instanceof AutomaticRecoveryOrDiscardUnsyncedChangesStrategy) {
+                ((AutomaticRecoveryOrDiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
             }

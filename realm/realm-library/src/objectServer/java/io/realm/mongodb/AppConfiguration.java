@@ -50,6 +50,7 @@ import io.realm.internal.log.obfuscator.RegexPatternObfuscator;
 import io.realm.internal.log.obfuscator.TokenObfuscator;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
+import io.realm.mongodb.sync.AutomaticRecoveryOrDiscardUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.AutomaticRecoveryStrategy;
 import io.realm.mongodb.sync.ClientResetRequiredError;
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
@@ -608,6 +609,7 @@ public class AppConfiguration {
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
@@ -626,6 +628,7 @@ public class AppConfiguration {
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
@@ -644,11 +647,31 @@ public class AppConfiguration {
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
          */
         public Builder defaultSyncClientResetStrategy(@Nonnull AutomaticRecoveryStrategy strategy) {
+            Util.checkNull(strategy, "strategy");
+            defaultSyncClientResetStrategy = strategy;
+            return this;
+        }
+
+        /**
+         * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
+         * session.
+         * <p>
+         * This default can be overridden by calling
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy)}
+         * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         *
+         * @param strategy the default sync client reset strategy.
+         */
+        public Builder defaultSyncClientResetStrategy(@Nonnull AutomaticRecoveryOrDiscardUnsyncedChangesStrategy strategy) {
             Util.checkNull(strategy, "strategy");
             defaultSyncClientResetStrategy = strategy;
             return this;
