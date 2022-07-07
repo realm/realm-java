@@ -295,7 +295,9 @@ class SyncedRealmTests {
         }
     }
 
+    // FIXME: remove ignore when sync issue fixed
     @Test
+    @Ignore("ignored until https://jira.mongodb.org/browse/REALMC-6541 is fixed")
     fun embeddedObject_copyUnmanaged_roundTrip() {
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
