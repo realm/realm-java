@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'de.undercouch.download'
 apply plugin: 'org.jetbrains.dokka'
+apply plugin: 'kotlinx-serialization'
 
 // TODO How many of these work on Kotlin?
 //apply plugin: 'findbugs'
@@ -94,6 +95,7 @@ dependencies {
     androidTestImplementation 'com.google.code.findbugs:jsr305:3.0.2'
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    androidTestObjectServerImplementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlin_serializer_version"
     androidTestObjectServerImplementation 'com.squareup.okhttp3:okhttp:3.9.0'
     androidTestObjectServerImplementation "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"
 }

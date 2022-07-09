@@ -215,6 +215,7 @@ dependencies {
 
     kapt project(':realm-annotations-processor') // See https://github.com/realm/realm-java/issues/5799
     objectServerImplementation 'com.squareup.okhttp3:okhttp:3.12.0' // Going above this requires minSDK 21
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlin_serializer_version"
     kaptAndroidTest project(':realm-annotations-processor')
     androidTestImplementation "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     androidTestImplementation "io.reactivex.rxjava2:rxjava:${properties.getProperty('RXJAVA_DEPENDENCY')}"

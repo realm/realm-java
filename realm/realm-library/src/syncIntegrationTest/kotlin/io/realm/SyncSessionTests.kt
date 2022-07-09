@@ -46,7 +46,7 @@ class SyncSessionTests {
     @get:Rule
     private val looperThread = BlockingLooperThread()
 
-    private lateinit var app: App
+    private lateinit var app: TestApp
     private lateinit var user: User
     private lateinit var syncConfiguration: SyncConfiguration
     private lateinit var admin: ServerAdmin
@@ -213,15 +213,35 @@ class SyncSessionTests {
     }
 
     @Test
-    fun errorHandler_automaticRecoveryOrDiscardStrategy_discardsLocal() {
+    fun errorHandler_automaticRecoveryOrDiscardStrategy_discardsLocal() = looperThread.runBlocking {
+        val counter = AtomicInteger()
+
+        val incrementAndValidate = {
+            if (2 == counter.incrementAndGet()) {
+                looperThread.testComplete()
+            }
+        }
         val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
             .syncClientResetStrategy(object: AutomaticRecoveryOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
-//                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
+                    assertTrue(realm.isFrozen)
+                    Assert.assertEquals(1, realm.where<SyncColor>().count())
+                    incrementAndValidate()
                 }
 
                 override fun onAfterReset(before: Realm, after: Realm) {
-//                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onAfterReset()")
+                    assertTrue(before.isFrozen)
+                    assertFalse(after.isFrozen)
+
+                    Assert.assertEquals(1, before.where<SyncColor>().count())
+                    Assert.assertEquals(0, after.where<SyncColor>().count())
+
+                    //Validate we can move data to the reset Realm.
+                    after.executeTransaction{
+                        it.insert(before.where<SyncColor>().findFirst()!!)
+                    }
+                    Assert.assertEquals(1, after.where<SyncColor>().count())
+                    incrementAndValidate()
                 }
 
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
@@ -231,21 +251,23 @@ class SyncSessionTests {
             .modules(ColorSyncSchema())
             .build()
 
-        Realm.getInstance(config).use { realm ->
-            // Downloading would trigger the client reset if any
-            realm.syncSession.downloadAllServerChanges()
-            realm.syncSession.stop()
+        val realm = Realm.getInstance(config)
 
-            realm.executeTransaction {
-                realm.copyToRealm(SyncColor())
-            }
+        realm.syncSession.downloadAllServerChanges()
+        realm.syncSession.stop()
 
-            Assert.assertEquals(1, realm.where<SyncColor>().count())
-
-            // Trigger client reset here
-
-            realm.syncSession.start()
+        realm.executeTransaction {
+            realm.copyToRealm(SyncColor())
         }
+
+        Assert.assertEquals(1, realm.where<SyncColor>().count())
+
+        // Trigger client reset here
+        app.triggerClientReset(user.id, true)
+
+        realm.syncSession.start()
+
+        looperThread.closeAfterTest(realm)
     }
 
     @Test
