@@ -37,7 +37,7 @@ allprojects {
         project.ext.set(key, val)
     }
     project.ext.minSdkVersion = 16
-    project.ext.compileSdkVersion = 29
+    project.ext.compileSdkVersion = 30
     project.ext.buildToolsVersion = projectDependencies.get("ANDROID_BUILD_TOOLS")
     group = 'io.realm'
     version = file("${rootDir}/../version.txt").text.trim()

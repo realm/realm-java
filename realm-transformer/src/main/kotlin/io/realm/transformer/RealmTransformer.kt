@@ -132,7 +132,6 @@ class RealmTransformer(project: Project,
             )
         )
 
-        logger.debug("output is=${output.get().asFile.path} exists=${output.get().asFile.exists()}")
         val build: BuildTemplate = FullBuild(metadata, allJars, jarOutput, this)
 
         build.prepareOutputClasses(inputs)
