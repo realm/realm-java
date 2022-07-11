@@ -100,13 +100,6 @@ import io.realm.rx.RxObservableFactory;
  */
 public class SyncConfiguration extends RealmConfiguration {
 
-    private static ManuallyRecoverUnsyncedChangesStrategy DEFAULT_MANUAL_CLIENT_RESET_HANDLER = new ManuallyRecoverUnsyncedChangesStrategy() {
-        @Override
-        public void onClientReset(SyncSession session, ClientResetRequiredError error) {
-            RealmLog.error("Client Reset required for: " + session.getConfiguration().getServerUrl());
-        }
-    };
-
     private final URI serverUrl;
     private final User user;
     private final SyncSession.ErrorHandler errorHandler;
@@ -1013,9 +1006,6 @@ public class SyncConfiguration extends RealmConfiguration {
          * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
          * logged when a Client Reset occurs.
          *
-         * This strategy is only available for synced realms using partition based sync. Realms using
-         * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
-         *
          * @param strategy custom discard local changes strategy in case of a Client Reset.
          */
         public Builder syncClientResetStrategy(DiscardUnsyncedChangesStrategy strategy) {
@@ -1026,9 +1016,6 @@ public class SyncConfiguration extends RealmConfiguration {
          * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
          * logged when a Client Reset occurs.
          *
-         * This strategy is only available for synced realms using partition based sync. Realms using
-         * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
-         *
          * @param strategy custom automatic recover in case of a Client Reset.
          */
         public Builder syncClientResetStrategy(RecoverUnsyncedChangesStrategy strategy) {
@@ -1038,9 +1025,6 @@ public class SyncConfiguration extends RealmConfiguration {
         /**
          * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
          * logged when a Client Reset occurs.
-         *
-         * This strategy is only available for synced realms using partition based sync. Realms using
-         * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
          *
          * @param strategy custom automatic recover in case of a Client Reset.
          */
@@ -1268,16 +1252,6 @@ public class SyncConfiguration extends RealmConfiguration {
                 throw new IllegalStateException("serverUrl() and user() are both required.");
             }
 
-            // Flexible Sync only support Manual Client Reset, so ignore whatever App sets as the
-            // default and enforce Manual unless the user has specified
-            if (syncClientResetStrategy == null) {
-                if (partitionValue == null) {
-                    this.syncClientResetStrategy = DEFAULT_MANUAL_CLIENT_RESET_HANDLER;
-                } else {
-                    this.syncClientResetStrategy = user.getApp().getConfiguration().getDefaultSyncClientResetStrategy();
-                }
-            }
-
             // Check that readOnly() was applied to legal configuration. Right now it should only be allowd if
             // an assetFile is configured
             if (readOnly) {
@@ -1289,6 +1263,10 @@ public class SyncConfiguration extends RealmConfiguration {
                     throw new IllegalStateException("A read-only Realms must be provided by some source. " +
                             "'waitForInitialRemoteData()' wasn't enabled which is currently the only supported source.");
                 }
+            }
+
+            if (syncClientResetStrategy == null) {
+                this.syncClientResetStrategy = user.getApp().getConfiguration().getDefaultSyncClientResetStrategy();
             }
 
             if (rxFactory == null && Util.isRxJavaAvailable()) {

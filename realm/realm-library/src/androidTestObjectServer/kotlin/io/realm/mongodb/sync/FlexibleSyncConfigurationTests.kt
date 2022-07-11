@@ -20,18 +20,16 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.Realm
 import io.realm.TEST_APP_3
 import io.realm.TestApp
+import io.realm.TestHelper
 import io.realm.TestSyncConfigurationFactory
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.User
 import io.realm.mongodb.close
-import org.junit.After
+import org.junit.*
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
 
@@ -156,7 +154,92 @@ class FlexibleSyncConfigurationTests {
             // Do nothing
         }
         val config: SyncConfiguration = SyncConfiguration.defaultConfig(user)
+        assertTrue(config.syncClientResetStrategy is RecoverOrDiscardUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun manualClientResyncMode() {
+        val user: User = createTestUser(app)
+
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .syncClientResetStrategy(object : ManuallyRecoverUnsyncedChangesStrategy {
+                override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
+                    Assert.fail("Should not be called")
+                }
+            })
+            .build()
         assertTrue(config.syncClientResetStrategy is ManuallyRecoverUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun discardUnsyncedChangesStrategyMode() {
+        val user: User = createTestUser(app)
+
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    Assert.fail("Should not be called")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    Assert.fail("Should not be called")
+                }
+
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    Assert.fail("Should not be called")
+                }
+
+            })
+            .build()
+        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun recoverUnsyncedChangesStrategyMode() {
+        val user: User = createTestUser(app)
+
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .syncClientResetStrategy(RecoverUnsyncedChangesStrategy { session, error ->
+                Assert.fail("Should not be called")
+            })
+            .build()
+        assertTrue(config.syncClientResetStrategy is RecoverUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun recoverOrDiscardUnsyncedChangesStrategyMode() {
+        val user: User = createTestUser(app)
+
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .syncClientResetStrategy(object : RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    Assert.fail("Should not be called")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    Assert.fail("Should not be called")
+                }
+
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    Assert.fail("Should not be called")
+                }
+
+            })
+            .build()
+        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun clientResyncMode_throwsOnNull() {
+        val user: User = createTestUser(app)
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+
+        assertFailsWith<IllegalArgumentException> {
+            config.syncClientResetStrategy(TestHelper.getNull<ManuallyRecoverUnsyncedChangesStrategy>())
+        }
+        assertFailsWith<IllegalArgumentException> {
+            config.syncClientResetStrategy(TestHelper.getNull<DiscardUnsyncedChangesStrategy>())
+        }
     }
 
     @Test
