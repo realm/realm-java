@@ -284,7 +284,7 @@ class AppConfigurationTests {
         val config = AppConfiguration.Builder("app-id")
             .build()
 
-        assertTrue(config.defaultSyncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+        assertTrue(config.defaultSyncClientResetStrategy is RecoverOrDiscardUnsyncedChangesStrategy)
     }
 
     @Test
