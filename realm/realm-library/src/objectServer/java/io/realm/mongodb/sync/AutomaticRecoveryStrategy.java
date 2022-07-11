@@ -15,7 +15,21 @@
  */
 package io.realm.mongodb.sync;
 
-
+/**
+ * Strategy that tries to automatically recover any unsynced changes during a Client Reset.
+ * <p>
+ * A synced Realm may need to be reset because the MongoDB Realm Server encountered an error and had
+ * to be restored from a backup or because it has been too long since the client connected to the
+ * server so the server has rotated the logs.
+ * <p>
+ * The Client Reset thus occurs because the server does not have the full information required to
+ * bring the Client fully up to date.
+ * <p>
+ * In the event that the client reset cannot be automatically recover the unsynced data the
+ * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked, it allows to manually
+ * resolve the reset as it would be done in
+ * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
+ */
 public interface AutomaticRecoveryStrategy extends SyncClientResetStrategy {
     /**
      * Callback that indicates the seamless Client reset couldn't complete. It should be handled
