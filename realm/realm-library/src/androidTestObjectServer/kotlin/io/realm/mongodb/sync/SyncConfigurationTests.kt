@@ -404,21 +404,56 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-                .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
-                    override fun onBeforeReset(realm: Realm) {
-                        fail("Should not be called")
-                    }
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("Should not be called")
+                }
 
-                    override fun onAfterReset(before: Realm, after: Realm) {
-                        fail("Should not be called")
-                    }
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("Should not be called")
+                }
 
-                    override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                        fail("Should not be called")
-                    }
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("Should not be called")
+                }
 
-                })
-                .build()
+            })
+            .build()
+        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun recoverUnsyncedChangesStrategyMode() {
+        val user: User = createTestUser(app)
+
+        val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+            .syncClientResetStrategy(RecoverUnsyncedChangesStrategy { session, error ->
+                fail("Should not be called")
+            })
+            .build()
+        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+    }
+
+    @Test
+    fun recoverOrDiscardUnsyncedChangesStrategyMode() {
+        val user: User = createTestUser(app)
+
+        val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
+            .syncClientResetStrategy(object : RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("Should not be called")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("Should not be called")
+                }
+
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("Should not be called")
+                }
+
+            })
+            .build()
         assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
     }
 
