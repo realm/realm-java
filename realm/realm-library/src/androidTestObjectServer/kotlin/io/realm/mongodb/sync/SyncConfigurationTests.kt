@@ -431,7 +431,7 @@ class SyncConfigurationTests {
                 fail("Should not be called")
             })
             .build()
-        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+        assertTrue(config.syncClientResetStrategy is RecoverUnsyncedChangesStrategy)
     }
 
     @Test
