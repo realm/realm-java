@@ -240,17 +240,14 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 
-def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This software is considered in beta phase. ' +
-        'It indicates that any public interface can change without prior announcements. ' +
-        'Moreover, classes, constructors, and methods annotated as beta are not ' +
-        'considered at production quality, and should be used with care.</div>'
-
 task javadoc(type: Javadoc) {
+    failOnError false
     dependsOn("compileObjectServerReleaseJavaWithJavac")
     source android.sourceSets.objectServer.java.srcDirs
     source android.sourceSets.main.java.srcDirs
     source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+
     options {
         title = "Realm ${project.version}"
         memberLevel = JavadocMemberLevel.PUBLIC
@@ -264,8 +261,6 @@ task javadoc(type: Javadoc) {
         links "http://reactivex.io/RxJava/javadoc/"
         links "https://developer.android.com/reference"
         links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY')}/"
-
-        tags = [betaTag]
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'

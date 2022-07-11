@@ -60,28 +60,30 @@ class RealmTransformer(project: Project,
                        private val allJars: ListProperty<RegularFile>,
                        private val referencedInputs: ConfigurableFileCollection,
                        private val output: RegularFileProperty) {
-    private var metadata: ProjectMetaData
+    private lateinit var metadata: ProjectMetaData
     private var analytics: RealmAnalytics? = null
 
     init {
         // Fetch project metadata when registering the transformer, but as some of the properties
         // we need to read might not be initialized yet (e.g. the Android extension), we need
         // to wait until after the build files have been evaluated.
-        metadata = ProjectMetaData(
-            // Plugin requirements
-            project.gradle.startParameter.isOffline,
-            project.getBootClasspath()
-        )
+        project.afterEvaluate {
+            metadata = ProjectMetaData(
+                // Plugin requirements
+                project.gradle.startParameter.isOffline,
+                project.getBootClasspath()
+            )
 
-        try {
-            this.analytics = RealmAnalytics()
-            this.analytics!!.calculateAnalyticsData(project)
+            try {
+                this.analytics = RealmAnalytics()
+                this.analytics!!.calculateAnalyticsData(project)
 
-        } catch (e: Exception) {
-            // Analytics should never crash the build.
-            logger.debug("Could not calculate Realm analytics data:\n$e")
+            } catch (e: Exception) {
+                // Analytics should never crash the build.
+                logger.debug("Could not calculate Realm analytics data:\n$e")
+            }
+            transform()
         }
-        transform()
     }
 
     companion object {

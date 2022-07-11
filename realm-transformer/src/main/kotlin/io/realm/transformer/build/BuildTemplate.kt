@@ -15,17 +15,13 @@
  */
 package io.realm.transformer.build
 
-import com.android.build.api.transform.TransformOutputProvider
 import io.realm.transformer.*
 import javassist.ClassPool
 import javassist.CtClass
-import com.google.common.io.Files
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.ListProperty
-import java.io.File
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream

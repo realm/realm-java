@@ -20,7 +20,8 @@ import io.realm.transformer.Version
 import java.net.SocketException
 import java.security.NoSuchAlgorithmException
 
-inline class PublicAppId(val id: String) {
+@JvmInline
+value class PublicAppId(val id: String) {
     fun anonymize(): String {
         val idBytes: ByteArray = id.toByteArray()
         return Utils.hexStringify(Utils.sha256Hash(idBytes))

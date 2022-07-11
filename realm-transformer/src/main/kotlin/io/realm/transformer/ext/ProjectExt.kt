@@ -77,7 +77,7 @@ fun Project.getAgpVersion(): String {
  * Returns the `bootClasspath` for this project
  */
 fun Project.getBootClasspath(): List<File> {
-    return getAndroidExtension(this).bootClasspath ?: listOf()
+    return getAndroidExtension(this).bootClasspath
 }
 
 private fun getAndroidExtension(project: Project): BaseExtension {
