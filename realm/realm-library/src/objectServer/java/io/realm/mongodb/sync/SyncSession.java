@@ -226,12 +226,12 @@ public class SyncSession {
                 ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof AutomaticRecoverUnsyncedChangesStrategy) {
-                ((AutomaticRecoverUnsyncedChangesStrategy) clientResetHandler).onError(this,
+            } else if (clientResetHandler instanceof RecoverUnsyncedChangesStrategy) {
+                ((RecoverUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof AutomaticRecoverOrDiscardUnsyncedChangesStrategy) {
-                ((AutomaticRecoverOrDiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
+            } else if (clientResetHandler instanceof RecoverOrDiscardUnsyncedChangesStrategy) {
+                ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
             }

@@ -166,7 +166,7 @@ class SessionTests {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
             .syncClientResetStrategy(object:
-                AutomaticRecoverOrDiscardUnsyncedChangesStrategy {
+                RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
                 }
@@ -642,7 +642,7 @@ class SessionTests {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
             .syncClientResetStrategy(object:
-                AutomaticRecoverUnsyncedChangesStrategy {
+                RecoverUnsyncedChangesStrategy {
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
                     val filePathFromError = error.originalFile.absolutePath
                     val filePathFromConfig = session.configuration.path

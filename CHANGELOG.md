@@ -1,8 +1,8 @@
 ## 10.11.1 (YYYY-MM-DD)
 
 ### Enhancements
-* [RealmApp] Introduced `SyncSession.AutomaticRecoverOrDiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client, and discards any unsynced data if not possible. This is now the default policy if not overridden.
-* [RealmApp] Introduced `SyncSession.AutomaticRecoverUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client.
+* [RealmApp] Introduced `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client, and discards any unsynced data if not possible. This is now the default policy if not overridden.
+* [RealmApp] Introduced `SyncSession.RecoverUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client.
 
 ### Fixed
 * [RealmApp] Throw RuntimeException if subscription set is requested and flexible sync is not enabled. (Realm Core issue [#5079](https://github.com/realm/realm-core/issues/5079))

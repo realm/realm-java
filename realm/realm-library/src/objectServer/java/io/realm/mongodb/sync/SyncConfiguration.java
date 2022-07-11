@@ -1031,7 +1031,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param strategy custom automatic recover in case of a Client Reset.
          */
-        public Builder syncClientResetStrategy(AutomaticRecoverUnsyncedChangesStrategy strategy) {
+        public Builder syncClientResetStrategy(RecoverUnsyncedChangesStrategy strategy) {
             return syncClientResetStrategyInternal(strategy);
         }
 
@@ -1044,7 +1044,7 @@ public class SyncConfiguration extends RealmConfiguration {
          *
          * @param strategy custom automatic recover in case of a Client Reset.
          */
-        public Builder syncClientResetStrategy(AutomaticRecoverOrDiscardUnsyncedChangesStrategy strategy) {
+        public Builder syncClientResetStrategy(RecoverOrDiscardUnsyncedChangesStrategy strategy) {
             return syncClientResetStrategyInternal(strategy);
         }
 
