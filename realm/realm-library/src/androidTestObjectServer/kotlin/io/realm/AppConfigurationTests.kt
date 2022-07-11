@@ -299,7 +299,8 @@ class AppConfigurationTests {
 
     @Test
     fun setDefaultSyncClientStrategy_automaticRecovery() {
-        val strategy = AutomaticRecoveryStrategy { _, _ -> }
+        val strategy =
+            AutomaticRecoverUnsyncedChangesStrategy { _, _ -> }
 
         val config = AppConfiguration.Builder("app-id")
             .defaultSyncClientResetStrategy(strategy)
@@ -309,7 +310,8 @@ class AppConfigurationTests {
 
     @Test
     fun setDefaultSyncClientStrategy_automaticRecoveryOrDiscard() {
-        val strategy = object: AutomaticRecoveryOrDiscardUnsyncedChangesStrategy {
+        val strategy = object:
+            AutomaticRecoverOrDiscardUnsyncedChangesStrategy {
             override fun onBeforeReset(realm: Realm) {
                 TODO("Not yet implemented")
             }

@@ -40,7 +40,7 @@ import io.realm.Realm;
  * resolve the reset as it would be done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
-public interface AutomaticRecoveryOrDiscardUnsyncedChangesStrategy extends DiscardUnsyncedChangesStrategy {
+public interface AutomaticRecoverOrDiscardUnsyncedChangesStrategy extends DiscardUnsyncedChangesStrategy {
 
     /**
      * Callback that indicates a Client Reset is about to happen. It provides with a frozen instance

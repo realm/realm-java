@@ -170,7 +170,8 @@ class SyncSessionTests {
     fun errorHandler_automaticRecoveryStrategy() {
         val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
             .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-            .syncClientResetStrategy(object: AutomaticRecoveryStrategy {
+            .syncClientResetStrategy(object:
+                AutomaticRecoverUnsyncedChangesStrategy {
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
                     fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
                 }
@@ -189,7 +190,8 @@ class SyncSessionTests {
     fun errorHandler_automaticRecoveryOrDiscardStrategy() {
         val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
             .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-            .syncClientResetStrategy(object: AutomaticRecoveryOrDiscardUnsyncedChangesStrategy {
+            .syncClientResetStrategy(object:
+                AutomaticRecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
                 }
@@ -222,7 +224,8 @@ class SyncSessionTests {
             }
         }
         val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
-            .syncClientResetStrategy(object: AutomaticRecoveryOrDiscardUnsyncedChangesStrategy {
+            .syncClientResetStrategy(object:
+                AutomaticRecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
                     Assert.assertEquals(1, realm.where<SyncColor>().count())

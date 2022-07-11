@@ -29,8 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nonnull;
-
 import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.AppException;
@@ -228,12 +226,12 @@ public class SyncSession {
                 ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof AutomaticRecoveryStrategy) {
-                ((AutomaticRecoveryStrategy) clientResetHandler).onError(this,
+            } else if (clientResetHandler instanceof AutomaticRecoverUnsyncedChangesStrategy) {
+                ((AutomaticRecoverUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof AutomaticRecoveryOrDiscardUnsyncedChangesStrategy) {
-                ((AutomaticRecoveryOrDiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
+            } else if (clientResetHandler instanceof AutomaticRecoverOrDiscardUnsyncedChangesStrategy) {
+                ((AutomaticRecoverOrDiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
                         new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
                                 configuration, backupRealmConfiguration));
             }

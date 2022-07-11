@@ -24,7 +24,6 @@ import org.bson.codecs.MapCodecProvider;
 import org.bson.codecs.ValueCodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -50,8 +49,8 @@ import io.realm.internal.log.obfuscator.RegexPatternObfuscator;
 import io.realm.internal.log.obfuscator.TokenObfuscator;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
-import io.realm.mongodb.sync.AutomaticRecoveryOrDiscardUnsyncedChangesStrategy;
-import io.realm.mongodb.sync.AutomaticRecoveryStrategy;
+import io.realm.mongodb.sync.AutomaticRecoverOrDiscardUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.AutomaticRecoverUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.ClientResetRequiredError;
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
@@ -608,8 +607,8 @@ public class AppConfiguration {
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
-         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryStrategy)}
-         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoverOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
@@ -627,8 +626,8 @@ public class AppConfiguration {
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
-         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryStrategy)}
-         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoverOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
@@ -646,13 +645,13 @@ public class AppConfiguration {
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
-         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryStrategy)}
-         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoverOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
          */
-        public Builder defaultSyncClientResetStrategy(@Nonnull AutomaticRecoveryStrategy strategy) {
+        public Builder defaultSyncClientResetStrategy(@Nonnull AutomaticRecoverUnsyncedChangesStrategy strategy) {
             Util.checkNull(strategy, "strategy");
             defaultSyncClientResetStrategy = strategy;
             return this;
@@ -665,13 +664,13 @@ public class AppConfiguration {
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
-         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryStrategy)}
-         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoveryOrDiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(AutomaticRecoverOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
          */
-        public Builder defaultSyncClientResetStrategy(@Nonnull AutomaticRecoveryOrDiscardUnsyncedChangesStrategy strategy) {
+        public Builder defaultSyncClientResetStrategy(@Nonnull AutomaticRecoverOrDiscardUnsyncedChangesStrategy strategy) {
             Util.checkNull(strategy, "strategy");
             defaultSyncClientResetStrategy = strategy;
             return this;

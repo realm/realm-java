@@ -21,13 +21,11 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.TestHelper.TestLogger
 import io.realm.entities.DefaultSyncSchema
-import io.realm.entities.SyncColor
 import io.realm.entities.SyncStringOnly
 import io.realm.entities.SyncStringOnlyModule
 import io.realm.exceptions.RealmFileException
 import io.realm.exceptions.RealmMigrationNeededException
 import io.realm.kotlin.syncSession
-import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
@@ -37,12 +35,10 @@ import io.realm.util.assertFailsWithMessage
 import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
 import org.junit.*
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
@@ -169,7 +165,8 @@ class SessionTests {
 
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-            .syncClientResetStrategy(object: AutomaticRecoveryOrDiscardUnsyncedChangesStrategy {
+            .syncClientResetStrategy(object:
+                AutomaticRecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
                 }
@@ -644,7 +641,8 @@ class SessionTests {
     fun errorHandler_automaticRecoverFailureClientResetReported() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-            .syncClientResetStrategy(object: AutomaticRecoveryStrategy {
+            .syncClientResetStrategy(object:
+                AutomaticRecoverUnsyncedChangesStrategy {
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
                     val filePathFromError = error.originalFile.absolutePath
                     val filePathFromConfig = session.configuration.path

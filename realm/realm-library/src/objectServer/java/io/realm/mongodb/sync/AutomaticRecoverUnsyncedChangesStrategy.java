@@ -30,7 +30,7 @@ package io.realm.mongodb.sync;
  * resolve the reset as it would be done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
-public interface AutomaticRecoveryStrategy extends SyncClientResetStrategy {
+public interface AutomaticRecoverUnsyncedChangesStrategy extends SyncClientResetStrategy {
     /**
      * Callback that indicates the seamless Client reset couldn't complete. It should be handled
      * as {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
