@@ -67,23 +67,21 @@ class RealmTransformer(project: Project,
         // Fetch project metadata when registering the transformer, but as some of the properties
         // we need to read might not be initialized yet (e.g. the Android extension), we need
         // to wait until after the build files have been evaluated.
-        project.afterEvaluate {
-            metadata = ProjectMetaData(
-                // Plugin requirements
-                project.gradle.startParameter.isOffline,
-                project.getBootClasspath()
-            )
+        metadata = ProjectMetaData(
+            // Plugin requirements
+            project.gradle.startParameter.isOffline,
+            project.getBootClasspath()
+        )
 
-            try {
-                this.analytics = RealmAnalytics()
-                this.analytics!!.calculateAnalyticsData(project)
+        try {
+            this.analytics = RealmAnalytics()
+            this.analytics!!.calculateAnalyticsData(project)
 
-            } catch (e: Exception) {
-                // Analytics should never crash the build.
-                logger.debug("Could not calculate Realm analytics data:\n$e")
-            }
-            transform()
+        } catch (e: Exception) {
+            // Analytics should never crash the build.
+            logger.debug("Could not calculate Realm analytics data:\n$e")
         }
+        transform()
     }
 
     companion object {
