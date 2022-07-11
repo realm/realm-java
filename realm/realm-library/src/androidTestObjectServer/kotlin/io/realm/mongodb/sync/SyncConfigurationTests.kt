@@ -368,7 +368,7 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         var config: SyncConfiguration = SyncConfiguration.defaultConfig(user, DEFAULT_PARTITION)
-        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+        assertTrue(config.syncClientResetStrategy is RecoverOrDiscardUnsyncedChangesStrategy)
     }
 
     @Test
