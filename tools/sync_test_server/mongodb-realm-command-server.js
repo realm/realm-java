@@ -19,7 +19,10 @@ const parser = require('mongodb-query-parser');
 const { EJSON } = require('bson');
 const { MongoClient, ObjectID } = require("mongodb");
 
-const mdb_uri = `mongodb://127.0.0.1:26000/?readPreference=primary&directConnection=true&ssl=false`;
+const BAAS_HOST = process.argv[2];
+winston.info(`BAAS host: ${BAAS_HOST}`)
+
+const mdb_uri = `mongodb://${BAAS_HOST}:26000/?readPreference=primary&directConnection=true&ssl=false`;
 
 function handleUnknownEndPoint(req, resp) {
     resp.writeHead(404, { 'Content-Type': 'text/plain' });
