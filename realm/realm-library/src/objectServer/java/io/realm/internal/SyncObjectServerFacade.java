@@ -94,7 +94,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     @Keep
     public interface AfterClientResetHandler {
-        void onAfterReset(long beforePtr, long afterPtr, OsRealmConfig config);
+        void onAfterReset(long beforePtr, long afterPtr, OsRealmConfig config, boolean didRecover);
     }
 
     @Override
@@ -131,14 +131,27 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             BeforeClientResetHandler beforeClientResetHandler = (localPtr, osRealmConfig) -> {
                 NativeContext.execute(nativeContext -> {
                     Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
-                    ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
+                    if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
+                        ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
+                    } else if (clientResetStrategy instanceof RecoverUnsyncedChangesStrategy) {
+                        ((RecoverUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
+                    } else if (clientResetStrategy instanceof RecoverOrDiscardUnsyncedChangesStrategy) {
+                        ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
+                    }
                 });
             };
-            AfterClientResetHandler afterClientResetHandler = (localPtr, afterPtr, osRealmConfig) -> {
+            AfterClientResetHandler afterClientResetHandler = (localPtr, afterPtr, osRealmConfig, didRecover) -> {
                 NativeContext.execute(nativeContext -> {
                     Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
                     Realm after = realmInstanceFactory.createInstance(new OsSharedRealm(afterPtr, osRealmConfig, nativeContext));
-                    ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
+
+                    if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
+                        ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
+                    } else if (clientResetStrategy instanceof RecoverUnsyncedChangesStrategy) {
+                        ((RecoverUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
+                    } else if (clientResetStrategy instanceof RecoverOrDiscardUnsyncedChangesStrategy) {
+                        ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after, didRecover);
+                    }
                 });
             };
 

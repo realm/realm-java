@@ -33,14 +33,14 @@ import io.realm.Realm;
  * The discard unsynced changes reset process is as follows: when a client reset is triggered
  * the {@link #onBeforeReset(Realm)} callback is invoked, providing an instance of the
  * Realm before the reset and another after the reset, both read-only. Once the reset has concluded
- * the callback {@link #onAfterReset(Realm, Realm)} would be invoked with an instance of the final Realm.
+ * the callback {@link #onAfterReset(Realm, Realm, boolean)} would be invoked with an instance of the final Realm.
  * <p>
  * If discarding the unsynced data is not enough to resolve the reset the
  * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked, it allows to manually
  * resolve the reset as it would be done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
-public interface RecoverOrDiscardUnsyncedChangesStrategy extends DiscardUnsyncedChangesStrategy {
+public interface RecoverOrDiscardUnsyncedChangesStrategy extends SyncClientResetStrategy {
 
     /**
      * Callback that indicates a Client Reset is about to happen. It provides with a frozen instance
@@ -58,8 +58,9 @@ public interface RecoverOrDiscardUnsyncedChangesStrategy extends DiscardUnsynced
      *
      * @param before {@link Realm} frozen Realm in the before after the reset.
      * @param after  {@link Realm} Realm after the reset.
+     * @param didRecover  {@link Realm} Realm after the reset.
      */
-    void onAfterReset(Realm before, Realm after);
+    void onAfterReset(Realm before, Realm after, boolean didRecover);
 
     /**
      * Callback that indicates the seamless Client reset couldn't complete. It should be handled

@@ -15,6 +15,8 @@
  */
 package io.realm.mongodb.sync;
 
+import io.realm.Realm;
+
 /**
  * Strategy that tries to automatically recover any unsynced changes during a Client Reset.
  * <p>
@@ -31,6 +33,25 @@ package io.realm.mongodb.sync;
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
 public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy {
+    /**
+     * Callback that indicates a Client Reset is about to happen. It provides with a frozen instance
+     * of the Realm that is will be reset.
+     *
+     * @param realm frozen {@link Realm} in its state before the reset.
+     *
+     */
+    void onBeforeReset(Realm realm);
+
+    /**
+     * Callback invoked once the Client Reset happens. It provides of two Realm instances,
+     * a frozen one displaying the state before the reset and a regular Realm with the current state,
+     * that can be used to recover objects from the reset.
+     *
+     * @param before {@link Realm} frozen Realm in the before after the reset.
+     * @param after  {@link Realm} Realm after the reset.
+     */
+    void onAfterReset(Realm before, Realm after);
+
     /**
      * Callback that indicates the seamless Client reset couldn't complete. It should be handled
      * as {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.

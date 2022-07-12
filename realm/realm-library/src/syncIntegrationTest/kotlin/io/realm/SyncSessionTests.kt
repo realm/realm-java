@@ -130,8 +130,7 @@ class SyncSessionTests {
             }
         }
 
-        val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
-                .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
+        val config = configFactory.createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
                 .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(realm: Realm) {
                         assertTrue(realm.isFrozen)
@@ -163,38 +162,73 @@ class SyncSessionTests {
                 .build()
 
         val realm = Realm.getInstance(config)
-        Assert.assertEquals(1, realm.where<SyncColor>().count())
         looperThread.closeAfterTest(realm)
-    }
+        realm.triggerClientReset(user) {
+            realm.executeTransaction {
+                realm.copyToRealm(SyncColor())
+            }
 
-    @Test
-    fun errorHandler_automaticRecoveryStrategy() {
-        val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
-            .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-            .syncClientResetStrategy(RecoverUnsyncedChangesStrategy { session, error ->
-                fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
-            })
-            .modules(ColorSyncSchema())
-            .build()
-
-        Realm.getInstance(config).use { realm ->
-            // Downloading would trigger the client reset if any
-            realm.syncSession.downloadAllServerChanges()
             Assert.assertEquals(1, realm.where<SyncColor>().count())
         }
     }
 
     @Test
-    fun errorHandler_automaticRecoveryOrDiscardStrategy() {
-        val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
-            .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-            .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
+    fun errorHandler_automaticRecoveryStrategy() = looperThread.runBlocking {
+        val counter = AtomicInteger()
+
+        val incrementAndValidate = {
+            if (2 == counter.incrementAndGet()) {
+                looperThread.testComplete()
+            }
+        }
+
+        val config = configFactory.createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
+            .syncClientResetStrategy(object: RecoverUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
+                    incrementAndValidate()
                 }
 
                 override fun onAfterReset(before: Realm, after: Realm) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onAfterReset()")
+                    incrementAndValidate()
+                }
+
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onError()")
+                }
+            })
+            .modules(ColorSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+        realm.triggerClientReset(user) {
+            realm.executeTransaction {
+                realm.copyToRealm(SyncColor())
+            }
+
+            Assert.assertEquals(1, realm.where<SyncColor>().count())
+        }
+    }
+
+    @Test
+    fun errorHandler_automaticRecoveryOrDiscardStrategy() = looperThread.runBlocking {
+        val counter = AtomicInteger()
+
+        val incrementAndValidate = {
+            if (2 == counter.incrementAndGet()) {
+                looperThread.testComplete()
+            }
+        }
+
+        val config = configFactory.createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
+            .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    incrementAndValidate()
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
+                    assertTrue(didRecover)
+                    incrementAndValidate()
                 }
 
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
@@ -204,9 +238,13 @@ class SyncSessionTests {
             .modules(ColorSyncSchema())
             .build()
 
-        Realm.getInstance(config).use { realm ->
-            // Downloading would trigger the client reset if any
-            realm.syncSession.downloadAllServerChanges()
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+        realm.triggerClientReset(user) {
+            realm.executeTransaction {
+                realm.copyToRealm(SyncColor())
+            }
+
             Assert.assertEquals(1, realm.where<SyncColor>().count())
         }
     }
@@ -220,7 +258,7 @@ class SyncSessionTests {
                 looperThread.testComplete()
             }
         }
-        val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
+        val config = configFactory.createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
             .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
@@ -228,7 +266,9 @@ class SyncSessionTests {
                     incrementAndValidate()
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm) {
+                override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
+                    assertFalse(didRecover)
+
                     assertTrue(before.isFrozen)
                     assertFalse(after.isFrozen)
 
@@ -244,29 +284,22 @@ class SyncSessionTests {
                 }
 
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onError()")
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onError()")
                 }
             })
             .modules(ColorSyncSchema())
             .build()
 
+
         val realm = Realm.getInstance(config)
-
-        realm.syncSession.downloadAllServerChanges()
-        realm.syncSession.stop()
-
-        realm.executeTransaction {
-            realm.copyToRealm(SyncColor())
-        }
-
-        Assert.assertEquals(1, realm.where<SyncColor>().count())
-
-        // Trigger client reset here
-        app.triggerClientReset(user.id, true)
-
-        realm.syncSession.start()
-
         looperThread.closeAfterTest(realm)
+        realm.triggerClientReset(user, true) {
+            realm.executeTransaction {
+                realm.copyToRealm(SyncColor())
+            }
+
+            Assert.assertEquals(1, realm.where<SyncColor>().count())
+        }
     }
 
     @Test
@@ -909,4 +942,19 @@ class SyncSessionTests {
         //}
     }
 
+    fun Realm.triggerClientReset(
+        user: User,
+        isRecoveryModeDisabled: Boolean = false,
+        block: () -> Unit
+    ) {
+        syncSession.downloadAllServerChanges()
+        syncSession.stop()
+
+        block()
+
+        // Trigger client reset here
+        app.triggerClientReset(user.id, isRecoveryModeDisabled)
+
+        syncSession.start()
+    }
 }

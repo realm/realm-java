@@ -167,14 +167,13 @@ class SessionTests {
 
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-            .syncClientResetStrategy(object:
-                RecoverOrDiscardUnsyncedChangesStrategy {
+            .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onAfterReset()")
+                override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterReset()")
                 }
 
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
@@ -659,8 +658,15 @@ class SessionTests {
     fun errorHandler_automaticRecoverFailureClientResetReported() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-            .syncClientResetStrategy(object:
-                RecoverUnsyncedChangesStrategy {
+            .syncClientResetStrategy(object: RecoverUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onBeforeReset()")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onAfterReset()")
+                }
+
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
                     val filePathFromError = error.originalFile.absolutePath
                     val filePathFromConfig = session.configuration.path

@@ -415,17 +415,21 @@ public class AppConfiguration {
         private SyncClientResetStrategy defaultSyncClientResetStrategy = new RecoverOrDiscardUnsyncedChangesStrategy() {
             @Override
             public void onBeforeReset(Realm realm) {
-                RealmLog.debug("Client Reset is about to happen on Realm: " + realm.getPath());
+                RealmLog.debug("Client reset: attempting to automatically recover unsynced changes in Realm: " + realm.getPath());
             }
 
             @Override
-            public void onAfterReset(Realm before, Realm after) {
-                RealmLog.debug("Client Reset complete on Realm: " + after.getPath());
+            public void onAfterReset(Realm before, Realm after, boolean didRecover) {
+                if (didRecover) {
+                    RealmLog.debug("Client reset: successful recovered all unsynced changes in Realm: " + after.getPath());
+                } else {
+                    RealmLog.debug("Client reset: couldn't recover successfully, all unsynced changes were discarded in Realm" + after.getPath());
+                }
             }
 
             @Override
             public void onError(SyncSession session, ClientResetRequiredError error) {
-                RealmLog.fatal("Seamless Client Reset failed on: " + session.getConfiguration().getServerUrl());
+                RealmLog.fatal("Client reset: manual reset required" + session.getConfiguration().getServerUrl());
             }
         };
         private byte[] encryptionKey;

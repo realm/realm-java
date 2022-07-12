@@ -107,8 +107,19 @@ class SyncConfigurationTests {
     @Test
     fun clientResetStrategy_automatic() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
-        val strategy =
-            RecoverUnsyncedChangesStrategy { _, _ -> }
+        val strategy = object: RecoverUnsyncedChangesStrategy {
+            override fun onBeforeReset(realm: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onAfterReset(before: Realm, after: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                fail("Callback should not be reachable")
+            }
+        }
         val config = builder.syncClientResetStrategy(strategy).build()
         assertEquals(strategy, config.syncClientResetStrategy)
     }
@@ -116,18 +127,17 @@ class SyncConfigurationTests {
     @Test
     fun clientResetStrategy_automaticOrDiscard() {
         val builder: SyncConfiguration.Builder = SyncConfiguration.Builder(createTestUser(app), DEFAULT_PARTITION)
-        val strategy = object:
-            RecoverOrDiscardUnsyncedChangesStrategy {
+        val strategy = object: RecoverOrDiscardUnsyncedChangesStrategy {
             override fun onBeforeReset(realm: Realm) {
-                TODO("Not yet implemented")
+                fail("Callback should not be reachable")
             }
 
-            override fun onAfterReset(before: Realm, after: Realm) {
-                TODO("Not yet implemented")
+            override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
+                fail("Callback should not be reachable")
             }
 
             override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                TODO("Not yet implemented")
+                fail("Callback should not be reachable")
             }
         }
         val config = builder.syncClientResetStrategy(strategy).build()
@@ -427,8 +437,18 @@ class SyncConfigurationTests {
         val user: User = createTestUser(app)
 
         val config = SyncConfiguration.Builder(user, DEFAULT_PARTITION)
-            .syncClientResetStrategy(RecoverUnsyncedChangesStrategy { session, error ->
-                fail("Should not be called")
+            .syncClientResetStrategy(object: RecoverUnsyncedChangesStrategy{
+                override fun onBeforeReset(realm: Realm) {
+                    fail("Should not be called")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("Should not be called")
+                }
+
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("Should not be called")
+                }
             })
             .build()
         assertTrue(config.syncClientResetStrategy is RecoverUnsyncedChangesStrategy)
@@ -444,7 +464,7 @@ class SyncConfigurationTests {
                     fail("Should not be called")
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm) {
+                override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
                     fail("Should not be called")
                 }
 

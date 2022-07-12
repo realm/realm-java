@@ -16,6 +16,7 @@
 package io.realm.entities
 
 import android.graphics.Color
+import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
 import io.realm.annotations.RealmField
@@ -28,4 +29,5 @@ open class SyncColor: RealmObject() {
     @RealmField(name = "realm_id")
     var realmId: String? = null
     var color: String = Color.RED.toString()
+    var stringList: RealmList<String> = RealmList("hello world")
 }

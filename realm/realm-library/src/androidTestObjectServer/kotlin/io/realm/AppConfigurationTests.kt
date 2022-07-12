@@ -299,8 +299,19 @@ class AppConfigurationTests {
 
     @Test
     fun setDefaultSyncClientStrategy_automaticRecovery() {
-        val strategy =
-            RecoverUnsyncedChangesStrategy { _, _ -> }
+        val strategy = object: RecoverUnsyncedChangesStrategy {
+            override fun onBeforeReset(realm: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onAfterReset(before: Realm, after: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                fail("Callback should not be reachable")
+            }
+        }
 
         val config = AppConfiguration.Builder("app-id")
             .defaultSyncClientResetStrategy(strategy)
@@ -310,18 +321,17 @@ class AppConfigurationTests {
 
     @Test
     fun setDefaultSyncClientStrategy_automaticRecoveryOrDiscard() {
-        val strategy = object:
-            RecoverOrDiscardUnsyncedChangesStrategy {
+        val strategy = object: RecoverOrDiscardUnsyncedChangesStrategy {
             override fun onBeforeReset(realm: Realm) {
-                TODO("Not yet implemented")
+                fail("Callback should not be reachable")
             }
 
-            override fun onAfterReset(before: Realm, after: Realm) {
-                TODO("Not yet implemented")
+            override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
+                fail("Callback should not be reachable")
             }
 
             override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                TODO("Not yet implemented")
+                fail("Callback should not be reachable")
             }
         }
 
