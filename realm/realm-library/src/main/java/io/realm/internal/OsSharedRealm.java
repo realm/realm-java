@@ -31,8 +31,6 @@ import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
-import io.realm.internal.objectstore.OsSubscriptionSet;
-import io.realm.mongodb.sync.SubscriptionSet;
 
 @Keep
 public final class OsSharedRealm implements Closeable, NativeObject {
@@ -381,13 +379,13 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     @ObjectServer
-    public SubscriptionSet getSubscriptions(RealmProxyMediator schema,
+    public io.realm.mongodb.sync.SubscriptionSet getSubscriptions(RealmProxyMediator schema,
                                             RealmThreadPoolExecutor listenerExecutor,
                                             RealmThreadPoolExecutor writeExecutor) {
         ObjectServerFacade facade = ObjectServerFacade.getSyncFacadeIfPossible();
         facade.checkFlexibleSyncEnabled(getConfiguration());
         long ptr = nativeGetLatestSubscriptionSet(nativePtr);
-        return new OsSubscriptionSet(ptr, schema, listenerExecutor, writeExecutor);
+        return new io.realm.internal.objectstore.OsSubscriptionSet(ptr, schema, listenerExecutor, writeExecutor);
     }
 
     public boolean isClosed() {

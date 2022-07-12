@@ -32,6 +32,7 @@ import io.realm.mongodb.*
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage
+import kotlinx.coroutines.runBlocking
 import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
 import org.junit.*
@@ -51,6 +52,7 @@ class SessionTests {
     val configFactory = TestSyncConfigurationFactory()
 
     private val looperThread = BlockingLooperThread()
+    private val context = looperThread.asDispatcher()
 
     @Before
     fun setUp() {
@@ -238,7 +240,9 @@ class SessionTests {
                     }
 
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(context) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -263,7 +267,9 @@ class SessionTests {
                 .schema(SyncStringOnly::class.java)
                 .clientResetHandler { _: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(context) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -310,7 +316,9 @@ class SessionTests {
                 .modules(SyncStringOnlyModule())
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(context) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -375,7 +383,9 @@ class SessionTests {
                 .modules(SyncStringOnlyModule())
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(context) {
+                        resources.close()
+                    }
                     error.executeClientReset()
                     var backupRealmConfiguration = error.backupRealmConfiguration
 
@@ -458,7 +468,9 @@ class SessionTests {
                     }
 
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(context) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -484,7 +496,9 @@ class SessionTests {
             .syncClientResetStrategy(object: ManuallyRecoverUnsyncedChangesStrategy {
                 override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(context) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -532,7 +546,9 @@ class SessionTests {
             .syncClientResetStrategy(object: ManuallyRecoverUnsyncedChangesStrategy{
                 override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(context) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -598,7 +614,9 @@ class SessionTests {
             .syncClientResetStrategy(object: ManuallyRecoverUnsyncedChangesStrategy {
                 override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(context) {
+                        resources.close()
+                    }
                     error.executeClientReset()
                     var backupRealmConfiguration = error.backupRealmConfiguration
 

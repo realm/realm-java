@@ -18,6 +18,7 @@ import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage
+import kotlinx.coroutines.runBlocking
 import org.bson.BsonInt32
 import org.bson.BsonInt64
 import org.bson.BsonString
@@ -170,11 +171,8 @@ class SyncSessionTests {
     fun errorHandler_automaticRecoveryStrategy() {
         val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
             .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-            .syncClientResetStrategy(object:
-                RecoverUnsyncedChangesStrategy {
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
-                }
+            .syncClientResetStrategy(RecoverUnsyncedChangesStrategy { session, error ->
+                fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
             })
             .modules(ColorSyncSchema())
             .build()
@@ -190,8 +188,7 @@ class SyncSessionTests {
     fun errorHandler_automaticRecoveryOrDiscardStrategy() {
         val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
             .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-            .syncClientResetStrategy(object:
-                RecoverOrDiscardUnsyncedChangesStrategy {
+            .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
                 }
@@ -224,8 +221,7 @@ class SyncSessionTests {
             }
         }
         val config = configFactory.createSyncConfigurationBuilder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
-            .syncClientResetStrategy(object:
-                RecoverOrDiscardUnsyncedChangesStrategy {
+            .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
                     Assert.assertEquals(1, realm.where<SyncColor>().count())
@@ -743,7 +739,9 @@ class SyncSessionTests {
                 //.directory(looperThread.getRoot())
                 .clientResetHandler { session, error ->
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(looperThread.asDispatcher()) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Try to re-open Realm and download it again

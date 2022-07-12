@@ -5,6 +5,7 @@
 * [RealmApp] Introduced `SyncSession.RecoverUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client.
 
 ### Fixed
+* Fixed deadlock while trying to close all Realm instances during a manual client reset. Issue [#7696](https://github.com/realm/realm-java/pull/7696))
 * [RealmApp] Throw RuntimeException if subscription set is requested and flexible sync is not enabled. (Realm Core issue [#5079](https://github.com/realm/realm-core/issues/5079))
 * Adding an object to a Set, deleting the parent object, and then deleting the previously mentioned object causes crash. (Realm Core issue [#5387](https://github.com/realm/realm-core/issues/5387), since 11.0.0)
 * [RealmApp] The sync client may have sent a corrupted upload cursor leading to a fatal error from the server due to an uninitialized variable. ([#5460](https://github.com/realm/realm-core/pull/5460, since v11.14.0)
