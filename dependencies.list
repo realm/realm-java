@@ -11,8 +11,8 @@ MONGODB_REALM_SERVER=2022-06-10
 # for that date within the following repositories: 
 # https://github.com/10gen/baas/ 
 # https://github.com/10gen/baas-ui/
-REALM_BAAS_GIT_HASH=d468f1c210ff050c4b3238737056490897e0d636
-REALM_BAAS_UI_GIT_HASH=525f3bdeb4e71ce344dc06afe19e06f48684186d
+REALM_BAAS_GIT_HASH=ba172f8dd37c3102499ab7d728e7c0dcb9e52ae8
+REALM_BAAS_UI_GIT_HASH=1fc10a6e04f87247790662d825500c9e21dbfbc7
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=7.1.0
