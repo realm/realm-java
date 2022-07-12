@@ -295,9 +295,7 @@ class SyncedRealmTests {
         }
     }
 
-    // FIXME: remove ignore when sync issue fixed
     @Test
-    @Ignore("ignored until https://jira.mongodb.org/browse/REALMC-6541 is fixed")
     fun embeddedObject_copyUnmanaged_roundTrip() {
         val user1: User = createNewUser()
         val config1: SyncConfiguration = createDefaultConfig(user1, partitionValue)
@@ -929,19 +927,25 @@ class SyncedRealmTests {
     }
 
     @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/7700")
     fun assetFile() {
         val user = createNewUser()
         val config = SyncConfiguration.Builder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
             .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
+            .syncClientResetStrategy { session, error ->
+                fail("Client reset should not have been invoked")
+            }
             .schema(SyncColor::class.java)
             .build()
 
         Realm.getInstance(config).use { realm: Realm ->
+            realm.syncSession.downloadAllServerChanges()
             assertEquals(1, realm.where<SyncColor>().count())
         }
     }
 
     @Test
+    @Ignore("See https://github.com/realm/realm-java/issues/7700")
     fun assetFile_wrongPartitionValue() = looperThread.runBlocking {
         val user = createNewUser()
         val config = SyncConfiguration.Builder(user, "foo")
