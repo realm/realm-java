@@ -6,6 +6,14 @@ REALM_CORE=11.14.0
 # See https://github.com/realm/ci/packages/147854 for available versions
 MONGODB_REALM_SERVER=2022-06-10
 
+# `BAAS` and `BAAS-UI` projects commit hashes matching MONGODB_REALM_SERVER image version
+# note that the MONGODB_REALM_SERVER image is a nightly build, find the matching commits
+# for that date within the following repositories: 
+# https://github.com/10gen/baas/ 
+# https://github.com/10gen/baas-ui/
+REALM_BAAS_GIT_HASH=d468f1c210ff050c4b3238737056490897e0d636
+REALM_BAAS_UI_GIT_HASH=525f3bdeb4e71ce344dc06afe19e06f48684186d
+
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=7.1.0
 ANDROID_BUILD_TOOLS=30.0.3
