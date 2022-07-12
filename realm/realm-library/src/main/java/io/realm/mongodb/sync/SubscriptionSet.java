@@ -34,7 +34,6 @@ import io.realm.internal.objectstore.OsSubscriptionSet;
  * {@link #waitForSynchronization()} and its variants.
  *
  */
-@ObjectServer
 @Beta
 @Keep
 public interface SubscriptionSet extends Iterable<Subscription> {
