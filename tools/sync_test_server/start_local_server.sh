@@ -120,7 +120,7 @@ function install_baas () {
 
 function boot_command_server () {
   cd $SCRIPTPATH
-  docker build $SCRIPTPATH -f Dockerfile.local -t mongodb-realm-command-server
+  docker build $SCRIPTPATH -f Dockerfile -t mongodb-realm-command-server
   docker run --rm -i -t -d -p8888:8888 -v$APP_CONFIG_DIR:/apps --name mongodb-realm-command-server mongodb-realm-command-server
 }
 

@@ -3,7 +3,6 @@ buildscript {
     projectDependencies.load(new FileInputStream("${rootDir}/../dependencies.list"))
     ext.kotlin_version = projectDependencies.get('KOTLIN')
     ext.coroutines_android_version = projectDependencies.get('KOTLIN_COROUTINES')
-    ext.kotlin_serializer_version = projectDependencies.get('KOTLIN_SERIALIZER')
     ext.dokka_version = '1.5.0'
     repositories {
         mavenLocal()
@@ -25,7 +24,6 @@ buildscript {
         classpath "io.realm:realm-library-build-transformer:${file('../version.txt').text.trim()}"
         classpath 'net.ltgt.gradle:gradle-errorprone-plugin:2.0.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${dokka_version}"
         classpath "gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.5.0"
         classpath "io.github.gradle-nexus:publish-plugin:${projectDependencies.get("GRADLE_NEXUS_PLUGIN")}"
