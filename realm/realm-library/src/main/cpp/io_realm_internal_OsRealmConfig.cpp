@@ -28,6 +28,7 @@
 #include <linux/errno.h>
 #include <jni_util/bson_util.hpp>
 #include <realm/sync/client.hpp>
+#include <realm/object-store/thread_safe_reference.hpp>
 
 #include "java_accessor.hpp"
 #include "util.hpp"
@@ -384,7 +385,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
                 };
 
-                config.sync_config->notify_after_client_reset = [j_on_after_client_reset_handler_weak, j_config_weak](SharedRealm before_frozen, SharedRealm after) {
+                config.sync_config->notify_after_client_reset = [j_on_after_client_reset_handler_weak, j_config_weak](SharedRealm before_frozen, ThreadSafeReference after, bool) {
                     JNIEnv* env = JniUtils::get_env(false);
                     JavaGlobalRefByMove config_global = j_config_weak.global_ref(env);
                     if (!config_global) {
@@ -394,7 +395,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     // The local Realm lifecycle is handled in Java via a
                     // ManualReleaseNativeContext.
                     SharedRealm* before_frozen_ptr = new SharedRealm(before_frozen);
-                    SharedRealm* after_ptr = new SharedRealm(after);
+
+                    // Resolve ThreadSafeReference
+                    SharedRealm* after_ptr = new SharedRealm(after.resolve<std::shared_ptr<Realm>>(nullptr));
+                    
                     j_on_after_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                         env->CallVoidMethod(obj, on_after_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), reinterpret_cast<jlong>(after_ptr), config_global.get());
                     });

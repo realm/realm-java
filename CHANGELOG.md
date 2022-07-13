@@ -1,11 +1,23 @@
 ## 10.11.1 (YYYY-MM-DD)
 
 ### Enhancements
+* None
 
 ### Fixed
 * Fixed deadlock while trying to close all Realm instances during a manual client reset. Issue [#7696](https://github.com/realm/realm-java/pull/7696))
+* [RealmApp] Throw RuntimeException if subscription set is requested and flexible sync is not enabled. (Realm Core issue [#5079](https://github.com/realm/realm-core/issues/5079))
+* Adding an object to a Set, deleting the parent object, and then deleting the previously mentioned object causes crash. (Realm Core issue [#5387](https://github.com/realm/realm-core/issues/5387), since 11.0.0)
+* [RealmApp] The sync client may have sent a corrupted upload cursor leading to a fatal error from the server due to an uninitialized variable. ([#5460](https://github.com/realm/realm-core/pull/5460, since v11.14.0)
+* [RealmApp] Flexible sync would not correctly resume syncing if a bootstrap was interrupted. ([#5466](https://github.com/realm/realm-core/pull/5466, since v11.8.0)
+* [RealmApp] Flexible sync subscription state changes will now correctly be reported after sync progress is reported. ([#5553](https://github.com/realm/realm-core/pull/5553, since v12.0.0)
 
 ### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Update to Realm Core 12.3.0, commit: 55a48c287b5e3a8ca129c257ec7e3b92bcb2a05f.
 
 
 ## 10.11.0 (2022-05-20)

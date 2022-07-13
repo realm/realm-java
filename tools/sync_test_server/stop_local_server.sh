@@ -1,6 +1,6 @@
 #!/bin/sh
 
-WORK_PATH="$HOME/.realm_baas"
+WORK_PATH="$HOME/.realm_baas_java"
 BAAS_PID=""
 MONGOD_PID=""
 if [[ -f $WORK_PATH/baas_server.pid ]]; then
