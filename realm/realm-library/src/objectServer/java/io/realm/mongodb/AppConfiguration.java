@@ -419,13 +419,15 @@ public class AppConfiguration {
             }
 
             @Override
-            public void onAfterReset(Realm before, Realm after, boolean didRecover) {
-                if (didRecover) {
-                    RealmLog.debug("Client reset: successful recovered all unsynced changes in Realm: " + after.getPath());
-                } else {
-                    RealmLog.debug("Client reset: couldn't recover successfully, all unsynced changes were discarded in Realm" + after.getPath());
-                }
+            public void onAfterRecovery(Realm before, Realm after) {
+                RealmLog.debug("Client reset: successful recovered all unsynced changes in Realm: " + after.getPath());
             }
+
+            @Override
+            public void onAfterDiscard(Realm before, Realm after) {
+                RealmLog.debug("Client reset: couldn't recover successfully, all unsynced changes were discarded in Realm" + after.getPath());
+            }
+
 
             @Override
             public void onError(SyncSession session, ClientResetRequiredError error) {

@@ -171,8 +171,12 @@ class SessionTests {
                     fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
-                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterReset()")
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterRecovery()")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
                 }
 
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {

@@ -132,7 +132,11 @@ class SyncConfigurationTests {
                 fail("Callback should not be reachable")
             }
 
-            override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
+            override fun onAfterRecovery(before: Realm, after: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onAfterDiscard(before: Realm, after: Realm) {
                 fail("Callback should not be reachable")
             }
 
@@ -464,7 +468,11 @@ class SyncConfigurationTests {
                     fail("Should not be called")
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("Should not be called")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
                     fail("Should not be called")
                 }
 

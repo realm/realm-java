@@ -151,7 +151,11 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                     } else if (clientResetStrategy instanceof RecoverUnsyncedChangesStrategy) {
                         ((RecoverUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
                     } else if (clientResetStrategy instanceof RecoverOrDiscardUnsyncedChangesStrategy) {
-                        ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after, didRecover);
+                        if (didRecover) {
+                            ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterRecovery(before, after);
+                        } else {
+                            ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterDiscard(before, after);
+                        }
                     }
                 });
             };

@@ -226,9 +226,12 @@ class SyncSessionTests {
                     incrementAndValidate()
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
-                    assertTrue(didRecover)
+                override fun onAfterRecovery(before: Realm, after: Realm) {
                     incrementAndValidate()
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onAfterDiscard()")
                 }
 
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
@@ -266,9 +269,11 @@ class SyncSessionTests {
                     incrementAndValidate()
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm, didRecover: Boolean) {
-                    assertFalse(didRecover)
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterRecovery()")
+                }
 
+                override fun onAfterDiscard(before: Realm, after: Realm) {
                     assertTrue(before.isFrozen)
                     assertFalse(after.isFrozen)
 
