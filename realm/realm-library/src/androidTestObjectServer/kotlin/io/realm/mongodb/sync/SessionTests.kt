@@ -52,7 +52,6 @@ class SessionTests {
     val configFactory = TestSyncConfigurationFactory()
 
     private val looperThread = BlockingLooperThread()
-    private val context = looperThread.asDispatcher()
 
     @Before
     fun setUp() {
@@ -239,7 +238,7 @@ class SessionTests {
                     }
 
                     // Execute Client Reset
-                    runBlocking(context) {
+                    runBlocking(looperThread.asDispatcher()) {
                         resources.close()
                     }
                     error.executeClientReset()
@@ -266,7 +265,7 @@ class SessionTests {
                 .schema(SyncStringOnly::class.java)
                 .clientResetHandler { _: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    runBlocking(context) {
+                    runBlocking(looperThread.asDispatcher()) {
                         resources.close()
                     }
                     error.executeClientReset()
@@ -315,7 +314,7 @@ class SessionTests {
                 .modules(SyncStringOnlyModule())
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    runBlocking(context) {
+                    runBlocking(looperThread.asDispatcher()) {
                         resources.close()
                     }
                     error.executeClientReset()
@@ -382,7 +381,7 @@ class SessionTests {
                 .modules(SyncStringOnlyModule())
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    runBlocking(context) {
+                    runBlocking(looperThread.asDispatcher()) {
                         resources.close()
                     }
                     error.executeClientReset()
@@ -467,7 +466,7 @@ class SessionTests {
                     }
 
                     // Execute Client Reset
-                    runBlocking(context) {
+                    runBlocking(looperThread.asDispatcher()) {
                         resources.close()
                     }
                     error.executeClientReset()
@@ -495,7 +494,7 @@ class SessionTests {
             .syncClientResetStrategy(object: ManuallyRecoverUnsyncedChangesStrategy {
                 override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
                     // Execute Client Reset
-                    runBlocking(context) {
+                    runBlocking(looperThread.asDispatcher()) {
                         resources.close()
                     }
                     error.executeClientReset()
@@ -545,7 +544,7 @@ class SessionTests {
             .syncClientResetStrategy(object: ManuallyRecoverUnsyncedChangesStrategy{
                 override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
                     // Execute Client Reset
-                    runBlocking(context) {
+                    runBlocking(looperThread.asDispatcher()) {
                         resources.close()
                     }
                     error.executeClientReset()
@@ -613,7 +612,7 @@ class SessionTests {
             .syncClientResetStrategy(object: ManuallyRecoverUnsyncedChangesStrategy {
                 override fun onClientReset(session: SyncSession, error: ClientResetRequiredError) {
                     // Execute Client Reset
-                    runBlocking(context) {
+                    runBlocking(looperThread.asDispatcher()) {
                         resources.close()
                     }
                     error.executeClientReset()
