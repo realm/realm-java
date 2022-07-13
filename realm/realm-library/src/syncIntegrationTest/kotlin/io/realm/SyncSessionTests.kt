@@ -163,7 +163,7 @@ class SyncSessionTests {
 
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-        realm.triggerClientReset(user) {
+        admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
                 realm.copyToRealm(SyncColor())
             }
@@ -201,7 +201,7 @@ class SyncSessionTests {
 
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-        realm.triggerClientReset(user) {
+        admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
                 realm.copyToRealm(SyncColor())
             }
@@ -240,7 +240,7 @@ class SyncSessionTests {
 
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-        realm.triggerClientReset(user) {
+        admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
                 realm.copyToRealm(SyncColor())
             }
@@ -290,10 +290,9 @@ class SyncSessionTests {
             .modules(ColorSyncSchema())
             .build()
 
-
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-        realm.triggerClientReset(user, true) {
+        admin.triggerClientReset(realm.syncSession, true) {
             realm.executeTransaction {
                 realm.copyToRealm(SyncColor())
             }
@@ -940,21 +939,5 @@ class SyncSessionTests {
         //Realm.getInstance(configuration).use { realm ->
         //     realm.syncSession.downloadAllServerChanges()
         //}
-    }
-
-    fun Realm.triggerClientReset(
-        user: User,
-        isRecoveryModeDisabled: Boolean = false,
-        block: () -> Unit
-    ) {
-        syncSession.downloadAllServerChanges()
-        syncSession.stop()
-
-        block()
-
-        // Trigger client reset here
-        app.triggerClientReset(user.id, isRecoveryModeDisabled)
-
-        syncSession.start()
     }
 }

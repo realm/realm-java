@@ -29,5 +29,4 @@ open class SyncColor: RealmObject() {
     @RealmField(name = "realm_id")
     var realmId: String? = null
     var color: String = Color.RED.toString()
-    var stringList: RealmList<String> = RealmList("hello world")
 }

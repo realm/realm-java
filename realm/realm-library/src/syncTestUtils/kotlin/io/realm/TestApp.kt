@@ -19,7 +19,6 @@ import io.realm.internal.network.OkHttpNetworkTransport
 import io.realm.internal.objectstore.OsJavaNetworkTransport
 import io.realm.mongodb.App
 import io.realm.mongodb.AppConfiguration
-import kotlinx.serialization.json.*
 
 /**
  * This class wraps various methods making it easier to create an App that can be used
@@ -37,117 +36,13 @@ const val TEST_APP_3 =
 
 class TestApp(
     networkTransport: OsJavaNetworkTransport? = null,
-    private val appName: String = TEST_APP_1,
+    appName: String = TEST_APP_1,
     builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
 ) : App(builder(configurationBuilder(appName)).build()) {
 
     init {
         if (networkTransport != null) {
             this.setNetworkTransport(networkTransport)
-        }
-    }
-
-    fun setIsRecoveryModeDisabled(isRecoveryModeDisabled: Boolean) {
-        updateMDBDocument(
-            dbName = "app",
-            collection = "apps",
-            query = """{"name": "$appName"}""",
-            update = """
-                {"${'$'}set": {"services.$[element].config.sync.is_recovery_mode_disabled": $isRecoveryModeDisabled}}
-                """.trimIndent(),
-            options = """{"arrayFilters": [{"element.name": "BackingDB"}]}"""
-        )
-    }
-
-    fun triggerClientReset(userId: String, disableRecoveryMode: Boolean = false) {
-        val originalState = isRecoveryModeDisabled(appName)
-
-        setIsRecoveryModeDisabled(disableRecoveryMode)
-
-        // deleting clientfile triggers a reset
-        deleteMDBDocumentByQuery("__realm_sync", "clientfiles", "{ownerId: \"$userId\"}")
-
-        setIsRecoveryModeDisabled(originalState)
-    }
-
-    private fun isRecoveryModeDisabled(app: String): Boolean {
-        val app = queryMDBDocument(
-            dbName = "app",
-            collection = "apps",
-            query = """{"name": "$app"}"""
-        ).jsonObject
-
-        return app["services"]!!
-            .jsonArray.first { element ->
-                element.jsonObject["name"]!!.jsonPrimitive.content == "BackingDB"
-            }
-            .jsonObject["config"]!!
-            .jsonObject["sync"]!!
-            .jsonObject.getOrDefault(
-                "is_recovery_mode_disabled",
-                JsonPrimitive(false)
-            )
-            .jsonPrimitive.boolean
-    }
-
-    private fun deleteMDBDocumentByQuery(
-        dbName: String,
-        collection: String,
-        query: String
-    ): String {
-        val transport = OkHttpNetworkTransport(null)
-        val response = transport.executeRequest(
-            "get",
-            "http://127.0.0.1:8888/delete-document?db=$dbName&collection=$collection&query=$query",
-            5000,
-            mapOf(),
-            ""
-        )
-        return when (response.httpResponseCode) {
-            200 -> response.body
-            else -> throw IllegalStateException(response.toString())
-        }
-    }
-
-    private fun queryMDBDocument(
-        dbName: String,
-        collection: String,
-        query: String
-    ): JsonObject {
-        val transport = OkHttpNetworkTransport(null)
-        val response = transport.executeRequest(
-            "get",
-            "http://127.0.0.1:8888/query-document?db=$dbName&collection=$collection&query=$query",
-            5000,
-            mapOf(),
-            ""
-        )
-
-        return when (response.httpResponseCode) {
-            200 -> Json.parseToJsonElement(response.body).jsonObject
-            else -> throw IllegalStateException(response.toString())
-        }
-    }
-
-    private fun updateMDBDocument(
-        dbName: String,
-        collection: String,
-        query: String,
-        update: String,
-        options: String,
-    ): JsonObject {
-        val transport = OkHttpNetworkTransport(null)
-        val response = transport.executeRequest(
-            "get",
-            "http://127.0.0.1:8888/update-document?db=$dbName&collection=$collection&query=$query&update=$update&options=$options",
-            5000,
-            mapOf(),
-            ""
-        )
-
-        return when (response.httpResponseCode) {
-            200 -> Json.parseToJsonElement(response.body).jsonObject
-            else -> throw IllegalStateException(response.toString())
         }
     }
 

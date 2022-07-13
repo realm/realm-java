@@ -131,6 +131,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             BeforeClientResetHandler beforeClientResetHandler = (localPtr, osRealmConfig) -> {
                 NativeContext.execute(nativeContext -> {
                     Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
+
                     if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
                         ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
                     } else if (clientResetStrategy instanceof RecoverUnsyncedChangesStrategy) {
