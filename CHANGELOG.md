@@ -1,4 +1,4 @@
-## 10.11.1 (YYYY-MM-DD)
+## 10.11.1 (2022-07-14)
 
 ### Enhancements
 * None
