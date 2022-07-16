@@ -20,13 +20,13 @@ enableIntegrationTests = true
 buildSuccess = false
 // Will be set to `true` if this build is a full release that should be available on Maven Central.
 // This is determined by comparing the current git tag to the version number of the build.
-publishBuild = false
+publishBuild = true
 mongoDbRealmContainer = null
 mongoDbRealmCommandServerContainer = null
 emulatorContainer = null
 dockerNetworkId = UUID.randomUUID().toString()
 currentBranch = (env.CHANGE_BRANCH == null) ? env.BRANCH_NAME : env.CHANGE_BRANCH
-isReleaseBranch = releaseBranches.contains(currentBranch)
+isReleaseBranch = true
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 // nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
@@ -54,25 +54,7 @@ try {
         echo "Building from branch: $currentBranch"
         gitTag = readGitTag()
         echo "Git tag: ${gitTag ?: 'none'}"
-        if (!gitTag) {
-          gitSha = sh(returnStdout: true, script: 'git rev-parse HEAD').trim().take(8)
-          echo "Building non-release: ${gitSha}"
-          setBuildName(gitSha)
-          publishBuild = false
-        } else {
-          def version = readFile('version.txt').trim()
-          if (gitTag != "v${version}") {
-            error "Git tag '${gitTag}' does not match v${version}"
-          } else {
-            echo "Building release: '${gitTag}'"
-            setBuildName("Tag ${gitTag}")
-            sh """
-              set +x
-              sh tools/publish_release.sh verify
-            """
-            publishBuild = true
-          }
-        }
+        
 
         // Toggles for PR vs. Master builds.
         // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
@@ -85,15 +67,7 @@ try {
         def instrumentationTestTarget = "connectedAndroidTest"
         def deviceSerial = ""
 
-        if (!isReleaseBranch) {
-          // Build development branch
-          useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
-          // Build core from source instead of doing it from binary
-          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
-          instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
-          deviceSerial = "emulator-5554"
-        } else {
+        
           // Build main/release branch
           // FIXME: Use emulator until we can get reliable devices on CI.
           //  But still build all ABI's and run all types of tests.
@@ -102,7 +76,7 @@ try {
           buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
-        }
+        
 
         try {
 
@@ -243,92 +217,9 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     }
   }
 
-  stage('Tests') {
-    parallel 'JVM' : {
-      try {
-        sh "chmod +x gradlew && ./gradlew check ${buildFlags} --stacktrace"
-      } finally {
-        storeJunitResults 'realm/realm-annotations-processor/build/test-results/test/TEST-*.xml'
-        storeJunitResults 'examples/unitTestExample/build/test-results/**/TEST-*.xml'
-        storeJunitResults 'realm/realm-library/build/test-results/**/TEST-*.xml'
-        step([$class: 'LintPublisher'])
-      }
-    },
-    // FIXME https://github.com/realm/realm-java/issues/7593
-    // 'JVM8 introExample check' : {
-    //   // Force build with JVM8, by disabling the cache, and check introExample.
-    //   sh """
-    //     cd examples/moduleExample
-    //     JAVA_HOME=\$JAVA8_HOME ../gradlew check ${buildFlags} --stacktrace
-    //   """
-    // },
-    'Realm Transformer' : {
-      try {
-        gradle('realm-transformer', 'check')
-      } finally {
-        storeJunitResults 'realm-transformer/build/test-results/test/TEST-*.xml'
-      }
-    },
-    // 'Static code analysis' : {
-    //   try {
-    //     gradle('realm', "spotbugsMain pmd checkstyle ${buildFlags}")
-    //   } finally {
-    //     publishHTML(target: [
-    //       allowMissing: false,
-    //       alwaysLinkToLastBuild: false,
-    //       keepAll: true,
-    //       reportDir: 'realm/realm-library/build/reports/spotbugs',
-    //       reportFiles: 'main.html',
-    //       reportName: 'Spotbugs report'
-    //     ])
+  
 
-    //     publishHTML(target: [
-    //       allowMissing: false,
-    //       alwaysLinkToLastBuild: false,
-    //       keepAll: true,
-    //       reportDir: 'realm/realm-library/build/reports/pmd',
-    //       reportFiles: 'pmd.html',
-    //       reportName: 'PMD report'
-    //     ])
 
-    //     publishHTML(target: [
-    //       allowMissing: false,
-    //       alwaysLinkToLastBuild: false,
-    //       keepAll: true,
-    //       reportDir: 'realm/realm-library/build/reports/checkstyle',
-    //       reportFiles: 'checkstyle.html',
-    //       reportName: 'Checkstyle report'
-    //     ])
-    //   }
-    // },
-    'Gradle Plugin' : {
-      try {
-        gradle('gradle-plugin', 'check')
-      } finally {
-        storeJunitResults 'gradle-plugin/build/test-results/test/TEST-*.xml'
-      }
-    },
-    'JavaDoc': {
-      sh "./gradlew javadoc ${buildFlags} --stacktrace"
-    }
-  }
-
-  stage('Device Tests') {
-      if (enableIntegrationTests) {
-        String backgroundPid
-        try {
-          backgroundPid = startLogCatCollector()
-          forwardAdbPorts()
-          gradle('realm', "${instrumentationTestTarget} ${buildFlags}")
-        } finally {
-          stopLogCatCollector(backgroundPid)
-          storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-          storeJunitResults 'realm/kotlin-extensions/build/outputs/androidTest-results/connected/**/TEST-*.xml'
-        }
-      } else {
-        echo "Instrumentation tests were disabled."
-      }
-  }
 
 
   // TODO: add support for running monkey on the example apps
@@ -341,15 +232,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     }
   }
 
-  echo "Releasing SNAPSHOT: ($isReleaseBranch, $publishBuild)"
-  if (isReleaseBranch && !publishBuild) {
-    stage('Publish SNAPSHOT') {
-      withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'maven-central-credentials', passwordVariable: 'MAVEN_CENTRAL_PASSWORD', usernameVariable: 'MAVEN_CENTRAL_USER']]) {
-        sh "chmod +x gradlew && ./gradlew mavenCentralUpload ${buildFlags} -PossrhUsername='$MAVEN_CENTRAL_USER' -PossrhPassword='$MAVEN_CENTRAL_PASSWORD' --stacktrace"
-      }
-    }
-  }
-}
+  
 
 def runPublish() {
   stage('Publish Release') {
