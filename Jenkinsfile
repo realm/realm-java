@@ -217,20 +217,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
     }
   }
 
-  
-
-
-
-
-  // TODO: add support for running monkey on the example apps
-
-  def collectMetrics = ['master'].contains(currentBranch)
-  echo "Collecting metrics: $collectMetrics"
-  if (collectMetrics) {
-    stage('Collect metrics') {
-      collectAarMetrics()
-    }
-  }
+}
 
   
 
