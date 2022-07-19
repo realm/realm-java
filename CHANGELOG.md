@@ -1,8 +1,22 @@
-## 10.11.1 (YYYY-MM-DD)
+## 10.11.2 (YYYY-MM-DD)
 
 ### Enhancements
 * [RealmApp] Introduced `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client, and discards any unsynced data if not possible. This is now the default policy if not overridden.
 * [RealmApp] Introduced `SyncSession.RecoverUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client.
+
+### Fixed
+* None
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+
+## 10.11.1 (2022-07-14)
+
+### Enhancements
+* None
 
 ### Fixed
 * Fixed deadlock while trying to close all Realm instances during a manual client reset. Issue [#7696](https://github.com/realm/realm-java/pull/7696))
