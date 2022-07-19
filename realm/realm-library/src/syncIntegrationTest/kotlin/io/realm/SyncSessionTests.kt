@@ -19,9 +19,7 @@ import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage
 import kotlinx.coroutines.runBlocking
-import org.bson.BsonInt32
-import org.bson.BsonInt64
-import org.bson.BsonString
+import org.bson.*
 import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
 import org.junit.*
@@ -130,7 +128,7 @@ class SyncSessionTests {
             }
         }
 
-        val config = configFactory.createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
+        val config = configFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
                 .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(realm: Realm) {
                         assertTrue(realm.isFrozen)
@@ -182,7 +180,7 @@ class SyncSessionTests {
             }
         }
 
-        val config = configFactory.createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
+        val config = configFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
             .syncClientResetStrategy(object: RecoverUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     incrementAndValidate()
@@ -220,7 +218,7 @@ class SyncSessionTests {
             }
         }
 
-        val config = configFactory.createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
+        val config = configFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
             .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     incrementAndValidate()
@@ -261,7 +259,7 @@ class SyncSessionTests {
                 looperThread.testComplete()
             }
         }
-        val config = configFactory.createSyncConfigurationBuilder(user, UUID.randomUUID().toString())
+        val config = configFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
             .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)

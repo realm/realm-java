@@ -14,12 +14,14 @@ fi
 if [[ -n "$BAAS_PID" ]]; then
     echo "Stopping baas $BAAS_PID"
     kill -9 "$BAAS_PID"
+    rm $WORK_PATH/baas_server.pid
 fi
 
 
 if [[ -n "$MONGOD_PID" ]]; then
     echo "Killing mongod $MONGOD_PID"
     kill -9 "$MONGOD_PID"
+    rm $WORK_PATH/mongod.pid
 fi
 
 docker stop mongodb-realm-command-server -t0
