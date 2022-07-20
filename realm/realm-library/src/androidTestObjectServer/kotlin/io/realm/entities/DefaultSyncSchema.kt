@@ -44,6 +44,5 @@ class ColorSyncSchema
 
 @RealmModule(classes = [
     DummySyncObject::class,
-    DummySyncObjectWithPartition::class,
 ])
 class ObjectSyncSchema

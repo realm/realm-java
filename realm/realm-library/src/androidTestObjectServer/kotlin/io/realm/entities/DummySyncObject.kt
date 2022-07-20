@@ -17,7 +17,6 @@ package io.realm.entities
 
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
-import io.realm.annotations.RealmField
 import org.bson.types.ObjectId
 import java.util.*
 
@@ -25,13 +24,4 @@ open class DummySyncObject: RealmObject() {
     @PrimaryKey
     var _id: ObjectId? = ObjectId.get()
     var string: String = UUID.randomUUID().toString()
-}
-
-open class DummySyncObjectWithPartition: RealmObject() {
-    @PrimaryKey
-    var _id: ObjectId? = ObjectId.get()
-    var string: String = UUID.randomUUID().toString()
-
-    @RealmField(name = "realm_id")
-    var realmId: String? = null
 }
