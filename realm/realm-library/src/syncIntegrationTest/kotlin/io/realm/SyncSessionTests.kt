@@ -132,7 +132,7 @@ class SyncSessionTests {
                 .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(realm: Realm) {
                         assertTrue(realm.isFrozen)
-                        Assert.assertEquals(1, realm.where<SyncColor>().count())
+                        Assert.assertEquals(1, realm.where<DummySyncObject>().count())
                         incrementAndValidate()
                     }
 
@@ -140,14 +140,14 @@ class SyncSessionTests {
                         assertTrue(before.isFrozen)
                         assertFalse(after.isFrozen)
 
-                        Assert.assertEquals(1, before.where<SyncColor>().count())
-                        Assert.assertEquals(0, after.where<SyncColor>().count())
+                        Assert.assertEquals(1, before.where<DummySyncObject>().count())
+                        Assert.assertEquals(0, after.where<DummySyncObject>().count())
 
                         //Validate we can move data to the reset Realm.
                         after.executeTransaction{
-                            it.insert(before.where<SyncColor>().findFirst()!!)
+                            it.insert(before.where<DummySyncObject>().findFirst()!!)
                         }
-                        Assert.assertEquals(1, after.where<SyncColor>().count())
+                        Assert.assertEquals(1, after.where<DummySyncObject>().count())
                         incrementAndValidate()
                     }
 
@@ -166,7 +166,7 @@ class SyncSessionTests {
                 it.insert(DummySyncObject())
             }
 
-            Assert.assertEquals(1, realm.where<SyncColor>().count())
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
         }
     }
 
@@ -204,7 +204,7 @@ class SyncSessionTests {
                 it.insert(DummySyncObject())
             }
 
-            Assert.assertEquals(1, realm.where<SyncColor>().count())
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
         }
     }
 
@@ -246,7 +246,7 @@ class SyncSessionTests {
                 it.insert(DummySyncObject())
             }
 
-            Assert.assertEquals(1, realm.where<SyncColor>().count())
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
         }
     }
 
@@ -289,7 +289,7 @@ class SyncSessionTests {
             .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
-                    Assert.assertEquals(1, realm.where<SyncColor>().count())
+                    Assert.assertEquals(1, realm.where<DummySyncObject>().count())
                     incrementAndValidate()
                 }
 
@@ -301,14 +301,14 @@ class SyncSessionTests {
                     assertTrue(before.isFrozen)
                     assertFalse(after.isFrozen)
 
-                    Assert.assertEquals(1, before.where<SyncColor>().count())
-                    Assert.assertEquals(0, after.where<SyncColor>().count())
+                    Assert.assertEquals(1, before.where<DummySyncObject>().count())
+                    Assert.assertEquals(0, after.where<DummySyncObject>().count())
 
                     //Validate we can move data to the reset Realm.
                     after.executeTransaction{
-                        it.insert(before.where<SyncColor>().findFirst()!!)
+                        it.insert(before.where<DummySyncObject>().findFirst()!!)
                     }
-                    Assert.assertEquals(1, after.where<SyncColor>().count())
+                    Assert.assertEquals(1, after.where<DummySyncObject>().count())
                     incrementAndValidate()
                 }
 
@@ -326,7 +326,7 @@ class SyncSessionTests {
                 it.insert(DummySyncObject())
             }
 
-            Assert.assertEquals(1, realm.where<SyncColor>().count())
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
         }
     }
 
