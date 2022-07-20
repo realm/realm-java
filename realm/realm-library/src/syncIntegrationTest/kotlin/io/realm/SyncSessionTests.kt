@@ -127,8 +127,8 @@ class SyncSessionTests {
                 looperThread.testComplete()
             }
         }
-
-        val config = configFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
+        val partitionId = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionId)
                 .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(realm: Realm) {
                         assertTrue(realm.isFrozen)
@@ -163,7 +163,9 @@ class SyncSessionTests {
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
-                realm.insert(SyncColor())
+                it.insert(SyncColor().apply {
+                    realmId = partitionId
+                })
             }
 
             Assert.assertEquals(1, realm.where<SyncColor>().count())
@@ -179,8 +181,8 @@ class SyncSessionTests {
                 looperThread.testComplete()
             }
         }
-
-        val config = configFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
+        val partitionId = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionId)
             .syncClientResetStrategy(object: RecoverUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     incrementAndValidate()
@@ -201,7 +203,9 @@ class SyncSessionTests {
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
-                realm.insert(SyncColor())
+                it.insert(SyncColor().apply {
+                    realmId = partitionId
+                })
             }
 
             Assert.assertEquals(1, realm.where<SyncColor>().count())
@@ -217,8 +221,8 @@ class SyncSessionTests {
                 looperThread.testComplete()
             }
         }
-
-        val config = configFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
+        val partitionId = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionId)
             .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     incrementAndValidate()
@@ -243,7 +247,9 @@ class SyncSessionTests {
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
-                realm.insert(SyncColor())
+                it.insert(SyncColor().apply {
+                    realmId = partitionId
+                })
             }
 
             Assert.assertEquals(1, realm.where<SyncColor>().count())
@@ -259,7 +265,8 @@ class SyncSessionTests {
                 looperThread.testComplete()
             }
         }
-        val config = configFactory.createSyncConfigurationBuilder(user, BsonString(UUID.randomUUID().toString()))
+        val partitionId = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionId)
             .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
@@ -297,7 +304,9 @@ class SyncSessionTests {
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession, true) {
             realm.executeTransaction {
-                realm.insert(SyncColor())
+                it.insert(SyncColor().apply {
+                    realmId = partitionId
+                })
             }
 
             Assert.assertEquals(1, realm.where<SyncColor>().count())
