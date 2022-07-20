@@ -163,7 +163,7 @@ class SyncSessionTests {
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
-                realm.copyToRealm(SyncColor())
+                realm.insert(SyncColor())
             }
 
             Assert.assertEquals(1, realm.where<SyncColor>().count())
@@ -201,7 +201,7 @@ class SyncSessionTests {
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
-                realm.copyToRealm(SyncColor())
+                realm.insert(SyncColor())
             }
 
             Assert.assertEquals(1, realm.where<SyncColor>().count())
@@ -243,7 +243,7 @@ class SyncSessionTests {
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
-                realm.copyToRealm(SyncColor())
+                realm.insert(SyncColor())
             }
 
             Assert.assertEquals(1, realm.where<SyncColor>().count())
@@ -297,7 +297,7 @@ class SyncSessionTests {
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession, true) {
             realm.executeTransaction {
-                realm.copyToRealm(SyncColor())
+                realm.insert(SyncColor())
             }
 
             Assert.assertEquals(1, realm.where<SyncColor>().count())
