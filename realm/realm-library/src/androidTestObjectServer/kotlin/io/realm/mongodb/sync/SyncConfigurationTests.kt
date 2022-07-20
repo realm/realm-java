@@ -482,7 +482,7 @@ class SyncConfigurationTests {
 
             })
             .build()
-        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+        assertTrue(config.syncClientResetStrategy is RecoverOrDiscardUnsyncedChangesStrategy)
     }
 
     @Test

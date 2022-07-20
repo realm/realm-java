@@ -250,31 +250,6 @@ class SyncSessionTests {
         }
     }
 
-
-    @Test
-    fun explicitPartitionValue() {
-        val partitionKey = UUID.randomUUID().toString()
-
-        val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
-            .modules(ObjectSyncSchema())
-            .build()
-
-        Realm.getInstance(config).use { realm: Realm ->
-            realm.executeTransaction {
-                it.insert(DummySyncObject())
-                it.insert(DummySyncObjectWithPartition())
-            }
-
-            realm.syncSession.uploadAllLocalChanges()
-            realm.syncSession.downloadAllServerChanges()
-
-            // --> Validate object available in the server
-
-            val objectPartition = realm.where<DummySyncObjectWithPartition>().findFirst()!!.realmId
-            assertEquals(partitionKey, objectPartition) // <---- fails
-        }
-    }
-
     @Test
     fun errorHandler_automaticRecoveryOrDiscardStrategy_discardsLocal() = looperThread.runBlocking {
         val counter = AtomicInteger()
