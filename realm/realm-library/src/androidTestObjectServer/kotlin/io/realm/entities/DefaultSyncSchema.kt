@@ -41,3 +41,9 @@ class DefaultSyncSchema
     SyncColor::class
 ])
 class ColorSyncSchema
+
+@RealmModule(classes = [
+    DummySyncObject::class,
+    DummySyncObjectWithPartition::class,
+])
+class ObjectSyncSchema
