@@ -34,6 +34,10 @@ import io.realm.log.RealmLog;
  */
 public class OsRealmConfig implements NativeObject {
 
+    // Avoids getting garbage collected
+    private final Object beforeClientResetHandler;
+    private final Object afterClientResetHandler;
+
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);
@@ -227,8 +231,8 @@ public class OsRealmConfig implements NativeObject {
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
-        Object beforeClientResetHandler = syncConfigurationOptions[j++];
-        Object afterClientResetHandler = syncConfigurationOptions[j++];
+        beforeClientResetHandler = syncConfigurationOptions[j++];
+        afterClientResetHandler = syncConfigurationOptions[j++];
         String encodedPartitionValue = (String) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
         Long appPtr = (Long) syncConfigurationOptions[j++];

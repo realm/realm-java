@@ -384,7 +384,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
                 // The local and remote Realm lifecycles are handled in Java via a
                 // ManualReleaseNativeContext.
-                SharedRealm* before_frozen_ptr = new SharedRealm(before_frozen);
+                auto* before_frozen_ptr = new SharedRealm(std::move(before_frozen));
                 j_on_before_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                     env->CallVoidMethod(obj, on_before_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), config_global.get());
                 });
@@ -400,10 +400,10 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
                 // The local Realm lifecycle is handled in Java via a
                 // ManualReleaseNativeContext.
-                SharedRealm* before_frozen_ptr = new SharedRealm(before_frozen);
+                auto* before_frozen_ptr = new SharedRealm(std::move(before_frozen));
 
                 // Resolve ThreadSafeReference
-                SharedRealm* after_ptr = new SharedRealm(after.resolve<std::shared_ptr<Realm>>(nullptr));
+                auto* after_ptr = new SharedRealm(after.resolve<std::shared_ptr<Realm>>(nullptr));
 
                 j_on_after_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                     env->CallVoidMethod(obj, on_after_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), reinterpret_cast<jlong>(after_ptr), config_global.get(), did_recover);
