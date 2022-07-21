@@ -34,7 +34,8 @@ import io.realm.log.RealmLog;
  */
 public class OsRealmConfig implements NativeObject {
 
-    // Avoids getting garbage collected
+    // Keep references to reset handlers to avoid being garbage collected.
+    // They cannot be on the SyncConfiguration object as they are build on the SyncObjectServerFacade
     private final Object beforeClientResetHandler;
     private final Object afterClientResetHandler;
 

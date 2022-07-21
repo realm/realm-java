@@ -160,7 +160,7 @@ class SessionTests {
     }
 
     @Test
-    fun errorHandler_automaticRecoveryOrDiscard_resetErrorHandled() = looperThread.runBlocking {
+    fun errorHandler_recoverOrDiscardUnsyncedChangesStrategy_resetErrorHandled() = looperThread.runBlocking {
         val email = TestHelper.getRandomEmail()
         val user: User = app.registerUserAndLogin(email, "123456")
 
@@ -428,7 +428,7 @@ class SessionTests {
 
     // Check that a Client Reset is correctly reported.
     @Test
-    fun errorHandler_manuallyRecoverClientResetReported() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_errorHandled() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
             .syncClientResetStrategy(object: ManuallyRecoverUnsyncedChangesStrategy {
@@ -456,7 +456,7 @@ class SessionTests {
 
     // Check that we can manually execute the Client Reset.
     @Test
-    fun errorHandler_manuallyRecoverExecuteClientReset() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_executeClientReset() = looperThread.runBlocking {
         val resources = ResourceContainer()
 
         val config = configFactory.createSyncConfigurationBuilder(user)
@@ -491,7 +491,7 @@ class SessionTests {
 
     // Check that we can use the backup SyncConfiguration to open the Realm.
     @Test
-    fun errorHandler_manuallyUseBackupSyncConfigurationForClientReset() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_attempRecoverData() = looperThread.runBlocking {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
             .schema(SyncStringOnly::class.java)
@@ -541,7 +541,7 @@ class SessionTests {
     // this might be the case if the user decide to act upon the client reset later (providing s/he
     // persisted the location of the file)
     @Test
-    fun errorHandler_manuallyUseBackupSyncConfigurationAfterClientReset() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_useBackupAfterClientReset() = looperThread.runBlocking {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
             .modules(SyncStringOnlyModule())
@@ -606,7 +606,7 @@ class SessionTests {
 
     // make sure the backup file Realm is encrypted with the same key as the original synced Realm.
     @Test
-    fun errorHandler_manuallyUseClientResetEncrypted() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_encrypted() = looperThread.runBlocking {
         val resources = ResourceContainer()
 
         val randomKey = TestHelper.getRandomKey()
@@ -658,7 +658,7 @@ class SessionTests {
     }
 
     @Test
-    fun errorHandler_automaticRecoverFailureClientResetReported() = looperThread.runBlocking {
+    fun errorHandler_recoverUnsyncedChangesStrategy_resetErrorHandled() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
             .syncClientResetStrategy(object: RecoverUnsyncedChangesStrategy {

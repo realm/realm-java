@@ -119,7 +119,7 @@ class SyncSessionTests {
     // Placed here instead of in SessionTests.kt because it would fails to run if executed with the
     // whole test suite.
     @Test
-    fun errorHandler_discardUnsyncedChangesStrategyReported() = looperThread.runBlocking {
+    fun clientReset_discardUnsyncedChangesStrategy_discards() = looperThread.runBlocking {
         val counter = AtomicInteger()
 
         val incrementAndValidate = {
@@ -171,7 +171,7 @@ class SyncSessionTests {
     }
 
     @Test
-    fun errorHandler_automaticRecoveryStrategy() = looperThread.runBlocking {
+    fun clientReset_recoverUnsyncedChangesStrategy_recover() = looperThread.runBlocking {
         val counter = AtomicInteger()
 
         val incrementAndValidate = {
@@ -209,7 +209,7 @@ class SyncSessionTests {
     }
 
     @Test
-    fun errorHandler_automaticRecoveryOrDiscardStrategy() = looperThread.runBlocking {
+    fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_recover() = looperThread.runBlocking {
         val counter = AtomicInteger()
 
         val incrementAndValidate = {
@@ -251,7 +251,7 @@ class SyncSessionTests {
     }
 
     @Test
-    fun errorHandler_automaticRecoveryOrDiscardStrategy_discardsLocal() = looperThread.runBlocking {
+    fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_discards() = looperThread.runBlocking {
         val counter = AtomicInteger()
 
         val incrementAndValidate = {
