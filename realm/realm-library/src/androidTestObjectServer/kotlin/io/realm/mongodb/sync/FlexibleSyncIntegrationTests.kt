@@ -35,6 +35,7 @@ class FlexibleSyncIntegrationTests {
     private val looperThread = BlockingLooperThread()
 
     private lateinit var app: TestApp
+    private lateinit var serverAdmin: ServerAdmin
     private lateinit var realmConfig: SyncConfiguration
     private lateinit var realm: Realm
     private lateinit var user: User
@@ -46,8 +47,9 @@ class FlexibleSyncIntegrationTests {
         RealmLog.setLevel(LogLevel.ALL)
         app = TestApp(appName = TEST_APP_3)
         user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "SECRET_PASSWORD")
-        ServerAdmin(app).enableFlexibleSync() // Currently required because importing doesn't work
-
+        serverAdmin = ServerAdmin(app).apply {
+            enableFlexibleSync() // Currently required because importing doesn't work
+        }
         section = Random.nextInt() // Generate random section to allow replays of unit tests
     }
 
@@ -203,20 +205,83 @@ class FlexibleSyncIntegrationTests {
             .build()
 
         val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
 
-        realm.triggerClientReset(user) {
+        serverAdmin.triggerClientReset(realm.syncSession) {
             realm.executeTransaction {
-                realm.copyToRealm(FlexSyncColor())
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
             }
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
-
-        looperThread.closeAfterTest(realm)
     }
 
     @Test
-    fun errorHandler_automaticRecoveryStrategy() {
+    fun errorHandler_automaticRecoveryStrategy() = looperThread.runBlocking {
+        val counter = AtomicInteger()
+
+        val incrementAndValidate = {
+            if (2 == counter.incrementAndGet()) {
+                looperThread.testComplete()
+            }
+        }
+
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .schema(FlexSyncColor::class.java)
+            .initialSubscriptions { realm, subscriptions ->
+                subscriptions.add(
+                    Subscription.create(
+                        "sub",
+                        realm.where<FlexSyncColor>().equalTo("section", section)
+                    )
+                )
+            }
+            .syncClientResetStrategy(object : RecoverUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertTrue(realm.isFrozen)
+                    assertEquals(1, realm.where<FlexSyncColor>().count())
+                    incrementAndValidate()
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    assertEquals(1, before.where<FlexSyncColor>().count())
+                    assertEquals(1, after.where<FlexSyncColor>().count())
+                    incrementAndValidate()
+                }
+
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
+                }
+            })
+            .modules(ColorSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
+            assertEquals(1, realm.where<FlexSyncColor>().count())
+        }
+    }
+
+    @Test
+    fun errorHandler_automaticRecoveryOrDiscardStrategy() = looperThread.runBlocking {
+        val counter = AtomicInteger()
+
+        val incrementAndValidate = {
+            if (2 == counter.incrementAndGet()) {
+                looperThread.testComplete()
+            }
+        }
+
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(FlexSyncColor::class.java)
             .initialSubscriptions { realm, subscriptions ->
@@ -228,40 +293,21 @@ class FlexibleSyncIntegrationTests {
                 )
             }
             .syncClientResetStrategy(object :
-                RecoverUnsyncedChangesStrategy {
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
-                }
-            })
-            .modules(ColorSyncSchema())
-            .build()
-
-        Realm.getInstance(config).use { realm ->
-            // Downloading would trigger the client reset if any
-            realm.syncSession.downloadAllServerChanges()
-            assertEquals(1, realm.where<FlexSyncColor>().count())
-        }
-    }
-
-    @Test
-    fun errorHandler_automaticRecoveryOrDiscardStrategy() {
-        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
-            .schema(FlexSyncColor::class.java)
-            .initialSubscriptions { realm, subscriptions ->
-                subscriptions.add(
-                    Subscription.create(
-                        "sub",
-                        realm.where<FlexSyncColor>().equalTo("section", section)
-                    )                )
-            }
-            .syncClientResetStrategy(object :
                 RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
+                    assertTrue(realm.isFrozen)
+                    assertEquals(1, realm.where<FlexSyncColor>().count())
+                    incrementAndValidate()
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onAfterReset()")
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    assertEquals(1, before.where<FlexSyncColor>().count())
+                    assertEquals(1, after.where<FlexSyncColor>().count())
+                    incrementAndValidate()
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
                 }
 
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
@@ -271,9 +317,16 @@ class FlexibleSyncIntegrationTests {
             .modules(ColorSyncSchema())
             .build()
 
-        Realm.getInstance(config).use { realm ->
-            // Downloading would trigger the client reset if any
-            realm.syncSession.downloadAllServerChanges()
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
     }
@@ -305,7 +358,11 @@ class FlexibleSyncIntegrationTests {
                     incrementAndValidate()
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm) {
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onAfterRecovery()")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
                     assertTrue(before.isFrozen)
                     assertFalse(after.isFrozen)
 
@@ -320,6 +377,7 @@ class FlexibleSyncIntegrationTests {
                     incrementAndValidate()
                 }
 
+
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
                     fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onError()")
                 }
@@ -328,31 +386,16 @@ class FlexibleSyncIntegrationTests {
             .build()
 
         val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
 
-        realm.triggerClientReset(user, true) {
+        serverAdmin.triggerClientReset(realm.syncSession, withRecoveryModeDisabled = true) {
             realm.executeTransaction {
-                realm.copyToRealm(FlexSyncColor())
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
             }
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
-
-        looperThread.closeAfterTest(realm)
-    }
-
-    fun Realm.triggerClientReset(
-        user: User,
-        isRecoveryModeDisabled: Boolean = false,
-        block: () -> Unit
-    ) {
-        syncSession.downloadAllServerChanges()
-        syncSession.stop()
-
-        block()
-
-        // Trigger client reset here
-        app.triggerClientReset(user.id, isRecoveryModeDisabled)
-
-        syncSession.start()
     }
 }

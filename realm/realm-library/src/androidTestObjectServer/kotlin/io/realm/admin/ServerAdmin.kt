@@ -343,14 +343,30 @@ class ServerAdmin(private val app: App) {
     }
 
     private fun isRecoveryModeDisabled(): Boolean = getConfig()
-        .getJSONObject("sync")
-        .optBoolean("is_recovery_mode_disabled", false)
+        .let { config: JSONObject ->
+            if (config.has("sync")) {
+                config.getJSONObject("sync")
+            } else if(config.has("flexible_sync")) {
+                config.getJSONObject("flexible_sync")
+            } else {
+                throw Error("Sync mode not defined")
+            }
+        }.optBoolean("is_recovery_mode_disabled", false)
+
 
     private fun setIsRecoveryModeDisabled(isRecoveryModeDisabled: Boolean) {
         val serviceId = getMongodbServiceId()
 
         val config = getConfig().apply {
-            getJSONObject("sync").put("is_recovery_mode_disabled", isRecoveryModeDisabled)
+            this.let { config ->
+                if (config.has("sync")) {
+                    config.getJSONObject("sync")
+                } else if (config.has("flexible_sync")) {
+                    config.getJSONObject("flexible_sync")
+                } else {
+                    throw Error("Sync mode not defined")
+                }
+            }.put("is_recovery_mode_disabled", isRecoveryModeDisabled)
         }
 
         val request = Request.Builder()
@@ -361,13 +377,14 @@ class ServerAdmin(private val app: App) {
     }
 
     private fun callTriggerResetFunction(
+        appId: String,
         userId: String
     ) {
 
         val functionCall = JSONObject("""
             {
                 "name": "triggerClientReset",
-                "arguments": ["$userId"]
+                "arguments": ["$appId", "$userId"]
             }
         """.trimIndent())
 
@@ -395,7 +412,7 @@ class ServerAdmin(private val app: App) {
 
         setIsRecoveryModeDisabled(withRecoveryModeDisabled)
 
-        callTriggerResetFunction(syncSession.user.id)
+        callTriggerResetFunction(appId, syncSession.user.id)
 
         syncSession.start()
         syncSession.downloadAllServerChanges()

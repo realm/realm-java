@@ -199,8 +199,18 @@ class FlexibleSyncConfigurationTests {
         val user: User = createTestUser(app)
 
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
-            .syncClientResetStrategy(RecoverUnsyncedChangesStrategy { session, error ->
-                Assert.fail("Should not be called")
+            .syncClientResetStrategy(object : RecoverUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    Assert.fail("Should not be called")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    Assert.fail("Should not be called")
+                }
+
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    Assert.fail("Should not be called")
+                }
             })
             .build()
         assertTrue(config.syncClientResetStrategy is RecoverUnsyncedChangesStrategy)
@@ -216,7 +226,11 @@ class FlexibleSyncConfigurationTests {
                     Assert.fail("Should not be called")
                 }
 
-                override fun onAfterReset(before: Realm, after: Realm) {
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    Assert.fail("Should not be called")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
                     Assert.fail("Should not be called")
                 }
 
@@ -226,7 +240,7 @@ class FlexibleSyncConfigurationTests {
 
             })
             .build()
-        assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+        assertTrue(config.syncClientResetStrategy is RecoverOrDiscardUnsyncedChangesStrategy)
     }
 
     @Test
