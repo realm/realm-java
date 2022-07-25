@@ -1,18 +1,12 @@
-exports = function (appId, userId) {
-
-  const clientFiles = getDb(appId).collection("clientfiles");
-
-  const result = clientFiles.deleteOne({ ownerId: userId })
-
-  return result;
+exports = async function (appId, userId) {
+  return await deleteClientFile(`__realm_sync_${appId}`, userId) || await deleteClientFile(`__realm_sync`, userId);
 };
 
-function getDb(appId) {
+async function deleteClientFile(db, userId) {
   const mongodb = context.services.get("BackingDB");
 
-  try {
-    return mongodb.db(`__realm_sync_${appId}`);
-  } catch (error) {
-    return mongodb.db("__realm_sync");
-  }
+  return (await mongodb.db(db)
+  .collection("clientfiles")
+  .deleteOne({ ownerId: userId }))
+  .deletedCount > 0;
 }
