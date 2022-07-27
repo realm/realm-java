@@ -114,7 +114,8 @@ public class PersonListFragment extends Fragment {
                     return;
                 }
                 AppCompatActivity activity = ContextUtils.findActivity(view.getContext());
-                PersonFragment personFragment = PersonFragment.create(person.getName());
+//                PersonFragment personFragment = PersonFragment.create(person.getName());
+                PersonFragment personFragment = PersonFragment.create(person.name);
                 activity.getSupportFragmentManager()
                         .beginTransaction()
                         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
@@ -132,7 +133,8 @@ public class PersonListFragment extends Fragment {
 
             public void bind(Person person) {
                 this.person = person;
-                name.setText(person.getName());
+//                name.setText(person.getName());
+                name.setText(person.name);
                 age.setText(String.valueOf(person.getAge()));
             }
         }

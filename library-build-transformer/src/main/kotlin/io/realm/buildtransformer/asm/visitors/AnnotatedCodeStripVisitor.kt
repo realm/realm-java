@@ -30,7 +30,7 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
                                 private val markedClasses: Set<String>,
                                 private val markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>,
                                 private val markedFields: Map<ByteCodeTypeDescriptor, Set<FieldName>>,
-                                classWriter: ClassVisitor) : ClassVisitor(Opcodes.ASM6, classWriter) {
+                                classWriter: ClassVisitor) : ClassVisitor(Opcodes.ASM7_EXPERIMENTAL, classWriter) {
 
     var deleteClass: Boolean = false
     private lateinit var markedMethodsInClass: Set<ByteCodeMethodName>

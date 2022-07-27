@@ -21,17 +21,17 @@ import io.realm.annotations.Index;
 
 public class Person extends RealmObject {
     @Index
-    private String name;
+    public String name;
 
     private int age;
 
-    public String getName() {
-        return name;
-    }
+//    public String getName() {
+//        return name;
+//    }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+//    public void setName(String name) {
+//        this.name = name;
+//    }
 
     public int getAge() {
         return age;

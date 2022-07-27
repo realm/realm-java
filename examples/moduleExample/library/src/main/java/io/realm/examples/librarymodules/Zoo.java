@@ -35,7 +35,10 @@ public class Zoo {
     public Zoo() {
         realmConfig = new RealmConfiguration.Builder()     // The app is responsible for calling `Realm.init(Context)`
                 .name("library.zoo.realm")                 // So always use a unique name
-                .modules(new AllAnimalsModule())           // Always use explicit modules in library projects
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
+                .modules(new AllAnimalsModule())
+                // Always use explicit modules in library projects
                 .build();
 
         // Reset Realm

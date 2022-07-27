@@ -76,6 +76,10 @@ android {
         targetCompatibility 11
         sourceCompatibility 11
     }
+
+    kotlinOptions {
+        jvmTarget = 11
+    }
 }
 
 dependencies {

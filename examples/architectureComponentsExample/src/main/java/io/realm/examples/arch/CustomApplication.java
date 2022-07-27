@@ -37,19 +37,19 @@ public class CustomApplication extends Application {
                     @Override
                     public void execute(@NonNull Realm realm) {
                         Person person = realm.createObject(Person.class);
-                        person.setName("Makoto Yamazaki");
+                        person.name = "Makoto Yamazaki";
                         person.setAge(32);
 
                         person = realm.createObject(Person.class);
-                        person.setName("Christian Melchior");
+                        person.name = "Christian Melchior";
                         person.setAge(34);
 
                         person = realm.createObject(Person.class);
-                        person.setName("Chen Mulong");
+                        person.name = "Chen Mulong";
                         person.setAge(29);
 
                         person = realm.createObject(Person.class);
-                        person.setName("Nabil Hachicha");
+                        person.name = "Nabil Hachicha";
                         person.setAge(31);
                     }
                 })

@@ -27,7 +27,7 @@ import org.objectweb.asm.AnnotationVisitor
  * pass and is required for correctly identifying them in the 2nd pass before any byte code is
  * written.
  */
-class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor(Opcodes.ASM6) {
+class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor(Opcodes.ASM7_EXPERIMENTAL) {
 
     val annotatedClasses: MutableSet<ByteCodeTypeDescriptor> = mutableSetOf()
     val annotatedMethods: MutableMap<ByteCodeTypeDescriptor, MutableSet<ByteCodeMethodName>> = mutableMapOf()

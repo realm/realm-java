@@ -64,7 +64,8 @@ public class PersonFragment extends Fragment {
 
         personViewModel.getPerson().observe(this, person -> {
             if (person != null) { // null would mean the object was deleted.
-                name.setText(person.getName());
+//                name.setText(person.getName());
+                name.setText(person.name);
                 age.setText(String.valueOf(person.getAge()));
             }
         });
