@@ -37,7 +37,7 @@ import io.realm.Realm;
  * {@link #onAfterDiscard(Realm, Realm)} (Realm, Realm)} the changes had to be discarded.
  * <p>
  * If discarding the unsynced data is not enough to resolve the reset the
- * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked, it allows to manually
+ * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked. This allows to manually
  * resolve the reset as it would be done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
