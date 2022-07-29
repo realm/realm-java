@@ -47,7 +47,7 @@ public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy 
      * a frozen one displaying the state before the reset and a regular realm with the current state,
      * that can be used to recover objects from the reset.
      *
-     * @param before {@link Realm} frozen Realm in the before after the reset.
+     * @param before the frozen realm from before the reset.
      * @param after  {@link Realm} Realm after the reset.
      */
     void onAfterReset(Realm before, Realm after);
