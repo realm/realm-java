@@ -57,7 +57,7 @@ public interface RecoverOrDiscardUnsyncedChangesStrategy extends SyncClientReset
      * It provides of two Realm instances, a frozen one displaying the state before the reset and a
      * regular Realm with the current state.
      *
-     * @param before {@link Realm} frozen Realm in the before after the reset.
+     * @param before {@link Realm} frozen Realm in the state before the reset.
      * @param after  {@link Realm} Realm after the reset.
      */
     void onAfterRecovery(Realm before, Realm after);
