@@ -31,10 +31,10 @@ import io.realm.Realm;
  * try to discard any unsynced changes.
  * <p>
  * The discard unsynced changes reset process is as follows: when a client reset is triggered
- * the {@link #onBeforeReset(Realm)} callback is invoked, providing an instance of the
- * Realm before the reset and another after the reset, both read-only. Once the recover has concluded
- * successfully the callback {@link #onAfterRecovery(Realm, Realm)} would be invoked, if it had to 
- * discard the changes {@link #onAfterDiscard(Realm, Realm)} (Realm, Realm)} would be called.
+ * the {@link #onBeforeReset(Realm)} callback is invoked, providing read-only instances of the
+ * realm before and after the reset. Once the recovery has completed 
+ * successfully the callback {@link #onAfterRecovery(Realm, Realm)} would be invoked. Calling  
+ * {@link #onAfterDiscard(Realm, Realm)} (Realm, Realm)} the changes had to be discarded.
  * <p>
  * If discarding the unsynced data is not enough to resolve the reset the
  * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked, it allows to manually
