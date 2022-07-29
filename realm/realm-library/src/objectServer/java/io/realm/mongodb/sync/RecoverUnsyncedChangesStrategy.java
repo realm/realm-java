@@ -43,8 +43,8 @@ public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy 
     void onBeforeReset(Realm realm);
 
     /**
-     * Callback invoked once the Client Reset happens. It provides of two Realm instances,
-     * a frozen one displaying the state before the reset and a regular Realm with the current state,
+     * Callback invoked on client reset. It provides two realm instances,
+     * a frozen one displaying the state before the reset and a regular realm with the current state,
      * that can be used to recover objects from the reset.
      *
      * @param before {@link Realm} frozen Realm in the before after the reset.
