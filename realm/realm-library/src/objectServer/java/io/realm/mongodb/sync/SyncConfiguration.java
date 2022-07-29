@@ -1010,7 +1010,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
+         * Sets the client reset strategy. If strategy is set, and error is
          * logged when a Client Reset occurs.
          *
          * This strategy is only available for synced realms using partition based sync. Realms using
