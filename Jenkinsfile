@@ -75,7 +75,7 @@ try {
         }
 
         // Toggles for PR vs. Master builds.
-        // - For PR's, we favor speed > absolute correctness. So we just build for x86, use an
+        // - For PR's, we favor speed > absolute correctness. So we just build for x86_64, use an
         //   emulator and run unit tests for the ObjectServer variant.
         // - For branches from which we make releases, we build all architectures and run tests
         //   on an actual device.
@@ -88,9 +88,9 @@ try {
         if (!isReleaseBranch) {
           // Build development branch
           useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
+          emulatorImage = "system-images;android-29;default;x86_64"
           // Build core from source instead of doing it from binary
-          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
+          buildFlags = "-PbuildTargetABIs=x86_64 -PenableLTO=false -PbuildCore=true"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
@@ -98,7 +98,7 @@ try {
           // FIXME: Use emulator until we can get reliable devices on CI.
           //  But still build all ABI's and run all types of tests.
           useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
+          emulatorImage = "system-images;android-29;default;x86_64"
           buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
