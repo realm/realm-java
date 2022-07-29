@@ -54,7 +54,7 @@ public interface RecoverOrDiscardUnsyncedChangesStrategy extends SyncClientReset
 
     /**
      * Callback invoked once the Client Reset has recovered the unsynced changes successfully.
-     * It provides of two Realm instances, a frozen one displaying the state before the reset and a
+     * It provides two Realm instances, a frozen one displaying the state before the reset and a
      * regular Realm with the current state.
      *
      * @param before {@link Realm} frozen Realm in the state before the reset.
