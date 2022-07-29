@@ -34,8 +34,8 @@ import io.realm.Realm;
  */
 public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy {
     /**
-     * Callback that indicates a Client Reset is about to happen. It provides with a frozen instance
-     * of the Realm that is will be reset.
+     * Callback that indicates a Client Reset is about to happen. It provides a handle to the local realm 
+     * before the reset.
      *
      * @param realm frozen {@link Realm} in its state before the reset.
      *
