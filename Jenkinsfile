@@ -30,7 +30,7 @@ isReleaseBranch = releaseBranches.contains(currentBranch)
 // FIXME: Always used the emulator until we can enable more reliable devices
 // 'android' nodes have android devices attached and 'brix' are physical machines in Copenhagen.
 // nodeSelector = (releaseBranches.contains(currentBranch)) ? 'android' : 'docker-cph-03' // Switch to `brix` when all CPH nodes work: https://jira.mongodb.org/browse/RCI-14
-nodeSelector = 'docker-cph-03'
+nodeSelector = 'docker-cph-01'
 try {
   node(nodeSelector) {
     timeout(time: 150, unit: 'MINUTES') {
