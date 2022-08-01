@@ -366,7 +366,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         }
 
         // setup before and after client reset callbacks
-        {
+        if (j_client_reset_mode != io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_MANUAL) {
             static JavaClass before_client_reset_handler_class(env, "io/realm/internal/SyncObjectServerFacade$BeforeClientResetHandler");
             static JavaClass after_client_reset_handler_class(env, "io/realm/internal/SyncObjectServerFacade$AfterClientResetHandler");
             static JavaMethod on_before_client_reset_method(env, before_client_reset_handler_class, "onBeforeReset","(JLio/realm/internal/OsRealmConfig;)V", false);

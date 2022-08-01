@@ -96,4 +96,3 @@
  server.listen(PORT, function() {
      winston.info("command-server: MongoDB Realm Integration Test Server listening on: 127.0.0.1:%s", PORT);
  });
- 

@@ -18,7 +18,7 @@ package io.realm.mongodb.sync;
 import io.realm.Realm;
 
 /**
- * Strategy that tries to automatically recover any unsynced changes during a Client Reset.
+ * Strategy that attempts to automatically recover any unsynced changes during a Client Reset.
  * <p>
  * A synced Realm may need to be reset because the MongoDB Realm Server encountered an error and had
  * to be restored from a backup or because it has been too long since the client connected to the
@@ -27,10 +27,16 @@ import io.realm.Realm;
  * The Client Reset thus occurs because the server does not have the full information required to
  * bring the Client fully up to date.
  * <p>
- * In the event that the client reset cannot be automatically recover the unsynced data the
- * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked, it allows to manually
- * resolve the reset as it would be done in
+ * The recover unsynced changes process is as follows: when a client reset is received by the client
+ * the {@link #onBeforeReset(Realm)} callback is invoked, then the client would be reset. Once the reset
+ * has concluded the callback {@link #onAfterReset(Realm, Realm)} would be invoked if the changes have
+ * been recovered successfully.
+ * <p>
+ * In the event that the client reset could not automatically recover the unsynced data the
+ * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked. It allows to manually
+ * resolve the reset as it would have been done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
+
  */
 public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy {
     /**
@@ -43,9 +49,9 @@ public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy 
     void onBeforeReset(Realm realm);
 
     /**
-     * Callback invoked on client reset. It provides two realm instances,
-     * a frozen one displaying the state before the reset and a regular realm with the current state,
-     * that can be used to recover objects from the reset.
+     * Callback invoked after a client reset has recovered the unsynced changes successfully. It provides
+     * two realm instances, a frozen one displaying the state before the reset and a regular realm with
+     * the current state.
      *
      * @param before the frozen realm from before the reset.
      * @param after  {@link Realm} Realm after the reset.
@@ -53,7 +59,7 @@ public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy 
     void onAfterReset(Realm before, Realm after);
 
     /**
-     * Callback that indicates the seamless Client reset couldn't complete. It should be handled
+     * Callback that indicates the seamless Client reset failed to complete. It should be handled
      * as {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
      *
      * @param session {@link SyncSession} this error happened on.
