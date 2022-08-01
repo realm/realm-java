@@ -18,7 +18,8 @@ package io.realm.mongodb.sync;
 import io.realm.Realm;
 
 /**
- * Strategy that tries to automatically recover any unsynced changes during a Client Reset.
+ * Strategy that attempts to automatically recover any unsynced changes during a Client Reset, if the 
+ * recovery fails the changes would be discarded.
  * <p>
  * A synced Realm may need to be reset because the MongoDB Realm Server encountered an error and had
  * to be restored from a backup or because it has been too long since the client connected to the
@@ -27,25 +28,21 @@ import io.realm.Realm;
  * The Client Reset thus occurs because the server does not have the full information required to
  * bring the Client fully up to date.
  * <p>
- * In the event that the client reset cannot be automatically recover the unsynced data, it would
- * try to discard any unsynced changes.
+ * The recover or discard unsynced changes process is as follows: when a client reset is received by 
+ * the client the {@link #onBeforeReset(Realm)} callback is invoked, then the client would be reset. 
+ * Once the reset has concluded the callback {@link #onAfterRecovery(Realm, Realm)} (Realm, Realm)} 
+ * would be invoked if the changes have been recovered successfully, otherwise the changes would be 
+ * discarded and {@link #onAfterDiscard(Realm, Realm)} (Realm, Realm)} (Realm, Realm)} would be invoked.
  * <p>
- * The discard unsynced changes reset process is as follows: when a client reset is triggered
- * the {@link #onBeforeReset(Realm)} callback is invoked, providing an instance of the
- * Realm before the reset and another after the reset, both read-only. Once the recover has concluded
- * successfully the callback {@link #onAfterRecovery(Realm, Realm)} would be invoked, if it had to 
- * discard the changes {@link #onAfterDiscard(Realm, Realm)} (Realm, Realm)} would be called.
- * <p>
- * If discarding the unsynced data is not enough to resolve the reset the
- * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked, it allows to manually
- * resolve the reset as it would be done in
+ * In the event that the client reset could not discard the unsynced data the
+ * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked. It allows to manually
+ * resolve the reset as it would have been done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
 public interface RecoverOrDiscardUnsyncedChangesStrategy extends SyncClientResetStrategy {
-
     /**
-     * Callback that indicates a Client Reset is about to happen. It provides with a frozen instance
-     * of the Realm that is will be reset.
+     * Callback that indicates a Client Reset is about to happen. It provides a handle to the local realm
+     * before the reset.
      *
      * @param realm frozen {@link Realm} in its state before the reset.
      *
@@ -54,20 +51,20 @@ public interface RecoverOrDiscardUnsyncedChangesStrategy extends SyncClientReset
 
     /**
      * Callback invoked once the Client Reset has recovered the unsynced changes successfully.
-     * It provides of two Realm instances, a frozen one displaying the state before the reset and a
+     * It provides two Realm instances, a frozen one displaying the state before the reset and a
      * regular Realm with the current state.
      *
-     * @param before {@link Realm} frozen Realm in the before after the reset.
+     * @param before {@link Realm} frozen Realm in the state before the reset.
      * @param after  {@link Realm} Realm after the reset.
      */
     void onAfterRecovery(Realm before, Realm after);
 
     /**
-     * Callback invoked once the Client Reset has discarded the unsynced changes because it couldn't
-     * recover them. It provides of two Realm instances, a frozen one displaying the state before the
-     * reset and a regular Realm with the current state, that can be used to recover objects from the reset.
+     * Callback invoked once the Client Reset has discarded the unsynced changes because the recovery
+     * failed. It provides two Realm instances, a frozen one displaying the state before the
+     * reset and a regular Realm displaying the current state that can be used to recover objects from the reset.
      *
-     * @param before {@link Realm} frozen Realm in the before after the reset.
+     * @param before {@link Realm} frozen Realm in the state before the reset.
      * @param after  {@link Realm} Realm after the reset.
      */
     void onAfterDiscard(Realm before, Realm after);

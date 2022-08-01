@@ -993,7 +993,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
+         * Sets the client reset strategy. If strategy is set, and error is
          * logged when a Client Reset occurs.
          *
          * @param strategy custom manual strategy in case of a Client Reset.
@@ -1003,7 +1003,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
+         * Sets the client reset strategy. If strategy is set, and error is
          * logged when a Client Reset occurs.
          *
          * @param strategy custom discard local changes strategy in case of a Client Reset.
