@@ -17,7 +17,7 @@ package io.realm.mongodb.sync;
 
 /**
  * Interface that defines a generic sync client reset strategy, it could be either
- * {@link ManuallyRecoverUnsyncedChangesStrategy} or {@link DiscardUnsyncedChangesStrategy}.
+ * {@link ManuallyRecoverUnsyncedChangesStrategy} or {@link AutomaticClientResetStrategy}.
  */
 public interface SyncClientResetStrategy {
 }

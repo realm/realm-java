@@ -41,6 +41,7 @@ import io.realm.internal.objectstore.OsAsyncOpenTask;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.User;
+import io.realm.mongodb.sync.AutomaticClientResetStrategy;
 import io.realm.mongodb.sync.RecoverOrDiscardUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.RecoverUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
@@ -132,12 +133,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 NativeContext.execute(nativeContext -> {
                     Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
 
-                    if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
-                        ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
-                    } else if (clientResetStrategy instanceof RecoverUnsyncedChangesStrategy) {
-                        ((RecoverUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
-                    } else if (clientResetStrategy instanceof RecoverOrDiscardUnsyncedChangesStrategy) {
-                        ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
+                    if (clientResetStrategy instanceof AutomaticClientResetStrategy) {
+                        ((AutomaticClientResetStrategy) clientResetStrategy).onBeforeReset(before);
                     }
                 });
             };

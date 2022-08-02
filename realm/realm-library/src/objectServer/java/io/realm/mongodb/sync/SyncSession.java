@@ -219,21 +219,27 @@ public class SyncSession {
             RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(clientResetPathInfo);
 
             if (clientResetHandler instanceof ManuallyRecoverUnsyncedChangesStrategy) {
-                ((ManuallyRecoverUnsyncedChangesStrategy) clientResetHandler).onClientReset(this,
-                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
-                                configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof DiscardUnsyncedChangesStrategy) {
-                ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
-                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
-                                configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof RecoverUnsyncedChangesStrategy) {
-                ((RecoverUnsyncedChangesStrategy) clientResetHandler).onError(this,
-                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
-                                configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof RecoverOrDiscardUnsyncedChangesStrategy) {
-                ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
-                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
-                                configuration, backupRealmConfiguration));
+                ((ManuallyRecoverUnsyncedChangesStrategy) clientResetHandler).onClientReset(
+                        this,
+                        new ClientResetRequiredError(
+                                appNativePointer,
+                                errCode,
+                                errorMessage,
+                                configuration,
+                                backupRealmConfiguration
+                        )
+                );
+            } else if (clientResetHandler instanceof AutomaticClientResetStrategy) {
+                ((AutomaticClientResetStrategy) clientResetHandler).onError(
+                        this,
+                        new ClientResetRequiredError(
+                                appNativePointer,
+                                errCode,
+                                errorMessage,
+                                configuration,
+                                backupRealmConfiguration
+                        )
+                );
             }
         } else {
             AppException wrappedError;
