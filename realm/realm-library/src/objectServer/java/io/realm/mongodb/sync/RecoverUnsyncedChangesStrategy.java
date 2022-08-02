@@ -38,14 +38,11 @@ import io.realm.Realm;
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
 
  */
-public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy {
+public interface RecoverUnsyncedChangesStrategy extends AutomaticClientResetStrategy {
     /**
-     * Callback that indicates a Client Reset is about to happen. It provides a handle to the local realm 
-     * before the reset.
-     *
-     * @param realm frozen {@link Realm} in its state before the reset.
-     *
+     * {@inheritDoc}
      */
+    @Override
     void onBeforeReset(Realm realm);
 
     /**
@@ -59,11 +56,8 @@ public interface RecoverUnsyncedChangesStrategy extends SyncClientResetStrategy 
     void onAfterReset(Realm before, Realm after);
 
     /**
-     * Callback that indicates the seamless Client reset failed to complete. It should be handled
-     * as {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
-     *
-     * @param session {@link SyncSession} this error happened on.
-     * @param error   {@link ClientResetRequiredError} the specific Client Reset error.
+     * {@inheritDoc}
      */
+    @Override
     void onError(SyncSession session, ClientResetRequiredError error);
 }
