@@ -405,18 +405,20 @@ class ServerAdmin(private val app: App) {
         // Later, we will restore the original status
         val wasRecoveryModeDisabled = isRecoveryModeDisabled()
 
-        syncSession.downloadAllServerChanges()
-        syncSession.stop()
+        try {
+            syncSession.downloadAllServerChanges()
+            syncSession.stop()
 
-        block()
+            block()
 
-        setIsRecoveryModeDisabled(withRecoveryModeDisabled)
+            setIsRecoveryModeDisabled(withRecoveryModeDisabled)
 
-        callTriggerResetFunction(appId, syncSession.user.id)
+            callTriggerResetFunction(appId, syncSession.user.id)
 
-        syncSession.start()
-        syncSession.downloadAllServerChanges()
-
-        setIsRecoveryModeDisabled(wasRecoveryModeDisabled)
+            syncSession.start()
+            syncSession.downloadAllServerChanges()
+        } finally {
+            setIsRecoveryModeDisabled(wasRecoveryModeDisabled)
+        }
     }
 }
