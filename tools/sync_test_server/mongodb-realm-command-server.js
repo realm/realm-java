@@ -17,23 +17,23 @@ const fs = require('fs')
 const isPortAvailable = require('is-port-available');
 
 function handleUnknownEndPoint(req, resp) {
-    resp.writeHead(404, { 'Content-Type': 'text/plain' });
+    resp.writeHead(404, {'Content-Type': 'text/plain'});
     resp.end();
 }
 
 function handleOkHttp(req, resp) {
     var emitSuccess = req.url.endsWith("?success=true");
     if (emitSuccess) {
-        resp.writeHead(200, { 'Content-Type': 'text/plain' });
+        resp.writeHead(200, {'Content-Type': 'text/plain'});
         resp.end(req.method + "-success");
     } else {
-        resp.writeHead(500, { 'Content-Type': 'text/plain' });
+        resp.writeHead(500, {'Content-Type': 'text/plain'});
         resp.end(req.method + "-failure");
     }
 }
 
 function handleWatcher(req, resp) {
-    resp.writeHead(200, { 'Content-Type': 'text/event-stream' });
+    resp.writeHead(200, {'Content-Type': 'text/event-stream'});
 
     resp.write("hello world 1\n");
     resp.write("hello world 2\n");
@@ -41,17 +41,17 @@ function handleWatcher(req, resp) {
 }
 
 function handleApplicationId(appName, req, resp) {
-    switch (req.method) {
+    switch(req.method) {
         case "GET":
             try {
-                const data = fs.readFileSync('/apps/' + appName + '/app_id', 'utf8')
-                console.log(data)
-                resp.writeHead(200, { 'Content-Type': 'text/plain' });
-                resp.end(data.replace(/\n$/, ''));
+                 const data = fs.readFileSync('/apps/' + appName + '/app_id', 'utf8')
+                 console.log(data)
+                 resp.writeHead(200, {'Content-Type': 'text/plain'});
+                 resp.end(data.replace(/\n$/, ''));
             } catch (err) {
-                console.error(err)
-                resp.writeHead(404, { 'Content-Type': 'text/plain' });
-                resp.end(err);
+                 console.error(err)
+                 resp.writeHead(404, {'Content-Type': 'text/plain'});
+                 resp.end(err);
             }
             break;
         case "PUT":
@@ -61,7 +61,7 @@ function handleApplicationId(appName, req, resp) {
             }).on('end', () => {
                 body = Buffer.concat(body).toString();
                 applicationIds[appName] = body.split("=")[1];
-                resp.writeHead(201, { 'Content-Location': '/application-id' });
+                resp.writeHead(201, {'Content-Location': '/application-id'});
                 resp.end();
             });
             break;
@@ -73,7 +73,7 @@ function handleApplicationId(appName, req, resp) {
 //Create and start the Http server
 const PORT = 8888;
 var applicationIds = {}  // Should be updated by the Docker setup script before any tests are run.
-var server = http.createServer(function (req, resp) {
+var server = http.createServer(function(req, resp) {
     try {
         winston.info('command-server: ' + req.method + " " + req.url);
         if (req.url.includes("/okhttp")) {
@@ -84,15 +84,15 @@ var server = http.createServer(function (req, resp) {
             handleApplicationId('testapp2', req, resp);
         } else if (req.url.includes('/testapp3')) {
             handleApplicationId('testapp3', req, resp);
-        } else if (req.url.includes('/w datcher')) {
+        } else if (req.url.includes('/watcher')) {
             handleWatcher(req, resp);
         } else {
             handleUnknownEndPoint(req, resp);
         }
-    } catch (err) {
+    } catch(err) {
         winston.error('command-server: ' + err);
     }
 });
-server.listen(PORT, function () {
+server.listen(PORT, function() {
     winston.info("command-server: MongoDB Realm Integration Test Server listening on: 127.0.0.1:%s", PORT);
 });
