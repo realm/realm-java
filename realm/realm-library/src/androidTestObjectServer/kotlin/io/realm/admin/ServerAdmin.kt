@@ -342,7 +342,7 @@ class ServerAdmin(private val app: App) {
         return JSONObject(executeRequest(request, true))
     }
 
-    private fun isRecoveryModeDisabled(): Boolean = getConfig()
+    private fun isRecoveryModeEnabled(): Boolean = !getConfig()
         .let { config: JSONObject ->
             if (config.has("sync")) {
                 config.getJSONObject("sync")
@@ -353,8 +353,7 @@ class ServerAdmin(private val app: App) {
             }
         }.optBoolean("is_recovery_mode_disabled", false)
 
-
-    private fun setIsRecoveryModeDisabled(isRecoveryModeDisabled: Boolean) {
+    private fun setIsRecoveryModeEnabled(isRecoveryModeEnabled: Boolean) {
         val serviceId = getMongodbServiceId()
 
         val config = getConfig().apply {
@@ -366,7 +365,7 @@ class ServerAdmin(private val app: App) {
                 } else {
                     throw Error("Sync mode not defined")
                 }
-            }.put("is_recovery_mode_disabled", isRecoveryModeDisabled)
+            }.put("is_recovery_mode_disabled", !isRecoveryModeEnabled)
         }
 
         val request = Request.Builder()
@@ -399,11 +398,11 @@ class ServerAdmin(private val app: App) {
     // Disabling the recovery mode would force a `RecoverOrDiscardUnsyncedChangesStrategy` to
     // discard the local changes even if they are recoverable.
     fun triggerClientReset(syncSession: SyncSession,
-                           withRecoveryModeDisabled: Boolean = false,
+                           withRecoveryModeEnabled: Boolean = true,
                            block: () -> Unit)
     {
         // Later, we will restore the original status
-        val wasRecoveryModeDisabled = isRecoveryModeDisabled()
+        val wasRecoveryModeEnabled = isRecoveryModeEnabled()
 
         try {
             syncSession.downloadAllServerChanges()
@@ -411,14 +410,14 @@ class ServerAdmin(private val app: App) {
 
             block()
 
-            setIsRecoveryModeDisabled(withRecoveryModeDisabled)
+            setIsRecoveryModeEnabled(withRecoveryModeEnabled)
 
             callTriggerResetFunction(appId, syncSession.user.id)
 
             syncSession.start()
             syncSession.downloadAllServerChanges()
         } finally {
-            setIsRecoveryModeDisabled(wasRecoveryModeDisabled)
+            setIsRecoveryModeEnabled(wasRecoveryModeEnabled)
         }
     }
 }
