@@ -342,15 +342,15 @@ class ServerAdmin(private val app: App) {
         return JSONObject(executeRequest(request, true))
     }
 
-    private fun isRecoveryModeDisabled(): Boolean = getConfig()
+    private fun isRecoveryModeEnabled(): Boolean = !getConfig()
         .getJSONObject("sync")
         .optBoolean("is_recovery_mode_disabled", false)
 
-    private fun setIsRecoveryModeDisabled(isRecoveryModeDisabled: Boolean) {
+    private fun setIsRecoveryModeEnabled(isRecoveryModeEnabled: Boolean) {
         val serviceId = getMongodbServiceId()
 
         val config = getConfig().apply {
-            getJSONObject("sync").put("is_recovery_mode_disabled", isRecoveryModeDisabled)
+            getJSONObject("sync").put("is_recovery_mode_disabled", !isRecoveryModeEnabled)
         }
 
         val request = Request.Builder()
@@ -386,20 +386,20 @@ class ServerAdmin(private val app: App) {
                            block: () -> Unit)
     {
         // Later, we will restore the original status
-        val wasRecoveryModeDisabled = isRecoveryModeDisabled()
+        val wasRecoveryModeEnabled = isRecoveryModeEnabled()
 
         syncSession.downloadAllServerChanges()
         syncSession.stop()
 
         block()
 
-        setIsRecoveryModeDisabled(withRecoveryModeDisabled)
+        setIsRecoveryModeEnabled(withRecoveryModeDisabled)
 
         callTriggerResetFunction(syncSession.user.id)
 
         syncSession.start()
         syncSession.downloadAllServerChanges()
 
-        setIsRecoveryModeDisabled(wasRecoveryModeDisabled)
+        setIsRecoveryModeEnabled(wasRecoveryModeEnabled)
     }
 }

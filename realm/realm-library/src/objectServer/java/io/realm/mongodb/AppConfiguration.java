@@ -589,7 +589,6 @@ public class AppConfiguration {
 
         /**
          * Sets the default Client Reset handler used by Synced Realms when they report a Client Reset.
-         * session.
          * <p>
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ClientResetHandler)} when creating
@@ -608,7 +607,6 @@ public class AppConfiguration {
 
         /**
          * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
-         * session.
          * <p>
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
@@ -627,7 +625,6 @@ public class AppConfiguration {
 
         /**
          * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
-         * session.
          * <p>
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
@@ -646,7 +643,6 @@ public class AppConfiguration {
 
         /**
          * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
-         * session.
          * <p>
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
@@ -665,7 +661,6 @@ public class AppConfiguration {
 
         /**
          * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
-         * session.
          * <p>
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
