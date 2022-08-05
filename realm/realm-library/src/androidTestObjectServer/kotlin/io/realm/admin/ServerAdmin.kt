@@ -382,7 +382,7 @@ class ServerAdmin(private val app: App) {
     // Disabling the recovery mode would force a `RecoverOrDiscardUnsyncedChangesStrategy` to
     // discard the local changes even if they are recoverable.
     fun triggerClientReset(syncSession: SyncSession,
-                           withRecoveryModeDisabled: Boolean = false,
+                           withRecoveryModeEnabled: Boolean = true,
                            block: () -> Unit)
     {
         // Later, we will restore the original status
@@ -393,7 +393,7 @@ class ServerAdmin(private val app: App) {
 
         block()
 
-        setIsRecoveryModeEnabled(withRecoveryModeDisabled)
+        setIsRecoveryModeEnabled(withRecoveryModeEnabled)
 
         callTriggerResetFunction(syncSession.user.id)
 

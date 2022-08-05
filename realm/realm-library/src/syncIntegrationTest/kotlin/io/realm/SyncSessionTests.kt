@@ -296,7 +296,7 @@ class SyncSessionTests {
 
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-        admin.triggerClientReset(realm.syncSession, true) {
+        admin.triggerClientReset(realm.syncSession, false) {
             realm.executeTransaction {
                 it.insert(DummySyncObject())
             }
