@@ -5,7 +5,7 @@
 * [RealmApp] Introduced `SyncSession.RecoverUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client and will revert to manual client reset if not possible.
 
 ### Breaking Changes
-* [RealmApp] `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy` is now the default client reset policy if not overridden.
+* [RealmApp] `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy` is now the default client reset policy if not explicitly set in the `SyncConfiguration`.
 
 ### Fixed
 * None
