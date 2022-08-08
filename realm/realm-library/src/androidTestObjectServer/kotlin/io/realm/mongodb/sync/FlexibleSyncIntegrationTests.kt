@@ -388,7 +388,7 @@ class FlexibleSyncIntegrationTests {
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
 
-        serverAdmin.triggerClientReset(realm.syncSession, withRecoveryModeDisabled = true) {
+        serverAdmin.triggerClientReset(realm.syncSession, withRecoveryModeEnabled = false) {
             realm.executeTransaction {
                 realm.copyToRealm(FlexSyncColor().apply {
                     this.section = this@FlexibleSyncIntegrationTests.section
