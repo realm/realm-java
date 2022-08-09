@@ -1,4 +1,4 @@
-## 10.11.2 (YYYY-MM-DD)
+## 10.12.0 (YYYY-MM-DD)
 
 ### Enhancements
 * [RealmApp] Introduced `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client, and discards any unsynced data if not possible. This is now the default client reset policy if not explicitly set in the `SyncConfiguration`.
