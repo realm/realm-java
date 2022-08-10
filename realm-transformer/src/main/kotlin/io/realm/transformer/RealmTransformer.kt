@@ -89,24 +89,28 @@ class RealmTransformer(project: Project,
         fun register(project: Project) {
             val androidComponents = project.extensions.getByType(AndroidComponentsExtension::class.java)
             androidComponents.onVariants { variant ->
-
-                val taskProvider =
-                    project.tasks.register<ModifyClassesTask>("${variant.name}RealmAccessorsTransformer", ModifyClassesTask::class.java) {
-                        it.fullRuntimeClasspath.setFrom(variant.runtimeConfiguration.incoming.artifactView { c->
-                            c.attributes.attribute(
-                                AndroidArtifacts.ARTIFACT_TYPE,
-                                AndroidArtifacts.ArtifactType.CLASSES_JAR.type
-                            )
-                        }.files)
-                    }
-                variant.artifacts.forScope(com.android.build.api.variant.ScopedArtifacts.Scope.PROJECT)
-                    .use<ModifyClassesTask>(taskProvider)
-                    .toTransform(
-                        com.android.build.api.artifact.ScopedArtifact.CLASSES,
-                        ModifyClassesTask::allJars,
-                        ModifyClassesTask::allDirectories,
-                        ModifyClassesTask::output
-                    )
+                variant.components.forEach { component ->
+                    val taskProvider =
+                        project.tasks.register<ModifyClassesTask>(
+                            "${component.name}RealmAccessorsTransformer",
+                            ModifyClassesTask::class.java
+                        ) {
+                            it.fullRuntimeClasspath.setFrom(component.runtimeConfiguration.incoming.artifactView { c ->
+                                c.attributes.attribute(
+                                    AndroidArtifacts.ARTIFACT_TYPE,
+                                    AndroidArtifacts.ArtifactType.CLASSES_JAR.type
+                                )
+                            }.files)
+                        }
+                    component.artifacts.forScope(com.android.build.api.variant.ScopedArtifacts.Scope.PROJECT)
+                        .use<ModifyClassesTask>(taskProvider)
+                        .toTransform(
+                            com.android.build.api.artifact.ScopedArtifact.CLASSES,
+                            ModifyClassesTask::allJars,
+                            ModifyClassesTask::allDirectories,
+                            ModifyClassesTask::output
+                        )
+                }
             }
         }
     }
