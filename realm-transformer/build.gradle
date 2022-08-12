@@ -27,8 +27,8 @@ properties.load(new FileInputStream("${projectDir}/../dependencies.list"))
 
 def coreVersion = properties.getProperty('REALM_CORE')
 
-sourceCompatibility = '11'
-targetCompatibility = '11'
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenLocal()
@@ -102,7 +102,7 @@ java {
 
 compileKotlin {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = JavaVersion.VERSION_11
         freeCompilerArgs = ["-Xinline-classes", "-Xjvm-default=all-compatibility"]
     }
 }

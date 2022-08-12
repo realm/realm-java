@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.ListProperty
+import java.io.File
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
@@ -128,6 +129,20 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
     }
 
     fun copyResourceFiles() {
+        inputs.get().forEach { directory: Directory ->
+            val dirName = directory.asFile.absolutePath + File.separator
+            directory.asFile.walk().filter(File::isFile).forEach { file ->
+                if (!file.absolutePath.endsWith(DOT_CLASS)) {
+                    println("TRANSFORMER>>JarFile : " + file.absolutePath)
+                    val removePrefix = file.absolutePath.removePrefix(dirName)
+                    println("TRANSFORMER>>JarFile : " + removePrefix)
+                    println("TRANSFORMER>>Adding from jar $removePrefix")
+                    outputProvider.putNextEntry(JarEntry(removePrefix))
+                    outputProvider.write(file.readBytes())
+                    outputProvider.closeEntry()
+                }
+            }
+        }
         allJars.get().forEach { file ->
             println("TRANSFORMER>>JarFile : " + file.asFile.absolutePath)
             val jarFile = JarFile(file.asFile)

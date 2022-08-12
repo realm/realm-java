@@ -73,12 +73,12 @@ android {
 
     // Required from Kotlin 1.1.2
     compileOptions {
-        targetCompatibility 11
-        sourceCompatibility 11
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
     }
 
     kotlinOptions {
-        jvmTarget = 11
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 }
 
