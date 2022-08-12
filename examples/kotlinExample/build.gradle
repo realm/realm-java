@@ -35,9 +35,10 @@ android {
 
 // This is added automatically if Kotlin is registered in the project, but Kotlin extension functions
 // for Realm can be excluded if needed.
-realm {
-    kotlinExtensionsEnabled = true
-}
+// FIXME The automatic dependency handling is somehow ruined with the latest AGP, need to investigate
+//realm {
+//    kotlinExtensionsEnabled = true
+//}
 
 
 // enable @ParametersAreNonnullByDefault annotation. See https://blog.jetbrains.com/kotlin/2017/09/kotlin-1-1-50-is-out/
@@ -50,5 +51,5 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 dependencies {
 //    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${kotlin_version}"
 //    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.21"
-//    implementation "org.jetbrains.anko:anko-commons:0.10.4"
+    implementation "org.jetbrains.anko:anko-commons:0.10.4"
 }

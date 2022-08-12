@@ -5,7 +5,8 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion rootProject.sdkVersion
+    // androidx.lifecycle dependencies requires Android APIs 31 or later
+    compileSdkVersion 31
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {

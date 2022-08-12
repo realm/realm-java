@@ -44,7 +44,7 @@ public class NameConverterTests {
             put("aHTMLFile", "aHtmlFile");
             put("_HTMLFile", "htmlFile");
 
-            // Emojiis are neither upper case nor lower case (Smiley)
+//            // Emojiis are neither upper case nor lower case (Smiley)
             put("\uD83D\uDE01", "\uD83D\uDE01");
             put("m\uD83D\uDE01", "m\uD83D\uDE01");
             put("M\uD83D\uDE01", "m\uD83D\uDE01");
