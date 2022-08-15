@@ -48,7 +48,6 @@ import io.realm.internal.Util;
 import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.log.RealmLog;
-import io.realm.mongodb.sync.SubscriptionSet;
 
 /**
  * Base class for all Realm instances.
@@ -717,7 +716,7 @@ abstract class BaseRealm implements Closeable {
      * synchronized realm.
      */
     @ObjectServer
-    public SubscriptionSet getSubscriptions() {
+    public io.realm.mongodb.sync.SubscriptionSet getSubscriptions() {
         checkIfValid();
         return sharedRealm.getSubscriptions(configuration.getSchemaMediator(), asyncTaskExecutor, WRITE_EXECUTOR);
     }

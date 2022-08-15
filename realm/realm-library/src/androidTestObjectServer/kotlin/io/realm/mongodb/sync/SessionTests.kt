@@ -34,6 +34,7 @@ import io.realm.mongodb.*
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.ResourceContainer
 import io.realm.util.assertFailsWithMessage
+import kotlinx.coroutines.runBlocking
 import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
 import org.junit.*
@@ -205,7 +206,9 @@ class SessionTests {
                     }
 
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(looperThread.asDispatcher()) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -230,7 +233,9 @@ class SessionTests {
                 .schema(SyncStringOnly::class.java)
                 .clientResetHandler { _: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(looperThread.asDispatcher()) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -277,7 +282,9 @@ class SessionTests {
                 .modules(SyncStringOnlyModule())
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(looperThread.asDispatcher()) {
+                        resources.close()
+                    }
                     error.executeClientReset()
 
                     // Validate that files have been moved
@@ -342,7 +349,9 @@ class SessionTests {
                 .modules(SyncStringOnlyModule())
                 .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
                     // Execute Client Reset
-                    resources.close()
+                    runBlocking(looperThread.asDispatcher()) {
+                        resources.close()
+                    }
                     error.executeClientReset()
                     var backupRealmConfiguration = error.backupRealmConfiguration
 
@@ -422,7 +431,9 @@ class SessionTests {
                 }
 
                 // Execute Client Reset
-                resources.close()
+                runBlocking(looperThread.asDispatcher()) {
+                    resources.close()
+                }
                 error.executeClientReset()
 
                 // Validate that files have been moved
@@ -446,7 +457,9 @@ class SessionTests {
             .schema(SyncStringOnly::class.java)
             .syncClientResetStrategy { _: SyncSession?, error: ClientResetRequiredError ->
                 // Execute Client Reset
-                resources.close()
+                runBlocking(looperThread.asDispatcher()) {
+                    resources.close()
+                }
                 error.executeClientReset()
 
                 // Validate that files have been moved
@@ -492,7 +505,9 @@ class SessionTests {
             .modules(SyncStringOnlyModule())
             .syncClientResetStrategy { session: SyncSession?, error: ClientResetRequiredError ->
                 // Execute Client Reset
-                resources.close()
+                runBlocking(looperThread.asDispatcher()) {
+                    resources.close()
+                }
                 error.executeClientReset()
 
                 // Validate that files have been moved
@@ -556,7 +571,9 @@ class SessionTests {
             .modules(SyncStringOnlyModule())
             .syncClientResetStrategy { session: SyncSession?, error: ClientResetRequiredError ->
                 // Execute Client Reset
-                resources.close()
+                runBlocking(looperThread.asDispatcher()) {
+                    resources.close()
+                }
                 error.executeClientReset()
                 var backupRealmConfiguration = error.backupRealmConfiguration
 
