@@ -428,9 +428,8 @@ public class AppConfiguration {
                 RealmLog.debug("Client reset: couldn't recover successfully, all unsynced changes were discarded in Realm" + after.getPath());
             }
 
-
             @Override
-            public void onError(SyncSession session, ClientResetRequiredError error) {
+            public void onManualResetFallback(SyncSession session, ClientResetRequiredError error) {
                 RealmLog.fatal("Client reset: manual reset required" + session.getConfiguration().getServerUrl());
             }
         };

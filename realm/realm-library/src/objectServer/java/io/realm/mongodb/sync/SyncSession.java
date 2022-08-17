@@ -230,7 +230,20 @@ public class SyncSession {
                         )
                 );
             } else if (clientResetHandler instanceof AutomaticClientResetStrategy) {
-                ((AutomaticClientResetStrategy) clientResetHandler).onError(
+                // Required to support the deprecated DiscardUnsyncedChangesStrategy::onError
+                if (clientResetHandler instanceof DiscardUnsyncedChangesStrategy) {
+                    ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(
+                            this,
+                            new ClientResetRequiredError(
+                                    appNativePointer,
+                                    errCode,
+                                    errorMessage,
+                                    configuration,
+                                    backupRealmConfiguration
+                            )
+                    );
+                }
+                ((AutomaticClientResetStrategy) clientResetHandler).onManualResetFallback(
                         this,
                         new ClientResetRequiredError(
                                 appNativePointer,

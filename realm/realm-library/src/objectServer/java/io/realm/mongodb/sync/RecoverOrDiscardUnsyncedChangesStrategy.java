@@ -35,7 +35,7 @@ import io.realm.Realm;
  * discarded and {@link #onAfterDiscard(Realm, Realm)} (Realm, Realm)} (Realm, Realm)} would be invoked.
  * <p>
  * In the event that the client reset could not discard the unsynced data the
- * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked. It allows to manually
+ * {@link #onManualResetFallback(SyncSession, ClientResetRequiredError)} would be invoked. It allows to manually
  * resolve the reset as it would have been done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
@@ -70,5 +70,5 @@ public interface RecoverOrDiscardUnsyncedChangesStrategy extends AutomaticClient
      * {@inheritDoc}
      */
     @Override
-    void onError(SyncSession session, ClientResetRequiredError error);
+    void onManualResetFallback(SyncSession session, ClientResetRequiredError error);
 }

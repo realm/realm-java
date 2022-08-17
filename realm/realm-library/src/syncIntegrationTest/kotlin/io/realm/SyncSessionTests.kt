@@ -151,8 +151,16 @@ class SyncSessionTests {
                         incrementAndValidate()
                     }
 
+                    @Deprecated("Deprecated in favor of onManualResetFallback")
                     override fun onError(session: SyncSession, error: ClientResetRequiredError) {
                         fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onError()")
+                    }
+
+                    override fun onManualResetFallback(
+                        session: SyncSession,
+                        error: ClientResetRequiredError
+                    ) {
+                        fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onManualResetFallback()")
                     }
 
                 })
@@ -190,8 +198,8 @@ class SyncSessionTests {
                     incrementAndValidate()
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onError()")
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onManualResetFallback()")
                 }
             })
             .modules(ObjectSyncSchema())
@@ -232,8 +240,8 @@ class SyncSessionTests {
                     fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onAfterDiscard()")
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onManualResetFallback()")
                 }
             })
             .modules(ObjectSyncSchema())
@@ -287,8 +295,8 @@ class SyncSessionTests {
                     incrementAndValidate()
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onError()")
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onManualResetFallback()")
                 }
             })
             .modules(ObjectSyncSchema())

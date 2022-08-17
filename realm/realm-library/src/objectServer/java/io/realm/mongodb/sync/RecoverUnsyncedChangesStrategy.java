@@ -33,7 +33,7 @@ import io.realm.Realm;
  * been recovered successfully.
  * <p>
  * In the event that the client reset could not automatically recover the unsynced data the
- * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked. It allows to manually
+ * {@link #onManualResetFallback(SyncSession, ClientResetRequiredError)} would be invoked. It allows to manually
  * resolve the reset as it would have been done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
 
@@ -59,5 +59,5 @@ public interface RecoverUnsyncedChangesStrategy extends AutomaticClientResetStra
      * {@inheritDoc}
      */
     @Override
-    void onError(SyncSession session, ClientResetRequiredError error);
+    void onManualResetFallback(SyncSession session, ClientResetRequiredError error);
 }
