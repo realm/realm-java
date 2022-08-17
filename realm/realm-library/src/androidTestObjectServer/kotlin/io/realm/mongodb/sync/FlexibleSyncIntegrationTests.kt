@@ -29,7 +29,6 @@ import kotlin.test.assertFailsWith
 @RunWith(AndroidJUnit4::class)
 class FlexibleSyncIntegrationTests {
 
-
     @get:Rule
     val configFactory = TestSyncConfigurationFactory()
     private val looperThread = BlockingLooperThread()
@@ -196,8 +195,16 @@ class FlexibleSyncIntegrationTests {
                     incrementAndValidate()
                 }
 
+                @Deprecated("Deprecated in favor of onManualResetFallback")
                 override fun onError(session: SyncSession, error: ClientResetRequiredError) {
                     fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onError()")
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onManualResetFallback()")
                 }
 
             })
@@ -251,8 +258,8 @@ class FlexibleSyncIntegrationTests {
                     incrementAndValidate()
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onManualResetFallback()")
                 }
             })
             .modules(ColorSyncSchema())
@@ -310,8 +317,8 @@ class FlexibleSyncIntegrationTests {
                     fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onError()")
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryStrategy::onManualResetFallback()")
                 }
             })
             .modules(ColorSyncSchema())
@@ -378,8 +385,8 @@ class FlexibleSyncIntegrationTests {
                 }
 
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onError()")
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    fail("This test case was not supposed to trigger AutomaticRecoveryOrDiscardUnsyncedChangesStrategy::onManualResetFallback()")
                 }
             })
             .modules(ColorSyncSchema())

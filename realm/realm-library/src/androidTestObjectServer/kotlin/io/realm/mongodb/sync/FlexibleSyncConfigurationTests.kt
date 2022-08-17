@@ -189,6 +189,10 @@ class FlexibleSyncConfigurationTests {
                     Assert.fail("Should not be called")
                 }
 
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    Assert.fail("Should not be called")
+                }
+
             })
             .build()
         assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
@@ -208,7 +212,7 @@ class FlexibleSyncConfigurationTests {
                     Assert.fail("Should not be called")
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                     Assert.fail("Should not be called")
                 }
             })
@@ -234,7 +238,7 @@ class FlexibleSyncConfigurationTests {
                     Assert.fail("Should not be called")
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                     Assert.fail("Should not be called")
                 }
 
