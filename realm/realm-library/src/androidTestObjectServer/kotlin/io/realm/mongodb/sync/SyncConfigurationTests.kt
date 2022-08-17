@@ -116,7 +116,7 @@ class SyncConfigurationTests {
                 fail("Callback should not be reachable")
             }
 
-            override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+            override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                 fail("Callback should not be reachable")
             }
         }
@@ -140,7 +140,7 @@ class SyncConfigurationTests {
                 fail("Callback should not be reachable")
             }
 
-            override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+            override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                 fail("Callback should not be reachable")
             }
         }
@@ -431,6 +431,12 @@ class SyncConfigurationTests {
                     fail("Should not be called")
                 }
 
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    fail("Should not be called")
+                }
             })
             .build()
         assertTrue(config.syncClientResetStrategy is DiscardUnsyncedChangesStrategy)
@@ -450,7 +456,7 @@ class SyncConfigurationTests {
                     fail("Should not be called")
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                     fail("Should not be called")
                 }
             })
@@ -476,7 +482,7 @@ class SyncConfigurationTests {
                     fail("Should not be called")
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                     fail("Should not be called")
                 }
 

@@ -36,8 +36,8 @@ import io.realm.Realm;
  * been discarded successfully.
  * <p>
  * In the event that the client reset could not discard the unsynced data the
- * {@link #onError(SyncSession, ClientResetRequiredError)} would be invoked. It allows to manually
- * resolve the reset as it would have been done in
+ * {@link #onManualResetFallback(SyncSession, ClientResetRequiredError)} would be invoked. It allows
+ * to manually resolve the reset as it would have been done in
  * {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
  */
 public interface DiscardUnsyncedChangesStrategy extends AutomaticClientResetStrategy {
@@ -59,8 +59,20 @@ public interface DiscardUnsyncedChangesStrategy extends AutomaticClientResetStra
     void onAfterReset(Realm before, Realm after);
 
     /**
+     * Callback that indicates the Client reset failed to complete. It should be handled
+     * as {@link ManuallyRecoverUnsyncedChangesStrategy#onClientReset(SyncSession, ClientResetRequiredError)}.
+     *
+     * @param session {@link SyncSession} this error happened on.
+     * @param error   {@link ClientResetRequiredError} the specific Client Reset error.
+     *
+     * @deprecated Use {@link DiscardUnsyncedChangesStrategy#onManualResetFallback} instead.
+     */
+    @Deprecated
+    void onError(SyncSession session, ClientResetRequiredError error);
+
+    /**
      * {@inheritDoc}
      */
     @Override
-    void onError(SyncSession session, ClientResetRequiredError error);
+    void onManualResetFallback(SyncSession session, ClientResetRequiredError error);
 }

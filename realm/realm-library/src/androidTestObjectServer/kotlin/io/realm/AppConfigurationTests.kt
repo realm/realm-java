@@ -308,7 +308,7 @@ class AppConfigurationTests {
                 fail("Callback should not be reachable")
             }
 
-            override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+            override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                 fail("Callback should not be reachable")
             }
         }
@@ -334,7 +334,7 @@ class AppConfigurationTests {
                 fail("Callback should not be reachable")
             }
 
-            override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+            override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                 fail("Callback should not be reachable")
             }
         }

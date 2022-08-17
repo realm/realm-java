@@ -124,34 +124,87 @@ class SessionTests {
 
     // Check that a if Seamless loss Client Reset fails the error is correctly reported.
     @Test
+    fun errorHandler_discardUnsyncedChangesStrategy_resetErrorHandled_deprecated() = looperThread.runBlocking {
+        val email = TestHelper.getRandomEmail()
+        val user: User = app.registerUserAndLogin(email, "123456")
+
+        val config = configFactory.createSyncConfigurationBuilder(user)
+            .testSchema(SyncStringOnly::class.java)
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
+                }
+
+                @Deprecated("Deprecated in favor of onManualResetFallback")
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    val filePathFromError = error.originalFile.absolutePath
+                    val filePathFromConfig = session.configuration.path
+                    assertEquals(filePathFromError, filePathFromConfig)
+                    assertFalse(error.backupFile.exists())
+                    assertTrue(error.originalFile.exists())
+                    // Note, this error message is just the one created by ObjectStore for testing
+                    // The server will send a different message. This just ensures that we don't
+                    // accidentially modify or remove the message.
+                    assertEquals("Simulate Client Reset", error.message)
+                    looperThread.testComplete()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    // do nothing
+                }
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
+    }
+
+    // Check that a if Seamless loss Client Reset fails the error is correctly reported.
+    @Test
     fun errorHandler_discardUnsyncedChangesStrategy_resetErrorHandled() = looperThread.runBlocking {
         val email = TestHelper.getRandomEmail()
         val user: User = app.registerUserAndLogin(email, "123456")
 
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-                .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy {
-                    override fun onBeforeReset(realm: Realm) {
-                        fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
-                    }
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
+                }
 
-                    override fun onAfterReset(before: Realm, after: Realm) {
-                        fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
-                    }
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
+                }
 
-                    override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                        val filePathFromError = error.originalFile.absolutePath
-                        val filePathFromConfig = session.configuration.path
-                        assertEquals(filePathFromError, filePathFromConfig)
-                        assertFalse(error.backupFile.exists())
-                        assertTrue(error.originalFile.exists())
-                        // Note, this error message is just the one created by ObjectStore for testing
-                        // The server will send a different message. This just ensures that we don't
-                        // accidentially modify or remove the message.
-                        assertEquals("Simulate Client Reset", error.message)
-                        looperThread.testComplete()
-                    }
-                })
+                @Deprecated("Deprecated in favor of onManualResetFallback")
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    // do nothing
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    val filePathFromError = error.originalFile.absolutePath
+                    val filePathFromConfig = session.configuration.path
+                    assertEquals(filePathFromError, filePathFromConfig)
+                    assertFalse(error.backupFile.exists())
+                    assertTrue(error.originalFile.exists())
+                    // Note, this error message is just the one created by ObjectStore for testing
+                    // The server will send a different message. This just ensures that we don't
+                    // accidentially modify or remove the message.
+                    assertEquals("Simulate Client Reset", error.message)
+                    looperThread.testComplete()
+                }
+            })
             .build()
 
         val realm = Realm.getInstance(config)
@@ -179,7 +232,7 @@ class SessionTests {
                     fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                     val filePathFromError = error.originalFile.absolutePath
                     val filePathFromConfig = session.configuration.path
                     assertEquals(filePathFromError, filePathFromConfig)
@@ -674,7 +727,7 @@ class SessionTests {
                     fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onAfterReset()")
                 }
 
-                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
                     val filePathFromError = error.originalFile.absolutePath
                     val filePathFromConfig = session.configuration.path
                     assertEquals(filePathFromError, filePathFromConfig)
