@@ -120,20 +120,14 @@ class SyncSessionTests {
     // whole test suite.
     @Test
     fun clientReset_discardUnsyncedChangesStrategy_discards() = looperThread.runBlocking {
-        val counter = AtomicInteger()
-
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
+        val latch = CountDownLatch(2)
         val partitionKey = UUID.randomUUID().toString()
         val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
                 .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
                     override fun onBeforeReset(realm: Realm) {
                         assertTrue(realm.isFrozen)
                         Assert.assertEquals(1, realm.where<DummySyncObject>().count())
-                        incrementAndValidate()
+                        latch.countDown()
                     }
 
                     override fun onAfterReset(before: Realm, after: Realm) {
@@ -148,7 +142,7 @@ class SyncSessionTests {
                             it.insert(before.where<DummySyncObject>().findFirst()!!)
                         }
                         Assert.assertEquals(1, after.where<DummySyncObject>().count())
-                        incrementAndValidate()
+                        latch.countDown()
                     }
 
                     @Deprecated("Deprecated in favor of onManualResetFallback")
@@ -176,26 +170,133 @@ class SyncSessionTests {
 
             Assert.assertEquals(1, realm.where<DummySyncObject>().count())
         }
+
+        looperThread.testComplete(latch)
+    }
+
+    private fun validateManualResetIsAvailable(
+        session: SyncSession,
+        error: ClientResetRequiredError
+    ) {
+        val filePathFromError = error.originalFile.absolutePath
+        val filePathFromConfig = session.configuration.path
+        assertEquals(filePathFromError, filePathFromConfig)
+        assertFalse(error.backupFile.exists())
+        assertTrue(error.originalFile.exists())
+
+        assertEquals(
+            "CLIENT_RESET(realm::app::CustomError:7): Automatic recovery from client reset failed",
+            error.toString()
+        )
+    }
+
+    @Test
+    fun clientReset_discardUnsyncedChangesStrategy_fallback_userException_onBeforeReset() = looperThread.runBlocking {
+        val latch = CountDownLatch(2)
+
+        val partitionKey = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
+                }
+
+                @Deprecated("Deprecated in favor of onManualResetFallback")
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    latch.countDown()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    latch.countDown()
+                }
+
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        admin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                it.insert(DummySyncObject())
+            }
+
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
+        }
+
+        looperThread.testComplete(latch)
+    }
+
+    @Test
+    fun clientReset_discardUnsyncedChangesStrategy_fallback_userException_onAfterReset() = looperThread.runBlocking {
+        val latch = CountDownLatch(2)
+
+        val partitionKey = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertNotNull(realm)
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    throw RuntimeException()
+                }
+
+                @Deprecated("Deprecated in favor of onManualResetFallback")
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    latch.countDown()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    latch.countDown()
+                }
+
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        admin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                it.insert(DummySyncObject())
+            }
+
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
+        }
+
+        looperThread.testComplete(latch)
     }
 
     @Test
     fun clientReset_recoverUnsyncedChangesStrategy_recover() = looperThread.runBlocking {
-        val counter = AtomicInteger()
+        val latch = CountDownLatch(2)
 
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
         val partitionKey = UUID.randomUUID().toString()
         val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
             .syncClientResetStrategy(object: RecoverUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterReset(before: Realm, after: Realm) {
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
@@ -214,26 +315,96 @@ class SyncSessionTests {
 
             Assert.assertEquals(1, realm.where<DummySyncObject>().count())
         }
+
+        looperThread.testComplete(latch)
+    }
+
+    @Test
+    fun clientReset_recoverUnsyncedChangesStrategy_fallback_userException_onBeforeReset() = looperThread.runBlocking {
+        val partitionKey = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
+            .syncClientResetStrategy(object : RecoverUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onAfterReset()")
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        admin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                it.insert(DummySyncObject())
+            }
+
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
+        }
+    }
+
+    @Test
+    fun clientReset_recoverUnsyncedChangesStrategy_fallback_userException_onAfterReset() = looperThread.runBlocking {
+        val partitionKey = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
+            .syncClientResetStrategy(object : RecoverUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertNotNull(realm)
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        admin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                it.insert(DummySyncObject())
+            }
+
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
+        }
     }
 
     @Test
     fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_recover() = looperThread.runBlocking {
-        val counter = AtomicInteger()
-
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
+        val latch = CountDownLatch(2)
         val partitionKey = UUID.randomUUID().toString()
         val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
             .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterRecovery(before: Realm, after: Realm) {
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterDiscard(before: Realm, after: Realm) {
@@ -256,24 +427,20 @@ class SyncSessionTests {
 
             Assert.assertEquals(1, realm.where<DummySyncObject>().count())
         }
+
+        looperThread.testComplete(latch)
     }
 
     @Test
     fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_discards() = looperThread.runBlocking {
-        val counter = AtomicInteger()
-
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
+        val latch = CountDownLatch(2)
         val partitionKey = UUID.randomUUID().toString()
         val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
             .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
                     Assert.assertEquals(1, realm.where<DummySyncObject>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterRecovery(before: Realm, after: Realm) {
@@ -292,7 +459,7 @@ class SyncSessionTests {
                         it.insert(before.where<DummySyncObject>().findFirst()!!)
                     }
                     Assert.assertEquals(1, after.where<DummySyncObject>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
@@ -305,6 +472,132 @@ class SyncSessionTests {
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
         admin.triggerClientReset(realm.syncSession, false) {
+            realm.executeTransaction {
+                it.insert(DummySyncObject())
+            }
+
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
+        }
+
+        looperThread.testComplete(latch)
+    }
+
+    @Test
+    fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_fallback_userException_onBeforeReset() = looperThread.runBlocking {
+        val partitionKey = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
+            .syncClientResetStrategy(object : RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterRecovery()")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        admin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                it.insert(DummySyncObject())
+            }
+
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
+        }
+    }
+
+    @Test
+    fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_fallback_userException_onAfterRecovery() = looperThread.runBlocking {
+        val partitionKey = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
+            .syncClientResetStrategy(object : RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertNotNull(realm)
+                }
+
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        admin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                it.insert(DummySyncObject())
+            }
+
+            Assert.assertEquals(1, realm.where<DummySyncObject>().count())
+        }
+    }
+
+    @Test
+    fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_fallback_userException_onAfterDiscard() = looperThread.runBlocking {
+        val partitionKey = UUID.randomUUID().toString()
+        val config = configFactory.createSyncConfigurationBuilder(user, partitionKey)
+            .syncClientResetStrategy(object : RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertNotNull(realm)
+                }
+
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterRecovery()")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    throw RuntimeException()
+                }
+
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        admin.triggerClientReset(realm.syncSession, withRecoveryModeEnabled = false) {
             realm.executeTransaction {
                 it.insert(DummySyncObject())
             }
