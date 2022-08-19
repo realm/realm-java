@@ -388,7 +388,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                 j_on_before_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                     env->CallVoidMethod(obj, on_before_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), config_global.get());
                 });
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
+
+                // Propagate the exception back to core that would handle the fallback to manual mode
+                if (env->ExceptionCheck()) {
+                    env->ExceptionDescribe();
+                    env->ExceptionClear();
+                    throw std::runtime_error("User-provided callback failed");
+                }
             };
 
             config.sync_config->notify_after_client_reset = [j_on_after_client_reset_handler_weak, j_config_weak](SharedRealm before_frozen, ThreadSafeReference after, bool did_recover) {
@@ -408,7 +414,13 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                 j_on_after_client_reset_handler_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                     env->CallVoidMethod(obj, on_after_client_reset_method, reinterpret_cast<jlong>(before_frozen_ptr), reinterpret_cast<jlong>(after_ptr), config_global.get(), did_recover);
                 });
-                TERMINATE_JNI_IF_JAVA_EXCEPTION_OCCURRED(env, nullptr);
+
+                // Propagate the exception back to core that would handle the fallback to manual mode
+                if (env->ExceptionCheck()) {
+                    env->ExceptionDescribe();
+                    env->ExceptionClear();
+                    throw std::runtime_error("User-provided callback failed");
+                }
             };
         }
 
