@@ -581,7 +581,6 @@ class SyncSessionTests {
                     throw RuntimeException()
                 }
 
-
                 override fun onManualResetFallback(
                     session: SyncSession,
                     error: ClientResetRequiredError
