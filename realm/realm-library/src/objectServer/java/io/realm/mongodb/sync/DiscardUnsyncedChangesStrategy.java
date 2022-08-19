@@ -49,9 +49,9 @@ public interface DiscardUnsyncedChangesStrategy extends AutomaticClientResetStra
     void onBeforeReset(Realm realm);
 
     /**
-     * Callback invoked once the Client Reset has discarded the unsynced changes because. It provides
+     * Callback invoked before the Client Reset discards any unsynced changes. It provides
      * two Realm instances, a frozen one displaying the state before the reset and a regular Realm
-     * displaying the current state that can be used to recover objects from the reset.
+     * displaying the current state that can be used to recover any unsynced changes from being discarded.
      *
      * @param before {@link Realm} frozen Realm in the before after the reset.
      * @param after  {@link Realm} Realm after the reset.

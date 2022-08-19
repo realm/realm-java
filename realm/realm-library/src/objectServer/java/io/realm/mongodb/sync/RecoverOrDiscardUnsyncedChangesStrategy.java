@@ -57,9 +57,10 @@ public interface RecoverOrDiscardUnsyncedChangesStrategy extends AutomaticClient
     void onAfterRecovery(Realm before, Realm after);
 
     /**
-     * Callback invoked once the Client Reset has discarded the unsynced changes because the recovery
-     * failed. It provides two Realm instances, a frozen one displaying the state before the
-     * reset and a regular Realm displaying the current state that can be used to recover objects from the reset.
+     * Callback invoked before the Client Reset discards any unsynced changes because the recovery
+     * failed. It provides two Realm instances, a frozen one displaying the state before the reset
+     * and a regular Realm displaying the current state that can be used to recover objects from the
+     * reset.
      *
      * @param before {@link Realm} frozen Realm in the state before the reset.
      * @param after  {@link Realm} Realm after the reset.
