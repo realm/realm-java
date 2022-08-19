@@ -18,6 +18,7 @@ import io.realm.kotlin.where
 import io.realm.mongodb.close
 import org.junit.*
 import org.junit.Assert.*
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
 import kotlin.test.assertFailsWith
@@ -155,13 +156,7 @@ class FlexibleSyncIntegrationTests {
 
     @Test
     fun errorHandler_discardUnsyncedChangesStrategyReported() = looperThread.runBlocking {
-        val counter = AtomicInteger()
-
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
+        val latch = CountDownLatch(2)
 
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(FlexSyncColor::class.java)
@@ -177,7 +172,7 @@ class FlexibleSyncIntegrationTests {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
                     assertEquals(1, realm.where<FlexSyncColor>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterReset(before: Realm, after: Realm) {
@@ -192,7 +187,7 @@ class FlexibleSyncIntegrationTests {
                         it.insert(before.where<FlexSyncColor>().findFirst()!!)
                     }
                     assertEquals(1, after.where<FlexSyncColor>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 @Deprecated("Deprecated in favor of onManualResetFallback")
@@ -223,17 +218,13 @@ class FlexibleSyncIntegrationTests {
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
+
+        looperThread.testComplete(latch)
     }
 
     @Test
     fun errorHandler_automaticRecoveryStrategy() = looperThread.runBlocking {
-        val counter = AtomicInteger()
-
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
+        val latch = CountDownLatch(2)
 
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(FlexSyncColor::class.java)
@@ -249,13 +240,13 @@ class FlexibleSyncIntegrationTests {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
                     assertEquals(1, realm.where<FlexSyncColor>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterReset(before: Realm, after: Realm) {
                     assertEquals(1, before.where<FlexSyncColor>().count())
                     assertEquals(1, after.where<FlexSyncColor>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
@@ -277,17 +268,13 @@ class FlexibleSyncIntegrationTests {
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
+
+        looperThread.testComplete(latch)
     }
 
     @Test
     fun errorHandler_automaticRecoveryOrDiscardStrategy() = looperThread.runBlocking {
-        val counter = AtomicInteger()
-
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
+        val latch = CountDownLatch(2)
 
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(FlexSyncColor::class.java)
@@ -304,13 +291,13 @@ class FlexibleSyncIntegrationTests {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
                     assertEquals(1, realm.where<FlexSyncColor>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterRecovery(before: Realm, after: Realm) {
                     assertEquals(1, before.where<FlexSyncColor>().count())
                     assertEquals(1, after.where<FlexSyncColor>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterDiscard(before: Realm, after: Realm) {
@@ -336,17 +323,14 @@ class FlexibleSyncIntegrationTests {
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
+
+        looperThread.testComplete(latch)
     }
 
     @Test
     fun errorHandler_automaticRecoveryOrDiscardStrategy_discardsLocal() = looperThread.runBlocking {
-        val counter = AtomicInteger()
+        val latch = CountDownLatch(2)
 
-        val incrementAndValidate = {
-            if (2 == counter.incrementAndGet()) {
-                looperThread.testComplete()
-            }
-        }
         val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
             .schema(FlexSyncColor::class.java)
             .initialSubscriptions { realm, subscriptions ->
@@ -362,7 +346,7 @@ class FlexibleSyncIntegrationTests {
                 override fun onBeforeReset(realm: Realm) {
                     assertTrue(realm.isFrozen)
                     assertEquals(1, realm.where<FlexSyncColor>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
                 override fun onAfterRecovery(before: Realm, after: Realm) {
@@ -381,7 +365,7 @@ class FlexibleSyncIntegrationTests {
                         it.insert(before.where<FlexSyncColor>().findFirst()!!)
                     }
                     assertEquals(1, after.where<FlexSyncColor>().count())
-                    incrementAndValidate()
+                    latch.countDown()
                 }
 
 
@@ -404,5 +388,7 @@ class FlexibleSyncIntegrationTests {
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
+
+        looperThread.testComplete(latch)
     }
 }
