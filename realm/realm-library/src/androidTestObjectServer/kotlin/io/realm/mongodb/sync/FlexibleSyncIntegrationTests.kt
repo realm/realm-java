@@ -4,9 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.admin.ServerAdmin
-import io.realm.entities.ColorSyncSchema
-import io.realm.entities.FlexSyncColor
-import io.realm.entities.SyncColor
+import io.realm.entities.*
 import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -18,6 +16,7 @@ import io.realm.kotlin.where
 import io.realm.mongodb.close
 import org.junit.*
 import org.junit.Assert.*
+import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
@@ -223,6 +222,119 @@ class FlexibleSyncIntegrationTests {
     }
 
     @Test
+    fun clientReset_discardUnsyncedChangesStrategy_fallback_userException_onBeforeReset() = looperThread.runBlocking {
+        val latch = CountDownLatch(2)
+
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .schema(FlexSyncColor::class.java)
+            .initialSubscriptions { realm, subscriptions ->
+                subscriptions.add(
+                    Subscription.create(
+                        "sub",
+                        realm.where<FlexSyncColor>().equalTo("section", section)
+                    )
+                )
+            }
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+
+                    throw RuntimeException()
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
+                }
+
+                @Deprecated("Deprecated in favor of onManualResetFallback")
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    latch.countDown()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    latch.countDown()
+                }
+
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
+            assertEquals(1, realm.where<FlexSyncColor>().count())
+        }
+
+        looperThread.testComplete(latch)
+    }
+
+    @Test
+    fun clientReset_discardUnsyncedChangesStrategy_fallback_userException_onAfterReset() = looperThread.runBlocking {
+        val latch = CountDownLatch(2)
+
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .schema(FlexSyncColor::class.java)
+            .initialSubscriptions { realm, subscriptions ->
+                subscriptions.add(
+                    Subscription.create(
+                        "sub",
+                        realm.where<FlexSyncColor>().equalTo("section", section)
+                    )
+                )
+            }
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertNotNull(realm)
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    throw RuntimeException()
+                }
+
+                @Deprecated("Deprecated in favor of onManualResetFallback")
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    latch.countDown()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    latch.countDown()
+                }
+
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
+            assertEquals(1, realm.where<FlexSyncColor>().count())
+        }
+
+        looperThread.testComplete(latch)
+    }
+
+    @Test
     fun errorHandler_automaticRecoveryStrategy() = looperThread.runBlocking {
         val latch = CountDownLatch(2)
 
@@ -270,6 +382,98 @@ class FlexibleSyncIntegrationTests {
         }
 
         looperThread.testComplete(latch)
+    }
+
+    @Test
+    fun clientReset_recoverUnsyncedChangesStrategy_fallback_userException_onBeforeReset() = looperThread.runBlocking {
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .schema(FlexSyncColor::class.java)
+            .initialSubscriptions { realm, subscriptions ->
+                subscriptions.add(
+                    Subscription.create(
+                        "sub",
+                        realm.where<FlexSyncColor>().equalTo("section", section)
+                    )
+                )
+            }
+            .syncClientResetStrategy(object : RecoverUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onAfterReset()")
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
+            assertEquals(1, realm.where<FlexSyncColor>().count())
+        }
+    }
+
+    @Test
+    fun clientReset_recoverUnsyncedChangesStrategy_fallback_userException_onAfterReset() = looperThread.runBlocking {
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .schema(FlexSyncColor::class.java)
+            .initialSubscriptions { realm, subscriptions ->
+                subscriptions.add(
+                    Subscription.create(
+                        "sub",
+                        realm.where<FlexSyncColor>().equalTo("section", section)
+                    )
+                )
+            }
+            .syncClientResetStrategy(object : RecoverUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertNotNull(realm)
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
+            assertEquals(1, realm.where<FlexSyncColor>().count())
+        }
     }
 
     @Test
@@ -391,4 +595,159 @@ class FlexibleSyncIntegrationTests {
 
         looperThread.testComplete(latch)
     }
+
+
+    @Test
+    fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_fallback_userException_onBeforeReset() = looperThread.runBlocking {
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .schema(FlexSyncColor::class.java)
+            .initialSubscriptions { realm, subscriptions ->
+                subscriptions.add(
+                    Subscription.create(
+                        "sub",
+                        realm.where<FlexSyncColor>().equalTo("section", section)
+                    )
+                )
+            }
+            .syncClientResetStrategy(object : RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterRecovery()")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
+            assertEquals(1, realm.where<FlexSyncColor>().count())
+        }
+    }
+
+    @Test
+    fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_fallback_userException_onAfterRecovery() = looperThread.runBlocking {
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .schema(FlexSyncColor::class.java)
+            .initialSubscriptions { realm, subscriptions ->
+                subscriptions.add(
+                    Subscription.create(
+                        "sub",
+                        realm.where<FlexSyncColor>().equalTo("section", section)
+                    )
+                )
+            }
+            .syncClientResetStrategy(object : RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertNotNull(realm)
+                }
+
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
+            assertEquals(1, realm.where<FlexSyncColor>().count())
+        }
+    }
+
+    @Test
+    fun clientReset_recoverOrDiscardUnsyncedChangesStrategy_fallback_userException_onAfterDiscard() = looperThread.runBlocking {
+        val config = configFactory.createFlexibleSyncConfigurationBuilder(user)
+            .schema(FlexSyncColor::class.java)
+            .initialSubscriptions { realm, subscriptions ->
+                subscriptions.add(
+                    Subscription.create(
+                        "sub",
+                        realm.where<FlexSyncColor>().equalTo("section", section)
+                    )
+                )
+            }
+            .syncClientResetStrategy(object : RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    assertNotNull(realm)
+                }
+
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterRecovery()")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    throw RuntimeException()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    validateManualResetIsAvailable(session, error)
+
+                    looperThread.testComplete()
+                }
+            })
+            .modules(ObjectSyncSchema())
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        serverAdmin.triggerClientReset(realm.syncSession, withRecoveryModeEnabled = false) {
+            realm.executeTransaction {
+                realm.copyToRealm(FlexSyncColor().apply {
+                    this.section = this@FlexibleSyncIntegrationTests.section
+                })
+            }
+
+            assertEquals(1, realm.where<FlexSyncColor>().count())
+        }
+    }
+
 }
