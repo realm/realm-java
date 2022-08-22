@@ -41,26 +41,6 @@ open class Realm : Plugin<Project> {
         val dependencyConfigurationName: String = getDependencyConfigurationName(project)
         val extension = project.extensions.create("realm", RealmPluginExtension::class.java)
 
-        extension.addPropertyListener(
-            RealmPluginExtension.KEY_KOTLIN_EXTENSIONS_ENABLED
-        ) {
-            setDependencies(
-                project,
-                dependencyConfigurationName,
-                extension.isSyncEnabled,
-                extension.isKotlinExtensionsEnabled
-            )
-        }
-        extension.addPropertyListener(
-            RealmPluginExtension.KEY_SYNC_ENABLED
-        ) {
-            setDependencies(
-                project,
-                dependencyConfigurationName,
-                extension.isSyncEnabled,
-                extension.isKotlinExtensionsEnabled
-            )
-        }
         extension.isKotlinExtensionsEnabled = isKotlinProject
 
         if (shouldApplyAndroidAptPlugin(
@@ -107,6 +87,14 @@ open class Realm : Plugin<Project> {
             project.dependencies.add(
                 "androidTestAnnotationProcessor",
                 "io.realm:realm-annotations-processor:${Version.VERSION}"
+            )
+        }
+        project.afterEvaluate {
+            setDependencies(
+                project,
+                dependencyConfigurationName,
+                extension.isSyncEnabled,
+                extension.isKotlinExtensionsEnabled
             )
         }
     }
@@ -164,8 +152,11 @@ open class Realm : Plugin<Project> {
         }
 
         // This will setup the required dependencies.
-        // Due to how Gradle works, we have no choice but to run this code every time any of the parameters
-        // in the Realm extension is changed.
+        // This must only be called once, as removal of dependencies through the iterator API will
+        // not propagate correctly into the IterationOrderRetainingSetElementSource which is backing
+        // the dependency set deep inside the DefaultDependencySet implementation, and failure to do
+        // so causes some internal caching in IterationOrderRetainingSetElementSource to skip
+        // re-adding it if it had already been there once.
         private fun setDependencies(
             project: Project,
             dependencyConfigurationName: String,
