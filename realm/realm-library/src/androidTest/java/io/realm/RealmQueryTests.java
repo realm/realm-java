@@ -4084,7 +4084,7 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
-    public void rawPredicate_reservedKeywordssdf() {
+    public void rawPredicate_reservedKeywords() {
         realm.beginTransaction();
         realm.insert(new KeywordFieldNames());
         realm.commitTransaction();
