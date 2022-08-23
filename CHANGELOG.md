@@ -4,12 +4,15 @@
 * None
 
 ### Fixed
-* None
+* Now queries can point to fields with query language-reserved words like 'desc', 'sort', 'distinct', etc. Issue [#7705](https://github.com/realm/realm-java/issues/7705)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Update to Realm Core 12.5.1, commit: 6f6a0f415bd33cf2ced4467e36a47f7c84f0a1d7.
 
 
 ## 10.11.1 (2022-07-14)
