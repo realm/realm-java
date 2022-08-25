@@ -1,5 +1,5 @@
-/*
- * Copyright 2021 Realm Inc.
+/**
+ * Copyright 2022 Realm Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.realm.mongodb.sync;
+package io.realm.entities
 
-/**
- * Interface that defines a generic sync client reset strategy, it could be either
- * {@link ManuallyRecoverUnsyncedChangesStrategy} or {@link AutomaticClientResetStrategy}.
- */
-public interface SyncClientResetStrategy {
+import io.realm.RealmObject
+import io.realm.annotations.PrimaryKey
+import org.bson.types.ObjectId
+import java.util.*
+
+open class DummySyncObject: RealmObject() {
+    @PrimaryKey
+    var _id: ObjectId? = ObjectId.get()
+    var string: String = UUID.randomUUID().toString()
 }
