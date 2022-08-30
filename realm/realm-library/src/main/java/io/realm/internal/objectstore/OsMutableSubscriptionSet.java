@@ -18,12 +18,13 @@ package io.realm.internal.objectstore;
 import io.realm.RealmModel;
 import io.realm.internal.RealmProxyMediator;
 import io.realm.internal.UnmanagedSubscription;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.mongodb.sync.MutableSubscriptionSet;
 import io.realm.mongodb.sync.Subscription;
 
 // TODO Adding @ObjectServer here seems to break the Realm Build Transformer. Investigate why.
-//@ObjectServer
+@ObjectServer
 public class OsMutableSubscriptionSet extends OsSubscriptionSet implements MutableSubscriptionSet {
 
     public OsMutableSubscriptionSet(long nativePtr,

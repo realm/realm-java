@@ -20,11 +20,13 @@ import java.util.Date;
 import javax.annotation.Nullable;
 
 import io.realm.RealmQuery;
+import io.realm.internal.annotations.ObjectServer;
 import io.realm.mongodb.sync.Subscription;
 
 /**
  * Class that handles unmanaged subscriptions. Required as we need to track a realm query ptr.
  */
+@ObjectServer
 public class UnmanagedSubscription implements Subscription {
 
     private final Date createdAt;

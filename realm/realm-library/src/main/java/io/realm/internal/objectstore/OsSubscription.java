@@ -22,7 +22,7 @@ import io.realm.internal.annotations.ObjectServer;
 import io.realm.mongodb.sync.Subscription;
 
 // TODO Adding @ObjectServer here seems to break the Realm Build Transformer. Investigate why.
-//@ObjectServer
+@ObjectServer
 public class OsSubscription implements NativeObject, Subscription {
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();

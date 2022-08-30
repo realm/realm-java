@@ -154,18 +154,13 @@ android {
 }
 
 io.realm.transformer.RealmTransformer.@Companion.register(project)
-// TODO 
-//android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
-//        "base",
-//        "io.realm.internal.annotations.ObjectServer",
-//        [
-//                "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
-//                "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
-//                "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
-//                "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
-//                "io_realm_sync_permissions_RoleRealmProxyInterface.class"
-//        ].toSet()
-//))
+// TODO RealmBuildTransformer only supports stripping symbols from Jars so must be applied
+//  after the accessor transformer (that combines all inputs into one common Jar)
+io.realm.buildtransformer.RealmBuildTransformer.@Companion.register(
+        project,
+        "base",
+        "io.realm.internal.annotations.ObjectServer",
+)
 
 project.afterEvaluate {
     tasks.withType(JavaCompile) {
