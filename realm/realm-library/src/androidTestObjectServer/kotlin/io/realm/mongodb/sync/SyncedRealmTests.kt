@@ -932,9 +932,9 @@ class SyncedRealmTests {
         val user = createNewUser()
         val config = SyncConfiguration.Builder(user, "e873fb25-11ef-498f-9782-3c8e1cd2a12c")
             .assetFile("synced_realm_e873fb25-11ef-498f-9782-3c8e1cd2a12c_no_client_id.realm")
-            .syncClientResetStrategy { session, error ->
-                fail("Client reset should not have been invoked")
-            }
+            .syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy {
+                    session, error -> fail("Client reset should not have been invoked")
+            })
             .schema(SyncColor::class.java)
             .build()
 

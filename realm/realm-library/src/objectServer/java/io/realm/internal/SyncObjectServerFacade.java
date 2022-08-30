@@ -41,6 +41,9 @@ import io.realm.internal.objectstore.OsAsyncOpenTask;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.User;
+import io.realm.mongodb.sync.AutomaticClientResetStrategy;
+import io.realm.mongodb.sync.RecoverOrDiscardUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.RecoverUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.MutableSubscriptionSet;
@@ -92,7 +95,7 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
 
     @Keep
     public interface AfterClientResetHandler {
-        void onAfterReset(long beforePtr, long afterPtr, OsRealmConfig config);
+        void onAfterReset(long beforePtr, long afterPtr, OsRealmConfig config, boolean didRecover);
     }
 
     @Override
@@ -120,19 +123,37 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
                 clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_MANUAL;
             } else if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
                 clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_DISCARD_LOCAL;
+            } else if (clientResetStrategy instanceof RecoverUnsyncedChangesStrategy) {
+                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_RECOVER;
+            } else if (clientResetStrategy instanceof RecoverOrDiscardUnsyncedChangesStrategy) {
+                clientResetMode = OsRealmConfig.CLIENT_RESYNC_MODE_RECOVER_OR_DISCARD;
             }
 
             BeforeClientResetHandler beforeClientResetHandler = (localPtr, osRealmConfig) -> {
                 NativeContext.execute(nativeContext -> {
                     Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
-                    ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onBeforeReset(before);
+
+                    if (clientResetStrategy instanceof AutomaticClientResetStrategy) {
+                        ((AutomaticClientResetStrategy) clientResetStrategy).onBeforeReset(before);
+                    }
                 });
             };
-            AfterClientResetHandler afterClientResetHandler = (localPtr, afterPtr, osRealmConfig) -> {
+            AfterClientResetHandler afterClientResetHandler = (localPtr, afterPtr, osRealmConfig, didRecover) -> {
                 NativeContext.execute(nativeContext -> {
                     Realm before = realmInstanceFactory.createInstance(new OsSharedRealm(localPtr, osRealmConfig, nativeContext));
                     Realm after = realmInstanceFactory.createInstance(new OsSharedRealm(afterPtr, osRealmConfig, nativeContext));
-                    ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
+
+                    if (clientResetStrategy instanceof DiscardUnsyncedChangesStrategy) {
+                        ((DiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
+                    } else if (clientResetStrategy instanceof RecoverUnsyncedChangesStrategy) {
+                        ((RecoverUnsyncedChangesStrategy) clientResetStrategy).onAfterReset(before, after);
+                    } else if (clientResetStrategy instanceof RecoverOrDiscardUnsyncedChangesStrategy) {
+                        if (didRecover) {
+                            ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterRecovery(before, after);
+                        } else {
+                            ((RecoverOrDiscardUnsyncedChangesStrategy) clientResetStrategy).onAfterDiscard(before, after);
+                        }
+                    }
                 });
             };
 

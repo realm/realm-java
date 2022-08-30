@@ -34,6 +34,11 @@ import io.realm.log.RealmLog;
  */
 public class OsRealmConfig implements NativeObject {
 
+    // Keep references to reset handlers to avoid being garbage collected.
+    // They cannot be on the SyncConfiguration object as they are build on the SyncObjectServerFacade
+    private final Object beforeClientResetHandler;
+    private final Object afterClientResetHandler;
+
     public enum Durability {
         FULL(0),
         MEM_ONLY(1);
@@ -176,6 +181,8 @@ public class OsRealmConfig implements NativeObject {
     // Public to be usable from the io.realm package
     public static final byte CLIENT_RESYNC_MODE_MANUAL = 0;
     public static final byte CLIENT_RESYNC_MODE_DISCARD_LOCAL = 1;
+    public static final byte CLIENT_RESYNC_MODE_RECOVER = 2;
+    public static final byte CLIENT_RESYNC_MODE_RECOVER_OR_DISCARD = 3;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerPtr();
 
@@ -225,8 +232,8 @@ public class OsRealmConfig implements NativeObject {
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
-        Object beforeClientResetHandler = syncConfigurationOptions[j++];
-        Object afterClientResetHandler = syncConfigurationOptions[j++];
+        beforeClientResetHandler = syncConfigurationOptions[j++];
+        afterClientResetHandler = syncConfigurationOptions[j++];
         String encodedPartitionValue = (String) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
         Long appPtr = (Long) syncConfigurationOptions[j++];

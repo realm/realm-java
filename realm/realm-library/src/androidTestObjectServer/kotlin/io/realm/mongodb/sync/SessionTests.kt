@@ -21,13 +21,11 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.TestHelper.TestLogger
 import io.realm.entities.DefaultSyncSchema
-import io.realm.entities.SyncColor
 import io.realm.entities.SyncStringOnly
 import io.realm.entities.SyncStringOnlyModule
 import io.realm.exceptions.RealmFileException
 import io.realm.exceptions.RealmMigrationNeededException
 import io.realm.kotlin.syncSession
-import io.realm.kotlin.where
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.*
@@ -38,12 +36,10 @@ import kotlinx.coroutines.runBlocking
 import org.bson.types.ObjectId
 import org.hamcrest.CoreMatchers
 import org.junit.*
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.*
 
 @RunWith(AndroidJUnit4::class)
@@ -128,34 +124,127 @@ class SessionTests {
 
     // Check that a if Seamless loss Client Reset fails the error is correctly reported.
     @Test
+    fun errorHandler_discardUnsyncedChangesStrategy_resetErrorHandled_deprecated() = looperThread.runBlocking {
+        val email = TestHelper.getRandomEmail()
+        val user: User = app.registerUserAndLogin(email, "123456")
+
+        val config = configFactory.createSyncConfigurationBuilder(user)
+            .testSchema(SyncStringOnly::class.java)
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
+                }
+
+                @Deprecated("Deprecated in favor of onManualResetFallback")
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    val filePathFromError = error.originalFile.absolutePath
+                    val filePathFromConfig = session.configuration.path
+                    assertEquals(filePathFromError, filePathFromConfig)
+                    assertFalse(error.backupFile.exists())
+                    assertTrue(error.originalFile.exists())
+                    // Note, this error message is just the one created by ObjectStore for testing
+                    // The server will send a different message. This just ensures that we don't
+                    // accidentially modify or remove the message.
+                    assertEquals("Simulate Client Reset", error.message)
+                    looperThread.testComplete()
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    // do nothing
+                }
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
+    }
+
+    // Check that a if Seamless loss Client Reset fails the error is correctly reported.
+    @Test
     fun errorHandler_discardUnsyncedChangesStrategy_resetErrorHandled() = looperThread.runBlocking {
         val email = TestHelper.getRandomEmail()
         val user: User = app.registerUserAndLogin(email, "123456")
 
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
-                .syncClientResetStrategy(object: DiscardUnsyncedChangesStrategy {
-                    override fun onBeforeReset(realm: Realm) {
-                        fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
-                    }
+            .syncClientResetStrategy(object : DiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onBeforeReset()")
+                }
 
-                    override fun onAfterReset(before: Realm, after: Realm) {
-                        fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
-                    }
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger DiscardUnsyncedChangesStrategy::onAfterReset()")
+                }
 
-                    override fun onError(session: SyncSession, error: ClientResetRequiredError) {
-                        val filePathFromError = error.originalFile.absolutePath
-                        val filePathFromConfig = session.configuration.path
-                        assertEquals(filePathFromError, filePathFromConfig)
-                        assertFalse(error.backupFile.exists())
-                        assertTrue(error.originalFile.exists())
-                        // Note, this error message is just the one created by ObjectStore for testing
-                        // The server will send a different message. This just ensures that we don't
-                        // accidentially modify or remove the message.
-                        assertEquals("Simulate Client Reset", error.message)
-                        looperThread.testComplete()
-                    }
-                })
+                @Deprecated("Deprecated in favor of onManualResetFallback")
+                override fun onError(session: SyncSession, error: ClientResetRequiredError) {
+                    // do nothing
+                }
+
+                override fun onManualResetFallback(
+                    session: SyncSession,
+                    error: ClientResetRequiredError
+                ) {
+                    val filePathFromError = error.originalFile.absolutePath
+                    val filePathFromConfig = session.configuration.path
+                    assertEquals(filePathFromError, filePathFromConfig)
+                    assertFalse(error.backupFile.exists())
+                    assertTrue(error.originalFile.exists())
+                    // Note, this error message is just the one created by ObjectStore for testing
+                    // The server will send a different message. This just ensures that we don't
+                    // accidentially modify or remove the message.
+                    assertEquals("Simulate Client Reset", error.message)
+                    looperThread.testComplete()
+                }
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
+    }
+
+    @Test
+    fun errorHandler_recoverOrDiscardUnsyncedChangesStrategy_resetErrorHandled() = looperThread.runBlocking {
+        val email = TestHelper.getRandomEmail()
+        val user: User = app.registerUserAndLogin(email, "123456")
+
+        val config = configFactory.createSyncConfigurationBuilder(user)
+            .testSchema(SyncStringOnly::class.java)
+            .syncClientResetStrategy(object: RecoverOrDiscardUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onBeforeReset()")
+                }
+
+                override fun onAfterRecovery(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterRecovery()")
+                }
+
+                override fun onAfterDiscard(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverOrDiscardUnsyncedChangesStrategy::onAfterDiscard()")
+                }
+
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    val filePathFromError = error.originalFile.absolutePath
+                    val filePathFromConfig = session.configuration.path
+                    assertEquals(filePathFromError, filePathFromConfig)
+                    assertFalse(error.backupFile.exists())
+                    assertTrue(error.originalFile.exists())
+                    // Note, this error message is just the one created by ObjectStore for testing
+                    // The server will send a different message. This just ensures that we don't
+                    // accidentially modify or remove the message.
+                    assertEquals("Simulate Client Reset", error.message)
+                    looperThread.testComplete()
+                }
+            })
             .build()
 
         val realm = Realm.getInstance(config)
@@ -280,7 +369,7 @@ class SessionTests {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .modules(SyncStringOnlyModule())
-                .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
+                .clientResetHandler { _: SyncSession, error: ClientResetRequiredError ->
                     // Execute Client Reset
                     runBlocking(looperThread.asDispatcher()) {
                         resources.close()
@@ -347,7 +436,7 @@ class SessionTests {
         val config = configFactory.createSyncConfigurationBuilder(user)
                 .encryptionKey(randomKey)
                 .modules(SyncStringOnlyModule())
-                .clientResetHandler { session: SyncSession?, error: ClientResetRequiredError ->
+                .clientResetHandler { _: SyncSession, error: ClientResetRequiredError ->
                     // Execute Client Reset
                     runBlocking(looperThread.asDispatcher()) {
                         resources.close()
@@ -392,7 +481,7 @@ class SessionTests {
 
     // Check that a Client Reset is correctly reported.
     @Test
-    fun errorHandler_manuallyRecoverClientResetReported() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_errorHandled() = looperThread.runBlocking {
         val config = configFactory.createSyncConfigurationBuilder(user)
             .testSchema(SyncStringOnly::class.java)
             .syncClientResetStrategy { session: SyncSession, error: ClientResetRequiredError ->
@@ -418,7 +507,7 @@ class SessionTests {
 
     // Check that we can manually execute the Client Reset.
     @Test
-    fun errorHandler_manuallyRecoverExecuteClientReset() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_executeClientReset() = looperThread.runBlocking {
         val resources = ResourceContainer()
 
         val config = configFactory.createSyncConfigurationBuilder(user)
@@ -451,11 +540,11 @@ class SessionTests {
 
     // Check that we can use the backup SyncConfiguration to open the Realm.
     @Test
-    fun errorHandler_manuallyUseBackupSyncConfigurationForClientReset() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_attempRecoverData() = looperThread.runBlocking {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
             .schema(SyncStringOnly::class.java)
-            .syncClientResetStrategy { _: SyncSession?, error: ClientResetRequiredError ->
+            .syncClientResetStrategy { _: SyncSession, error: ClientResetRequiredError ->
                 // Execute Client Reset
                 runBlocking(looperThread.asDispatcher()) {
                     resources.close()
@@ -472,7 +561,10 @@ class SessionTests {
                 Realm.getInstance(backupRealmConfiguration).use { backupRealm ->
                     assertFalse(backupRealm.isEmpty)
                     assertEquals(1, backupRealm.where(SyncStringOnly::class.java).count())
-                    assertEquals("Foo", backupRealm.where(SyncStringOnly::class.java).findAll().first()!!.chars)
+                    assertEquals(
+                        "Foo",
+                        backupRealm.where(SyncStringOnly::class.java).findAll().first()!!.chars
+                    )
                 }
 
                 // opening a Dynamic Realm should also work
@@ -499,11 +591,11 @@ class SessionTests {
     // this might be the case if the user decide to act upon the client reset later (providing s/he
     // persisted the location of the file)
     @Test
-    fun errorHandler_manuallyUseBackupSyncConfigurationAfterClientReset() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_useBackupAfterClientReset() = looperThread.runBlocking {
         val resources = ResourceContainer()
         val config = configFactory.createSyncConfigurationBuilder(user)
             .modules(SyncStringOnlyModule())
-            .syncClientResetStrategy { session: SyncSession?, error: ClientResetRequiredError ->
+            .syncClientResetStrategy { _: SyncSession, error: ClientResetRequiredError ->
                 // Execute Client Reset
                 runBlocking(looperThread.asDispatcher()) {
                     resources.close()
@@ -539,7 +631,8 @@ class SessionTests {
                 }
 
                 // specifying the module will allow to open the typed Realm
-                backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, null, SyncStringOnlyModule())
+                backupRealmConfiguration =
+                    SyncConfiguration.forRecovery(backupFile, null, SyncStringOnlyModule())
                 Realm.getInstance(backupRealmConfiguration).use { backupRealm ->
                     assertFalse(backupRealm.isEmpty)
                     assertEquals(1, backupRealm.where(SyncStringOnly::class.java).count())
@@ -562,14 +655,14 @@ class SessionTests {
 
     // make sure the backup file Realm is encrypted with the same key as the original synced Realm.
     @Test
-    fun errorHandler_manuallyUseClientResetEncrypted() = looperThread.runBlocking {
+    fun errorHandler_manuallyRecoverUnsyncedChangesStrategy_encrypted() = looperThread.runBlocking {
         val resources = ResourceContainer()
 
         val randomKey = TestHelper.getRandomKey()
         val config = configFactory.createSyncConfigurationBuilder(user)
             .encryptionKey(randomKey)
             .modules(SyncStringOnlyModule())
-            .syncClientResetStrategy { session: SyncSession?, error: ClientResetRequiredError ->
+            .syncClientResetStrategy { _: SyncSession, error: ClientResetRequiredError ->
                 // Execute Client Reset
                 runBlocking(looperThread.asDispatcher()) {
                     resources.close()
@@ -580,13 +673,17 @@ class SessionTests {
                 // can open encrypted backup Realm
                 Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
                     assertEquals(1, backupEncryptedRealm.where(SyncStringOnly::class.java).count())
-                    val allSorted = backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
-                    assertEquals("Foo", allSorted[0]!!.chars)
+                    assertEquals(
+                        "Foo",
+                        backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
+                            .first()!!.chars
+                    )
                 }
                 val backupFile = error.backupFile.absolutePath
 
                 // build a conf to open a DynamicRealm
-                backupRealmConfiguration = SyncConfiguration.forRecovery(backupFile, randomKey, SyncStringOnlyModule())
+                backupRealmConfiguration =
+                    SyncConfiguration.forRecovery(backupFile, randomKey, SyncStringOnlyModule())
                 Realm.getInstance(backupRealmConfiguration).use { backupEncryptedRealm ->
                     assertEquals(1, backupEncryptedRealm.where(SyncStringOnly::class.java).count())
                     val allSorted = backupEncryptedRealm.where(SyncStringOnly::class.java).findAll()
@@ -595,7 +692,13 @@ class SessionTests {
 
                 // using wrong key throw
                 assertFailsWith<RealmFileException> {
-                    Realm.getInstance(SyncConfiguration.forRecovery(backupFile, TestHelper.getRandomKey(), SyncStringOnlyModule()))
+                    Realm.getInstance(
+                        SyncConfiguration.forRecovery(
+                            backupFile,
+                            TestHelper.getRandomKey(),
+                            SyncStringOnlyModule()
+                        )
+                    )
                 }
                 looperThread.testComplete()
             }
@@ -609,6 +712,41 @@ class SessionTests {
 
         // Trigger error
         user.app.sync.simulateClientReset(realm.syncSession)
+    }
+
+    @Test
+    fun errorHandler_recoverUnsyncedChangesStrategy_resetErrorHandled() = looperThread.runBlocking {
+        val config = configFactory.createSyncConfigurationBuilder(user)
+            .testSchema(SyncStringOnly::class.java)
+            .syncClientResetStrategy(object: RecoverUnsyncedChangesStrategy {
+                override fun onBeforeReset(realm: Realm) {
+                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onBeforeReset()")
+                }
+
+                override fun onAfterReset(before: Realm, after: Realm) {
+                    fail("This test case was not supposed to trigger RecoverUnsyncedChangesStrategy::onAfterReset()")
+                }
+
+                override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                    val filePathFromError = error.originalFile.absolutePath
+                    val filePathFromConfig = session.configuration.path
+                    assertEquals(filePathFromError, filePathFromConfig)
+                    assertFalse(error.backupFile.exists())
+                    assertTrue(error.originalFile.exists())
+                    // Note, this error message is just the one created by ObjectStore for testing
+                    // The server will send a different message. This just ensures that we don't
+                    // accidentially modify or remove the message.
+                    assertEquals("Simulate Client Reset", error.message)
+                    looperThread.testComplete()
+                }
+            })
+            .build()
+
+        val realm = Realm.getInstance(config)
+        looperThread.closeAfterTest(realm)
+
+        // Trigger error
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
     }
 
     @Test

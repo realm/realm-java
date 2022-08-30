@@ -5,11 +5,11 @@ import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.App
 import io.realm.mongodb.User
+import io.realm.mongodb.sync.SyncSession
 import okhttp3.*
 import okio.Buffer
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.File
 import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
@@ -291,8 +291,8 @@ class ServerAdmin(private val app: App) {
 
     private fun getLocalUserPassProviderId(): String {
         val request: Request.Builder = Request.Builder()
-                .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers")
-                .get()
+            .url("$baseUrl/groups/$groupId/apps/$appId/auth_providers")
+            .get()
         val authProvidersListResult = JSONArray(executeRequest(request, true))
         var providerId: String? = null
         for (i in 0 until authProvidersListResult.length()) {
@@ -317,4 +317,89 @@ class ServerAdmin(private val app: App) {
         return result.getString("key")
     }
 
+    private fun getMongodbServiceId(): String {
+        var request = Request.Builder()
+            .url("$baseUrl/groups/$groupId/apps/$appId/services")
+            .get()
+        val list = JSONArray(executeRequest(request))
+        for (i in 0 until list.length()) {
+            val obj: JSONObject = list.getJSONObject(i)
+            if (obj.getString("type") == "mongodb") {
+                return obj.getString("_id")
+            }
+        }
+
+        error("Mongodb service not found for ${this.app.configuration.appId}")
+    }
+
+    private fun getConfig(): JSONObject {
+        val serviceId = getMongodbServiceId()
+
+        val request: Request.Builder = Request.Builder()
+            .url("$baseUrl/groups/$groupId/apps/$appId/services/$serviceId/config")
+            .get()
+
+        return JSONObject(executeRequest(request, true))
+    }
+
+    private fun isRecoveryModeEnabled(): Boolean = !getConfig()
+        .getJSONObject("sync")
+        .optBoolean("is_recovery_mode_disabled", false)
+
+    private fun setIsRecoveryModeEnabled(isRecoveryModeEnabled: Boolean) {
+        val serviceId = getMongodbServiceId()
+
+        val config = getConfig().apply {
+            getJSONObject("sync").put("is_recovery_mode_disabled", !isRecoveryModeEnabled)
+        }
+
+        val request = Request.Builder()
+            .url("$baseUrl/groups/$groupId/apps/$appId/services/${serviceId}/config")
+            .patch(RequestBody.create(json, config.toString()))
+
+        executeRequest(request, true)
+    }
+
+    private fun callTriggerResetFunction(
+        userId: String
+    ) {
+
+        val functionCall = JSONObject("""
+            {
+                "name": "triggerClientReset",
+                "arguments": ["$userId"]
+            }
+        """.trimIndent())
+
+        val request = Request.Builder()
+            .url("$baseUrl/groups/$groupId/apps/$appId/debug/execute_function?run_as_system=true")
+            .post(RequestBody.create(json, functionCall.toString()))
+
+        executeRequest(request, true)
+    }
+
+    // Will trigger a client reset with the recovery mode disabled if needed
+    // Disabling the recovery mode would force a `RecoverOrDiscardUnsyncedChangesStrategy` to
+    // discard the local changes even if they are recoverable.
+    fun triggerClientReset(syncSession: SyncSession,
+                           withRecoveryModeEnabled: Boolean = true,
+                           block: () -> Unit)
+    {
+        // Later, we will restore the original status
+        val wasRecoveryModeEnabled = isRecoveryModeEnabled()
+
+        syncSession.downloadAllServerChanges()
+        syncSession.stop()
+
+        block()
+
+        setIsRecoveryModeEnabled(withRecoveryModeEnabled)
+
+        callTriggerResetFunction(syncSession.user.id)
+
+        syncSession.start()
+        syncSession.downloadAllServerChanges()
+
+        setIsRecoveryModeEnabled(wasRecoveryModeEnabled)
+    }
 }

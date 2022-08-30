@@ -33,9 +33,9 @@ const val TEST_APP_2 = "testapp2"       // ID for the 2nd test app, which is a d
 const val TEST_APP_3 = "testapp3"       // ID for the 3rd test app, which is configured for Flexible Sync instead of Partion-based sync
 
 class TestApp(
-        networkTransport: OsJavaNetworkTransport? = null,
-		appName: String = TEST_APP_1,
-        builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
+    networkTransport: OsJavaNetworkTransport? = null,
+    appName: String = TEST_APP_1,
+    builder: (AppConfiguration.Builder) -> AppConfiguration.Builder = { it }
 ) : App(builder(configurationBuilder(appName)).build()) {
 
     init {
@@ -47,21 +47,21 @@ class TestApp(
     companion object {
         fun configurationBuilder(appName: String): AppConfiguration.Builder {
             return AppConfiguration.Builder(initializeMongoDbRealm(appName))
-                    .baseUrl("http://127.0.0.1:9090")
-                    .appName("MongoDB Realm Integration Tests")
-                    .appVersion("1.0.")
-                    .httpLogObfuscator(null)
+                .baseUrl("http://127.0.0.1:9090")
+                .appName("MongoDB Realm Integration Tests")
+                .appVersion("1.0.")
+                .httpLogObfuscator(null)
         }
 
         // Initializes MongoDB Realm. Clears all local state and fetches the application ID.
         private fun initializeMongoDbRealm(appName: String): String {
             val transport = OkHttpNetworkTransport(null)
             val response = transport.executeRequest(
-                    "get",
-                    "http://127.0.0.1:8888/$appName",
-                    5000,
-                    mapOf(),
-                    ""
+                "get",
+                "http://127.0.0.1:8888/$appName",
+                5000,
+                mapOf(),
+                ""
             )
             return when (response.httpResponseCode) {
                 200 -> response.body

@@ -1000,26 +1000,52 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * Sets the client reset strategy. If strategy is set, and error is
          * logged when a Client Reset occurs.
          *
-         * @param handler custom manual handler in case of a Client Reset.
+         * @param strategy custom manual strategy in case of a Client Reset.
          */
-        public Builder syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy handler) {
-            return syncClientResetStrategyInternal(handler);
+        public Builder syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy strategy) {
+            return syncClientResetStrategyInternal(strategy);
         }
 
         /**
-         * Sets the handler for when a Client Reset occurs. If no handler is set, and error is
+         * Sets the client reset strategy. If strategy is set, and error is
          * logged when a Client Reset occurs.
          *
          * This strategy is only available for synced realms using partition based sync. Realms using
          * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
          *
-         * @param handler custom seamless loss handler in case of a Client Reset.
+         * @param strategy custom discard local changes strategy in case of a Client Reset.
          */
-        public Builder syncClientResetStrategy(DiscardUnsyncedChangesStrategy handler) {
-            return syncClientResetStrategyInternal(handler);
+        public Builder syncClientResetStrategy(DiscardUnsyncedChangesStrategy strategy) {
+            return syncClientResetStrategyInternal(strategy);
+        }
+
+        /**
+         * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * This strategy is only available for synced realms using partition based sync. Realms using
+         * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
+         *
+         * @param strategy custom automatic recover in case of a Client Reset.
+         */
+        public Builder syncClientResetStrategy(RecoverUnsyncedChangesStrategy strategy) {
+            return syncClientResetStrategyInternal(strategy);
+        }
+
+        /**
+         * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
+         * logged when a Client Reset occurs.
+         *
+         * This strategy is only available for synced realms using partition based sync. Realms using
+         * flexible sync currently only support {@link #syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}.
+         *
+         * @param strategy custom automatic recover in case of a Client Reset.
+         */
+        public Builder syncClientResetStrategy(RecoverOrDiscardUnsyncedChangesStrategy strategy) {
+            return syncClientResetStrategyInternal(strategy);
         }
 
         /**

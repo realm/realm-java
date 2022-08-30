@@ -29,8 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nonnull;
-
 import io.realm.annotations.Beta;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.AppException;
@@ -221,13 +219,40 @@ public class SyncSession {
             RealmConfiguration backupRealmConfiguration = configuration.forErrorRecovery(clientResetPathInfo);
 
             if (clientResetHandler instanceof ManuallyRecoverUnsyncedChangesStrategy) {
-                ((ManuallyRecoverUnsyncedChangesStrategy) clientResetHandler).onClientReset(this,
-                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
-                                configuration, backupRealmConfiguration));
-            } else if (clientResetHandler instanceof DiscardUnsyncedChangesStrategy) {
-                ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(this,
-                        new ClientResetRequiredError(appNativePointer, errCode, errorMessage,
-                                configuration, backupRealmConfiguration));
+                ((ManuallyRecoverUnsyncedChangesStrategy) clientResetHandler).onClientReset(
+                        this,
+                        new ClientResetRequiredError(
+                                appNativePointer,
+                                errCode,
+                                errorMessage,
+                                configuration,
+                                backupRealmConfiguration
+                        )
+                );
+            } else if (clientResetHandler instanceof AutomaticClientResetStrategy) {
+                // Required to support the deprecated DiscardUnsyncedChangesStrategy::onError
+                if (clientResetHandler instanceof DiscardUnsyncedChangesStrategy) {
+                    ((DiscardUnsyncedChangesStrategy) clientResetHandler).onError(
+                            this,
+                            new ClientResetRequiredError(
+                                    appNativePointer,
+                                    errCode,
+                                    errorMessage,
+                                    configuration,
+                                    backupRealmConfiguration
+                            )
+                    );
+                }
+                ((AutomaticClientResetStrategy) clientResetHandler).onManualResetFallback(
+                        this,
+                        new ClientResetRequiredError(
+                                appNativePointer,
+                                errCode,
+                                errorMessage,
+                                configuration,
+                                backupRealmConfiguration
+                        )
+                );
             }
         } else {
             AppException wrappedError;

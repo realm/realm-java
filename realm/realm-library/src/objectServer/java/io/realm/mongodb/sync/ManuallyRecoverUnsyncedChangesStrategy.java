@@ -15,7 +15,6 @@
  */
 package io.realm.mongodb.sync;
 
-import javax.annotation.Nonnull;
 import io.realm.mongodb.ErrorCode;
 
 /**

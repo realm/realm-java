@@ -23,9 +23,7 @@ import io.realm.log.RealmLog
 import io.realm.log.RealmLogger
 import io.realm.mongodb.*
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator
-import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy
-import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy
-import io.realm.mongodb.sync.SyncSession
+import io.realm.mongodb.sync.*
 import io.realm.rule.BlockingLooperThread
 import io.realm.util.assertFailsWithErrorCode
 import org.bson.codecs.StringCodec
@@ -286,17 +284,65 @@ class AppConfigurationTests {
         val config = AppConfiguration.Builder("app-id")
             .build()
 
-        assertTrue(config.defaultSyncClientResetStrategy is DiscardUnsyncedChangesStrategy)
+        assertTrue(config.defaultSyncClientResetStrategy is RecoverOrDiscardUnsyncedChangesStrategy)
     }
 
     @Test
-    fun setDefaultSyncClientStrategy() {
-        val handler = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
+    fun setDefaultSyncClientStrategy_manual() {
+        val strategy = ManuallyRecoverUnsyncedChangesStrategy { _, _ -> }
 
         val config = AppConfiguration.Builder("app-id")
-                .defaultSyncClientResetStrategy(handler)
-                .build()
-        assertEquals(config.defaultSyncClientResetStrategy, handler)
+            .defaultSyncClientResetStrategy(strategy)
+            .build()
+        assertEquals(config.defaultSyncClientResetStrategy, strategy)
+    }
+
+    @Test
+    fun setDefaultSyncClientStrategy_automaticRecovery() {
+        val strategy = object: RecoverUnsyncedChangesStrategy {
+            override fun onBeforeReset(realm: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onAfterReset(before: Realm, after: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                fail("Callback should not be reachable")
+            }
+        }
+
+        val config = AppConfiguration.Builder("app-id")
+            .defaultSyncClientResetStrategy(strategy)
+            .build()
+        assertEquals(config.defaultSyncClientResetStrategy, strategy)
+    }
+
+    @Test
+    fun setDefaultSyncClientStrategy_automaticRecoveryOrDiscard() {
+        val strategy = object: RecoverOrDiscardUnsyncedChangesStrategy {
+            override fun onBeforeReset(realm: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onAfterRecovery(before: Realm, after: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onAfterDiscard(before: Realm, after: Realm) {
+                fail("Callback should not be reachable")
+            }
+
+            override fun onManualResetFallback(session: SyncSession, error: ClientResetRequiredError) {
+                fail("Callback should not be reachable")
+            }
+        }
+
+        val config = AppConfiguration.Builder("app-id")
+            .defaultSyncClientResetStrategy(strategy)
+            .build()
+        assertEquals(config.defaultSyncClientResetStrategy, strategy)
     }
 
     @Test

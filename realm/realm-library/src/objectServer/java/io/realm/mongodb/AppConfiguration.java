@@ -24,7 +24,6 @@ import org.bson.codecs.MapCodecProvider;
 import org.bson.codecs.ValueCodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -50,6 +49,8 @@ import io.realm.internal.log.obfuscator.RegexPatternObfuscator;
 import io.realm.internal.log.obfuscator.TokenObfuscator;
 import io.realm.log.RealmLog;
 import io.realm.mongodb.log.obfuscator.HttpLogObfuscator;
+import io.realm.mongodb.sync.RecoverOrDiscardUnsyncedChangesStrategy;
+import io.realm.mongodb.sync.RecoverUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.ClientResetRequiredError;
 import io.realm.mongodb.sync.DiscardUnsyncedChangesStrategy;
 import io.realm.mongodb.sync.ManuallyRecoverUnsyncedChangesStrategy;
@@ -411,20 +412,25 @@ public class AppConfiguration {
                 }
             }
         };
-        private SyncClientResetStrategy defaultSyncClientResetStrategy = new DiscardUnsyncedChangesStrategy() {
+        private SyncClientResetStrategy defaultSyncClientResetStrategy = new RecoverOrDiscardUnsyncedChangesStrategy() {
             @Override
             public void onBeforeReset(Realm realm) {
-                RealmLog.debug("Client Reset is about to happen on Realm: " + realm.getPath());
+                RealmLog.debug("Client reset: attempting to automatically recover unsynced changes in Realm: " + realm.getPath());
             }
 
             @Override
-            public void onAfterReset(Realm before, Realm after) {
-                RealmLog.debug("Client Reset complete on Realm: " + after.getPath());
+            public void onAfterRecovery(Realm before, Realm after) {
+                RealmLog.debug("Client reset: successful recovered all unsynced changes in Realm: " + after.getPath());
             }
 
             @Override
-            public void onError(SyncSession session, ClientResetRequiredError error) {
-                RealmLog.fatal("Seamless Client Reset failed on: " + session.getConfiguration().getServerUrl());
+            public void onAfterDiscard(Realm before, Realm after) {
+                RealmLog.debug("Client reset: couldn't recover successfully, all unsynced changes were discarded in Realm" + after.getPath());
+            }
+
+            @Override
+            public void onManualResetFallback(SyncSession session, ClientResetRequiredError error) {
+                RealmLog.fatal("Client reset: manual reset required" + session.getConfiguration().getServerUrl());
             }
         };
         private byte[] encryptionKey;
@@ -582,7 +588,6 @@ public class AppConfiguration {
 
         /**
          * Sets the default Client Reset handler used by Synced Realms when they report a Client Reset.
-         * session.
          * <p>
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#clientResetHandler(SyncSession.ClientResetHandler)} when creating
@@ -601,11 +606,12 @@ public class AppConfiguration {
 
         /**
          * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
-         * session.
          * <p>
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(RecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(RecoverOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
@@ -618,16 +624,53 @@ public class AppConfiguration {
 
         /**
          * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
-         * session.
          * <p>
          * This default can be overridden by calling
          * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
          * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(RecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(RecoverOrDiscardUnsyncedChangesStrategy)}
          * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
          *
          * @param strategy the default sync client reset strategy.
          */
         public Builder defaultSyncClientResetStrategy(@Nonnull DiscardUnsyncedChangesStrategy strategy) {
+            Util.checkNull(strategy, "strategy");
+            defaultSyncClientResetStrategy = strategy;
+            return this;
+        }
+
+        /**
+         * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
+         * <p>
+         * This default can be overridden by calling
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(RecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(RecoverOrDiscardUnsyncedChangesStrategy)}
+         * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         *
+         * @param strategy the default sync client reset strategy.
+         */
+        public Builder defaultSyncClientResetStrategy(@Nonnull RecoverUnsyncedChangesStrategy strategy) {
+            Util.checkNull(strategy, "strategy");
+            defaultSyncClientResetStrategy = strategy;
+            return this;
+        }
+
+        /**
+         * Sets the default sync client reset strategy used by Synced Realms when they report a Client Reset.
+         * <p>
+         * This default can be overridden by calling
+         * {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(DiscardUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(RecoverUnsyncedChangesStrategy)}
+         * or {@link io.realm.mongodb.sync.SyncConfiguration.Builder#syncClientResetStrategy(RecoverOrDiscardUnsyncedChangesStrategy)}
+         * when creating the {@link io.realm.mongodb.sync.SyncConfiguration}.
+         *
+         * @param strategy the default sync client reset strategy.
+         */
+        public Builder defaultSyncClientResetStrategy(@Nonnull RecoverOrDiscardUnsyncedChangesStrategy strategy) {
             Util.checkNull(strategy, "strategy");
             defaultSyncClientResetStrategy = strategy;
             return this;
