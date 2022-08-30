@@ -90,7 +90,7 @@ task generateVersionClass(type: Copy) {
 sourceSets {
     main {
         java {
-            srcDirs += ['build/generated-src/main/kotlin', 'src/main/kotlin']
+            srcDirs += ['build/generated-src/main/kotlin']
         }
     }
 }

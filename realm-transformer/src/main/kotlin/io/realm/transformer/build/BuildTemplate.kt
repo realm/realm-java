@@ -120,8 +120,6 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
 
     fun copyProcessedClasses() {
         for ((fqname: String, clazz: CtClass) in processedClasses) {
-            logger.debug("Adding class:  $fqname into output Jar")
-
             outputProvider.putNextEntry(JarEntry("${fqname.replace('.', '/')}.class"))
             outputProvider.write(clazz.toBytecode())
             outputProvider.closeEntry()
@@ -133,10 +131,7 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
             val dirName = directory.asFile.absolutePath + File.separator
             directory.asFile.walk().filter(File::isFile).forEach { file ->
                 if (!file.absolutePath.endsWith(DOT_CLASS)) {
-                    println("TRANSFORMER>>JarFile : " + file.absolutePath)
                     val removePrefix = file.absolutePath.removePrefix(dirName)
-                    println("TRANSFORMER>>JarFile : " + removePrefix)
-                    println("TRANSFORMER>>Adding from jar $removePrefix")
                     outputProvider.putNextEntry(JarEntry(removePrefix))
                     outputProvider.write(file.readBytes())
                     outputProvider.closeEntry()
@@ -144,10 +139,8 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
             }
         }
         allJars.get().forEach { file ->
-            println("TRANSFORMER>>JarFile : " + file.asFile.absolutePath)
             val jarFile = JarFile(file.asFile)
             for (jarEntry: JarEntry in jarFile.entries()) {
-                println("TRANSFORMER>>Adding from jar ${jarEntry.name}")
                 outputProvider.putNextEntry(JarEntry(jarEntry.name))
                 jarFile.getInputStream(jarEntry).use {
                     outputProvider.write(it.readBytes())
