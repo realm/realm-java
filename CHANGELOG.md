@@ -1,4 +1,7 @@
-## 10.12.0 (YYYY-MM-DD)
+## 10.12.0-transformer-api (YYYY-MM-DD)
+
+### Breaking Changes
+* Only works with Android Gradle Plugin 7.4 or newer. (Issue [#7714](https://github.com/realm/realm-java/issues/7714))
 
 ### Enhancements
 * [RealmApp] Introduced `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client, and discards any unsynced data if not possible. This is now the default client reset policy if not explicitly set in the `SyncConfiguration`.
