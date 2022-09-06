@@ -65,7 +65,15 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeSimulateSyncError(J
                                                type == "realm::sync::ProtocolError" ?
                                                realm::sync::protocol_error_category() : realm::sync::client_error_category()
         };
-        SyncSession::OnlyForTesting::handle_error(*session, {code, std::string(message), to_bool(is_fatal)});
+
+        SyncError sync_error(
+                code,
+                std::string(message),
+                to_bool(is_fatal)
+        );
+        sync_error.server_requests_action = sync::ProtocolErrorInfo::Action::ClientReset;
+        
+        SyncSession::OnlyForTesting::handle_error(*session, sync_error);
     }
     CATCH_STD()
 }
