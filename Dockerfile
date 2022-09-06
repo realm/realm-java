@@ -43,6 +43,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
                           libz1 \
                           libvirt-clients \
                           libvirt-daemon-system \
+                          policykit-1 \
                           openjdk-11-jdk-headless \
                           openjdk-8-jdk-headless \
                           qemu-kvm \
