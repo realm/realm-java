@@ -1,4 +1,4 @@
-FROM ubuntu:bionic-20220829
+FROM ubuntu:20.04
 
 # Locales
 RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
@@ -25,7 +25,7 @@ ENV REALM_DISABLE_ANALYTICS true
 # tzdata needs to be installed first. See https://askubuntu.com/questions/909277/avoiding-user-interaction-with-tzdata-when-installing-certbot-in-a-docker-contai
 # `file` is need by the Android Emulator
 RUN DEBIAN_FRONTEND=noninteractive \
-    # && apt-get update -qq \
+    && apt-get update -qq \
     && apt-get install -y tzdata \
     && apt-get install -y bsdmainutils \
                           bridge-utils \
