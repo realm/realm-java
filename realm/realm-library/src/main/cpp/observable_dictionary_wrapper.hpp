@@ -70,20 +70,10 @@ void ObservableDictionaryWrapper::start_listening(JNIEnv* env, jobject j_observa
         m_collection_weak_ref = jni_util::JavaGlobalWeakRef(env, j_observable_map);
     }
 
-    auto cb = [=](DictionaryChangeSet changes, std::exception_ptr err) {
+    auto cb = [=](DictionaryChangeSet changes) {
         // OS will call all notifiers' callback in one run, so check the Java exception first!!
         if (env->ExceptionCheck())
             return;
-
-        if (err) {
-            try {
-                std::rethrow_exception(err);
-            }
-            catch (const std::exception& e) {
-                realm::jni_util::Log::e("Caught exception in dictionary change callback %1", e.what());
-                return;
-            }
-        }
 
         m_collection_weak_ref.call_with_local_ref(env, [&](JNIEnv* local_env, jobject collection_obj) {
             bool changes_empty = changes.deletions.empty() &&

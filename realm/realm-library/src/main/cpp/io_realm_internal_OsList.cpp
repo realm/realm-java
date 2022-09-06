@@ -605,7 +605,7 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_OsList_nativeGetValue(JNIEnv* e
     try {
         auto& wrapper = *reinterpret_cast<ListWrapper*>(list_ptr);
         JavaAccessorContext context(env);
-        return any_cast<jobject>(wrapper.collection().get(context, pos));
+        return util::any_cast<jobject>(wrapper.collection().get(context, pos));
     }
     CATCH_STD()
 
