@@ -36,7 +36,7 @@ fi
 
 HERE=$(dirname `realpath "$0"`)
 REALM_JAVA_PATH="$HERE/.."
-RELEASE_VERSION=""
+RELEASE_VERSION="10.11.1"
 MAVEN_CENTRAL_USER="$1"
 MAVEN_CENTRAL_KEY="$2"
 REALM_S3_ACCESS_KEY="$3"
@@ -166,13 +166,5 @@ notify_slack_channels() {
 ######################################\
 
 check_env
-verify_release_preconditions
-verify_changelog
-
-if [ "$1" != "verify" ]; then
-  create_javadoc
-  upload_to_mavenCentral
-  upload_debug_symbols
-  upload_javadoc
-  notify_slack_channels
-fi
+upload_to_mavenCentral
+upload_debug_symbols
