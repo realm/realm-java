@@ -8,7 +8,7 @@ This repository holds the source code for the Java version of Realm, which curre
 
 ## Realm Kotlin
 
-See [Realm Kotlin](https://github.com/realm/realm-kotlin) for more information about our new SDK written specifically for Kotlin Multiplatform and Android. The SDK is still experimental and the API surface has not been finalized yet, but we highly encourage any feedback you might have.
+The [Realm Kotlin SDK](https://github.com/realm/realm-kotlin) is now GA and can be used for both Android and Kotlin Multiplatform. While we are still adding features, please consider using Realm Kotlin for any new project, and let us know if you miss anything there!
 
 ## Features
 

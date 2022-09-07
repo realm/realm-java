@@ -993,40 +993,40 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * Sets the client reset strategy. If strategy is set, and error is
-         * logged when a Client Reset occurs.
+         * Sets the strategy used to resolve Client Resets. If no strategy is set, a message would
+         * be logged when a Client Reset occurs.
          *
-         * @param strategy custom manual strategy in case of a Client Reset.
+         * @param strategy user defined manual strategy.
          */
         public Builder syncClientResetStrategy(ManuallyRecoverUnsyncedChangesStrategy strategy) {
             return syncClientResetStrategyInternal(strategy);
         }
 
         /**
-         * Sets the client reset strategy. If strategy is set, and error is
-         * logged when a Client Reset occurs.
+         * Sets the strategy used to resolve Client Resets. If no strategy is set, a message would
+         * be logged when a Client Reset occurs.
          *
-         * @param strategy custom discard local changes strategy in case of a Client Reset.
+         * @param strategy user defined discard unsynced changes strategy.
          */
         public Builder syncClientResetStrategy(DiscardUnsyncedChangesStrategy strategy) {
             return syncClientResetStrategyInternal(strategy);
         }
 
         /**
-         * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
-         * logged when a Client Reset occurs.
+         * Sets the strategy used to resolve Client Resets. If no strategy is set, a message would
+         * be logged when a Client Reset occurs.
          *
-         * @param strategy custom automatic recover in case of a Client Reset.
+         * @param strategy user defined recover unsynced changes strategy.
          */
         public Builder syncClientResetStrategy(RecoverUnsyncedChangesStrategy strategy) {
             return syncClientResetStrategyInternal(strategy);
         }
 
         /**
-         * Sets the strategy for when a Client Reset occurs. If no handler is set, and error is
-         * logged when a Client Reset occurs.
+         * Sets the strategy used to resolve Client Resets. If no strategy is set, a message would
+         * be logged when a Client Reset occurs.
          *
-         * @param strategy custom automatic recover in case of a Client Reset.
+         * @param strategy user defined recover or discard unsynced changes strategy.
          */
         public Builder syncClientResetStrategy(RecoverOrDiscardUnsyncedChangesStrategy strategy) {
             return syncClientResetStrategyInternal(strategy);
