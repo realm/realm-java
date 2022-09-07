@@ -51,6 +51,7 @@ import io.realm.entities.CatOwner;
 import io.realm.entities.DictionaryAllTypes;
 import io.realm.entities.Dog;
 import io.realm.entities.IndexedFields;
+import io.realm.entities.KeywordFieldNames;
 import io.realm.entities.NoPrimaryKeyNullTypes;
 import io.realm.entities.NonLatinFieldNames;
 import io.realm.entities.NullTypes;
@@ -4080,6 +4081,18 @@ public class RealmQueryTests extends QueryTests {
             fail();
         } catch (IllegalArgumentException ignore) {
         }
+    }
+
+    @Test
+    public void rawPredicate_reservedKeywords() {
+        realm.beginTransaction();
+        realm.insert(new KeywordFieldNames());
+        realm.commitTransaction();
+
+        realm.where(KeywordFieldNames.class).rawPredicate("desc = $0", "value").findAll();
+        realm.where(KeywordFieldNames.class).rawPredicate("limit = $0", "value").findAll();
+        realm.where(KeywordFieldNames.class).rawPredicate("sort = $0", "value").findAll();
+        realm.where(KeywordFieldNames.class).rawPredicate("distinct = $0", "value").findAll();
     }
 
     @Test
