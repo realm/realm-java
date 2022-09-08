@@ -271,4 +271,3 @@ public class OkHttpNetworkTransport extends OsJavaNetworkTransport {
     }
 
 }
-

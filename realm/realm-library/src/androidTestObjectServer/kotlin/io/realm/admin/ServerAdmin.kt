@@ -214,6 +214,9 @@ class ServerAdmin(private val app: App) {
 
     val JSON = MediaType.parse("application/json; charset=utf-8")
 
+    /**
+     * Disable an existing user on the server.
+     */
     fun disableUser(user: User) {
         var request = Request.Builder()
                 .url("$baseUrl/groups/$groupId/apps/$appId/users/${user.id}/disable")
