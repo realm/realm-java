@@ -32,16 +32,19 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.test.assertFailsWith
+import io.realm.TEST_APP_1
+import io.realm.TEST_APP_2
+import io.realm.TEST_APP_3
+import kotlin.random.Random
 
-@RunWith(AndroidJUnit4::class)
-class EmailPasswordAuthTests {
+abstract class EmailPasswordAuthTests {
 
-    private val looperThread = BlockingLooperThread()
-    private lateinit var app: TestApp
-    private lateinit var admin: ServerAdmin
+    protected val looperThread = BlockingLooperThread()
+    protected lateinit var app: TestApp
+    protected lateinit var admin: ServerAdmin
 
     // Callback use to verify that an Illegal Argument was thrown from async methods
-    private val checkNullArgCallback = App.Callback<Void> { result ->
+    protected val checkNullArgCallback = App.Callback<Void> { result ->
         if (result.isSuccess) {
             fail()
         } else {
@@ -51,7 +54,7 @@ class EmailPasswordAuthTests {
     }
 
     // Methods exposed by the EmailPasswordAuthProvider
-    enum class Method {
+    protected enum class Method {
         REGISTER_USER,
         CONFIRM_USER,
         RESEND_CONFIRMATION_EMAIL,
@@ -60,11 +63,15 @@ class EmailPasswordAuthTests {
         RETRY_CUSTOM_CONFIRMATION,
         RESET_PASSWORD
     }
+}
+
+@RunWith(AndroidJUnit4::class)
+class EmailPasswordAuthWithAutoConfirm: EmailPasswordAuthTests() {
 
     @Before
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
-        app = TestApp()
+        app = TestApp(appName = TEST_APP_1)
         RealmLog.setLevel(LogLevel.DEBUG)
         admin = ServerAdmin(app)
         admin.deleteAllUsers()
@@ -72,9 +79,7 @@ class EmailPasswordAuthTests {
 
     @After
     fun tearDown() {
-        if (this::app.isInitialized) {
-            app.close()
-        }
+        app.close()
         RealmLog.setLevel(LogLevel.WARN)
     }
 
@@ -193,200 +198,6 @@ class EmailPasswordAuthTests {
             provider.confirmUserAsync("token", TestHelper.getNull(), checkNullArgCallback)
         }
     }
-
-    @Test
-    fun resendConfirmationEmail() {
-        // We only test that the server successfully accepts the request. We have no way of knowing
-        // if the Email was actually sent.
-        // FIXME: Figure out a way to check if this actually happened. Perhaps a custom SMTP server?
-        val email = "test@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        try {
-            val provider = app.emailPassword
-            provider.registerUser(email, "123456")
-            provider.resendConfirmationEmail(email)
-        } finally {
-            admin.setAutomaticConfirmation(true)
-        }
-    }
-
-    @Test
-    fun resendConfirmationEmailAsync() {
-        // We only test that the server successfully accepts the request. We have no way of knowing
-        // if the Email was actually sent.
-        val email = "test@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        try {
-            looperThread.runBlocking {
-                val provider = app.emailPassword
-                provider.registerUser(email, "123456")
-                provider.resendConfirmationEmailAsync(email) { result ->
-                    when (result.isSuccess) {
-                        true -> looperThread.testComplete()
-                        false -> fail(result.error.toString())
-                    }
-                }
-            }
-        } finally {
-            admin.setAutomaticConfirmation(true)
-        }
-    }
-
-    @Test
-    fun resendConfirmationEmail_invalidServerArgsThrows() {
-        val email = "test@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        val provider = app.emailPassword
-        provider.registerUser(email, "123456")
-        try {
-            provider.resendConfirmationEmail("foo")
-            fail()
-        } catch (error: AppException) {
-            assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
-        } finally {
-            admin.setAutomaticConfirmation(true)
-        }
-    }
-
-    @Test
-    fun resendConfirmationEmailAsync_invalidServerArgsThrows() {
-        val email = "test@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        val provider = app.emailPassword
-        provider.registerUser(email, "123456")
-        try {
-            looperThread.runBlocking {
-                provider.resendConfirmationEmailAsync("foo") { result ->
-                    if (result.isSuccess) {
-                        fail()
-                    } else {
-                        assertEquals(ErrorCode.USER_NOT_FOUND, result.error.errorCode)
-                        looperThread.testComplete()
-                    }
-                }
-            }
-        } finally {
-            admin.setAutomaticConfirmation(true)
-        }
-    }
-
-    @Test
-    fun resendConfirmationEmail_invalidArgumentsThrows() {
-        val provider: EmailPasswordAuth = app.emailPassword
-        assertFailsWith<IllegalArgumentException> { provider.resendConfirmationEmail(TestHelper.getNull()) }
-        looperThread.runBlocking {
-            provider.resendConfirmationEmailAsync(TestHelper.getNull(), checkNullArgCallback)
-        }
-    }
-
-    @Test
-    fun retryCustomConfirmation() {
-        val email = "test_realm_tests_do_autoverify@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        try {
-            val provider = app.emailPassword
-            provider.registerUser(email, "123456")
-            admin.setCustomConfirmation(true)
-
-            provider.retryCustomConfirmation(email)
-        } finally {
-            admin.setCustomConfirmation(false)
-        }
-    }
-
-    @Test
-    fun retryCustomConfirmation_failConfirmation() {
-        // Only emails containing realm_tests_do_autoverify will be confirmed
-        val email = "test@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        try {
-            val provider = app.emailPassword
-            provider.registerUser(email, "123456")
-            admin.setCustomConfirmation(true)
-
-            val exception = assertFailsWith<AppException> {
-                provider.retryCustomConfirmation(email)
-            }
-
-            assertEquals("failed to confirm user test@10gen.com", exception.errorMessage)
-
-        } finally {
-            admin.setCustomConfirmation(false)
-        }
-    }
-
-    @Test
-    fun retryCustomConfirmationAsync() {
-        val email = "test_realm_tests_do_autoverify@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        try {
-            looperThread.runBlocking {
-                val provider = app.emailPassword
-                provider.registerUser(email, "123456")
-                admin.setCustomConfirmation(true)
-
-                provider.retryCustomConfirmationAsync(email) { result ->
-                    when (result.isSuccess) {
-                        true -> looperThread.testComplete()
-                        false -> fail(result.error.toString())
-                    }
-                }
-            }
-        } finally {
-            admin.setCustomConfirmation(false)
-        }
-    }
-
-    @Test
-    fun retryCustomConfirmation_invalidServerArgsThrows() {
-        val email = "test@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        val provider = app.emailPassword
-        provider.registerUser(email, "123456")
-        admin.setCustomConfirmation(true)
-
-        try {
-            provider.retryCustomConfirmation("foo")
-            fail()
-        } catch (error: AppException) {
-            assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
-        } finally {
-            admin.setCustomConfirmation(false)
-        }
-    }
-
-    @Test
-    fun retryCustomConfirmationAsync_invalidServerArgsThrows() {
-        val email = "test@10gen.com"
-        admin.setAutomaticConfirmation(false)
-        val provider = app.emailPassword
-        provider.registerUser(email, "123456")
-        admin.setCustomConfirmation(true)
-        try {
-            looperThread.runBlocking {
-                provider.retryCustomConfirmationAsync("foo") { result ->
-                    if (result.isSuccess) {
-                        fail()
-                    } else {
-                        assertEquals(ErrorCode.USER_NOT_FOUND, result.error.errorCode)
-                        looperThread.testComplete()
-                    }
-                }
-            }
-        } finally {
-            admin.setCustomConfirmation(false)
-        }
-    }
-
-    @Test
-    fun retryCustomConfirmation_invalidArgumentsThrows() {
-        val provider: EmailPasswordAuth = app.emailPassword
-        assertFailsWith<IllegalArgumentException> { provider.retryCustomConfirmation(TestHelper.getNull()) }
-        looperThread.runBlocking {
-            provider.retryCustomConfirmationAsync(TestHelper.getNull(), checkNullArgCallback)
-        }
-    }
-
     @Test
     fun sendResetPasswordEmail() {
         val provider = app.emailPassword
@@ -470,8 +281,8 @@ class EmailPasswordAuthTests {
         try {
             looperThread.runBlocking {
                 provider.callResetPasswordFunctionAsync(email,
-                        "new-password",
-                        arrayOf("say-the-magic-word", 42)) { result ->
+                    "new-password",
+                    arrayOf("say-the-magic-word", 42)) { result ->
                     if (result.isSuccess) {
                         val user = app.login(Credentials.emailPassword(email, "new-password"))
                         user.logOut()
@@ -510,9 +321,9 @@ class EmailPasswordAuthTests {
         try {
             looperThread.runBlocking {
                 provider.callResetPasswordFunctionAsync(
-                        email,
-                        "new-password",
-                        arrayOf("wrong-magic-word")) { result ->
+                    email,
+                    "new-password",
+                    arrayOf("wrong-magic-word")) { result ->
                     if (result.isSuccess) {
                         fail()
                     } else {
@@ -639,3 +450,181 @@ class EmailPasswordAuthTests {
     }
 }
 
+@RunWith(AndroidJUnit4::class)
+class EmailPasswordAuthWithEmailConfirmTests: EmailPasswordAuthTests() {
+    @Before
+    fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+        app = TestApp(appName = TEST_APP_2)
+        RealmLog.setLevel(LogLevel.DEBUG)
+        admin = ServerAdmin(app)
+        admin.deleteAllUsers()
+    }
+
+    @After
+    fun tearDown() {
+        app.close()
+        RealmLog.setLevel(LogLevel.WARN)
+    }
+
+    @Test
+    fun resendConfirmationEmail() {
+        // We only test that the server successfully accepts the request. We have no way of knowing
+        // if the Email was actually sent.
+        // TODO: Figure out a way to check if this actually happened. Perhaps a custom SMTP server?
+        val email = "test@10gen.com"
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        provider.resendConfirmationEmail(email)
+    }
+
+    @Test
+    fun resendConfirmationEmailAsync() {
+        // We only test that the server successfully accepts the request. We have no way of knowing
+        // if the Email was actually sent.
+        val email = "test@10gen.com"
+        looperThread.runBlocking {
+            val provider = app.emailPassword
+            provider.registerUser(email, "123456")
+            provider.resendConfirmationEmailAsync(email) { result ->
+                when (result.isSuccess) {
+                    true -> looperThread.testComplete()
+                    false -> fail(result.error.toString())
+                }
+            }
+        }
+    }
+
+    @Test
+    fun resendConfirmationEmail_invalidServerArgsThrows() {
+        val email = "test@10gen.com"
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        try {
+            provider.resendConfirmationEmail("foo")
+            fail()
+        } catch (error: AppException) {
+            assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
+        }
+    }
+
+    @Test
+    fun resendConfirmationEmailAsync_invalidServerArgsThrows() {
+        val email = "test@10gen.com"
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        looperThread.runBlocking {
+            provider.resendConfirmationEmailAsync("foo") { result ->
+                if (result.isSuccess) {
+                    fail()
+                } else {
+                    assertEquals(ErrorCode.USER_NOT_FOUND, result.error.errorCode)
+                    looperThread.testComplete()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun resendConfirmationEmail_invalidArgumentsThrows() {
+        val provider: EmailPasswordAuth = app.emailPassword
+        assertFailsWith<IllegalArgumentException> { provider.resendConfirmationEmail(TestHelper.getNull()) }
+        looperThread.runBlocking {
+            provider.resendConfirmationEmailAsync(TestHelper.getNull(), checkNullArgCallback)
+        }
+    }
+}
+
+@RunWith(AndroidJUnit4::class)
+class EmailPasswordAuthWithCustomFunctionConfirmTests: EmailPasswordAuthTests() {
+    @Before
+    fun setUp() {
+        Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
+        app = TestApp(appName = TEST_APP_3)
+        RealmLog.setLevel(LogLevel.DEBUG)
+        admin = ServerAdmin(app)
+        admin.deleteAllUsers()
+    }
+
+    @After
+    fun tearDown() {
+        app.close()
+        RealmLog.setLevel(LogLevel.WARN)
+    }
+
+    @Test
+    fun retryCustomConfirmation() {
+        val email = "test_realm_pending_${Random.nextLong()}@10gen.com"
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        provider.retryCustomConfirmation(email)
+    }
+
+    @Test
+    fun retryCustomConfirmation_failConfirmation() {
+        // Only emails containing realm_tests_do_autoverify or @10gen.com will be confirmed
+        val email = "test_only_realm_pending_${Random.nextLong()}@mongodb.com"
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        val exception = assertFailsWith<AppException> {
+            provider.retryCustomConfirmation(email)
+        }
+        assertEquals("failed to confirm user $email", exception.errorMessage)
+    }
+
+    @Test
+    fun retryCustomConfirmationAsync() {
+        // First call to register will move any email with `realm_pending` into `Pending`. Next
+        // call will register it.
+        val email = "test_realm_pending_${Random.nextLong()}@10gen.com"
+        looperThread.runBlocking {
+            val provider = app.emailPassword
+            provider.registerUser(email, "123456")
+            provider.retryCustomConfirmationAsync(email) { result ->
+                when (result.isSuccess) {
+                    true -> looperThread.testComplete()
+                    false -> fail(result.error.toString())
+                }
+            }
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmation_invalidServerArgsThrows() {
+        val email = "test_${Random.nextLong()}@10gen.com"
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        try {
+            provider.retryCustomConfirmation("foo")
+            fail()
+        } catch (error: AppException) {
+            assertEquals(ErrorCode.USER_NOT_FOUND, error.errorCode)
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmationAsync_invalidServerArgsThrows() {
+        val email = "test_${Random.nextLong()}@10gen.com"
+        val provider = app.emailPassword
+        provider.registerUser(email, "123456")
+        looperThread.runBlocking {
+            provider.retryCustomConfirmationAsync("foo") { result ->
+                if (result.isSuccess) {
+                    fail()
+                } else {
+                    assertEquals(ErrorCode.USER_NOT_FOUND, result.error.errorCode)
+                    looperThread.testComplete()
+                }
+            }
+        }
+    }
+
+    @Test
+    fun retryCustomConfirmation_invalidArgumentsThrows() {
+        val provider: EmailPasswordAuth = app.emailPassword
+        assertFailsWith<IllegalArgumentException> { provider.retryCustomConfirmation(TestHelper.getNull()) }
+        looperThread.runBlocking {
+            provider.retryCustomConfirmationAsync(TestHelper.getNull(), checkNullArgCallback)
+        }
+    }
+}

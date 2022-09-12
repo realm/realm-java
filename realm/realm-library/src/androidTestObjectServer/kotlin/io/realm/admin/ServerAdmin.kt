@@ -97,81 +97,6 @@ class ServerAdmin(private val app: App) {
         throw IllegalArgumentException("Could not find app: $")
     }
 
-    /**
-     * Toggle whether or not automatic confirmation of new users are enabled.
-     */
-    fun setAutomaticConfirmation(enabled: Boolean) {
-        val providerId: String = getLocalUserPassProviderId()
-        val url = "$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId"
-        var request = Request.Builder()
-                .url(url)
-                .get()
-        val authProviderConfig = JSONObject(executeRequest(request, true))
-        authProviderConfig.getJSONObject("config").apply {
-            put("autoConfirm", enabled)
-        }
-        // Change autoConfirm and update the provider
-        request = Request.Builder()
-                .url(url)
-                .patch(RequestBody.create(json, authProviderConfig.toString()))
-        executeRequest(request, true)
-
-        request = Request.Builder()
-            .url(url)
-            .get()
-        val config = JSONObject(executeRequest(request, true))
-        RealmLog.error("SetAutomaticConfirmation($enabled): ${config.toString(4)}")
-        waitForDeployment()
-    }
-
-    private fun waitForDeployment() {
-        // TODO Attempt to work-around, what looks like a race condition on the server deploying
-        //  changes to the server. Even though the /deployments endpoint report success, it seems
-        //  like the change hasn't propagated fully. This usually surfaces as registerUser errors
-        //  where it tries to use the customFunc instead of automatically registering.
-        val url = "$baseUrl/groups/$groupId/apps/$appId/deployments"
-        var request = Request.Builder()
-            .url(url)
-            .get()
-        val deployments = JSONArray(executeRequest(request, true))
-        val dep = deployments[0] as JSONObject
-        if (dep.getString("status") != "successful") {
-            RealmLog.error("Failed to deploy: ${dep.toString(4)}")
-        }
-
-        // Work-around for /deployments reporting success, but /register still failing.
-        SystemClock.sleep(5000)
-    }
-
-    /**
-     * Toggle whether or not custom confirmation functions are enabled.
-     */
-    fun setCustomConfirmation(enabled: Boolean) {
-        val providerId: String = getLocalUserPassProviderId()
-        val url = "$baseUrl/groups/$groupId/apps/$appId/auth_providers/$providerId"
-        var request = Request.Builder()
-                .url(url)
-                .get()
-        val authProviderConfig = JSONObject(executeRequest(request, true))
-
-        authProviderConfig.getJSONObject("config").apply {
-            put("autoConfirm", !enabled)
-            put("runConfirmationFunction", enabled)
-        }
-        // Change autoConfirm and update the provider
-        request = Request.Builder()
-                .url(url)
-                .patch(RequestBody.create(json, authProviderConfig.toString()))
-        executeRequest(request, true)
-
-        request = Request.Builder()
-            .url(url)
-            .get()
-        val config = JSONObject(executeRequest(request, true))
-        RealmLog.error("setCustomConfirmation($enabled): ${config.toString(4)}")
-        waitForDeployment()
-    }
-
     fun enableFlexibleSync() {
         var request = Request.Builder()
             .url("$baseUrl/groups/$groupId/apps/$appId/services")
@@ -211,8 +136,6 @@ class ServerAdmin(private val app: App) {
             }
         }
     }
-
-    val JSON = MediaType.parse("application/json; charset=utf-8")
 
     fun disableUser(user: User) {
         var request = Request.Builder()

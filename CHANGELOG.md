@@ -14,6 +14,7 @@
 
 ### Internal
 * Update to Realm Core 12.6.0, commit: 5da7744b4056ad185c025bccf0924f17f73f7a91.
+* Update to CMake 3.22.1.
 
 
 ## 10.11.1 (2022-07-14)

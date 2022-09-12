@@ -126,8 +126,9 @@ function boot_command_server () {
 
 function generate_app_configs () {
   APP_CONFIG_DIR=`mktemp -d -t app_config`
-  $SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template partition testapp1 testapp2
-  $SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template flex testapp3
+  $SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template partition auto testapp1
+  $SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template partition email testapp2
+  $SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template flex function testapp3
 }
 
 function import_apps () {
