@@ -185,7 +185,7 @@ class SyncedRealmIntegrationTests {
             .build()
         Realm.getInstance(configOld).use { realm ->
             // Create many changesets to make sure that download is "slow"
-            for (i in 0..999) {
+            for (i in 0..99) {
                 realm.executeTransaction { realm ->
                     realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo$i"
                 }
@@ -207,7 +207,7 @@ class SyncedRealmIntegrationTests {
         Realm.getInstanceAsync(config, object: Realm.Callback() {
             override fun onSuccess(realm: Realm) {
                 looperThread.closeAfterTest(realm)
-                assertEquals(1000, realm.where(SyncStringOnly::class.java).count())
+                assertEquals(100, realm.where(SyncStringOnly::class.java).count())
                 looperThread.testComplete()
             }
 
@@ -228,7 +228,7 @@ class SyncedRealmIntegrationTests {
             .build()
         Realm.getInstance(configOld).use { realm ->
             // Create many changesets to make sure that download is "slow"
-            for (i in 0..100) {
+            for (i in 0..99) {
                 realm.executeTransaction { realm ->
                     realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo$i"
                 }
@@ -252,7 +252,7 @@ class SyncedRealmIntegrationTests {
         Realm.getInstanceAsync(config, object: Realm.Callback() {
             override fun onSuccess(realm: Realm) {
                 looperThread.closeAfterTest(realm)
-                assertEquals(101, realm.where(SyncStringOnly::class.java).count())
+                assertEquals(100, realm.where(SyncStringOnly::class.java).count())
                 looperThread.testComplete()
             }
 
@@ -261,7 +261,7 @@ class SyncedRealmIntegrationTests {
             }
         })
         Realm.getInstance(config).use { realm ->
-            assertEquals(101, realm.where(SyncStringOnly::class.java).count())
+            assertEquals(100, realm.where(SyncStringOnly::class.java).count())
         }
     }
 
