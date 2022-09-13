@@ -462,14 +462,14 @@ class SyncedRealmTests {
 
             Assert.assertEquals(2, realm.where<EmbeddedTreeNode>().count())
             val nodeResults = realm.where<EmbeddedTreeNode>().findAll()
-            Assert.assertTrue(nodeResults.any { it.treeNodeId == "node1" })
-            Assert.assertTrue(nodeResults.any { it.treeNodeId == "node2" })
+            assertTrue(nodeResults.any { it.treeNodeId == "node1" })
+            assertTrue(nodeResults.any { it.treeNodeId == "node2" })
 
             Assert.assertEquals(3, realm.where<EmbeddedTreeLeaf>().count())
             val leafResults = realm.where<EmbeddedTreeLeaf>().findAll()
-            Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf1" })
-            Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf2" })
-            Assert.assertTrue(leafResults.any { it.treeLeafId == "leaf3" })
+            assertTrue(leafResults.any { it.treeLeafId == "leaf1" })
+            assertTrue(leafResults.any { it.treeLeafId == "leaf2" })
+            assertTrue(leafResults.any { it.treeLeafId == "leaf3" })
         }
     }
 
@@ -496,10 +496,10 @@ class SyncedRealmTests {
             // Make sure we can synchronize changes
             realm1 = Realm.getInstance(config1)
             realm2 = Realm.getInstance(config2)
-            realm1.syncSession.downloadAllServerChanges()
-            realm2.syncSession.downloadAllServerChanges()
-            Assert.assertTrue(realm1.isEmpty)
-            Assert.assertTrue(realm2.isEmpty)
+            realm1.syncSession.downloadAllServerChanges(1, TimeUnit.MINUTES)
+            realm2.syncSession.downloadAllServerChanges(1, TimeUnit.MINUTES)
+            assertTrue(realm1.isEmpty)
+            assertTrue(realm2.isEmpty)
         } finally {
             realm1?.close()
             realm2?.close()
