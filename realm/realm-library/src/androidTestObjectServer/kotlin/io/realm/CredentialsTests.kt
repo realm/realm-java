@@ -28,7 +28,6 @@ import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
-import kotlin.random.Random
 import kotlin.test.assertFailsWith
 
 
@@ -197,12 +196,16 @@ class CredentialsTests {
                 }
                 Credentials.Provider.CUSTOM_FUNCTION -> {
                     val customFunction = mapOf(
-                            "mail" to "${Random.nextLong()}@androidtest.com",
+                            "mail" to TestHelper.getRandomEmail(),
                             "id" to 666 + TestHelper.getRandomId()
                     ).let {
                         Credentials.customFunction(Document(it))
                     }
-                    expectErrorCode(app, ErrorCode.AUTH_ERROR, customFunction)
+
+                    // We are not testing the authentication function itself, but rather that the
+                    // credentials work
+                    val functionUser = app.login(customFunction)
+                    assertNotNull(functionUser)
                 }
                 Credentials.Provider.EMAIL_PASSWORD -> {
                     val email = TestHelper.getRandomEmail()
