@@ -18,6 +18,7 @@ package io.realm
 import android.os.SystemClock
 import androidx.test.annotation.UiThreadTest
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.FlakyTest
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.entities.DefaultSyncSchema
 import io.realm.entities.StringOnly
@@ -184,7 +185,7 @@ class SyncedRealmIntegrationTests {
             .build()
         Realm.getInstance(configOld).use { realm ->
             // Create many changesets to make sure that download is "slow"
-            for (i in 0..999) {
+            for (i in 0..99) {
                 realm.executeTransaction { realm ->
                     realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo$i"
                 }
@@ -206,7 +207,7 @@ class SyncedRealmIntegrationTests {
         Realm.getInstanceAsync(config, object: Realm.Callback() {
             override fun onSuccess(realm: Realm) {
                 looperThread.closeAfterTest(realm)
-                assertEquals(1000, realm.where(SyncStringOnly::class.java).count())
+                assertEquals(100, realm.where(SyncStringOnly::class.java).count())
                 looperThread.testComplete()
             }
 
@@ -218,6 +219,7 @@ class SyncedRealmIntegrationTests {
 
     // Try an scenario where a Sync and Async race to wait for the initial remote data.
     @Test
+    @FlakyTest(detail = "Depend on the server being able to integrate changes into MongoDB fast enough before the new client downloads data.")
     fun waitForInitialRemoteData_getInstance_race_AsyncAndSync() = looperThread.runBlocking {
         // 1. Copy a valid Realm to the server (and pray it does it within 10 seconds)
         val configOld: SyncConfiguration = configurationFactory.createSyncConfigurationBuilder(user, user.id)
@@ -226,7 +228,7 @@ class SyncedRealmIntegrationTests {
             .build()
         Realm.getInstance(configOld).use { realm ->
             // Create many changesets to make sure that download is "slow"
-            for (i in 0..999) {
+            for (i in 0..99) {
                 realm.executeTransaction { realm ->
                     realm.createObject(SyncStringOnly::class.java, ObjectId()).chars = "Foo$i"
                 }
@@ -250,7 +252,7 @@ class SyncedRealmIntegrationTests {
         Realm.getInstanceAsync(config, object: Realm.Callback() {
             override fun onSuccess(realm: Realm) {
                 looperThread.closeAfterTest(realm)
-                assertEquals(1000, realm.where(SyncStringOnly::class.java).count())
+                assertEquals(100, realm.where(SyncStringOnly::class.java).count())
                 looperThread.testComplete()
             }
 
@@ -259,7 +261,7 @@ class SyncedRealmIntegrationTests {
             }
         })
         Realm.getInstance(config).use { realm ->
-            assertEquals(1000, realm.where(SyncStringOnly::class.java).count())
+            assertEquals(100, realm.where(SyncStringOnly::class.java).count())
         }
     }
 

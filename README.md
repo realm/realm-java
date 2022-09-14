@@ -288,10 +288,6 @@ Realm Java is published under the Apache 2.0 license.
 Realm Core is also published under the Apache 2.0 license and is available
 [here](https://github.com/realm/realm-core).
 
-**This product is not being made available to any person located in Cuba, Iran,
-North Korea, Sudan, Syria or the Crimea region, or to any other person that is
-not eligible to receive the product under U.S. law.**
-
 ## Feedback
 
 **_If you use Realm and are happy with it, all we ask is that you, please consider sending out a tweet mentioning [@realm](http://twitter.com/realm) to share your thoughts!_**
