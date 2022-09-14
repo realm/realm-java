@@ -81,7 +81,6 @@ class RealmTransformer(project: Project,
             // Analytics should never crash the build.
             logger.debug("Could not calculate Realm analytics data:\n$e")
         }
-        transform()
     }
 
     companion object {
@@ -124,7 +123,7 @@ class RealmTransformer(project: Project,
      * to the model class. Something we cannot do when building incrementally. In that case
      * we have to deduce all information from the class at hand.
      */
-    private fun transform() {
+    internal fun transform() {
         val timer = Stopwatch()
         timer.start("Realm Transform time")
 
@@ -183,6 +182,7 @@ abstract class ModifyClassesTask: DefaultTask() {
     @TaskAction
     fun taskAction() {
         RealmTransformer(project, allDirectories, allJars, fullRuntimeClasspath, output)
+            .transform()
     }
 }
 

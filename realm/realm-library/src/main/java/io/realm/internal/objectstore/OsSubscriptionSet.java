@@ -37,7 +37,6 @@ import io.realm.internal.async.RealmThreadPoolExecutor;
 import io.realm.mongodb.sync.Subscription;
 import io.realm.mongodb.sync.SubscriptionSet;
 
-// TODO Adding @ObjectServer here seems to break the Realm Build Transformer. Investigate why.
 @ObjectServer
 public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
 

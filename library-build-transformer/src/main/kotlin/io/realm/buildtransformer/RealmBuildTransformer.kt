@@ -25,7 +25,10 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.TaskAction
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
 import org.slf4j.Logger
@@ -57,34 +60,39 @@ class RealmBuildTransformer(
     private val input: ListProperty<RegularFile>,
     private val output: RegularFileProperty,
 ) {
-    init {
-        transform()
-    }
 
-    private fun transform() {
+    internal fun transform() {
+        // The AGP build infrastructure will inject the task input and outputs and location is not
+        // to be considered as part of the API, so we must be able to accept the current scenario
+        // where the input and output is actually the same JAR. Thus, we write everything to a
+        // temporary output to avoid truncating the input, and then write this temporary output
+        // back to the final output location in the end.
+        // See https://developer.android.com/reference/tools/gradle-api/7.4/com/android/build/api/variant/ScopedArtifactsOperation#toTransform(com.android.build.api.artifact.ScopedArtifact,kotlin.Function1,kotlin.Function1,kotlin.Function1)
+        // for further information.
+        val temporaryOutput = output.get().asFile.absolutePath + ".tmp"
         val outputProvider = JarOutputStream(
-            BufferedOutputStream(
-                FileOutputStream(
-                    output.get().asFile.absolutePath + ".tmp"
-                )
-            )
+            BufferedOutputStream(FileOutputStream(temporaryOutput))
         )
 
         val timer = Stopwatch()
         timer.start("Build Transform time")
 
+        // The ASM infrastructure does not allow to inspect annotations of methods before visiting
+        // them. This prevents inspecting and stripping methods in the same pass, thus we first
+        // collect information about annotations and then secondly strip the annotation symbols.
+        // 1. Collect annotation information
         val annotationDescriptor = createDescriptor(annotationQualifiedName.get())
         val metadataCollector =
             io.realm.buildtransformer.asm.visitors.AnnotationVisitor(annotationDescriptor)
-
         forEachJarEntry { jarEntry, inputStream ->
-            if (jarEntry.name.endsWith(".class") ) {
-            inputStream.use {
-                val classReader = ClassReader(it)
-                classReader.accept(metadataCollector, 0)
-            }
+            if (jarEntry.name.endsWith(".class")) {
+                inputStream.use {
+                    val classReader = ClassReader(it)
+                    classReader.accept(metadataCollector, 0)
+                }
             }
         }
+        // 2. Strip annotated symbols
         forEachJarEntry { jarEntry, inputStream ->
             val bytes = inputStream.use { inputStream ->
                 if (jarEntry.name.endsWith(".class")) {
@@ -110,7 +118,9 @@ class RealmBuildTransformer(
             }
         }
         outputProvider.close()
-        FileInputStream( output.get().asFile.absolutePath + ".tmp" ).channel.use { input ->
+        // Write the temporary output to the final output location. See comment about
+        // temporaryOutput for the details
+        FileInputStream(temporaryOutput).channel.use { input ->
             FileOutputStream(this.output.asFile.get().absoluteFile).channel.use { output ->
                 output.transferFrom(input, 0, input.size())
             }
@@ -171,5 +181,6 @@ abstract class ModifyClassesTask: DefaultTask() {
     @TaskAction
     fun taskAction() {
         RealmBuildTransformer(annotationQualifiedName, allJars, output)
+            .transform()
     }
 }
