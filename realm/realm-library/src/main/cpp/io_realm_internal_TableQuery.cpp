@@ -70,7 +70,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_TableQuery_nativeSumInt(JNIEnv *e
         return 0;
     }
     try {
-        return pQuery->sum_int(ColKey(columnKey));
+        return pQuery->sum(ColKey(columnKey))->get_int();
     }
     CATCH_STD()
     return 0;
@@ -84,12 +84,10 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumInt(JNI
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        int64_t result = pQuery->maximum_int(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_long(env, result);
+        auto result = pQuery->max(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return JavaClassGlobalDef::new_long(env, result->get_int());
         }
-        return 0;
     }
     CATCH_STD()
     return nullptr;
@@ -103,10 +101,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumInt(JNI
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        int64_t result = pQuery->minimum_int(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_long(env, result);
+        auto result = pQuery->min(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return JavaClassGlobalDef::new_long(env, result->get_int());
         }
     }
     CATCH_STD()
@@ -121,8 +118,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageInt(JNI
         return 0;
     }
     try {
-        double avg = pQuery->average_int(ColKey(columnKey));
-        return avg;
+        auto result = pQuery->avg(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return result->get_double();
+        }
     }
     CATCH_STD()
     return 0;
@@ -139,7 +138,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumFloat(JNIEn
         return 0;
     }
     try {
-        return pQuery->sum_float(ColKey(columnKey));
+        return pQuery->sum(ColKey(columnKey))->get_float();
     }
     CATCH_STD()
     return 0;
@@ -154,10 +153,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumFloat(J
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        float result = pQuery->maximum_float(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_float(env, result);
+        auto result = pQuery->max(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return JavaClassGlobalDef::new_float(env, result->get_float());
         }
     }
     CATCH_STD()
@@ -173,10 +171,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumFloat(J
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        float result = pQuery->minimum_float(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_float(env, result);
+        auto result = pQuery->min(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return JavaClassGlobalDef::new_float(env, result->get_float());
         }
     }
     CATCH_STD()
@@ -192,7 +189,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageFloat(J
         return 0;
     }
     try {
-        return pQuery->average_float(ColKey(columnKey));
+        auto result = pQuery->avg(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return result->get_float();
+        }
     }
     CATCH_STD()
     return 0;
@@ -207,7 +207,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumRealmAny
         return nullptr;
     }
     try {
-        Decimal128 decimal128 = pQuery->sum_mixed(ColKey(columnKey));
+        Decimal128 decimal128 = pQuery->sum(ColKey(columnKey))->get_decimal();
         RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
@@ -222,7 +222,7 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeSumDouble(JNIE
         return 0;
     }
     try {
-        return pQuery->sum_double(ColKey(columnKey));
+        return pQuery->sum(ColKey(columnKey))->get_double();
     }
     CATCH_STD()
     return 0;
@@ -237,10 +237,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDouble(
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        double result = pQuery->maximum_double(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_double(env, result);
+        auto result = pQuery->max(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return JavaClassGlobalDef::new_double(env, result->get<double>());
         }
     }
     CATCH_STD()
@@ -256,9 +255,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumRealmAn
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        Mixed result = pQuery->maximum_mixed(ColKey(columnKey), &return_ndx);
-        return JavaClassGlobalDef::new_mixed(env, bool(return_ndx) ? result : Mixed());
+        if (auto result = pQuery->max(ColKey(columnKey))) {
+            return JavaClassGlobalDef::new_mixed(env, *result);
+        }
     }
     CATCH_STD()
     return nullptr;
@@ -273,8 +272,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMaximumDeci
         return nullptr;
     }
     try {
-        Decimal128 decimal128 = pQuery->maximum_decimal128(ColKey(columnKey));
-        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+        auto result = pQuery->max(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(result->get<Decimal128>())
+        }
     }
     CATCH_STD()
     return nullptr;
@@ -289,7 +290,7 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeSumDecimal1
         return 0;
     }
     try {
-        Decimal128 decimal128 = pQuery->sum_decimal128(ColKey(columnKey));
+        Decimal128 decimal128 = pQuery->sum(ColKey(columnKey))->get_decimal();
         RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
     }
     CATCH_STD()
@@ -305,10 +306,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDouble(
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        double result = pQuery->minimum_double(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx)) {
-            return JavaClassGlobalDef::new_double(env, result);
+        auto result = pQuery->min(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return JavaClassGlobalDef::new_double(env, result->get<double>());
         }
     }
     CATCH_STD()
@@ -324,9 +324,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumRealmAn
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        const Mixed result = pQuery->minimum_mixed(ColKey(columnKey), &return_ndx);
-        return JavaClassGlobalDef::new_mixed(env, bool(return_ndx) ? result : Mixed());
+        if (auto result = pQuery->min(ColKey(columnKey))) {
+            return JavaClassGlobalDef::new_mixed(env, *result);
+        }
     }
     CATCH_STD()
     return nullptr;
@@ -341,8 +341,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeMinimumDeci
         return nullptr;
     }
     try {
-        Decimal128 decimal128 = pQuery->minimum_decimal128(ColKey(columnKey));
-        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+        auto result = pQuery->min(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(result->get<Decimal128>())
+        }
     }
     CATCH_STD()
     return nullptr;
@@ -357,7 +359,10 @@ JNIEXPORT jdouble JNICALL Java_io_realm_internal_TableQuery_nativeAverageDouble(
         return 0;
     }
     try {
-        return pQuery->average_double(ColKey(columnKey));
+        auto result = pQuery->min(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return result->get_double();
+        }
     }
     CATCH_STD()
     return 0;
@@ -372,8 +377,10 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageReal
         return nullptr;
     }
     try {
-        Decimal128 decimal128 = pQuery->average_mixed(ColKey(columnKey));
-        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+        auto result = pQuery->sum(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(result->get<Decimal128>())
+        }
     }
     CATCH_STD()
     return nullptr;
@@ -388,15 +395,16 @@ JNIEXPORT jlongArray JNICALL Java_io_realm_internal_TableQuery_nativeAverageDeci
         return nullptr;
     }
     try {
-        Decimal128 decimal128 = pQuery->average_decimal128(ColKey(columnKey));
-        RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(decimal128)
+        auto result = pQuery->sum(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            RETURN_DECIMAL128_AS_JLONG_ARRAY__OR_NULL(result->get<Decimal128>())
+        }
     }
     CATCH_STD()
     return nullptr;
 }
 
 // date aggregates
-// FIXME: This is a rough workaround while waiting for https://github.com/realm/realm-core/issues/1745 to be solved
 JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimestamp(JNIEnv *env, jobject,
                                                                                    jlong nativeQueryPtr,
                                                                                    jlong columnKey) {
@@ -406,10 +414,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMaximumTimesta
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        Timestamp result = pQuery->find_all().maximum_timestamp(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx) && !result.is_null()) {
-            return JavaClassGlobalDef::new_long(env, to_milliseconds(result));
+        auto result = pQuery->max(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return JavaClassGlobalDef::new_long(env, result->get<Timestamp>());
         }
     }
     CATCH_STD()
@@ -425,10 +432,9 @@ JNIEXPORT jobject JNICALL Java_io_realm_internal_TableQuery_nativeMinimumTimesta
         return nullptr;
     }
     try {
-        ObjKey return_ndx;
-        Timestamp result = pQuery->find_all().minimum_timestamp(ColKey(columnKey), &return_ndx);
-        if (bool(return_ndx) && !result.is_null()) {
-            return JavaClassGlobalDef::new_long(env, to_milliseconds(result));
+        auto result = pQuery->min(ColKey(columnKey));
+        if (result && !result->is_null()) {
+            return JavaClassGlobalDef::new_long(env, result->get<Timestamp>());
         }
     }
     CATCH_STD()
