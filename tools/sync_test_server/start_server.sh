@@ -38,8 +38,9 @@ SCRIPTPATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # Create app configurations
 APP_CONFIG_DIR=`mktemp -d -t app_config`
-$SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template partition testapp1 testapp2
-$SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template flex testapp3
+$SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template partition auto testapp1
+$SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template partition email testapp2
+$SCRIPTPATH/app_config_generator.sh $APP_CONFIG_DIR $SCRIPTPATH/app_template flex function testapp3
 
 # Run Stitch and Stitch CLI Docker images
 docker network create mongodb-realm-network

@@ -536,7 +536,7 @@ Java_io_realm_internal_OsResults_nativeGetValue(JNIEnv* env, jclass, jlong nativ
     try {
         auto& wrapper = *reinterpret_cast<ResultsWrapper*>(native_ptr);
         JavaAccessorContext context(env);
-        return any_cast<jobject>(wrapper.collection().get(context, pos));
+        return util::any_cast<jobject>(wrapper.collection().get(context, pos));
     }
     CATCH_STD()
 

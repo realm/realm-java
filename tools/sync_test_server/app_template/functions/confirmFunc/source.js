@@ -1,4 +1,3 @@
-
   /*
 
     This function will be run AFTER a user registers their username and password and is called with an object parameter
@@ -38,12 +37,37 @@
 
     The uncommented function below is just a placeholder and will result in failure.
   */
-
-  exports = ({ token, tokenId, username }) => {
+exports = async ({ token, tokenId, username }) => {
     // process the confirm token, tokenId and username
-    if (username.includes("realm_tests_do_autoverify")) {
+
+    if (username.includes("realm_verify")) {
+      // Automatically confirm users with `realm_verify` in their email.
       return { status: 'success' }
+    } else if (username.includes("realm_pending")) {
+      // This supports two versions of custom registering:
+      //
+      // 1. Emails with `realm_pending` in their email will be placed in Pending
+      //    the first time they register and then fully confirmed when they
+      //    retry the confirmation logic.
+      // 2. Emails with `only_realm_pending` in their email will be placed in
+      //    Pending the first time they register and fail all subsequent attempts
+      //    at retrying the confirmation logic.
+      const mdb = context.services.get("BackingDB");
+      const collection = mdb.db("custom-auth").collection("users");
+      const existing = await collection.findOne({ username: username });
+      if (existing) {
+        if (username.includes("only_realm_pending")) {
+            return { status: 'fail' }
+        } else {
+            return { status: 'success' };
+        }
+      }
+      await collection.insertOne({ username: username });
+      return { status: 'pending' }
+    } else if (username.endsWith("@10gen.com") || username.includes("realm_tests_do_autoverify")) {
+      return { status: 'success' }
+    } else {
+      // All other emails should fail to confirm outright.
+      return { status: 'fail' };
     }
-    // do not confirm the user
-    return { status: 'fail' };
   };

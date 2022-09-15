@@ -8,12 +8,15 @@
 * [RealmApp] Introduced `SyncSession.RecoverUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client and will revert to manual client reset if not possible.
 
 ### Fixed
-* None
+* Now queries can point to fields with query language-reserved words like 'desc', 'sort', 'distinct', etc. Issue [#7705](https://github.com/realm/realm-java/issues/7705)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Update to Realm Core 12.6.0, commit: 5da7744b4056ad185c025bccf0924f17f73f7a91.
 
 
 ## 10.11.1 (2022-07-14)
