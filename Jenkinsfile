@@ -9,7 +9,7 @@ import groovy.json.JsonOutput
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
 releaseBranches = ['master', 'next-major', 'support-new-datatypes', 'releases']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
-slackNotificationBranches = [ 'master', 'releases', 'next-major', 'support-new-datatypes' ]
+slackNotificationBranches = [ 'master', 'releases', 'next-major', 'support-new-datatypes', 'feature/new-agp-transformer-api' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
 // tests.
 enableIntegrationTests = true
