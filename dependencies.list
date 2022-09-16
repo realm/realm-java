@@ -1,6 +1,6 @@
 # Realm Core release used by Realm Java
 # https://github.com/realm/realm-core/releases
-REALM_CORE=12.3.0
+REALM_CORE=12.6.0
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
@@ -15,10 +15,10 @@ REALM_BAAS_GIT_HASH=ba172f8dd37c3102499ab7d728e7c0dcb9e52ae8
 REALM_BAAS_UI_GIT_HASH=1fc10a6e04f87247790662d825500c9e21dbfbc7
 
 # Common Android settings across projects
-GRADLE_BUILD_TOOLS=7.1.0
+GRADLE_BUILD_TOOLS=7.4.0-alpha08
 ANDROID_BUILD_TOOLS=30.0.3
-KOTLIN=1.5.31
-KOTLIN_COROUTINES=1.5.2
+KOTLIN=1.6.21
+KOTLIN_COROUTINES=1.6.0
 
 # Common classpath dependencies
 gradle=7.3.3

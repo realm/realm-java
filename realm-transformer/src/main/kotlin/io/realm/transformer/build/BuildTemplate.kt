@@ -15,17 +15,17 @@
  */
 package io.realm.transformer.build
 
-import com.android.build.api.transform.DirectoryInput
-import com.android.build.api.transform.Format
-import com.android.build.api.transform.JarInput
-import com.android.build.api.transform.Transform
-import com.android.build.api.transform.TransformInput
-import com.android.build.api.transform.TransformOutputProvider
-import com.google.common.io.Files
 import io.realm.transformer.*
 import javassist.ClassPool
 import javassist.CtClass
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.ListProperty
 import java.io.File
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
 import java.util.regex.Pattern
 
 public const val DOT_CLASS = ".class"
@@ -35,18 +35,19 @@ public const val DOT_JAR = ".jar"
  * Abstract class defining the structure of doing different types of builds.
  *
  */
-abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: TransformOutputProvider, val transform: Transform) {
+abstract class BuildTemplate(private val metadata: ProjectMetaData, private val allJars: ListProperty<RegularFile>, protected val outputProvider: JarOutputStream, val transform: RealmTransformer) {
 
-    protected lateinit var inputs: MutableCollection<TransformInput>
+    protected lateinit var inputs: ListProperty<Directory>
     protected lateinit var classPool: ManagedClassPool
     protected val outputClassNames: MutableSet<String> = hashSetOf()
     protected val outputReferencedClassNames: MutableSet<String> = hashSetOf()
     protected val outputModelClasses: ArrayList<CtClass> = arrayListOf()
+    protected val processedClasses = mutableMapOf<String, CtClass>()
 
     /**
      * Find all the class names available for transforms as well as all referenced classes.
      */
-    abstract fun prepareOutputClasses(inputs: MutableCollection<TransformInput>)
+    abstract fun prepareOutputClasses(inputs: ListProperty<Directory>)
 
     /**
      * Helper method for going through all `TransformInput` and sort classes into buckets of
@@ -58,9 +59,11 @@ abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: 
      * @param jaFiles the set of files found in jar files. These will never be transformed. This should
      * already be done when creating the jar file.
      */
-    protected abstract fun categorizeClassNames(inputs: Collection<TransformInput>,
-                                          directoryFiles: MutableSet<String>,
-                                          referencedFiles: MutableSet<String>)
+    protected abstract fun categorizeClassNames(inputs: ListProperty<Directory>,
+                                          directoryFiles: MutableSet<String>)
+
+    protected abstract fun categorizeClassNames(referencedInputs: ConfigurableFileCollection,
+                                                jarFiles: MutableSet<String>)
 
     /**
      * Returns `true` if this build contains no relevant classes to transform.
@@ -70,8 +73,8 @@ abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: 
     }
 
 
-    fun prepareReferencedClasses(referencedInputs: Collection<TransformInput>) {
-        categorizeClassNames(referencedInputs, outputReferencedClassNames, outputReferencedClassNames) // referenced files
+    fun prepareReferencedClasses(referencedInputs: ConfigurableFileCollection) {
+        categorizeClassNames(referencedInputs, outputReferencedClassNames) // referenced files
 
         // Create and populate the Javassist class pool
         this.classPool = ManagedClassPool(inputs, referencedInputs)
@@ -97,6 +100,7 @@ abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: 
         logger.debug("Proxy Mediator Classes: ${proxyMediatorClasses.joinToString(",") { it.name }}")
         proxyMediatorClasses.forEach {
             BytecodeModifier.overrideTransformedMarker(it)
+            processedClasses[it.name] = it
         }
     }
 
@@ -107,51 +111,46 @@ abstract class BuildTemplate(val metadata: ProjectMetaData, val outputProvider: 
             BytecodeModifier.addRealmAccessors(it)
             BytecodeModifier.addRealmProxyInterface(it, classPool)
             BytecodeModifier.callInjectObjectContextFromConstructors(it)
+
+            processedClasses[it.name] = it
         }
     }
 
     abstract fun transformDirectAccessToModelFields()
 
-    fun copyResourceFiles() {
-        copyResourceFiles(inputs)
-        classPool.close();
-    }
-
-    private fun copyResourceFiles(inputs: MutableCollection<TransformInput>) {
-        inputs.forEach { input: TransformInput ->
-            input.directoryInputs.forEach { directory: DirectoryInput ->
-                val dirPath: String = directory.file.absolutePath
-                directory.file.walkTopDown().forEach { file: File ->
-                    if (file.isFile) {
-                        if (!file.absolutePath.endsWith(DOT_CLASS)) {
-                            logger.debug("  Copying resource file: $file")
-                            val dest = File(getOutputFile(outputProvider, Format.DIRECTORY), file.absolutePath.substring(dirPath.length))
-                            dest.parentFile.mkdirs()
-                            Files.copy(file, dest)
-                        }
-                    }
-                }
-            }
-
-            input.jarInputs.forEach { jar: JarInput ->
-                logger.debug("Found JAR file: ${jar.file.absolutePath}")
-                val dirPath: String = jar.file.absolutePath
-                jar.file.walkTopDown().forEach { file: File ->
-                    if (file.isFile) {
-                        if (file.absolutePath.endsWith(DOT_JAR)) {
-                            logger.debug("  Copying jar file: $file")
-                            val dest = File(getOutputFile(outputProvider, Format.JAR), file.absolutePath.substring(dirPath.length))
-                            dest.parentFile.mkdirs()
-                            Files.copy(file, dest)
-                        }
-                    }
-                }
-            }
+    fun copyProcessedClasses() {
+        for ((fqname: String, clazz: CtClass) in processedClasses) {
+            outputProvider.putNextEntry(JarEntry("${fqname.replace('.', '/')}.class"))
+            outputProvider.write(clazz.toBytecode())
+            outputProvider.closeEntry()
         }
     }
 
-    protected fun getOutputFile(outputProvider: TransformOutputProvider, format: Format): File {
-        return outputProvider.getContentLocation("realm", transform.inputTypes, transform.scopes, format)
+    fun copyResourceFiles() {
+        inputs.get().forEach { directory: Directory ->
+            val dirName = directory.asFile.absolutePath + File.separator
+            directory.asFile.walk().filter(File::isFile).forEach { file ->
+                if (!file.absolutePath.endsWith(DOT_CLASS)) {
+                    val removePrefix = file.absolutePath.removePrefix(dirName)
+                    outputProvider.putNextEntry(JarEntry(removePrefix))
+                    outputProvider.write(file.readBytes())
+                    outputProvider.closeEntry()
+                }
+            }
+        }
+        allJars.get().forEach { file ->
+            val jarFile = JarFile(file.asFile)
+            for (jarEntry: JarEntry in jarFile.entries()) {
+                outputProvider.putNextEntry(JarEntry(jarEntry.name))
+                jarFile.getInputStream(jarEntry).use {
+                    outputProvider.write(it.readBytes())
+                }
+                outputProvider.closeEntry()
+            }
+            jarFile.close()
+        }
+
+        classPool.close()
     }
 
     /**

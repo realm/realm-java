@@ -111,6 +111,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
     packagingOptions {
         exclude 'META-INF/NOTICE.txt'
         exclude 'META-INF/LICENSE.txt'
@@ -149,18 +153,14 @@ android {
     }
 }
 
-android.registerTransform(new io.realm.transformer.RealmTransformer(project))
-android.registerTransform(new io.realm.buildtransformer.RealmBuildTransformer(
+io.realm.transformer.RealmTransformer.@Companion.register(project)
+// TODO RealmBuildTransformer only supports stripping symbols from Jars so must be applied
+//  after the accessor transformer (that combines all inputs into one common Jar)
+io.realm.buildtransformer.RealmBuildTransformer.@Companion.register(
+        project,
         "base",
         "io.realm.internal.annotations.ObjectServer",
-        [
-                "io_realm_sync_permissions_ClassPermissionsRealmProxyInterface.class",
-                "io_realm_sync_permissions_PermissionRealmProxyInterface.class",
-                "io_realm_sync_permissions_PermissionUserRealmProxyInterface.class",
-                "io_realm_sync_permissions_RealmPermissionsRealmProxyInterface.class",
-                "io_realm_sync_permissions_RoleRealmProxyInterface.class"
-        ].toSet()
-))
+)
 
 project.afterEvaluate {
     tasks.withType(JavaCompile) {
@@ -239,17 +239,14 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 
-def betaTag = 'Beta:a:<div style="border-style:solid;border-width:2px">This software is considered in beta phase. ' +
-        'It indicates that any public interface can change without prior announcements. ' +
-        'Moreover, classes, constructors, and methods annotated as beta are not ' +
-        'considered at production quality, and should be used with care.</div>'
-
 task javadoc(type: Javadoc) {
+    failOnError false
     dependsOn("compileObjectServerReleaseJavaWithJavac")
     source android.sourceSets.objectServer.java.srcDirs
     source android.sourceSets.main.java.srcDirs
     source "../../realm-annotations/src/main/java"
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+
     options {
         title = "Realm ${project.version}"
         memberLevel = JavadocMemberLevel.PUBLIC
@@ -263,8 +260,6 @@ task javadoc(type: Javadoc) {
         links "http://reactivex.io/RxJava/javadoc/"
         links "https://developer.android.com/reference"
         links "https://www.javadoc.io/doc/org.mongodb/bson/${properties.getProperty('BSON_DEPENDENCY')}/"
-
-        tags = [betaTag]
     }
     exclude '**/internal/**'
     exclude '**/BuildConfig.java'
@@ -408,12 +403,9 @@ project.afterEvaluate {
 
         // all Java files must be compiled before native build
         // See https://github.com/android/ndk-samples/issues/284
-        android.libraryVariants.all { anotherVariant ->
-            if (variant.flavorName == anotherVariant.flavorName) {
-                variant.externalNativeBuildProviders[0].configure {
-                    dependsOn "compile${anotherVariant.name.capitalize()}JavaWithJavac"
-                }
-            }
+        variant.externalNativeBuildProviders[0].configure {
+            it.taskDependencies.getDependencies(it).find { it.name.startsWith("buildCMake") }
+                    .dependsOn "compile${variant.name.capitalize()}JavaWithJavac"
         }
         // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
         android.buildTypes.all { buildType ->

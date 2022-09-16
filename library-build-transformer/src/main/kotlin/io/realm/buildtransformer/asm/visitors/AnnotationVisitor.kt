@@ -18,7 +18,6 @@ package io.realm.buildtransformer.asm.visitors;
 import io.realm.buildtransformer.ByteCodeMethodName
 import io.realm.buildtransformer.ByteCodeTypeDescriptor
 import io.realm.buildtransformer.FieldName
-import io.realm.buildtransformer.logger
 import org.objectweb.asm.*
 import org.objectweb.asm.AnnotationVisitor
 
@@ -27,7 +26,7 @@ import org.objectweb.asm.AnnotationVisitor
  * pass and is required for correctly identifying them in the 2nd pass before any byte code is
  * written.
  */
-class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor(Opcodes.ASM6) {
+class AnnotationVisitor(private val annotationDescriptor: String) : ClassVisitor(Opcodes.ASM7) {
 
     val annotatedClasses: MutableSet<ByteCodeTypeDescriptor> = mutableSetOf()
     val annotatedMethods: MutableMap<ByteCodeTypeDescriptor, MutableSet<ByteCodeMethodName>> = mutableMapOf()

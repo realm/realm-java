@@ -36,6 +36,7 @@ import io.realm.internal.objectstore.OsSubscriptionSet;
  */
 @Beta
 @Keep
+@ObjectServer
 public interface SubscriptionSet extends Iterable<Subscription> {
 
     /**

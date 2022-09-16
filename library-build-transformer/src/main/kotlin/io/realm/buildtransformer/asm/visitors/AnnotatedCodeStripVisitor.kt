@@ -30,7 +30,7 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
                                 private val markedClasses: Set<String>,
                                 private val markedMethods: Map<ByteCodeTypeDescriptor, Set<ByteCodeMethodName>>,
                                 private val markedFields: Map<ByteCodeTypeDescriptor, Set<FieldName>>,
-                                classWriter: ClassVisitor) : ClassVisitor(Opcodes.ASM6, classWriter) {
+                                classWriter: ClassVisitor) : ClassVisitor(Opcodes.ASM7, classWriter) {
 
     var deleteClass: Boolean = false
     private lateinit var markedMethodsInClass: Set<ByteCodeMethodName>
@@ -51,7 +51,7 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
     // Remove INNERCLASS definitions from the bytecode in the top level class. It isn't clear if
     // these are used by any relevant API's, but better remove them just in case.
     override fun visitInnerClass(name: String?, outerName: String?, innerName: String?, access: Int) {
-        if (!markedClasses.contains(name)) {
+        if (!markedClasses.contains(name) && !deleteClass) {
             super.visitInnerClass(name, outerName, innerName, access)
         } else {
             logger.debug("Removing inner class description: $name")
@@ -59,7 +59,7 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
     }
 
     override fun visitField(access: Int, name: String?, descriptor: String?, signature: String?, value: Any?): FieldVisitor? {
-        return if (!markedFieldsInClass.contains(name)) {
+        return if (!markedFieldsInClass.contains(name) && !deleteClass) {
             super.visitField(access, name, descriptor, signature, value)
         } else {
             logger.debug("Removing field: $name")
@@ -68,7 +68,7 @@ class AnnotatedCodeStripVisitor(private val annotationDescriptor: String,
     }
 
     override fun visitMethod(access: Int, name: ByteCodeMethodName?, descriptor: String?, signature: String?, exceptions: Array<out String>?): MethodVisitor? {
-        return if (!markedMethodsInClass.contains(name + descriptor)) {
+        return if (!markedMethodsInClass.contains(name + descriptor) && !deleteClass) {
             super.visitMethod(access, name, descriptor, signature, exceptions)
         } else {
             logger.debug("Removing method: $name $descriptor")

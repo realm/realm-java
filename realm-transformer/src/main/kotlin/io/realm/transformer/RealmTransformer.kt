@@ -16,17 +16,29 @@
 
 package io.realm.transformer
 
-import com.android.build.api.transform.*
+import com.android.build.api.variant.AndroidComponentsExtension
+import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import io.realm.analytics.RealmAnalytics
 import io.realm.transformer.build.BuildTemplate
 import io.realm.transformer.build.FullBuild
-import io.realm.transformer.build.IncrementalBuild
 import io.realm.transformer.ext.getBootClasspath
-import javassist.CtClass
+import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.TaskAction
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.util.jar.JarOutputStream
 
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
@@ -43,8 +55,11 @@ data class ProjectMetaData(
 /**
  * This class implements the Transform API provided by the Android Gradle plugin.
  */
-class RealmTransformer(project: Project) : Transform() {
-    private val logger: Logger = LoggerFactory.getLogger("realm-logger")
+class RealmTransformer(project: Project,
+                       private val inputs: ListProperty<Directory>,
+                       private val allJars: ListProperty<RegularFile>,
+                       private val referencedInputs: ConfigurableFileCollection,
+                       private val output: RegularFileProperty) {
     private lateinit var metadata: ProjectMetaData
     private var analytics: RealmAnalytics? = null
 
@@ -52,47 +67,51 @@ class RealmTransformer(project: Project) : Transform() {
         // Fetch project metadata when registering the transformer, but as some of the properties
         // we need to read might not be initialized yet (e.g. the Android extension), we need
         // to wait until after the build files have been evaluated.
-        project.afterEvaluate {
-            metadata = ProjectMetaData(
-                // Plugin requirements
-                project.gradle.startParameter.isOffline,
-                project.getBootClasspath()
-            )
+        metadata = ProjectMetaData(
+            // Plugin requirements
+            project.gradle.startParameter.isOffline,
+            project.getBootClasspath()
+        )
 
-            try {
-                this.analytics = RealmAnalytics()
-                this.analytics!!.calculateAnalyticsData(project)
-            } catch (e: Exception) {
-                // Analytics should never crash the build.
-                logger.debug("Could not calculate Realm analytics data:\n$e" )
-            }
+        try {
+            this.analytics = RealmAnalytics()
+            this.analytics!!.calculateAnalyticsData(project)
+
+        } catch (e: Exception) {
+            // Analytics should never crash the build.
+            logger.debug("Could not calculate Realm analytics data:\n$e")
         }
     }
-    override fun getName(): String {
-        return "RealmTransformer"
-    }
 
-    override fun getInputTypes(): Set<QualifiedContent.ContentType> {
-        return setOf<QualifiedContent.ContentType>(QualifiedContent.DefaultContentType.CLASSES)
-    }
+    companion object {
 
-    override fun isIncremental(): Boolean {
-        return true
-    }
-
-    override fun getScopes(): MutableSet<in QualifiedContent.Scope> {
-        return mutableSetOf(QualifiedContent.Scope.PROJECT)
-    }
-
-    override fun getReferencedScopes(): MutableSet<in QualifiedContent.Scope> {
-        // Scope.PROJECT_LOCAL_DEPS and Scope.SUB_PROJECTS_LOCAL_DEPS is only for compatibility with AGP 1.x, 2.x
-        return mutableSetOf(
-                QualifiedContent.Scope.EXTERNAL_LIBRARIES,
-                QualifiedContent.Scope.PROJECT_LOCAL_DEPS,
-                QualifiedContent.Scope.SUB_PROJECTS,
-                QualifiedContent.Scope.SUB_PROJECTS_LOCAL_DEPS,
-                QualifiedContent.Scope.TESTED_CODE
-        )
+        fun register(project: Project) {
+            val androidComponents = project.extensions.getByType(AndroidComponentsExtension::class.java)
+            androidComponents.onVariants { variant ->
+                variant.components.forEach { component ->
+                    val taskProvider =
+                        project.tasks.register<ModifyClassesTask>(
+                            "${component.name}RealmAccessorsTransformer",
+                            ModifyClassesTask::class.java
+                        ) {
+                            it.fullRuntimeClasspath.setFrom(component.runtimeConfiguration.incoming.artifactView { c ->
+                                c.attributes.attribute(
+                                    AndroidArtifacts.ARTIFACT_TYPE,
+                                    AndroidArtifacts.ArtifactType.CLASSES_JAR.type
+                                )
+                            }.files)
+                        }
+                    component.artifacts.forScope(com.android.build.api.variant.ScopedArtifacts.Scope.PROJECT)
+                        .use<ModifyClassesTask>(taskProvider)
+                        .toTransform(
+                            com.android.build.api.artifact.ScopedArtifact.CLASSES,
+                            ModifyClassesTask::allJars,
+                            ModifyClassesTask::allDirectories,
+                            ModifyClassesTask::output
+                        )
+                }
+            }
+        }
     }
 
     /**
@@ -103,34 +122,29 @@ class RealmTransformer(project: Project) : Transform() {
      * incremental build. In a full build, we can use text matching to go from a proxy class
      * to the model class. Something we cannot do when building incrementally. In that case
      * we have to deduce all information from the class at hand.
-     *
-     * @param context
-     * @param inputs
-     * @param referencedInputs
-     * @param outputProvider
-     * @param isIncremental
-     * @throws IOException
-     * @throws TransformException
-     * @throws InterruptedException
      */
-    override fun transform(context: Context?, inputs: MutableCollection<TransformInput>?,
-                           referencedInputs: Collection<TransformInput>?,
-                           outputProvider: TransformOutputProvider?, isIncremental: Boolean) {
-
+    internal fun transform() {
         val timer = Stopwatch()
         timer.start("Realm Transform time")
 
-        val build: BuildTemplate = if (isIncremental) IncrementalBuild(metadata, outputProvider!!, this)
-        else FullBuild(metadata, outputProvider!!, this)
+        val jarOutput = JarOutputStream(
+            BufferedOutputStream(
+                FileOutputStream(
+                    output.get().asFile
+                )
+            )
+        )
 
-        build.prepareOutputClasses(inputs!!)
+        val build: BuildTemplate = FullBuild(metadata, allJars, jarOutput, this)
+
+        build.prepareOutputClasses(inputs)
         timer.splitTime("Prepare output classes")
         if (build.hasNoOutput()) {
             // Abort transform as quickly as possible if no files where found for processing.
-            exitTransform(emptySet(), emptySet(), timer)
+            exitTransform(timer)
             return
         }
-        build.prepareReferencedClasses(referencedInputs!!)
+        build.prepareReferencedClasses(referencedInputs)
         timer.splitTime("Prepare referenced classes")
         build.markMediatorsAsTransformed()
         timer.splitTime("Mark mediators as transformed")
@@ -138,13 +152,37 @@ class RealmTransformer(project: Project) : Transform() {
         timer.splitTime("Transform model classes")
         build.transformDirectAccessToModelFields()
         timer.splitTime("Transform references to model fields")
+        build.copyProcessedClasses()
+        timer.splitTime("Copy processed classes")
         build.copyResourceFiles()
-        timer.splitTime("Copy resource files")
-        exitTransform(inputs, build.getOutputModelClasses(), timer)
+        timer.splitTime("Copy jar files")
+        jarOutput.close()
+        exitTransform(timer)
     }
 
-    private fun exitTransform(inputs: Collection<TransformInput>, outputModelClasses: Set<CtClass>, timer: Stopwatch) {
+    private fun exitTransform(timer: Stopwatch) {
         timer.stop()
         analytics?.execute()
     }
 }
+
+abstract class ModifyClassesTask: DefaultTask() {
+    @get:Classpath
+    abstract val fullRuntimeClasspath : ConfigurableFileCollection
+
+    @get:InputFiles
+    abstract val allJars: ListProperty<RegularFile>
+
+    @get:InputFiles
+    abstract val allDirectories: ListProperty<Directory>
+
+    @get:OutputFiles
+    abstract val output: RegularFileProperty
+
+    @TaskAction
+    fun taskAction() {
+        RealmTransformer(project, allDirectories, allJars, fullRuntimeClasspath, output)
+            .transform()
+    }
+}
+

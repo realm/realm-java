@@ -35,6 +35,7 @@ import io.realm.examples.librarymodules.model.Dog;
 import io.realm.examples.librarymodules.model.Elephant;
 import io.realm.examples.librarymodules.model.Lion;
 import io.realm.examples.librarymodules.model.Zebra;
+import io.realm.examples.librarymodules.modules.AllAnimalsModule;
 import io.realm.examples.librarymodules.modules.DomesticAnimalsModule;
 import io.realm.examples.librarymodules.modules.ZooAnimalsModule;
 import io.realm.exceptions.RealmException;
@@ -58,20 +59,29 @@ public class ModulesExampleActivity extends Activity {
         // The default Realm instance implicitly knows about all classes in the realmModuleAppExample Android Studio
         // module. This does not include the classes from the realmModuleLibraryExample AS module so a Realm using this
         // configuration would know about the following classes: { Cow, Pig, Snake, Spider }
-        RealmConfiguration defaultConfig = new RealmConfiguration.Builder().build();
+        RealmConfiguration defaultConfig = new RealmConfiguration
+                .Builder()
+                .modules(Realm.getDefaultModule(), new AllAnimalsModule())
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
+                .build();
 
         // It is possible to extend the default schema by adding additional Realm modules using modules(). This can
         // also be Realm modules from libraries. The below Realm contains the following classes: { Cow, Pig, Snake,
         // Spider, Cat, Dog }
         RealmConfiguration farmAnimalsConfig = new RealmConfiguration.Builder()
                 .name("farm.realm")
-                .modules(Realm.getDefaultModule(), new DomesticAnimalsModule())
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
+                .modules(Realm.getDefaultModule(), new AllAnimalsModule())
                 .build();
 
         // Or you can completely replace the default schema.
         // This Realm contains the following classes: { Elephant, Lion, Zebra, Snake, Spider }
         RealmConfiguration exoticAnimalsConfig = new RealmConfiguration.Builder()
                 .name("exotic.realm")
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
                 .modules(new ZooAnimalsModule(), new CreepyAnimalsModule())
                 .build();
 

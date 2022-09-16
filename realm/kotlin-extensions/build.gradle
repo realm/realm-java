@@ -73,8 +73,12 @@ android {
 
     // Required from Kotlin 1.1.2
     compileOptions {
-        targetCompatibility 1.8
-        sourceCompatibility 1.8
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
     }
 }
 
@@ -171,4 +175,5 @@ artifacts {
 
 publishToMavenLocal.dependsOn assemble
 
-android.registerTransform(new io.realm.transformer.RealmTransformer(project))
+io.realm.transformer.RealmTransformer.@Companion.register(project)
+

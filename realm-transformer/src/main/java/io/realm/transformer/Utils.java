@@ -29,7 +29,7 @@ public class Utils {
      * Encode the given string with Base64
      * @param data the string to encode
      * @return the encoded string
-     * @throws UnsupportedEncodingException
+     * @throws UnsupportedEncodingException if string is not valid utf8
      */
     public static String base64Encode(String data) throws UnsupportedEncodingException {
         return DatatypeConverter.printBase64Binary(data.getBytes("UTF-8"));

@@ -1,5 +1,7 @@
 package io.realm.processor;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 import java.util.LinkedHashMap;
@@ -9,8 +11,6 @@ import io.realm.processor.nameconverter.CamelCaseConverter;
 import io.realm.processor.nameconverter.LowerCaseWithSeparatorConverter;
 import io.realm.processor.nameconverter.NameConverter;
 import io.realm.processor.nameconverter.PascalCaseConverter;
-
-import static org.junit.Assert.assertEquals;
 
 public class NameConverterTests {
 

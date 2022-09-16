@@ -140,6 +140,7 @@ public class TestHelper {
      * with primary key defined well. Primary key has to be set with `setXxxUnique` as the first thing to do after row
      * added.
      */
+    @Deprecated
     public static long addRowWithValues(Table table, long[] columnKeys, Object[] values) {
         long rowKey = OsObject.createRow(table);
 
@@ -357,7 +358,7 @@ public class TestHelper {
     public static String getRandomEmail() {
         StringBuilder sb = new StringBuilder(UUID.randomUUID().toString().toLowerCase());
         sb.append('@');
-        sb.append("androidtest.realm.io");
+        sb.append("10gen.com");
         return sb.toString();
     }
 

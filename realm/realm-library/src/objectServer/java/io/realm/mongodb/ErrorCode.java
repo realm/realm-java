@@ -110,6 +110,7 @@ public enum ErrorCode {
     SERVER_PERMISSIONS_CHANGED(Type.PROTOCOL, 228),                // Server permissions for this file ident have changed since the last time it was used (IDENT)
     INITIAL_SYNC_NOT_COMPLETE(Type.PROTOCOL, 229),                 // Client tried to open a session before initial sync is complete (BIND)
     WRITE_NOT_ALLOWED(Type.PROTOCOL, 230),                         // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query - requires client reset (UPLOAD)
+    COMPENSATING_WRITE(Type.PROTOCOL, 231),                        // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query, and the server undid the change
 
     // Sync Network Client errors.
     // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L73

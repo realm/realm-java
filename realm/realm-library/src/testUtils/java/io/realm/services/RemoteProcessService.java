@@ -38,6 +38,7 @@ import io.realm.entities.AllTypesModelModule;
  * Helper service for multi-processes support testing.
  * @deprecated use {@link RemoteTestService} instead.
  */
+@Deprecated
 public class RemoteProcessService extends Service {
 
     public abstract static class Step {

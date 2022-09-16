@@ -21,7 +21,7 @@ import io.realm.annotations.Index;
 
 public class Person extends RealmObject {
     @Index
-    private String name;
+    public String name;
 
     private int age;
 

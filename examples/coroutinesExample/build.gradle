@@ -5,7 +5,8 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion rootProject.sdkVersion
+    // androidx.lifecycle dependencies requires Android APIs 31 or later
+    compileSdkVersion 31
     buildToolsVersion rootProject.buildTools
 
     defaultConfig {
@@ -57,10 +58,10 @@ dependencies {
 
     implementation "androidx.fragment:fragment-ktx:1.2.5"
 
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.2.0"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0"
-    implementation "androidx.lifecycle:lifecycle-common-java8:2.2.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.4.0"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.0"
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.4.0"
 
     implementation "androidx.legacy:legacy-support-v4:1.0.0"
 
@@ -68,7 +69,7 @@ dependencies {
 
     implementation "androidx.recyclerview:recyclerview:1.1.0"
 
-    implementation "com.dropbox.mobile.store:store4:4.0.0"
+    implementation "com.dropbox.mobile.store:store4:4.0.5"
 
     implementation "com.google.android.material:material:1.2.1"
 
