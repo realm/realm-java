@@ -362,7 +362,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_DISCARD_LOCAL: config.sync_config->client_resync_mode = realm::ClientResyncMode::DiscardLocal; break;
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_RECOVER: config.sync_config->client_resync_mode = realm::ClientResyncMode::Recover; break;
             case io_realm_internal_OsRealmConfig_CLIENT_RESYNC_MODE_RECOVER_OR_DISCARD: config.sync_config->client_resync_mode = realm::ClientResyncMode::RecoverOrDiscard; break;
-            default: throw std::logic_error(util::format("Unsupported value for ClientResyncMode: %1", j_client_reset_mode));
+            default: throw std::logic_error(util::format("Unsupported value for ClientResetMode: %1", j_client_reset_mode));
         }
 
         // setup before and after client reset callbacks

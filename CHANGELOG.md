@@ -3,6 +3,7 @@
 ### Enhancements
 * [RealmApp] Introduced `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client, and discards any unsynced data if not possible. This is now the default client reset policy if not explicitly set in the `SyncConfiguration`.
 * [RealmApp] Introduced `SyncSession.RecoverUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client and will revert to manual client reset if not possible.
+* [RealmApp] Flexible sync client reset is no longer limited to `ManuallyRecoverChangesStrategy`, it now supports all available strategies: `RecoverOrDiscardUnsyncedChangesStrategy`, `RecoverUnsyncedChangesStrategy`, `DiscardUnsyncedChangesStrategy` and `ManuallyRecoverChangesStrategy`.
 
 ### Fixed
 * Now queries can point to fields with query language-reserved words like 'desc', 'sort', 'distinct', etc. Issue [#7705](https://github.com/realm/realm-java/issues/7705)
