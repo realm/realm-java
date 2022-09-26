@@ -39,6 +39,22 @@ typealias SessionCallback = (SyncSession) -> Unit
 
 private val SECRET_PASSWORD = "123456"
 
+fun validateManualResetIsAvailable(
+    session: SyncSession,
+    error: ClientResetRequiredError
+) {
+    val filePathFromError = error.originalFile.absolutePath
+    val filePathFromConfig = session.configuration.path
+    assertEquals(filePathFromError, filePathFromConfig)
+    assertFalse(error.backupFile.exists())
+    assertTrue(error.originalFile.exists())
+
+    assertEquals(
+        "CLIENT_RESET(realm::app::CustomError:7): Automatic recovery from client reset failed",
+        error.toString()
+    )
+}
+
 @RunWith(AndroidJUnit4::class)
 class SyncSessionTests {
 
@@ -172,22 +188,6 @@ class SyncSessionTests {
         }
 
         looperThread.testComplete(latch)
-    }
-
-    private fun validateManualResetIsAvailable(
-        session: SyncSession,
-        error: ClientResetRequiredError
-    ) {
-        val filePathFromError = error.originalFile.absolutePath
-        val filePathFromConfig = session.configuration.path
-        assertEquals(filePathFromError, filePathFromConfig)
-        assertFalse(error.backupFile.exists())
-        assertTrue(error.originalFile.exists())
-
-        assertEquals(
-            "CLIENT_RESET(realm::app::CustomError:7): Automatic recovery from client reset failed",
-            error.toString()
-        )
     }
 
     @Test
