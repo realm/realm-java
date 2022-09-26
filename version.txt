@@ -1,1 +1,1 @@
-10.12.0-transformer-api-SNAPSHOT
+10.12.0-transformer-api

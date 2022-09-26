@@ -1,4 +1,8 @@
-## 10.12.0-transformer-api (YYYY-MM-DD)
+This branch tracks the Realm Java SDK release with support for Android Gradle Plugin version 7.4 and
+newer. For releases supporting the current Android Gradle Plugin (7.3.x and below) please refer to 
+the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/releases/CHANGELOG.md).
+
+## 10.12.0-transformer-api (2022-09-26)
 
 ### Breaking Changes
 * Only works with Android Gradle Plugin 7.4 or newer. (Issue [#7714](https://github.com/realm/realm-java/issues/7714))
