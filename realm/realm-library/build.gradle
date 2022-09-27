@@ -403,9 +403,12 @@ project.afterEvaluate {
 
         // all Java files must be compiled before native build
         // See https://github.com/android/ndk-samples/issues/284
-        variant.externalNativeBuildProviders[0].configure {
-            it.taskDependencies.getDependencies(it).find { it.name.startsWith("buildCMake") }
-                    .dependsOn "compile${variant.name.capitalize()}JavaWithJavac"
+        variant.externalNativeBuildProviders[0].configure { externalNativeBuildTask ->
+            externalNativeBuildTask.taskDependencies.getDependencies(externalNativeBuildTask)
+                .findAll { it.name.startsWith("buildCMake") }
+                .forEach { externalNativeBuildDependency ->
+                    externalNativeBuildDependency.dependsOn "compile${variant.name.capitalize()}JavaWithJavac"
+                }
         }
         // as of android gradle plugin 3.0.0-alpha5, generateJsonModel* triggers native build. Java files must be compiled before them.
         android.buildTypes.all { buildType ->
