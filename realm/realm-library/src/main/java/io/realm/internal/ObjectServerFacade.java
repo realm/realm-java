@@ -38,7 +38,7 @@ public class ObjectServerFacade {
         Realm createInstance(OsSharedRealm sharedRealm);
     }
 
-    public static final int SYNC_CONFIG_OPTIONS = 17;
+    public static final int SYNC_CONFIG_OPTIONS = 19;
 
     private static final ObjectServerFacade nonSyncFacade = new ObjectServerFacade();
     private static ObjectServerFacade syncFacade = null;
