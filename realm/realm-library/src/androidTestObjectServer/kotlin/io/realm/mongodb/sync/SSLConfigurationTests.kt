@@ -15,12 +15,12 @@
  */
 package io.realm.mongodb.sync
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.TestApp
 import io.realm.TestSyncConfigurationFactory
 import io.realm.rule.BlockingLooperThread
 import io.realm.TestHelper.TestLogger
 import android.os.SystemClock
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.Realm
 import io.realm.entities.StringOnly
 import io.realm.exceptions.RealmFileException
@@ -45,16 +45,11 @@ import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
 class SSLConfigurationTests {
-    // TODO: All tests in this class are currently marked @RunTestInLooperThread,
-    // this is strictly not necessary, but currently needed to avoid other issues with setting
-    // up tests.
-    @get:Rule
-    private val looperThread = BlockingLooperThread()
-    private val configFactory: TestSyncConfigurationFactory = TestSyncConfigurationFactory()
-    private lateinit var app: App
 
-    @Rule
-    var globalTimeout = Timeout.seconds(120)
+    @get:Rule
+    val configFactory = TestSyncConfigurationFactory()
+    private val looperThread = BlockingLooperThread()
+    private lateinit var app: App
 
     @Before
     fun setUp() {
@@ -68,7 +63,6 @@ class SSLConfigurationTests {
 
     @Test
     @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
-    @Throws(InterruptedException::class)
     fun trustedRootCA() = looperThread.runBlocking {
         val username = UUID.randomUUID().toString()
         val password = "password"
@@ -109,7 +103,6 @@ class SSLConfigurationTests {
     }
 
     @Test
-    @Throws(InterruptedException::class)
     fun withoutSSLVerification() = looperThread.runBlocking {
         val username = UUID.randomUUID().toString()
         val password = "password"
@@ -150,7 +143,6 @@ class SSLConfigurationTests {
     }
 
     @Test
-    @Throws(InterruptedException::class)
     fun trustedRootCA_syncShouldFailWithoutTrustedCA() = looperThread.runBlocking {
         val username = UUID.randomUUID().toString()
         val password = "password"
@@ -234,7 +226,6 @@ class SSLConfigurationTests {
 
     @Test
     @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
-    @Throws(InterruptedException::class)
     fun combiningTrustedRootCA_and_disableSSLVerification() = looperThread.runBlocking {
         val username = UUID.randomUUID().toString()
         val password = "password"
@@ -281,7 +272,6 @@ class SSLConfigurationTests {
     //            then import the certificate from the device (Settings/Security/Install from storage)
     @Test
     @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
-    @Throws(InterruptedException::class)
     fun sslVerifyCallback_isUsed() = looperThread.runBlocking {
         val username = UUID.randomUUID().toString()
         val password = "password"
