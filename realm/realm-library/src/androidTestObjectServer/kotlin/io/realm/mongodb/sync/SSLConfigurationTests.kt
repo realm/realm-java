@@ -109,9 +109,11 @@ class SSLConfigurationTests {
         val username = TestHelper.getRandomEmail()
         val password = "password"
         var user: User = app.registerUserAndLogin(username, password)
+        var partition = UUID.randomUUID().toString()
+
 
         // 1. Copy a valid Realm to the server
-        val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
+        val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user, partition)
                 .modules(DefaultSyncSchema())
                 .build()
         var realm = Realm.getInstance(syncConfig)
@@ -126,9 +128,8 @@ class SSLConfigurationTests {
 
         // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
         // download the uploaded changes.
-        user = app.login(Credentials.emailPassword(username, password))
-        val syncConfigSSL: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .name("withoutSSLVerification")
+        user = app.registerUserAndLogin(TestHelper.getRandomEmail(), "password")
+        val syncConfigSSL: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user, partition)
                 .modules(DefaultSyncSchema())
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
