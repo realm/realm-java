@@ -19,6 +19,7 @@ import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.Realm
 import io.realm.TestApp
+import io.realm.TestHelper
 import io.realm.TestHelper.TestLogger
 import io.realm.TestSyncConfigurationFactory
 import io.realm.entities.DefaultSyncSchema
