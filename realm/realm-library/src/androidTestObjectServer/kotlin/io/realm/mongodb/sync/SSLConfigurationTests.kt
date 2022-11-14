@@ -15,14 +15,14 @@
  */
 package io.realm.mongodb.sync
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
-import io.realm.TestApp
-import io.realm.TestSyncConfigurationFactory
-import io.realm.rule.BlockingLooperThread
-import io.realm.TestHelper.TestLogger
 import android.os.SystemClock
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.Realm
-import io.realm.entities.StringOnly
+import io.realm.TestApp
+import io.realm.TestHelper.TestLogger
+import io.realm.TestSyncConfigurationFactory
+import io.realm.entities.DefaultSyncSchema
+import io.realm.entities.SyncDog
 import io.realm.exceptions.RealmFileException
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -31,13 +31,13 @@ import io.realm.mongodb.Credentials
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
+import io.realm.rule.BlockingLooperThread
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.Timeout
 import org.junit.runner.RunWith
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -70,11 +70,11 @@ class SSLConfigurationTests {
 
         // 1. Copy a valid Realm to the server
         val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .build()
         var realm = Realm.getInstance(syncConfig)
         realm.beginTransaction()
-        realm.createObject(StringOnly::class.java).chars = "Foo"
+        realm.createObject(SyncDog::class.java).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -87,15 +87,15 @@ class SSLConfigurationTests {
         user = app.login(Credentials.emailPassword(username, password))
         val syncConfigSSL: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
                 .name("useSsl")
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .waitForInitialRemoteData()
                 .trustedRootCA("trusted_ca.pem")
                 .build()
         realm = Realm.getInstance(syncConfigSSL)
-        val all = realm.where(StringOnly::class.java).findAll()
+        val all = realm.where(SyncDog::class.java).findAll()
         try {
             Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Foo", all[0]!!.chars)
+            Assert.assertEquals("Foo", all[0]!!.name)
         } finally {
             realm.close()
         }
@@ -110,11 +110,11 @@ class SSLConfigurationTests {
 
         // 1. Copy a valid Realm to the server
         val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .build()
         var realm = Realm.getInstance(syncConfig)
         realm.beginTransaction()
-        realm.createObject(StringOnly::class.java).chars = "Foo"
+        realm.createObject(SyncDog::class.java).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -127,15 +127,15 @@ class SSLConfigurationTests {
         user = app.login(Credentials.emailPassword(username, password))
         val syncConfigSSL: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
                 .name("useSsl")
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
                 .build()
         realm = Realm.getInstance(syncConfigSSL)
-        val all = realm.where(StringOnly::class.java).findAll()
+        val all = realm.where(SyncDog::class.java).findAll()
         try {
             Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Foo", all[0]!!.chars)
+            Assert.assertEquals("Foo", all[0]!!.name)
         } finally {
             realm.close()
         }
@@ -150,11 +150,11 @@ class SSLConfigurationTests {
 
         // 1. Copy a valid Realm to the server
         val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-            .schema(StringOnly::class.java)
+            .modules(DefaultSyncSchema())
             .build()
         var realm = Realm.getInstance(syncConfig)
         realm.beginTransaction()
-        realm.createObject(StringOnly::class.java).chars = "Foo"
+        realm.createObject(SyncDog::class.java).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -167,7 +167,7 @@ class SSLConfigurationTests {
         user = app.login(Credentials.emailPassword(username, password))
         val syncConfigSSL: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
                 .name("useSsl")
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .trustedRootCA("untrusted_ca.pem")
                 .build()
         // waitForInitialRemoteData will throw an Internal error (125): Operation Canceled
@@ -193,7 +193,7 @@ class SSLConfigurationTests {
         RealmLog.setLevel(LogLevel.WARN)
         configFactory.createSyncConfigurationBuilder(user)
             .name("useSsl")
-            .schema(StringOnly::class.java)
+            .modules(DefaultSyncSchema())
             .trustedRootCA("trusted_ca.pem")
             .disableSSLVerification()
             .build()
@@ -213,7 +213,7 @@ class SSLConfigurationTests {
         val password = "password"
         val user: User = app.registerUserAndLogin(username, password)
         val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .trustedRootCA("none_existing_file.pem")
                 .build()
         try {
@@ -233,12 +233,12 @@ class SSLConfigurationTests {
 
         // 1. Copy a valid Realm to the server using ssl_verify_path option
         val syncConfigWithCertificate: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .trustedRootCA("trusted_ca.pem")
                 .build()
         var realm = Realm.getInstance(syncConfigWithCertificate)
         realm.beginTransaction()
-        realm.createObject(StringOnly::class.java).chars = "Foo"
+        realm.createObject(SyncDog::class.java).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -251,15 +251,15 @@ class SSLConfigurationTests {
         user = app.login(Credentials.emailPassword(username, password))
         val syncConfigDisableSSL = configFactory.createSyncConfigurationBuilder(user)
                 .name("useSsl")
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
                 .build()
         realm = Realm.getInstance(syncConfigDisableSSL)
-        val all = realm.where(StringOnly::class.java).findAll()
+        val all = realm.where(SyncDog::class.java).findAll()
         try {
             Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Foo", all[0]!!.chars)
+            Assert.assertEquals("Foo", all[0]!!.name)
         } finally {
             realm.close()
         }
@@ -279,11 +279,11 @@ class SSLConfigurationTests {
 
         // 1. Copy a valid Realm to the server using ssl_verify_path option
         val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .build()
         var realm = Realm.getInstance(syncConfig)
         realm.beginTransaction()
-        realm.createObject(StringOnly::class.java).chars = "Foo"
+        realm.createObject(SyncDog::class.java).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -296,14 +296,14 @@ class SSLConfigurationTests {
         user = app.login(Credentials.emailPassword(username, password))
         val syncConfigSecure: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
                 .name("useSsl")
-                .schema(StringOnly::class.java)
+                .modules(DefaultSyncSchema())
                 .waitForInitialRemoteData()
                 .build()
         realm = Realm.getInstance(syncConfigSecure)
-        val all = realm.where(StringOnly::class.java).findAll()
+        val all = realm.where(SyncDog::class.java).findAll()
         try {
             Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Foo", all[0]!!.chars)
+            Assert.assertEquals("Foo", all[0]!!.name)
         } finally {
             realm.close()
         }
