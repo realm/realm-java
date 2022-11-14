@@ -32,6 +32,7 @@ import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
 import io.realm.rule.BlockingLooperThread
+import org.bson.types.ObjectId
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
@@ -74,7 +75,7 @@ class SSLConfigurationTests {
                 .build()
         var realm = Realm.getInstance(syncConfig)
         realm.beginTransaction()
-        realm.createObject(SyncDog::class.java).name = "Foo"
+        realm.createObject(SyncDog::class.java, ObjectId()).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -114,7 +115,7 @@ class SSLConfigurationTests {
                 .build()
         var realm = Realm.getInstance(syncConfig)
         realm.beginTransaction()
-        realm.createObject(SyncDog::class.java).name = "Foo"
+        realm.createObject(SyncDog::class.java, ObjectId()).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -154,7 +155,7 @@ class SSLConfigurationTests {
             .build()
         var realm = Realm.getInstance(syncConfig)
         realm.beginTransaction()
-        realm.createObject(SyncDog::class.java).name = "Foo"
+        realm.createObject(SyncDog::class.java, ObjectId()).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -238,7 +239,7 @@ class SSLConfigurationTests {
                 .build()
         var realm = Realm.getInstance(syncConfigWithCertificate)
         realm.beginTransaction()
-        realm.createObject(SyncDog::class.java).name = "Foo"
+        realm.createObject(SyncDog::class.java, ObjectId()).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
@@ -283,7 +284,7 @@ class SSLConfigurationTests {
                 .build()
         var realm = Realm.getInstance(syncConfig)
         realm.beginTransaction()
-        realm.createObject(SyncDog::class.java).name = "Foo"
+        realm.createObject(SyncDog::class.java, ObjectId()).name = "Foo"
         realm.commitTransaction()
 
         // make sure the changes gets to the server
