@@ -65,7 +65,7 @@ class SSLConfigurationTests {
     @Test
     @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     fun trustedRootCA() = looperThread.runBlocking {
-        val username = UUID.randomUUID().toString()
+        val username = TestHelper.getRandomEmail()
         val password = "password"
         var user = app.registerUserAndLogin(username, password)
 
@@ -105,7 +105,7 @@ class SSLConfigurationTests {
 
     @Test
     fun withoutSSLVerification() = looperThread.runBlocking {
-        val username = UUID.randomUUID().toString()
+        val username = TestHelper.getRandomEmail()
         val password = "password"
         var user: User = app.registerUserAndLogin(username, password)
 
@@ -127,7 +127,7 @@ class SSLConfigurationTests {
         // download the uploaded changes.
         user = app.login(Credentials.emailPassword(username, password))
         val syncConfigSSL: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .name("useSsl")
+                .name("withoutSSLVerification")
                 .modules(DefaultSyncSchema())
                 .waitForInitialRemoteData()
                 .disableSSLVerification()
@@ -145,7 +145,7 @@ class SSLConfigurationTests {
 
     @Test
     fun trustedRootCA_syncShouldFailWithoutTrustedCA() = looperThread.runBlocking {
-        val username = UUID.randomUUID().toString()
+        val username = TestHelper.getRandomEmail()
         val password = "password"
         var user: User = app.registerUserAndLogin(username, password)
 
@@ -184,7 +184,7 @@ class SSLConfigurationTests {
 
     @Test
     fun combining_trustedRootCA_and_withoutSSLVerification_willThrow() = looperThread.runBlocking {
-        val username = UUID.randomUUID().toString()
+        val username = TestHelper.getRandomEmail()
         val password = "password"
         val user: User = app.registerUserAndLogin(username, password)
 
@@ -210,7 +210,7 @@ class SSLConfigurationTests {
     @Test
     @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     fun trustedRootCA_notExisting_certificate_willThrow() = looperThread.runBlocking {
-        val username = UUID.randomUUID().toString()
+        val username = TestHelper.getRandomEmail()
         val password = "password"
         val user: User = app.registerUserAndLogin(username, password)
         val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
@@ -228,7 +228,7 @@ class SSLConfigurationTests {
     @Test
     @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     fun combiningTrustedRootCA_and_disableSSLVerification() = looperThread.runBlocking {
-        val username = UUID.randomUUID().toString()
+        val username = TestHelper.getRandomEmail()
         val password = "password"
         var user: User = app.registerUserAndLogin(username, password)
 
@@ -274,7 +274,7 @@ class SSLConfigurationTests {
     @Test
     @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
     fun sslVerifyCallback_isUsed() = looperThread.runBlocking {
-        val username = UUID.randomUUID().toString()
+        val username = TestHelper.getRandomEmail()
         val password = "password"
         var user: User = app.registerUserAndLogin(username, password)
 
