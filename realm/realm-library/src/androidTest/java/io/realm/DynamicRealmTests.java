@@ -734,7 +734,7 @@ public class DynamicRealmTests {
         dynamicRealm.commitTransaction();
 
         thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Illegal Argument: 'class_NoField' has no property: 'nonExisting'");
+        thrown.expectMessage("Illegal Argument: 'NoField' has no property 'nonExisting'");
         dynamicRealm.where(className).equalTo("nonExisting", 1);
     }
 

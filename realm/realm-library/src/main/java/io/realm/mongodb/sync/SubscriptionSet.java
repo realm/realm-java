@@ -76,7 +76,14 @@ public interface SubscriptionSet extends Iterable<Subscription> {
          * are ignorde by the server. Get the latest subscription set by calling
          * {@link Realm#getSubscriptions()}.
          */
-        SUPERSEDED(OsSubscriptionSet.STATE_VALUE_SUPERSEDED);
+        SUPERSEDED(OsSubscriptionSet.STATE_VALUE_SUPERSEDED),
+
+        /**
+         * The last initialization message containing the initial state for this subscription set
+         * has been received. The client is awaiting a mark message to mark this subscription as
+         * fully caught up to history.
+         */
+        AWAITING_MARK(OsSubscriptionSet.STATE_VALUE_AWAITING_MARK);
 
         private final byte value;
 

@@ -46,6 +46,7 @@ public class OsSubscriptionSet implements NativeObject, SubscriptionSet {
     public static final byte STATE_VALUE_COMPLETE = 3;
     public static final byte STATE_VALUE_ERROR = 4;
     public static final byte STATE_VALUE_SUPERSEDED = 5;
+    public static final byte STATE_VALUE_AWAITING_MARK = 6;
 
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
     protected final RealmProxyMediator schema;
