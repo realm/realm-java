@@ -44,7 +44,8 @@ public interface SubscriptionSet extends Iterable<Subscription> {
     public enum State {
         /**
          * The initial state of subscriptions when opening a new Realm or when entering a
-         * {@link #update(UpdateCallback)}.
+         * {@link #update(UpdateCallback)}. This state is only valid for
+         * {@link MutableSubscriptionSet}.
          */
         UNCOMMITTED(OsSubscriptionSet.STATE_VALUE_UNCOMMITTED),
 

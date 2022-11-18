@@ -85,7 +85,7 @@ class SubscriptionSetTests {
     fun initialSubscriptions() {
         val subscriptions = realm.subscriptions
         assertEquals(0, subscriptions.size())
-        assertEquals(SubscriptionSet.State.UNCOMMITTED, subscriptions.state)
+        assertEquals(SubscriptionSet.State.PENDING, subscriptions.state) // it cannot be UNCOMMITTED since it's not a mutable subscription set
     }
 
     @Test
@@ -116,7 +116,7 @@ class SubscriptionSetTests {
     @Test
     fun getState() {
         val subscriptions = realm.subscriptions
-        assertEquals(SubscriptionSet.State.UNCOMMITTED, subscriptions.state)
+        assertEquals(SubscriptionSet.State.PENDING, subscriptions.state) // it cannot be UNCOMMITTED since it's not a mutable subscription set
         subscriptions.update { mutableSubs ->
             mutableSubs.addOrUpdate(Subscription.create("test", realm.where<FlexSyncColor>()))
         }
