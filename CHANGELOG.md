@@ -1,7 +1,7 @@
 ## 10.13.0 (YYYY-MM-DD)
 
 ### Enhancements
-* None
+* [RealmApp] Added two options for working with Device Sync from an internal network. `SyncConfiguration.trustedRootCA(assetPath)` can embed a custom certificate in the app that will be used by Sync and `SyncConfiguration.disableSSLVerification()` makes it possible to turn off SSL validation. (Issue [#7739](https://github.com/realm/realm-java/pull/7739)).
 
 ### Fixed
 * None
