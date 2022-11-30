@@ -27,7 +27,7 @@ ENV REALM_DISABLE_ANALYTICS true
 RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
     && apt-get install -y tzdata \
-    && apt-get install -y --allow-unauthenticated \
+    && apt-get install -y \
                           bsdmainutils \
                           bridge-utils \
                           build-essential \
