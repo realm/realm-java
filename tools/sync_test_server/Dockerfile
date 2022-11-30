@@ -1,3 +1,7 @@
+# Node 18 does not work due to a network issue:
+# npm ERR! request to https://registry.npmjs.org/fs-extra failed, reason: connect ENETUNREACH 2606:4700::6810:1823:443
+# Probably an issue with IPv6 in combination with Docker. IPv6 became the default in Node 17.
+# For now, just use an older node version.
 FROM node:16
 
 # This Docker image is only responsible for running the Integration Command Server which can be
