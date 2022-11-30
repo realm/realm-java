@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:16
 
 # This Docker image is only responsible for running the Integration Command Server which can be
 # used to instrument other parts of the Integration tests.
