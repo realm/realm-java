@@ -1,4 +1,4 @@
-FROM ubuntu:22.10
+FROM ubuntu:22.04
 
 # Locales
 RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
