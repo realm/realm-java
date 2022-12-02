@@ -15,15 +15,9 @@
  */
 package io.realm.analytics
 
+import io.realm.transformer.ProjectMetaData
 import io.realm.transformer.CONNECT_TIMEOUT
 import io.realm.transformer.READ_TIMEOUT
-import io.realm.transformer.Utils
-import io.realm.transformer.ext.getAgpVersion
-import io.realm.transformer.ext.getAppId
-import io.realm.transformer.ext.getMinSdk
-import io.realm.transformer.ext.getTargetSdk
-import org.gradle.api.Project
-import org.gradle.api.artifacts.ResolvedArtifact
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
@@ -88,67 +82,27 @@ class RealmAnalytics {
         }
     }
 
-    public fun calculateAnalyticsData(project: Project): Boolean {
-        if (!isAnalyticsEnabled(project))  {
+    fun calculateAnalyticsData(metadata: ProjectMetaData): Boolean {
+        if (!isAnalyticsEnabled(metadata.isGradleOffline))  {
             return false
         }
 
-        // Language specific data
-        // Should be safe to iterate the configurations as we are way beyond the configuration
-        // phase
-        var containsKotlin = false
-        outer@
-        for (conf in project.configurations) {
-            try {
-                for (artifact: ResolvedArtifact in conf.resolvedConfiguration.resolvedArtifacts) {
-                    if (artifact.name.startsWith("kotlin-stdlib")) {
-                        containsKotlin = true
-                        break@outer
-                    }
-                }
-            } catch (ignore: Exception) {
-                // Some artifacts might not be able to resolve, in this case, just ignore them.
-            }
-        }
-
-        // Android specific data
-        val appId: String = project.getAppId()
-        val targetSdk: String = project.getTargetSdk()
-        val minSdk: String = project.getMinSdk()
-        val target =
-            when {
-                project.plugins.findPlugin("com.android.application") != null -> {
-                    "app"
-                }
-                project.plugins.findPlugin("com.android.library") != null -> {
-                    "library"
-                }
-                else -> {
-                    "unknown"
-                }
-            }
-        val gradleVersion = project.gradle.gradleVersion
-        val agpVersion = project.getAgpVersion()
-
-        // Realm specific data
-        val sync: Boolean = Utils.isSyncEnabled(project)
-
         data = AnalyticsData(
-            appId = PublicAppId(appId),
-            usesKotlin = containsKotlin,
-            usesSync = sync,
-            targetSdk = targetSdk,
-            minSdk = minSdk,
-            target = target,
-            gradleVersion = gradleVersion,
-            agpVersion = agpVersion
+            appId = PublicAppId(metadata.appId),
+            usesKotlin = metadata.usesKotlin,
+            usesSync = metadata.usesSync,
+            targetSdk = metadata.targetSdk,
+            minSdk = metadata.minSdk,
+            target = metadata.targetType,
+            gradleVersion = metadata.gradleVersion,
+            agpVersion = metadata.agpVersion
         )
         return true
     }
 
-    private fun isAnalyticsEnabled(project: Project): Boolean {
+    private fun isAnalyticsEnabled(isOffline: Boolean): Boolean {
         val env = System.getenv()
-        return !project.gradle.startParameter.isOffline
+        return !isOffline
                 && env["REALM_DISABLE_ANALYTICS"] == null
                 && env["CI"] == null
     }
