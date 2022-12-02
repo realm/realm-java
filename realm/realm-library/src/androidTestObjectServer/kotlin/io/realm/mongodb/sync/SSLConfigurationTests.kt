@@ -25,10 +25,13 @@ import io.realm.TestSyncConfigurationFactory
 import io.realm.entities.DefaultSyncSchema
 import io.realm.entities.SyncDog
 import io.realm.exceptions.RealmFileException
+import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.App
+import io.realm.mongodb.AppException
 import io.realm.mongodb.Credentials
+import io.realm.mongodb.ErrorCode
 import io.realm.mongodb.User
 import io.realm.mongodb.close
 import io.realm.mongodb.registerUserAndLogin
@@ -45,7 +48,11 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 
+/**
+ * Remember: Any test against the local BAAS server will not use an SSL connection.
+ */
 @RunWith(AndroidJUnit4::class)
+@Ignore("Should only be run manually")
 class SSLConfigurationTests {
 
     @get:Rule
@@ -55,62 +62,15 @@ class SSLConfigurationTests {
 
     @Before
     fun setUp() {
-        app = TestApp()
-    }
-
-    @After
-    fun tearDown() {
-        app.close()
+        app = App("application-0-nfiqi")
     }
 
     @Test
-    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
-    fun trustedRootCA() = looperThread.runBlocking {
-        val username = TestHelper.getRandomEmail()
-        val password = "password"
-        var user = app.registerUserAndLogin(username, password)
-
-        // 1. Copy a valid Realm to the server
-        val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .modules(DefaultSyncSchema())
-                .build()
-        var realm = Realm.getInstance(syncConfig)
-        realm.beginTransaction()
-        realm.createObject(SyncDog::class.java, ObjectId()).name = "Foo"
-        realm.commitTransaction()
-
-        // make sure the changes gets to the server
-        app.sync.getSession(syncConfig).uploadAllLocalChanges()
-        realm.close()
-        user.logOut()
-
-        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
-        // download the uploaded changes.
-        user = app.login(Credentials.emailPassword(username, password))
-        val syncConfigSSL: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .name("useSsl")
-                .modules(DefaultSyncSchema())
-                .waitForInitialRemoteData()
-                .trustedRootCA("trusted_ca.pem")
-                .build()
-        realm = Realm.getInstance(syncConfigSSL)
-        val all = realm.where(SyncDog::class.java).findAll()
-        try {
-            Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Foo", all[0]!!.name)
-        } finally {
-            realm.close()
-        }
-        looperThread.testComplete()
-    }
-
-    @Test
-    fun withoutSSLVerification() = looperThread.runBlocking {
+    fun disableSSLVerification() = looperThread.runBlocking {
         val username = TestHelper.getRandomEmail()
         val password = "password"
         var user: User = app.registerUserAndLogin(username, password)
         var partition = UUID.randomUUID().toString()
-
 
         // 1. Copy a valid Realm to the server
         val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user, partition)
@@ -132,6 +92,7 @@ class SSLConfigurationTests {
         val syncConfigSSL: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user, partition)
                 .modules(DefaultSyncSchema())
                 .waitForInitialRemoteData()
+                .trustedRootCA("trusted_ca.pem") // This is expired and should be ignored
                 .disableSSLVerification()
                 .build()
         realm = Realm.getInstance(syncConfigSSL)
@@ -177,7 +138,9 @@ class SSLConfigurationTests {
         SystemClock.sleep(TimeUnit.SECONDS.toMillis(2))
         realm = Realm.getInstance(syncConfigSSL)
         try {
-            Assert.assertTrue(realm.isEmpty)
+            realm.syncSession.downloadAllServerChanges()
+        } catch (ex: AppException) {
+            assertEquals(ErrorCode.CLIENT_SSL_SERVER_CERT_REJECTED, ex.errorCode)
         } finally {
             realm.close()
         }
@@ -185,7 +148,7 @@ class SSLConfigurationTests {
     }
 
     @Test
-    fun combining_trustedRootCA_and_withoutSSLVerification_willThrow() = looperThread.runBlocking {
+    fun combining_trustedRootCA_and_withoutSSLVerification_willWarn() = looperThread.runBlocking {
         val username = TestHelper.getRandomEmail()
         val password = "password"
         val user: User = app.registerUserAndLogin(username, password)
@@ -206,110 +169,6 @@ class SSLConfigurationTests {
         )
         RealmLog.remove(testLogger)
         RealmLog.setLevel(originalLevel)
-        looperThread.testComplete()
-    }
-
-    @Test
-    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
-    fun trustedRootCA_notExisting_certificate_willThrow() = looperThread.runBlocking {
-        val username = TestHelper.getRandomEmail()
-        val password = "password"
-        val user: User = app.registerUserAndLogin(username, password)
-        val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .modules(DefaultSyncSchema())
-                .trustedRootCA("none_existing_file.pem")
-                .build()
-        try {
-            Realm.getInstance(syncConfig)
-            Assert.fail()
-        } catch (ignored: RealmFileException) {
-        }
-        looperThread.testComplete()
-    }
-
-    @Test
-    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
-    fun combiningTrustedRootCA_and_disableSSLVerification() = looperThread.runBlocking {
-        val username = TestHelper.getRandomEmail()
-        val password = "password"
-        var user: User = app.registerUserAndLogin(username, password)
-
-        // 1. Copy a valid Realm to the server using ssl_verify_path option
-        val syncConfigWithCertificate: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .modules(DefaultSyncSchema())
-                .trustedRootCA("trusted_ca.pem")
-                .build()
-        var realm = Realm.getInstance(syncConfigWithCertificate)
-        realm.beginTransaction()
-        realm.createObject(SyncDog::class.java, ObjectId()).name = "Foo"
-        realm.commitTransaction()
-
-        // make sure the changes gets to the server
-        app.sync.getSession(syncConfigWithCertificate).uploadAllLocalChanges()
-        realm.close()
-        user.logOut()
-
-        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
-        // download the uploaded changes.
-        user = app.login(Credentials.emailPassword(username, password))
-        val syncConfigDisableSSL = configFactory.createSyncConfigurationBuilder(user)
-                .name("useSsl")
-                .modules(DefaultSyncSchema())
-                .waitForInitialRemoteData()
-                .disableSSLVerification()
-                .build()
-        realm = Realm.getInstance(syncConfigDisableSSL)
-        val all = realm.where(SyncDog::class.java).findAll()
-        try {
-            Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Foo", all[0]!!.name)
-        } finally {
-            realm.close()
-        }
-        looperThread.testComplete()
-    }
-
-    // IMPORTANT: Following test assume the root certificate is installed on the test device
-    //            certificate is located in <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt
-    //            adb push <realm-java>/tools/sync_test_server/keys/android_test_certificate.crt /sdcard/
-    //            then import the certificate from the device (Settings/Security/Install from storage)
-    @Test
-    @Ignore("FIXME: https://github.com/realm/realm-java/issues/6472")
-    fun sslVerifyCallback_isUsed() = looperThread.runBlocking {
-        val username = TestHelper.getRandomEmail()
-        val password = "password"
-        var user: User = app.registerUserAndLogin(username, password)
-
-        // 1. Copy a valid Realm to the server using ssl_verify_path option
-        val syncConfig: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .modules(DefaultSyncSchema())
-                .build()
-        var realm = Realm.getInstance(syncConfig)
-        realm.beginTransaction()
-        realm.createObject(SyncDog::class.java, ObjectId()).name = "Foo"
-        realm.commitTransaction()
-
-        // make sure the changes gets to the server
-        app.sync.getSession(syncConfig).uploadAllLocalChanges()
-        realm.close()
-        user.logOut()
-
-        // 2. Local state should now be completely reset. Open the Realm again with a new configuration which should
-        // download the uploaded changes.
-        user = app.login(Credentials.emailPassword(username, password))
-        val syncConfigSecure: SyncConfiguration = configFactory.createSyncConfigurationBuilder(user)
-                .name("useSsl")
-                .modules(DefaultSyncSchema())
-                .waitForInitialRemoteData()
-                .build()
-        realm = Realm.getInstance(syncConfigSecure)
-        val all = realm.where(SyncDog::class.java).findAll()
-        try {
-            Assert.assertEquals(1, all.size.toLong())
-            Assert.assertEquals("Foo", all[0]!!.name)
-        } finally {
-            realm.close()
-        }
         looperThread.testComplete()
     }
 }

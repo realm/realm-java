@@ -16,7 +16,6 @@
 
 package io.realm.mongodb.sync;
 
-import org.bson.BsonBinary;
 import org.bson.BsonValue;
 
 import java.io.ByteArrayInputStream;
@@ -365,7 +364,7 @@ public abstract class Sync {
     // according to it's depth in the chain. The depth of the last
     // certificate is 0. The depth of the first certificate is chain
     // length - 1.
-    private static HashMap<String, List<String>> ROS_CERTIFICATES_CHAIN;
+    private static HashMap<String, List<String>> ATLAS_CERTIFICATES_CHAIN;
 
     // The default Android Trust Manager which uses the default KeyStore to
     // validate the certificate chain.
@@ -390,22 +389,22 @@ public abstract class Sync {
     @SuppressWarnings("unused")
     synchronized static boolean sslVerifyCallback(String serverAddress, String pemData, int depth) {
         try {
-            if (ROS_CERTIFICATES_CHAIN == null) {
-                ROS_CERTIFICATES_CHAIN = new HashMap<>();
+            if (ATLAS_CERTIFICATES_CHAIN == null) {
+                ATLAS_CERTIFICATES_CHAIN = new HashMap<>();
                 TRUST_MANAGER = systemDefaultTrustManager();
                 CERTIFICATE_FACTORY = CertificateFactory.getInstance("X.509");
             }
 
-            if (!ROS_CERTIFICATES_CHAIN.containsKey(serverAddress)) {
-                ROS_CERTIFICATES_CHAIN.put(serverAddress, new ArrayList<String>());
+            if (!ATLAS_CERTIFICATES_CHAIN.containsKey(serverAddress)) {
+                ATLAS_CERTIFICATES_CHAIN.put(serverAddress, new ArrayList<String>());
             }
 
-            ROS_CERTIFICATES_CHAIN.get(serverAddress).add(pemData);
+            ATLAS_CERTIFICATES_CHAIN.get(serverAddress).add(pemData);
 
             if (depth == 0) {
                 // transform all PEM ROS_CERTIFICATES_CHAIN into Java X509
                 // with respecting the order/depth provided from Sync.
-                List<String> pemChain = ROS_CERTIFICATES_CHAIN.get(serverAddress);
+                List<String> pemChain = ATLAS_CERTIFICATES_CHAIN.get(serverAddress);
                 int n = pemChain.size();
                 X509Certificate[] chain = new X509Certificate[n];
                 for (String pem : pemChain) {
@@ -430,7 +429,7 @@ public abstract class Sync {
                     return false;
                 } finally {
                     // don't keep the certificate chain in memory
-                    ROS_CERTIFICATES_CHAIN.remove(serverAddress);
+                    ATLAS_CERTIFICATES_CHAIN.remove(serverAddress);
                 }
             } else {
                 // return true, since the verification will happen for the entire chain

@@ -458,7 +458,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
     /**
      * Returns the name of certificate stored under the {@code assets}, to be used to validate
-     * the TLS connection to the Realm Object Server.
+     * the TLS connection to Atlas.
      *
      * @return name of the certificate to be copied from the {@code assets}.
      * @see #getServerCertificateFilePath()
@@ -470,7 +470,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
     /**
      * Returns the name of the certificate copied from {@code assets} into internal storage, so it
-     * can be used to validate the TLS connection to the Realm Object Server.
+     * can be used to validate the TLS connection to Atlas.
      *
      * @return absolute path to the certificate.
      * @see #getServerCertificateAssetName()
@@ -481,7 +481,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Whether the Realm Object Server certificate should be validated in order
+     * Whether the Atlas certificate should be validated in order
      * to establish a valid TLS connection.
      *
      * @return {@code true} to validate the remote certificate, or {@code false} to bypass certificate validation.
@@ -530,7 +530,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns the url prefix used when establishing a sync connection to the Realm Object Server.
+     * Returns the url prefix used when establishing a sync connection to Atlas.
      */
     @Nullable
     public String getUrlPrefix() {
@@ -1026,7 +1026,7 @@ public class SyncConfiguration extends RealmConfiguration {
          * <p>
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *
-         * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
+         * @param errorHandler error handler used to report back errors when communicating with Atlas.
          * @throws IllegalArgumentException if {@code null} is given as an error handler.
          */
         public Builder errorHandler(SyncSession.ErrorHandler errorHandler) {
@@ -1037,7 +1037,7 @@ public class SyncConfiguration extends RealmConfiguration {
 
         /**
          * Provides the trusted root certificate(s) authority (CA) in {@code PEM} format, that should be used to
-         * validate the TLS connections to the Realm Object Server.
+         * validate the TLS connections to Atlas.
          * <p>
          * The file should be stored under {@code assets}, it will be copied at runtime into the internal storage.
          * <p>
@@ -1060,7 +1060,7 @@ public class SyncConfiguration extends RealmConfiguration {
         }
 
         /**
-         * This will disable TLS certificate verification for the remote Realm Object Server.
+         * This will disable TLS certificate verification for Atlas.
          * It is not recommended to use this in production.
          * <p>
          * This might be useful in non-production environments where you use a self-signed certificate
