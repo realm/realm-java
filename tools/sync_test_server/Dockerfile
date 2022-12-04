@@ -1,4 +1,8 @@
-FROM node:10
+# Node 18 does not work due to a network issue:
+# npm ERR! request to https://registry.npmjs.org/fs-extra failed, reason: connect ENETUNREACH 2606:4700::6810:1823:443
+# Probably an issue with IPv6 in combination with Docker. IPv6 became the default in Node 17.
+# For now, just use an older node version.
+FROM node:16
 
 # This Docker image is only responsible for running the Integration Command Server which can be
 # used to instrument other parts of the Integration tests.
@@ -10,13 +14,6 @@ RUN cp /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 RUN echo "Europe/Copenhagen" >  /etc/timezone
 
 # Install netstat (used for debugging)
-# Fix https://superuser.com/questions/1420231/how-to-solve-404-error-in-aws-apg-get-for-debian-jessie-fetch
-RUN rm etc/apt/sources.list
-RUN echo "deb http://archive.debian.org/debian/ jessie main" >> etc/apt/sources.list
-RUN echo "deb-src http://archive.debian.org/debian/ jessie main" >> etc/apt/sources.list
-RUN echo "deb http://security.debian.org jessie/updates main" >> etc/apt/sources.list
-RUN echo "deb-src http://security.debian.org jessie/updates main" >> etc/apt/sources.list
-
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     net-tools \

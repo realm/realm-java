@@ -105,6 +105,9 @@ public class SyncConfiguration extends RealmConfiguration {
     private final SyncSession.ErrorHandler errorHandler;
     private final SyncClientResetStrategy syncClientResetStrategy;
     private final boolean deleteRealmOnLogout;
+    private final boolean syncClientValidateSsl;
+    @Nullable private final String serverCertificateAssetName;
+    @Nullable private final String serverCertificateFilePath;
     private final boolean waitForInitialData;
     private final long initialDataTimeoutMillis;
     private final OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy;
@@ -132,6 +135,9 @@ public class SyncConfiguration extends RealmConfiguration {
                               SyncSession.ErrorHandler errorHandler,
                               SyncClientResetStrategy syncClientResetStrategy,
                               boolean deleteRealmOnLogout,
+                              boolean syncClientValidateSsl,
+                              @Nullable String serverCertificateAssetName,
+                              @Nullable String serverCertificateFilePath,
                               boolean waitForInitialData,
                               long initialDataTimeoutMillis,
                               OsRealmConfig.SyncSessionStopPolicy sessionStopPolicy,
@@ -163,6 +169,9 @@ public class SyncConfiguration extends RealmConfiguration {
         this.errorHandler = errorHandler;
         this.syncClientResetStrategy = syncClientResetStrategy;
         this.deleteRealmOnLogout = deleteRealmOnLogout;
+        this.syncClientValidateSsl = syncClientValidateSsl;
+        this.serverCertificateAssetName = serverCertificateAssetName;
+        this.serverCertificateFilePath = serverCertificateFilePath;
         this.waitForInitialData = waitForInitialData;
         this.initialSubscriptionsHandler = initialSubscriptionsHandler;
         this.initialDataTimeoutMillis = initialDataTimeoutMillis;
@@ -316,11 +325,16 @@ public class SyncConfiguration extends RealmConfiguration {
         SyncConfiguration that = (SyncConfiguration) o;
 
         if (deleteRealmOnLogout != that.deleteRealmOnLogout) return false;
+        if (syncClientValidateSsl != that.syncClientValidateSsl) return false;
         if (waitForInitialData != that.waitForInitialData) return false;
         if (initialDataTimeoutMillis != that.initialDataTimeoutMillis) return false;
         if (!serverUrl.equals(that.serverUrl)) return false;
         if (!user.equals(that.user)) return false;
         if (!errorHandler.equals(that.errorHandler)) return false;
+        if (serverCertificateAssetName != null ? !serverCertificateAssetName.equals(that.serverCertificateAssetName) : that.serverCertificateAssetName != null)
+            return false;
+        if (serverCertificateFilePath != null ? !serverCertificateFilePath.equals(that.serverCertificateFilePath) : that.serverCertificateFilePath != null)
+            return false;
         if (sessionStopPolicy != that.sessionStopPolicy) return false;
         if (initialSubscriptionsHandler != null ? !initialSubscriptionsHandler.equals(that.initialSubscriptionsHandler) : that.initialSubscriptionsHandler != null)
             return false;
@@ -337,6 +351,9 @@ public class SyncConfiguration extends RealmConfiguration {
         result = 31 * result + errorHandler.hashCode();
         result = 31 * result + (initialSubscriptionsHandler != null ? initialSubscriptionsHandler.hashCode() : 0);
         result = 31 * result + (deleteRealmOnLogout ? 1 : 0);
+        result = 31 * result + (syncClientValidateSsl ? 1 : 0);
+        result = 31 * result + (serverCertificateAssetName != null ? serverCertificateAssetName.hashCode() : 0);
+        result = 31 * result + (serverCertificateFilePath != null ? serverCertificateFilePath.hashCode() : 0);
         result = 31 * result + (waitForInitialData ? 1 : 0);
         result = 31 * result + (int) (initialDataTimeoutMillis ^ (initialDataTimeoutMillis >>> 32));
         result = 31 * result + sessionStopPolicy.hashCode();
@@ -358,6 +375,12 @@ public class SyncConfiguration extends RealmConfiguration {
         sb.append("initialSubscriptions: ").append(initialSubscriptionsHandler);
         sb.append("\n");
         sb.append("deleteRealmOnLogout: ").append(deleteRealmOnLogout);
+        sb.append("\n");
+        sb.append("syncClientValidateSsl: ").append(syncClientValidateSsl);
+        sb.append("\n");
+        sb.append("serverCertificateAssetName: ").append(serverCertificateAssetName);
+        sb.append("\n");
+        sb.append("serverCertificateFilePath: ").append(serverCertificateFilePath);
         sb.append("\n");
         sb.append("waitForInitialData: ").append(waitForInitialData);
         sb.append("\n");
@@ -434,6 +457,40 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
+     * Returns the name of certificate stored under the {@code assets}, to be used to validate
+     * the TLS connection to Atlas.
+     *
+     * @return name of the certificate to be copied from the {@code assets}.
+     * @see #getServerCertificateFilePath()
+     */
+    @Nullable
+    public String getServerCertificateAssetName() {
+        return serverCertificateAssetName;
+    }
+
+    /**
+     * Returns the name of the certificate copied from {@code assets} into internal storage, so it
+     * can be used to validate the TLS connection to Atlas.
+     *
+     * @return absolute path to the certificate.
+     * @see #getServerCertificateAssetName()
+     */
+    @Nullable
+    public String getServerCertificateFilePath() {
+        return serverCertificateFilePath;
+    }
+
+    /**
+     * Whether the Atlas certificate should be validated in order
+     * to establish a valid TLS connection.
+     *
+     * @return {@code true} to validate the remote certificate, or {@code false} to bypass certificate validation.
+     */
+    public boolean syncClientValidateSsl() {
+        return syncClientValidateSsl;
+    }
+
+    /**
      * Returns {@code true} if the Realm will download all known changes from the remote server before being opened the
      * first time.
      *
@@ -473,7 +530,7 @@ public class SyncConfiguration extends RealmConfiguration {
     }
 
     /**
-     * Returns the url prefix used when establishing a sync connection to the Realm Object Server.
+     * Returns the url prefix used when establishing a sync connection to Atlas.
      */
     @Nullable
     public String getUrlPrefix() {
@@ -565,6 +622,11 @@ public class SyncConfiguration extends RealmConfiguration {
         private long initialDataTimeoutMillis = Long.MAX_VALUE;
         // sync specific
         private boolean deleteRealmOnLogout = false;
+        private boolean syncClientValidateSsl = true;
+        @Nullable
+        private String serverCertificateAssetName;
+        @Nullable
+        private String serverCertificateFilePath;
         private URI serverUrl;
         private User user = null;
         private SyncSession.ErrorHandler errorHandler;
@@ -964,12 +1026,48 @@ public class SyncConfiguration extends RealmConfiguration {
          * <p>
          * Only errors not handled by the defined {@code SyncPolicy} will be reported to this error handler.
          *
-         * @param errorHandler error handler used to report back errors when communicating with the Realm Object Server.
+         * @param errorHandler error handler used to report back errors when communicating with Atlas.
          * @throws IllegalArgumentException if {@code null} is given as an error handler.
          */
         public Builder errorHandler(SyncSession.ErrorHandler errorHandler) {
             Util.checkNull(errorHandler, "handler");
             this.errorHandler = errorHandler;
+            return this;
+        }
+
+        /**
+         * Provides the trusted root certificate(s) authority (CA) in {@code PEM} format, that should be used to
+         * validate the TLS connections to Atlas.
+         * <p>
+         * The file should be stored under {@code assets}, it will be copied at runtime into the internal storage.
+         * <p>
+         * Note: This is similar to passing the parameter {@code CAfile} to {@code SSL_CTX_load_verify_locations},
+         *       Therefore it is recommended to include only the root CA you trust, and not the entire list of root CA
+         *       as this file will be loaded at runtime.
+         *       It is your responsibility to download and verify the correct {@code PEM} for the root CA you trust.
+         *       An existing list by Mozilla exist that could be used https://mozillacaprogram.secure.force.com/CA/IncludedCACertificateReportPEMCSV
+         *
+         * @param filename the path under {@code assets} to the root CA.
+         * @see <a href="https://www.openssl.org/docs/man1.0.2/ssl/SSL_CTX_load_verify_locations.html">SSL_CTX_load_verify_locations</a>
+         */
+        public Builder trustedRootCA(String filename) {
+            //noinspection ConstantConditions
+            if (filename == null || filename.isEmpty()) {
+                throw new IllegalArgumentException("A non-empty filename must be provided");
+            }
+            this.serverCertificateAssetName = filename;
+            return this;
+        }
+
+        /**
+         * This will disable TLS certificate verification for Atlas.
+         * It is not recommended to use this in production.
+         * <p>
+         * This might be useful in non-production environments where you use a self-signed certificate
+         * for testing.
+         */
+        public Builder disableSSLVerification() {
+            this.syncClientValidateSsl = false;
             return this;
         }
 
@@ -1283,6 +1381,19 @@ public class SyncConfiguration extends RealmConfiguration {
             String absolutePathForRealm = user.getApp().getSync().getAbsolutePathForRealm(user.getId(), partitionValue, filename);
             File realmFile = new File(absolutePathForRealm);
 
+            if (!Util.isEmptyString(serverCertificateAssetName)) {
+                if (syncClientValidateSsl) {
+                    // Create the path where the serverCertificateAssetName will be copied
+                    // so we can supply it to the Sync client.
+                    // using realmFileDirectory avoid file collision between same filename from different users (Realms)
+                    String fileName = serverCertificateAssetName.substring(serverCertificateAssetName.lastIndexOf(File.separatorChar) + 1);
+                    File realmFileDirectory = new File(realmFile.getParent());
+                    serverCertificateFilePath = new File(realmFileDirectory, fileName).getAbsolutePath();
+                } else {
+                    RealmLog.warn("SSL Verification is disabled, the provided server certificate will not be used.");
+                }
+            }
+
             return new SyncConfiguration(
                     realmFile,
                     assetFilePath,
@@ -1306,6 +1417,9 @@ public class SyncConfiguration extends RealmConfiguration {
                     errorHandler,
                     syncClientResetStrategy,
                     deleteRealmOnLogout,
+                    syncClientValidateSsl,
+                    serverCertificateAssetName,
+                    serverCertificateFilePath,
                     waitForServerChanges,
                     initialDataTimeoutMillis,
                     sessionStopPolicy,
