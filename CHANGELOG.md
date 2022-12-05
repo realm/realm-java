@@ -1,4 +1,4 @@
-## 10.13.0 (YYYY-MM-DD)
+## 10.13.0 (2022-12-05)
 
 ### Enhancements
 * [RealmApp] Added option for working with Device Sync from an internal network. `SyncConfiguration.trustedRootCA(assetPath)` can embed a custom certificate in the app that will be used by Sync. (Issue [#7739](https://github.com/realm/realm-java/pull/7739)).
