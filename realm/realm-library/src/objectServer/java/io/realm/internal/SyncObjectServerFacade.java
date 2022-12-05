@@ -216,6 +216,8 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             configObj[i++] = encodedPartitionValue;
             configObj[i++] = app.getSync();
             configObj[i++] = appNativePointer;
+            configObj[i++] = syncConfig.syncClientValidateSsl();
+            configObj[i++] = syncConfig.getServerCertificateFilePath();
             return configObj;
         } else {
             return new Object[SYNC_CONFIG_OPTIONS];
@@ -232,6 +234,26 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
             SyncConfiguration syncConfig = (SyncConfiguration) config.getRealmConfiguration();
             App app = syncConfig.getUser().getApp();
             app.getSync().getOrCreateSession(syncConfig);
+        }
+    }
+
+    @Override
+    public String getSyncServerCertificateAssetName(RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            return syncConfig.getServerCertificateAssetName();
+        } else {
+            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
+        }
+    }
+
+    @Override
+    public String getSyncServerCertificateFilePath(RealmConfiguration configuration) {
+        if (configuration instanceof SyncConfiguration) {
+            SyncConfiguration syncConfig = (SyncConfiguration) configuration;
+            return syncConfig.getServerCertificateFilePath();
+        } else {
+            throw new IllegalArgumentException(WRONG_TYPE_OF_CONFIGURATION);
         }
     }
 
