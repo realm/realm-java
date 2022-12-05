@@ -564,7 +564,7 @@ public class RealmQueryTests extends QueryTests {
 
     @Test(expected = UnsupportedOperationException.class)
     public void or_missingFilterAfter() {
-        realm.where(AllTypes.class).or().equalTo(AllTypes.FIELD_FLOAT, 31.2345f).findAll();
+        realm.where(AllTypes.class).equalTo(AllTypes.FIELD_FLOAT, 31.2345f).or().findAll();
     }
 
     @Test
@@ -3755,8 +3755,18 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test(expected = UnsupportedOperationException.class)
+    public void multipleBeginGroup_missingEndGroup() {
+        realm.where(AllTypes.class).beginGroup().beginGroup().endGroup().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
     public void endGroup_missingBeginGroup() {
         realm.where(AllTypes.class).endGroup().findAll();
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void multipleEndGroup_missingBeginGroup() {
+        realm.where(AllTypes.class).beginGroup().endGroup().endGroup().findAll();
     }
 
     @Test
@@ -3824,7 +3834,7 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'AllTypes' has no property: 'foo'"));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'AllTypes' has no property 'foo'"));
         }
     }
 
@@ -3834,14 +3844,14 @@ public class RealmQueryTests extends QueryTests {
             realm.where(AllTypes.class).rawPredicate("columnRealmObject.foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'Dog' has no property: 'foo'"));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'Dog' has no property 'foo'"));
         }
 
         try {
             realm.where(AllTypes.class).rawPredicate("unknownField.foo = 'test data 0'");
             fail();
         } catch (IllegalArgumentException e) {
-            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'AllTypes' has no property: 'unknownField'"));
+            assertTrue("Real message: " + e.getMessage(), e.getMessage().contains("'AllTypes' has no property 'unknownField'"));
         }
     }
 

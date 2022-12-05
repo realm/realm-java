@@ -44,8 +44,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         REALM_ASSERT_RELEASE_EX(m_send_request_method != nullptr, method_name, signature);
     }
 
-    void send_request_to_server(app::Request&& request, ResponseFunction&& completionBlock)
-    {
+    void send_request_to_server(const Request& request, ResponseFunction&& completion)  {
         JNIEnv* env = JniUtils::get_env(true);
 
         // Setup method
@@ -84,7 +83,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
                 static_cast<jlong>(request.timeout_ms),
                 request_headers,
                 jbody,
-                new ResponseFunction(std::move(completionBlock))
+                new ResponseFunction(std::move(completion))
         );
         env->DeleteLocalRef(jmethod);
         env->DeleteLocalRef(jurl);
