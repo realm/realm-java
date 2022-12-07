@@ -259,19 +259,21 @@ class LoggingInterceptorTest {
                 RealmLog.setLevel(LogLevel.ALL)
             }
 
-    // Check whether the expected logcat entries are present in the test logger, either as the
-    // latest or previous entry
+    // Check whether the expected logcat entries are present in the test logger buffer
     private fun assertMessageExists(vararg entries: String) {
         var patternExists = false
         for (entry in entries) {
-            patternExists = patternExists
-                    || testLogger.message.contains(entry)
-                    || testLogger.previousMessage.contains(entry)
+            val iterator = testLogger.messageBuffer.iterator()
+            while (iterator.hasNext()) {
+                val bufferEntry = iterator.next()
+                if (bufferEntry != null && bufferEntry.contains(entry)) {
+                    patternExists = true
+                    continue
+                }
+            }
+            // Skip to assertion if found
+            if (patternExists) continue
         }
-        assertTrue(
-            patternExists,
-            "Pattern expected: ${entries}, was: (${testLogger.message}, ${testLogger.previousMessage}"
-
-        )
+        assertTrue(patternExists)
     }
 }
