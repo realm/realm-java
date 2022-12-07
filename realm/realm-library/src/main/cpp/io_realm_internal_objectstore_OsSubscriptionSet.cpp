@@ -141,9 +141,9 @@ Java_io_realm_internal_objectstore_OsSubscriptionSet_nativeFindByName(JNIEnv *en
     try {
         auto subscriptions = reinterpret_cast<sync::SubscriptionSet*>(j_subscription_set_ptr);
         JStringAccessor name(env, j_name);
-        sync::SubscriptionSet::const_iterator iter = subscriptions->find(name);
-        if (iter != subscriptions->end()) {
-            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*iter)));
+        const sync::Subscription* subscription = subscriptions->find(name);
+        if (subscription != nullptr) {
+            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*subscription)));
         } else {
             return -1;
         }
@@ -159,9 +159,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nat
     try {
         auto subscriptions = reinterpret_cast<sync::SubscriptionSet*>(j_subscription_set_ptr);
         auto query = reinterpret_cast<Query*>(j_query_ptr);
-        sync::SubscriptionSet::const_iterator iter = subscriptions->find(*query);
-        if (iter != subscriptions->end()) {
-            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*iter)));
+        const sync::Subscription* subscription = subscriptions->find(*query);
+        if (subscription != nullptr) {
+            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*subscription)));
         } else {
             return -1;
         }

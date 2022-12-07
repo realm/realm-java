@@ -96,7 +96,7 @@ public class OsMap implements NativeObject {
         } else if (value instanceof Long) {
             return nativeContainsLong(nativePtr, (long) value);
         } else if (value instanceof Double) {
-            return nativeContainsLong(nativePtr, ((Double) value).longValue());
+            return nativeContainsDouble(nativePtr, (double) value);
         } else if (value instanceof Short) {
             return nativeContainsLong(nativePtr, ((Short) value).longValue());
         } else if (value instanceof Byte) {
@@ -328,6 +328,8 @@ public class OsMap implements NativeObject {
     private static native Object[] nativeGetEntryForPrimitive(long nativePtr, int position);
 
     private static native boolean nativeContainsNull(long nativePtr);
+
+    private static native boolean nativeContainsDouble(long nativePtr, double value);
 
     private static native boolean nativeContainsLong(long nativePtr, long value);
 

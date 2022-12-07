@@ -132,7 +132,7 @@ public:
         shared().log(fatal, REALM_JNI_TAG, nullptr, util::format(fmt, {util::Printable(args)...}).c_str());
     }
 
-    static realm::util::RootLogger::Level convert_to_core_log_level(Level level);
+    static realm::util::Logger::Level convert_to_core_log_level(Level level);
 
     // Get the shared Log instance.
     static Log& shared();
@@ -173,7 +173,7 @@ extern std::shared_ptr<JniLogger> get_default_logger();
 
 // Do NOT call set_level_threshold on the bridge to set the log level. Instead, call the Log::set_level which will
 // set all logger levels.
-class CoreLoggerBridge : public realm::util::RootLogger {
+class CoreLoggerBridge : public realm::util::Logger {
 public:
     CoreLoggerBridge(std::string tag);
     ~CoreLoggerBridge();

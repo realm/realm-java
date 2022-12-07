@@ -11,6 +11,9 @@
 * APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
+### Internal
+* Updated to Realm Core 13.1.1, commit e26863394f415ff1e0693ca9155db071255c7fa6.
+
 
 ## 10.13.0 (2022-12-05)
 

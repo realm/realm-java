@@ -180,25 +180,25 @@ void Log::log(Level level, const char* tag, jthrowable throwable, const char* me
     }
 }
 
-realm::util::RootLogger::Level Log::convert_to_core_log_level(Level level)
+realm::util::Logger::Level Log::convert_to_core_log_level(Level level)
 {
         switch (level) {
             case Log::trace:
-                return RootLogger::Level::trace;
+                return Logger::Level::trace;
             case Log::debug:
-                return RootLogger::Level::debug;
+                return Logger::Level::debug;
             case Log::info:
-                return RootLogger::Level::info;
+                return Logger::Level::info;
             case Log::warn:
-                return RootLogger::Level::warn;
+                return Logger::Level::warn;
             case Log::error:
-                return RootLogger::Level::error;
+                return Logger::Level::error;
             case Log::fatal:
-                return RootLogger::Level::fatal;
+                return Logger::Level::fatal;
             case Log::all:
-                return RootLogger::Level::all;
+                return Logger::Level::all;
             case Log::off:
-                return RootLogger::Level::off;
+                return Logger::Level::off;
             default:
                 break;
         }
