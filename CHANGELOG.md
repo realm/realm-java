@@ -2,7 +2,7 @@ This branch tracks the Realm Java SDK release with support for Android Gradle Pl
 newer. For releases supporting the current Android Gradle Plugin (7.3.x and below) please refer to 
 the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/releases/CHANGELOG.md).
 
-## 10.13.0-transformer-api (YYYY-MM-DD)
+## 10.13.0-transformer-api (2012-12-12)
 
 ### Enhancements
 * [RealmApp] Added option for working with Device Sync from an internal network. `SyncConfiguration.trustedRootCA(assetPath)` can embed a custom certificate in the app that will be used by Sync. (Issue [#7739](https://github.com/realm/realm-java/pull/7739)).
