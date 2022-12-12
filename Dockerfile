@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 # Locales
 RUN apt-get clean && apt-get -y update && apt-get install -y locales && locale-gen en_US.UTF-8
@@ -27,7 +27,8 @@ ENV REALM_DISABLE_ANALYTICS true
 RUN DEBIAN_FRONTEND=noninteractive \
     && apt-get update -qq \
     && apt-get install -y tzdata \
-    && apt-get install -y bsdmainutils \
+    && apt-get install -y \
+                          bsdmainutils \
                           bridge-utils \
                           build-essential \
                           ccache \

@@ -501,8 +501,10 @@ public class TableQuery implements NativeObject {
         long[] result = nativeAverageDecimal128(nativePtr, columnKey);
         if (result != null) {
             return Decimal128.fromIEEE754BIDEncoding(result[1]/*high*/, result[0]/*low*/);
+        } else {
+            // 'query.avg' now returns null if no rows exist in the table
+            return new Decimal128(0L);
         }
-        return null;
     }
 
     public Decimal128 maximumDecimal128(long columnKey) {

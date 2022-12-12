@@ -237,6 +237,8 @@ public class OsRealmConfig implements NativeObject {
         String encodedPartitionValue = (String) syncConfigurationOptions[j++];
         Object syncService = syncConfigurationOptions[j++];
         Long appPtr = (Long) syncConfigurationOptions[j++];
+        boolean syncClientValidateSsl = (Boolean.TRUE.equals(syncConfigurationOptions[j++]));
+        String syncSslTrustCertificatePath = (String) syncConfigurationOptions[j++];
 
         // Convert the headers into a String array to make it easier to send through JNI
         // [key1, value1, key2, value2, ...]
@@ -317,6 +319,7 @@ public class OsRealmConfig implements NativeObject {
             } catch (URISyntaxException e) {
                 RealmLog.error(e, "Cannot create a URI from the Realm URL address");
             }
+            nativeSetSyncConfigSslSettings(nativePtr, syncClientValidateSsl, syncSslTrustCertificatePath);
 
             // TODO: maybe expose the option for a custom Proxy or ProxySelector in the config?
             ProxySelector proxySelector = ProxySelector.getDefault();

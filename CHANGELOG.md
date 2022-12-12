@@ -2,6 +2,26 @@ This branch tracks the Realm Java SDK release with support for Android Gradle Pl
 newer. For releases supporting the current Android Gradle Plugin (7.3.x and below) please refer to 
 the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/releases/CHANGELOG.md).
 
+## 10.13.0-transformer-api (YYYY-MM-DD)
+
+### Enhancements
+* [RealmApp] Added option for working with Device Sync from an internal network. `SyncConfiguration.trustedRootCA(assetPath)` can embed a custom certificate in the app that will be used by Sync. (Issue [#7739](https://github.com/realm/realm-java/pull/7739)).
+* [RealmApp] Added option for working with Device Sync from an internal network. `SyncConfiguration.disableSSLVerification()` makes it possible to turn off local SSL validation. (Issue [#7739](https://github.com/realm/realm-java/pull/7739)).
+
+### Fixed
+* Fixed database corruption and encryption issues on apple platforms. (Issue [#5076](https://github.com/realm/realm-js/issues/5076))
+* [Sync] Bootstraps will not be applied in a single write transaction - they will be applied 1MB of changesets at a time. (Issue [#5999](https://github.com/realm/realm-core/pull/5999)).
+* [Sync] Fixed a race condition which could result in operation cancelled errors being delivered to `Realm.open` rather than the actual sync error which caused things to fail. (Issue [#5968](https://github.com/realm/realm-core/pull/5968)).
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 12.13.0, commit b77443ca7fa25407869ca537bf3ae912b1427bff.
+
+
 ## 10.12.0-transformer-api (2022-09-28)
 
 ### Breaking Changes
