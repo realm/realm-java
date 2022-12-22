@@ -2,6 +2,24 @@ This branch tracks the Realm Java SDK release with support for Android Gradle Pl
 newer. For releases supporting the current Android Gradle Plugin (7.3.x and below) please refer to 
 the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/releases/CHANGELOG.md).
 
+## 10.13.1-transformer-api (YYYY-MM-DD)
+
+### Enhancements
+* None.
+
+### Fixed
+* Add support for Gradle configuration cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299))
+
+### Compatibility
+* None.
+
+### Internal
+* None.
+
+### Credits
+* Thanks to @pstavytskyi-turo for adding support for Gradle configuration cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299))
+
+
 ## 10.13.0-transformer-api (2012-12-12)
 
 ### Enhancements
