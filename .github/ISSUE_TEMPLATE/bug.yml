@@ -63,7 +63,7 @@ body:
       description: What version(s) of the SDK has the bug been observed in?
     validations:
       required: true
- - type: dropdown
+  - type: dropdown
     id: services
     attributes:
       label: What Atlas App Services are you using?
