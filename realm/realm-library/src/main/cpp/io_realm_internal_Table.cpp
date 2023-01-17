@@ -148,7 +148,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnLink(JNIEnv*
         } else if (colType == int(DataType::Type::LinkList)) {
             return static_cast<jlong>(table->add_column_list(*targetTableRef, name_accessor).value);
         } else {
-            throw LogicError(LogicError::illegal_type);
+            throw PropertyTypeMismatch(table->get_name(), StringData(name_accessor));
         }
     }
     CATCH_STD()
@@ -175,7 +175,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnDictionaryLi
         if (colType == (int(PropertyType::Dictionary) + int(DataType::Type::Link))) {
             return static_cast<jlong>(table->add_column_dictionary(*targetTableRef, name_accessor).value);
         } else {
-            throw LogicError(LogicError::illegal_type);
+            throw PropertyTypeMismatch(table->get_name(), StringData(name_accessor));
         }
     }
     CATCH_STD()
@@ -202,7 +202,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_Table_nativeAddColumnSetLink(JNIE
         if (colType == (int(PropertyType::Set) + int(DataType::Type::Link))) {
             return static_cast<jlong>(table->add_column_set(*targetTableRef, name_accessor).value);
         } else {
-            throw LogicError(LogicError::illegal_type);
+            throw PropertyTypeMismatch(table->get_name(), StringData(name_accessor));
         }
     }
     CATCH_STD()

@@ -18,6 +18,7 @@
 
 #include "java_class_global_def.hpp"
 #include "jni_util/bson_util.hpp"
+#include "util.hpp"
 
 #include <realm/object-store/sync/generic_network_transport.hpp>
 #include <realm/object-store/sync/mongo_collection.hpp>
@@ -100,11 +101,12 @@ Java_io_realm_internal_objectstore_OsWatchStream_nativeGetError(JNIEnv *env, jcl
         WatchStream *watch_stream = reinterpret_cast<WatchStream *>(j_watch_stream_ptr);
 
         auto app_error = watch_stream->error();
+        auto categories = ErrorCodes::error_categories(app_error.code());
+        jbyte category = categoryAsJByte(categories);
 
-        jstring error_code_category = env->NewStringUTF(app_error.error_code.category().name());
-        jstring error_code_message = env->NewStringUTF(app_error.error_code.message().c_str());
-
-        jstring app_error_message = env->NewStringUTF(app_error.message.c_str());
+//        jstring error_code_category = env->NewStringUTF(app_error.error_code.category().name());
+        jstring error_code_message = env->NewStringUTF(app_error.code_string().data());
+        jstring app_error_message = env->NewStringUTF(app_error.what());
 
         static JavaClass app_exception_class(env, "io/realm/mongodb/AppException");
         static JavaMethod app_exception_constructor(env, app_exception_class, "<init>",
@@ -116,7 +118,7 @@ Java_io_realm_internal_objectstore_OsWatchStream_nativeGetError(JNIEnv *env, jcl
                                                  true);
 
         jobject j_error_code = env->CallStaticObjectMethod(error_code_class, error_code_constructor,
-                                                           error_code_category, error_code_message);
+                                                           category, error_code_message);
         jobject j_app_error = env->NewObject(app_exception_class, app_exception_constructor,
                                              j_error_code, app_error_message);
 

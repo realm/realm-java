@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.realm.annotations.Beta;
+import io.realm.internal.ErrorCategory;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.AppException;
 import io.realm.Realm;
@@ -206,11 +207,11 @@ public class SyncSession {
     }
 
     // This callback will happen on the thread running the Sync Client.
-    void notifySessionError(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo) {
+    void notifySessionError(byte nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo) {
         if (errorHandler == null) {
             return;
         }
-        ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+        ErrorCode errCode = ErrorCode.fromNativeError(ErrorCategory.convertCategory(nativeErrorCategory), nativeErrorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
             if (clientResetPathInfo == null) {
@@ -483,7 +484,7 @@ public class SyncSession {
     // If the native listener was successfully registered, Object Store guarantees that this method will be called at
     // least once, even if the session is closed.
     @SuppressWarnings("unused")
-    private void notifyAllChangesSent(int callbackId, String errorCategory, Long errorCode, String errorMessage) {
+    private void notifyAllChangesSent(int callbackId, Long errorCategory, Long errorCode, String errorMessage) {
         WaitForSessionWrapper wrapper = waitingForServerChanges.get();
         if (wrapper != null) {
             // Only react to callback if the callback is "active"
@@ -773,7 +774,7 @@ public class SyncSession {
 
         private final CountDownLatch waiter = new CountDownLatch(1);
         private volatile boolean resultReceived = false;
-        private String errorCategory;
+        private Long errorCategory = null;
         private Long errorCode = null;
         private String errorMessage;
 
@@ -794,7 +795,7 @@ public class SyncSession {
          * @param errorCode error code if an error occurred, {@code null} if changes were successfully downloaded.
          * @param errorMessage error message (if any).
          */
-        public void handleResult(String errorCategory, Long errorCode, String errorMessage) {
+        public void handleResult(Long errorCategory, Long errorCode, String errorMessage) {
             this.errorCategory = errorCategory;
             this.errorCode = errorCode;
             this.errorMessage = errorMessage;
@@ -815,8 +816,9 @@ public class SyncSession {
                 // Core report errors with int64, so we need to add some extra checks
                 // to make sure the value is within a range of known errors we can map to,
                 // which are all inside Integer range
+                // TODO revisit as it seems cumbersome
                 long longErrorCode = errorCode;
-                ErrorCode mappedError = ErrorCode.fromNativeError(errorCategory, (int) longErrorCode);
+                ErrorCode mappedError = ErrorCode.fromNativeError(ErrorCategory.convertCategory(errorCategory.byteValue()), (int) longErrorCode);
                 if (longErrorCode >= Integer.MIN_VALUE && longErrorCode <= Integer.MAX_VALUE && mappedError != ErrorCode.UNKNOWN) {
                     throw new AppException(mappedError, errorMessage);
                 } else {

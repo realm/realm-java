@@ -19,7 +19,6 @@ package io.realm.mongodb;
 
 import java.util.Locale;
 
-import io.realm.annotations.Beta;
 import io.realm.internal.Keep;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
@@ -28,10 +27,8 @@ import io.realm.mongodb.sync.SyncConfiguration;
 /**
  * This class enumerate all potential errors related to using the Object Server or synchronizing data.
  */
-@Beta
 @Keep
 public enum ErrorCode {
-
     // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L73
     // See https://github.com/realm/realm-core/blob/master/src/realm/sync/protocol.hpp
     // See https://github.com/realm/realm-core/blob/master/src/realm/object-store/sync/generic_network_transport.hpp#L40
@@ -40,8 +37,11 @@ public enum ErrorCode {
     // The underlying type and error code should be part of the error message
     UNKNOWN(Type.UNKNOWN, -1),
 
-    // Errors originating from Java
-    // Network Transport related errors originating from Java
+    //
+    // Custom SDK errors. Errors originating from Java
+    //
+
+    //Network Transport related errors originating from Java
     NETWORK_IO_EXCEPTION(Type.JAVA, OsJavaNetworkTransport.ERROR_IO),
     NETWORK_INTERRUPTED(Type.JAVA, OsJavaNetworkTransport.ERROR_INTERRUPTED),
     NETWORK_UNKNOWN(Type.JAVA, OsJavaNetworkTransport.ERROR_UNKNOWN),
@@ -57,7 +57,13 @@ public enum ErrorCode {
     // Custom Object Store errors
     CLIENT_RESET(Type.JAVA, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsRealmConfig.cpp
 
+    //
+    // Type.Protocol
+    //
     // Connection level and protocol errors from the native Sync Client
+    //
+    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/protocol.hpp#L260
+    //
     CONNECTION_CLOSED(Type.PROTOCOL, 100, Category.RECOVERABLE),    // Connection closed (no error)
     OTHER_ERROR(Type.PROTOCOL, 101),                                // Other connection level error
     UNKNOWN_MESSAGE(Type.PROTOCOL, 102),                            // Unknown type of input message
@@ -85,7 +91,6 @@ public enum ErrorCode {
     PERMISSION_DENIED(Type.PROTOCOL, 206),                         // Permission denied (BIND, REFRESH)
 
     // Fatal: Wrong server/client versions. Trying to sync incompatible files or the file was corrupted.
-    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/protocol.hpp
     BAD_SERVER_FILE_IDENT(Type.PROTOCOL, 207),                     // Bad server file identifier (IDENT)
     BAD_CLIENT_FILE_IDENT(Type.PROTOCOL, 208),                     // Bad client file identifier (IDENT)
     BAD_SERVER_VERSION(Type.PROTOCOL, 209),                        // Bad server version (IDENT, UPLOAD)
@@ -112,8 +117,12 @@ public enum ErrorCode {
     WRITE_NOT_ALLOWED(Type.PROTOCOL, 230),                         // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query - requires client reset (UPLOAD)
     COMPENSATING_WRITE(Type.PROTOCOL, 231),                        // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query, and the server undid the change
 
+    //
+    // Type.Client
+    //
     // Sync Network Client errors.
-    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L73
+    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L75
+    //
     CLIENT_CONNECTION_CLOSED(Type.SESSION, 100),            // Connection closed (no error)
     CLIENT_UNKNOWN_MESSAGE(Type.SESSION, 101),              // Unknown type of input message
     CLIENT_LIMITS_EXCEEDED(Type.SESSION, 103),              // Limits exceeded in input message
@@ -147,8 +156,11 @@ public enum ErrorCode {
     CLIENT_HTTP_TUNNEL_FAILED(Type.SESSION, 131),           // Failed to establish HTTP tunnel with configured proxy
     AUTO_CLIENT_RESET_FAILURE(Type.SESSION, 132),           // Automatic client reset failed
 
-
+    //
+    // Type.HTTP
+    //
     // 300 - 599 Reserved for Standard HTTP error codes
+    //
     MULTIPLE_CHOICES(Type.HTTP, 300),
     MOVED_PERMANENTLY(Type.HTTP, 301),
     FOUND(Type.HTTP, 302),
@@ -196,66 +208,89 @@ public enum ErrorCode {
     NOT_EXTENDED(Type.HTTP, 510),
     NETWORK_AUTHENTICATION_REQUIRED(Type.HTTP, 511),
 
+    ///
+    // Type.SERVICE
+    //
     // MongoDB Realm Service Response codes
-    INVALID_SESSION(Type.SERVICE, 2),
-    USER_APP_DOMAIN_MISMATCH(Type.SERVICE, 3),
-    DOMAIN_NOT_ALLOWED(Type.SERVICE, 4),
-    READ_SIZE_LIMIT_EXCEEDED(Type.SERVICE, 5),
-    INVALID_PARAMETER(Type.SERVICE, 6),
-    MISSING_PARAMETER(Type.SERVICE, 7),
-    TWILIO_ERROR(Type.SERVICE, 8),
-    GCM_ERROR(Type.SERVICE, 9),
-    HTTP_ERROR(Type.SERVICE, 10),
-    AWS_ERROR(Type.SERVICE, 11),
-    MONGODB_ERROR(Type.SERVICE, 12),
-    ARGUMENTS_NOT_ALLOWED(Type.SERVICE, 13),
-    FUNCTION_EXECUTION_ERROR(Type.SERVICE, 14),
-    NO_MATCHING_RULE_FOUND(Type.SERVICE, 15),
-    SERVICE_INTERNAL_SERVER_ERROR(Type.SERVICE, 16),
-    AUTH_PROVIDER_NOT_FOUND(Type.SERVICE, 17),
-    AUTH_PROVIDER_ALREADY_EXISTS(Type.SERVICE, 18),
-    SERVICE_NOT_FOUND(Type.SERVICE, 19),
-    SERVICE_TYPE_NOT_FOUND(Type.SERVICE, 20),
-    SERVICE_ALREADY_EXISTS(Type.SERVICE, 21),
-    SERVICE_COMMAND_NOT_FOUND(Type.SERVICE, 22),
-    VALUE_NOT_FOUND(Type.SERVICE, 23),
-    VALUE_ALREADY_EXISTS(Type.SERVICE, 24),
-    VALUE_DUPLICATE_NAME(Type.SERVICE, 25),
-    FUNCTION_NOT_FOUND(Type.SERVICE, 26),
-    FUNCTION_ALREADY_EXISTS(Type.SERVICE, 27),
-    FUNCTION_DUPLICATE_NAME(Type.SERVICE, 28),
-    FUNCTION_SYNTAX_ERROR(Type.SERVICE, 29),
-    FUNCTION_INVALID(Type.SERVICE, 30),
-    INCOMING_WEBHOOK_NOT_FOUND(Type.SERVICE, 31),
-    INCOMING_WEBHOOK_ALREADY_EXISTS(Type.SERVICE, 32),
-    INCOMING_WEBHOOK_DUPLICATE_NAME(Type.SERVICE, 33),
-    RULE_NOT_FOUND(Type.SERVICE, 34),
-    API_KEY_NOT_FOUND(Type.SERVICE, 35),
-    RULE_ALREADY_EXISTS(Type.SERVICE, 36),
-    RULE_DUPLICATE_NAME(Type.SERVICE, 37),
-    AUTH_PROVIDER_DUPLICATE_NAME(Type.SERVICE, 38),
-    RESTRICTED_HOST(Type.SERVICE, 39),
-    API_KEY_ALREADY_EXISTS(Type.SERVICE, 40),
-    INCOMING_WEBHOOK_AUTH_FAILED(Type.SERVICE, 41),
-    EXECUTION_TIME_LIMIT_EXCEEDED(Type.SERVICE, 42),
-    NOT_CALLABLE(Type.SERVICE, 43),
-    USER_ALREADY_CONFIRMED(Type.SERVICE, 44),
-    USER_NOT_FOUND(Type.SERVICE, 45),
-    USER_DISABLED(Type.SERVICE, 46),
-    AUTH_ERROR(Type.SERVICE, 47),
-    BAD_REQUEST(Type.SERVICE, 48),
-    ACCOUNT_NAME_IN_USE(Type.SERVICE, 49),
-    INVALID_EMAIL_PASSWORD(Type.SERVICE, 50),
+    //
+    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/error_codes.hpp#L75
+    // See https://github.com/realm/realm-core/blob/master/src/realm/sync/error_codes.cpp#L29
+    //
+    CLIENT_USER_NOT_FOUND(Type.APP, 4100),
+    CLIENT_USER_NOT_LOGGED_IN(Type.APP, 4101),
+    CLIENT_APP_DEALLOCATED(Type.APP, 4102),
+    CLIENT_REDIRECT_ERROR(Type.APP, 4103),
+    CLIENT_TOO_MANY_REDIRECTS(Type.APP, 4104),
+    BAD_TOKEN(Type.JSON, 4200),
+    MALFORMED_JSON(Type.JSON, 4201),
+    MISSING_JSON_KEY(Type.JSON, 4202),
+    BAD_BSON_PARSE(Type.JSON, 4203),
+    MISSING_AUTH_REQ(Type.SERVICE, 4300),
+    INVALID_SESSION(Type.SERVICE, 4301),
+    USER_APP_DOMAIN_MISMATCH(Type.SERVICE, 4302),
+    DOMAIN_NOT_ALLOWED(Type.SERVICE, 4303),
+    READ_SIZE_LIMIT_EXCEEDED(Type.SERVICE, 4304),
+    INVALID_PARAMETER(Type.SERVICE, 4305),
+    MISSING_PARAMETER(Type.SERVICE, 4306),
+    TWILIO_ERROR(Type.SERVICE, 4307),
+    GCM_ERROR(Type.SERVICE, 4308),
+    HTTP_ERROR(Type.SERVICE, 4309),
+    AWS_ERROR(Type.SERVICE, 4310),
+    MONGODB_ERROR(Type.SERVICE, 4311),
+    ARGUMENTS_NOT_ALLOWED(Type.SERVICE, 4312),
+    FUNCTION_EXECUTION_ERROR(Type.SERVICE, 4313),
+    NO_MATCHING_RULE(Type.SERVICE, 4314),
+    SERVER_ERROR(Type.SERVICE, 4315),
+    AUTH_PROVIDER_NOT_FOUND(Type.SERVICE, 4316),
+    AUTH_PROVIDER_ALREADY_EXISTS(Type.SERVICE, 4317),
+    SERVICE_NOT_FOUND(Type.SERVICE, 4318),
+    SERVICE_TYPE_NOT_FOUND(Type.SERVICE, 4319),
+    SERVICE_ALREADY_EXISTS(Type.SERVICE, 4320),
+    SERVICE_COMMAND_NOT_FOUND(Type.SERVICE, 4321),
+    VALUE_NOT_FOUND(Type.SERVICE, 4322),
+    VALUE_ALREADY_EXISTS(Type.SERVICE, 4323),
+    VALUE_DUPLICATE_NAME(Type.SERVICE, 4324),
+    FUNCTION_NOT_FOUND(Type.SERVICE, 4325),
+    FUNCTION_ALREADY_EXISTS(Type.SERVICE, 4326),
+    FUNCTION_DUPLICATE_NAME(Type.SERVICE, 4327),
+    FUNCTION_SYNTAX_ERROR(Type.SERVICE, 4328),
+    FUNCTION_INVALID(Type.SERVICE, 4329),
+    INCOMING_WEBHOOK_NOT_FOUND(Type.SERVICE, 4330),
+    INCOMING_WEBHOOK_ALREADY_EXISTS(Type.SERVICE, 4331),
+    INCOMING_WEBHOOK_DUPLICATE_NAME(Type.SERVICE, 4332),
+    RULE_NOT_FOUND(Type.SERVICE, 4333),
+    API_KEY_NOT_FOUND(Type.SERVICE, 4334),
+    RULE_ALREADY_EXISTS(Type.SERVICE, 4335),
+    RULE_DUPLICATE_NAME(Type.SERVICE, 4336),
+    AUTH_PROVIDER_DUPLICATE_NAME(Type.SERVICE, 4337),
+    RESTRICTED_HOST(Type.SERVICE, 4338),
+    API_KEY_ALREADY_EXISTS(Type.SERVICE, 4339),
+    INCOMING_WEBHOOK_AUTH_FAILED(Type.SERVICE, 4340),
+    EXECUTION_TIME_LIMIT_EXCEEDED(Type.SERVICE, 4341),
+    NOT_CALLABLE(Type.SERVICE, 4342),
+    USER_ALREADY_CONFIRMED(Type.SERVICE, 4343),
+    USER_NOT_FOUND(Type.SERVICE, 4344),
+    USER_DISABLED(Type.SERVICE, 4345),
+    AUTH_ERROR(Type.SERVICE, 4346),
+    BAD_REQUEST(Type.SERVICE, 4347),
+    ACCOUNT_NAME_IN_USE(Type.SERVICE, 4348),
+    INVALID_PASSWORD(Type.SERVICE, 4349),
+    SCHEMA_VALIDATION_FAILED_WRITE(Type.SERVICE, 4350),
+    APP_UNKNOWN(Type.SERVICE, 4351),
+    MAINTENANCE_IN_PROGRESS(Type.SERVICE, 4352),
 
-    SERVICE_UNKNOWN(Type.SERVICE, -1),
-    SERVICE_NONE(Type.SERVICE, 0),
+    SERVICE_UNKNOWN(Type.SERVICE, 2000000),
 
+    //
+    // Type.SYSTEM
+    //
     // Generic system errors we want to enumerate specifically
-    CONNECTION_RESET_BY_PEER(Type.CONNECTION, 104, Category.RECOVERABLE), // ECONNRESET: Connection reset by peer
-    CONNECTION_SOCKET_SHUTDOWN(Type.CONNECTION, 110, Category.RECOVERABLE), // ESHUTDOWN: Can't send after socket shutdown
-    CONNECTION_REFUSED(Type.CONNECTION, 111, Category.RECOVERABLE), // ECONNREFUSED: Connection refused
-    CONNECTION_ADDRESS_IN_USE(Type.CONNECTION, 112, Category.RECOVERABLE), // EADDRINUSE: Address already i use
-    CONNECTION_CONNECTION_ABORTED(Type.CONNECTION, 113, Category.RECOVERABLE), // ECONNABORTED: Connection aborted
+    //
+    CONNECTION_RESET_BY_PEER(Type.SYSTEM, 104, Category.RECOVERABLE), // ECONNRESET: Connection reset by peer
+    CONNECTION_SOCKET_SHUTDOWN(Type.SYSTEM, 110, Category.RECOVERABLE), // ESHUTDOWN: Can't send after socket shutdown
+    CONNECTION_REFUSED(Type.SYSTEM, 111, Category.RECOVERABLE), // ECONNREFUSED: Connection refused
+    CONNECTION_ADDRESS_IN_USE(Type.SYSTEM, 112, Category.RECOVERABLE), // EADDRINUSE: Address already i use
+    CONNECTION_CONNECTION_ABORTED(Type.SYSTEM, 113, Category.RECOVERABLE), // ECONNABORTED: Connection aborted
 
     MISC_END_OF_INPUT(Type.MISC, 1), // End of input
     MISC_PREMATURE_END_OF_INPUT(Type.MISC, 2), // Premature end of input. That is, end of input at an unexpected, or illegal place in an input stream.
@@ -341,17 +376,34 @@ public enum ErrorCode {
     }
 
     public static class Type {
-        // FIXME Figure out where errors like 'realm::util::websocket::Error:7' are coming from
+        @Deprecated
         public static final String AUTH = "auth"; // Errors from the Realm Object Server
-        public static final String CONNECTION = "realm.basic_system"; // Connection/System errors from the native Sync Client
-        public static final String DEPRECATED = "deprecated"; // Deprecated errors
-        public static final String HTTP = "realm::app::HttpError"; // Errors from the HTTP layer
-        public static final String JAVA = "realm::app::CustomError"; // Errors from the Java layer
+        @Deprecated
         public static final String MISC = "realm.util.misc_ext"; // Misc errors from the native Sync Client
-        public static final String SERVICE = "realm::app::ServiceError"; // MongoDB Realm Response errors
+        @Deprecated
+        public static final String DEPRECATED = "deprecated"; // Deprecated errors
+
+        // App error types
         public static final String JSON = "realm::app::JSONError"; // Errors when parsing JSON
+        public static final String SERVICE = "realm::app::ServiceError"; // MongoDB Realm Response errors
+        public static final String HTTP = "realm::app::HttpError"; // Errors from the HTTP layer
+        // Custom category
+        public static final String JAVA = "realm::app::CustomError"; // Errors from the Java layer
+
+        public static final String APP = "realm::app::ClientError"; // Session level errors from the native App Client
+
+        // Sync error types
+
+        // This one is category CLIENT
+        public static final String CLIENT = "realm::sync::ClientError"; // Session level errors from the native Sync Client
+        // connection level errors
         public static final String PROTOCOL = "realm::sync::ProtocolError"; // Protocol level errors from the native Sync Client
-        public static final String SESSION = "realm::sync::ClientError"; // Session level errors from the native Sync Client
+        // session level errors
+        public static final String SESSION = "realm::sync::Session"; // Session errors from the native Sync Client
+
+        public static final String SYSTEM = "realm.basic_system"; // Connection/System errors from the native Sync Client
+
+        // unknown to client
         public static final String UNKNOWN = "unknown"; // Catch-all category
     }
 
@@ -359,5 +411,4 @@ public enum ErrorCode {
         FATAL,          // Abort session as soon as possible
         RECOVERABLE,    // Still possible to recover the session by either rebinding or providing the required information.
     }
-
 }

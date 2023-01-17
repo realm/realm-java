@@ -462,7 +462,7 @@ class ApiKeyAuthTests {
                 }
                 fail("$method should have thrown an exception")
             } catch (error: AppException) {
-                assertEquals(ErrorCode.SERVICE_UNKNOWN, error.errorCode)
+                assertEquals(ErrorCode.APP_UNKNOWN, error.errorCode)
             }
         }
     }
