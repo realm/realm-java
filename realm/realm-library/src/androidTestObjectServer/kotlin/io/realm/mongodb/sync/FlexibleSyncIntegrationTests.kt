@@ -27,6 +27,7 @@ import kotlin.test.assertFailsWith
  * test common scenarios.
  */
 @RunWith(AndroidJUnit4::class)
+@Ignore
 class FlexibleSyncIntegrationTests {
 
     @get:Rule

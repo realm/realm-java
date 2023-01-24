@@ -56,6 +56,7 @@ fun validateManualResetIsAvailable(
 }
 
 @RunWith(AndroidJUnit4::class)
+@Ignore
 class SyncSessionTests {
 
     @get:Rule

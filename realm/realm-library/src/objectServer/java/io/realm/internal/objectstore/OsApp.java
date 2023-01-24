@@ -10,6 +10,7 @@ import io.realm.internal.network.MockableNetworkTransport;
 import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.mongodb.AppConfiguration;
+import kotlin.Suppress;
 
 public class OsApp implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();
@@ -36,6 +37,13 @@ public class OsApp implements NativeObject {
             for (Map.Entry<String, String> entry : config.getCustomRequestHeaders().entrySet()) {
                 networkTransport.addCustomRequestHeader(entry.getKey(), entry.getValue());
             }
+            String cpuArch;
+             if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
+                cpuArch = android.os.Build.CPU_ABI;
+            } else {
+                 cpuArch = android.os.Build.SUPPORTED_ABIS[0];
+            }
+
             nativePtr = nativeCreate(
                     config.getAppId(),
                     config.getBaseUrl().toString(),
@@ -48,7 +56,13 @@ public class OsApp implements NativeObject {
                     appDefinedUserAgent,
                     "android",
                     android.os.Build.VERSION.RELEASE,
-                    io.realm.BuildConfig.VERSION_NAME);
+                    io.realm.BuildConfig.VERSION_NAME,
+                    cpuArch,
+                    android.os.Build.MANUFACTURER,
+                    android.os.Build.MODEL,
+                    "Android",
+                    String.valueOf(android.os.Build.VERSION.SDK_INT)
+            );
         }
     }
 
@@ -126,7 +140,13 @@ public class OsApp implements NativeObject {
                                      String appUserInfo,
                                      String platform,
                                      String platformVersion,
-                                     String sdkVersion);
+                                     String sdkVersion,
+                                     String cpuArch,
+                                     String deviceName,
+                                     String deviceVersion,
+                                     String frameworkName,
+                                     String frameworkVersion
+    );
 
     private static native void nativeLogin(long nativeAppPtr, long nativeCredentialsPtr, NetworkRequest callback);
 

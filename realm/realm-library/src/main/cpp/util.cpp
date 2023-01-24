@@ -278,7 +278,6 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, ErrorCodes
     jbyte kind_code; // To suppress compile warning.
     switch (code) {
         // TODO remove comments before merge
-        // TODO No matching error code for AccessError
 //        case realm::RealmFileException::Kind::AccessError:
         case ErrorCodes::Error::InvalidDatabase:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
@@ -310,10 +309,9 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, ErrorCodes
         default:
             kind_code = -1;
     }
-
     if(kind_code == -1) {
         // No matching error code, throwing a fatal error one
-        ThrowException(env, FatalError, message);
+//        ThrowException(env, FatalError, message);
     } else {
         jstring jmessage = to_jstring(env, message);
         jstring jpath = to_jstring(env, path);

@@ -218,6 +218,8 @@ JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetState(JN
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_DYING;
                 case SyncSession::State::Inactive:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_INACTIVE;
+                case SyncSession::State::Paused:
+                    return io_realm_mongodb_sync_SyncSession_STATE_VALUE_PAUSED;
                 case SyncSession::State::WaitingForAccessToken:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
             }
@@ -341,7 +343,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStop(JNIEnv*
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = app->sync_manager()->get_existing_session(local_realm_path);
         if (session) {
-            session->log_out();
+            session->pause();
         }
     }
     CATCH_STD()
