@@ -52,7 +52,7 @@ public class RealmAnyNativeFunctionsImpl implements RealmAnyNativeFunctions {
         try {
             query.rawPredicateWithPointers(mapping, predicate, args);
         } catch (IllegalStateException e) {
-            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage(), e.getCause());
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
         }
     }
 }

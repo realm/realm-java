@@ -188,7 +188,7 @@ public class TableQuery implements NativeObject {
                     values,
                     (mapping != null) ? mapping.getNativePtr() : 0);
         } catch (IllegalStateException e) {
-            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage(), e.getCause());
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
         }
     }
 
@@ -198,7 +198,7 @@ public class TableQuery implements NativeObject {
                     descriptor,
                     (mapping != null) ? mapping.getNativePtr() : 0);
         } catch (IllegalStateException e) {
-            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage(), e.getCause());
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
         }
     }
 

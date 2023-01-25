@@ -390,7 +390,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         try {
             return (Number) nativeAggregate(nativePtr, columnKey, aggregateMethod.getValue());
         } catch (IllegalStateException e) {
-            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage(), e.getCause());
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
         }
     }
 
@@ -398,7 +398,7 @@ public class OsResults implements NativeObject, ObservableCollection {
         try {
             return (Date) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
         } catch (IllegalStateException e) {
-            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage(), e.getCause());
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
         }
     }
 
@@ -766,7 +766,11 @@ public class OsResults implements NativeObject, ObservableCollection {
         try {
             return nativeStringDescriptor(nativePtr, descriptor, mapping);
         } catch (IllegalStateException e) {
-            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage(), e.getCause());
+            if (e.getMessage().contains("Realm accessed from incorrect thread.")) {
+                throw e;
+            } else {
+                throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
+            }
         }
     }
 

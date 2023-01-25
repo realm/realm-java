@@ -265,7 +265,7 @@ public class SyncSession {
         } else {
             AppException wrappedError;
             if (errCode == ErrorCode.UNKNOWN) {
-                wrappedError = new AppException(nativeErrorCategory, nativeErrorCode, errorMessage);
+                wrappedError = new AppException(errCode.getType(), nativeErrorCode, errorMessage);
             } else {
                 wrappedError = new AppException(errCode, errorMessage);
             }

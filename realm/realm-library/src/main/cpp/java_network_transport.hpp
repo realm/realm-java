@@ -97,10 +97,11 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         auto err = error.value();
         auto categories = ErrorCodes::error_categories(err.code());
         jbyte category = categoryAsJByte(categories);
+        auto error_code = err.is_custom_error() || err.is_http_error() ? err.additional_status_code : err.code();
         env->CallVoidMethod(callback.get(),
                             java_notify_onerror,
                             category,
-                            err.code(),
+                            error_code,
                             to_jstring(env, err.what()));
     }
 

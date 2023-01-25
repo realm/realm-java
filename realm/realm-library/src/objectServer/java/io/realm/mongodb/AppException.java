@@ -42,7 +42,7 @@ public class AppException extends RuntimeException {
 
     // The native error representation. Mostly relevant for ErrorCode.UNKNOWN
     // where it can provide more details into the exact error.
-    private final int nativeErrorType;
+    private final String nativeErrorType;
     private final int nativeErrorIntValue;
 
     private final String errorMessage;
@@ -55,7 +55,7 @@ public class AppException extends RuntimeException {
      * @param errorMessage detailed error message.
      */
     public AppException(ErrorCode errorCode, String errorMessage) {
-        this(errorCode, 0, errorCode.intValue(), errorMessage, (Throwable) null);
+        this(errorCode, errorCode.getType(), errorCode.intValue(), errorMessage, (Throwable) null);
     }
 
     /**
@@ -68,7 +68,7 @@ public class AppException extends RuntimeException {
      * @param errorCode error code for this type of error.
      * @param errorMessage detailed error message.
      */
-    public AppException(int errorType, int errorCode, String errorMessage) {
+    public AppException(String errorType, int errorCode, String errorMessage) {
         this(ErrorCode.UNKNOWN, errorType, errorCode, errorMessage, null);
     }
 
@@ -101,10 +101,10 @@ public class AppException extends RuntimeException {
      * @param exception underlying exception if the error was caused by this.
      */
     public AppException(ErrorCode errorCode, @Nullable String errorMessage, @Nullable Throwable exception) {
-        this(errorCode, 0, errorCode.intValue(), errorMessage, exception);
+        this(errorCode, errorCode.getType(), errorCode.intValue(), errorMessage, exception);
     }
 
-    public AppException(ErrorCode errorCode, int nativeErrorType, int nativeErrorCode,
+    public AppException(ErrorCode errorCode, String nativeErrorType, int nativeErrorCode,
                         @Nullable String errorMessage, @Nullable Throwable exception) {
         super(errorMessage);
         this.error = errorCode;
@@ -133,7 +133,7 @@ public class AppException extends RuntimeException {
      *
      * @return
      */
-    public int getErrorType() {
+    public String getErrorType() {
         return nativeErrorType;
     }
 

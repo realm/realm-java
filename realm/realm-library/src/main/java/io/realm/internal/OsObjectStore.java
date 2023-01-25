@@ -45,7 +45,7 @@ public class OsObjectStore {
         try {
             nativeSetPrimaryKeyForObject(sharedRealm.getNativePtr(), className, primaryKeyFieldName);
         } catch (IllegalStateException e) {
-            throw new IllegalArgumentException(e.getMessage(), e.getCause());
+            throw new IllegalArgumentException(e.getMessage());
         }
     }
 
