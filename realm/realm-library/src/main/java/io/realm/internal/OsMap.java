@@ -156,7 +156,15 @@ public class OsMap implements NativeObject {
 
     public void put(Object key, @Nullable Object value) {
         if (value == null) {
-            nativePutNull(nativePtr, (String) key);
+            try {
+                nativePutNull(nativePtr, (String) key);
+            } catch (IllegalArgumentException e) {
+                if (e.getMessage().contains("Value cannot be null")) {
+                    throw new NullPointerException(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
         } else {
             String valueClassName = value.getClass().getCanonicalName();
             if (Long.class.getCanonicalName().equals(valueClassName)) {

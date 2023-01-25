@@ -211,7 +211,7 @@ class UserTests {
         assertEquals("invalid user link request", exception.errorMessage);
         assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
         assertEquals("realm::app::ServiceError", exception.errorCode.type);
-        assertEquals(6, exception.errorCode.intValue());
+        assertEquals(ErrorCode.INVALID_PARAMETER, exception.errorCode);
     }
 
     @Test

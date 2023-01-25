@@ -1842,7 +1842,7 @@ public class Realm extends BaseRealm {
         }
         try {
             return configuration.getSchemaMediator().copyOrUpdate(this, object, update, cache, flags);
-        } catch (IllegalStateException e) {
+        } catch (RuntimeException e) {
             // See https://github.com/realm/realm-java/issues/6262
             // For now we convert the OS exception using pattern matching on the error message.
             if (e.getMessage().startsWith("Attempting to create an object of type")) {

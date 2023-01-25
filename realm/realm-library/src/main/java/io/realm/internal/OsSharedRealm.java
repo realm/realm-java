@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 
 import io.realm.RealmConfiguration;
 import io.realm.RealmFieldType;
+import io.realm.exceptions.RealmError;
 import io.realm.internal.android.AndroidCapabilities;
 import io.realm.internal.android.AndroidRealmNotifier;
 import io.realm.internal.annotations.ObjectServer;
@@ -343,7 +344,11 @@ public final class OsSharedRealm implements Closeable, NativeObject {
     }
 
     public void renameTable(String oldName, String newName) {
-        nativeRenameTable(nativePtr, oldName, newName);
+        try {
+            nativeRenameTable(nativePtr, oldName, newName);
+        } catch (IllegalArgumentException e) {
+            throw new RealmError(e.getMessage());
+        }
     }
 
     public String[] getTablesNames() {

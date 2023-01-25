@@ -185,9 +185,15 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, ExceptionKind::RuntimeError, ss.str());
     }
-    catch (std::exception& e) {
+    catch (realm::Exception& e) {
         ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, FatalError, ss.str());
+
+        // Remove once https://github.com/realm/realm-core/issues/6231
+        if(e.code() == realm::ErrorCodes::IllegalOperation) {
+            ThrowException(env, IllegalState, ss.str());
+        } else {
+            ThrowException(env, FatalError, ss.str());
+        }
     }
     /* catch (...) is not needed if we only throw exceptions derived from std::exception */
 }
@@ -234,7 +240,6 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             jExceptionClass = env->FindClass("io/realm/exceptions/RealmError");
             message = "Unrecoverable error. " + classStr;
             break;
-
         case ExceptionKind::RuntimeError:
             jExceptionClass = env->FindClass("java/lang/RuntimeException");
             message = classStr;
@@ -311,7 +316,7 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, ErrorCodes
     }
     if(kind_code == -1) {
         // No matching error code, throwing a fatal error one
-//        ThrowException(env, FatalError, message);
+        ThrowException(env, FatalError, message);
     } else {
         jstring jmessage = to_jstring(env, message);
         jstring jpath = to_jstring(env, path);

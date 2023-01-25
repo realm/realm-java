@@ -42,7 +42,11 @@ public class OsObjectStore {
     public static void setPrimaryKeyForObject(OsSharedRealm sharedRealm, String className,
                                               @Nullable String primaryKeyFieldName) {
         className = Util.getTablePrefix() + className;
-        nativeSetPrimaryKeyForObject(sharedRealm.getNativePtr(), className, primaryKeyFieldName);
+        try {
+            nativeSetPrimaryKeyForObject(sharedRealm.getNativePtr(), className, primaryKeyFieldName);
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException(e.getMessage(), e.getCause());
+        }
     }
 
     public static @Nullable String getPrimaryKeyForObject(OsSharedRealm sharedRealm, String className) {

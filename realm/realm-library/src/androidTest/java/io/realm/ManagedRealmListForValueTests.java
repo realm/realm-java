@@ -59,6 +59,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import android.util.Log;
+
 
 /**
  * Unit tests specific for RealmList with value elements.
@@ -956,7 +958,7 @@ public class ManagedRealmListForValueTests extends CollectionTests {
             list.deleteAllFromRealm();
             fail();
         } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("Cannot modify managed objects outside of a write transaction"));
+            assertTrue(e.getMessage().contains("Cannot modify managed List outside of a write transaction."));
         }
     }
 

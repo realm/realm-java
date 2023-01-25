@@ -4082,7 +4082,7 @@ public class RealmQueryTests extends QueryTests {
             query.rawPredicate("columnString = $0 AND columnString  = $1", "foo");
             RealmLog.error(query.getDescription());
             fail();
-        } catch (IllegalStateException ignore) {
+        } catch (IllegalArgumentException ignore) {
         }
 
         try {

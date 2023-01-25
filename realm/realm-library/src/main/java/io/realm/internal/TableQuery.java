@@ -182,16 +182,24 @@ public class TableQuery implements NativeObject {
     }
 
     public void rawPredicateWithPointers(@Nullable OsKeyPathMapping mapping, String predicate, long... values) {
-        nativeRawPredicate(nativePtr,
-                predicate,
-                values,
-                (mapping != null) ? mapping.getNativePtr() : 0);
+        try {
+            nativeRawPredicate(nativePtr,
+                    predicate,
+                    values,
+                    (mapping != null) ? mapping.getNativePtr() : 0);
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage(), e.getCause());
+        }
     }
 
     private void rawDescriptor(@Nullable OsKeyPathMapping mapping, String descriptor) {
-        nativeRawDescriptor(nativePtr,
-                descriptor,
-                (mapping != null) ? mapping.getNativePtr() : 0);
+        try {
+            nativeRawDescriptor(nativePtr,
+                    descriptor,
+                    (mapping != null) ? mapping.getNativePtr() : 0);
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage(), e.getCause());
+        }
     }
 
     public TableQuery equalTo(@Nullable OsKeyPathMapping mapping, String fieldName, RealmAny value) {
