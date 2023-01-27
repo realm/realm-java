@@ -131,8 +131,11 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
             val dirName = directory.asFile.absolutePath + File.separator
             directory.asFile.walk().filter(File::isFile).forEach { file ->
                 if (!file.absolutePath.endsWith(DOT_CLASS)) {
-                    val removePrefix = file.absolutePath.removePrefix(dirName)
-                    outputProvider.putNextEntry(JarEntry(removePrefix))
+                    val pathWithoutPrefix = file.absolutePath.removePrefix(dirName)
+                    // We need to transform platform paths into consistent zip entry paths
+                    // https://github.com/realm/realm-java/issues/7757
+                    val zipEntryPath = pathWithoutPrefix.replace(File.separatorChar, '/')
+                    outputProvider.putNextEntry(JarEntry(zipEntryPath))
                     outputProvider.write(file.readBytes())
                     outputProvider.closeEntry()
                 }
