@@ -8,7 +8,7 @@ the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/release
 * None.
 
 ### Fixed
-* None.
+* Fix zip path separator for transformer on Windows (Issue [#7757](https://github.com/realm/realm-java/issues/7757))
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
