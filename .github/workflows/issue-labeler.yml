@@ -10,7 +10,7 @@ on:
 
 jobs:
   label-issues-policy:
-    runs-on: ubuntu-latest    
+    runs-on: ubuntu-latest
     permissions:
       issues: write
 
