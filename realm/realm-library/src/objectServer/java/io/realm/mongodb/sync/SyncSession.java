@@ -95,7 +95,8 @@ public class SyncSession {
     private static final byte STATE_VALUE_DYING = 1;
     private static final byte STATE_VALUE_INACTIVE = 2;
     private static final byte STATE_VALUE_WAITING_FOR_ACCESS_TOKEN = 3;
-    
+    private static final byte STATE_VALUE_PAUSED = 4;
+
 
     // List of Java connection change listeners
     private final CopyOnWriteArrayList<ConnectionListener> connectionListeners = new CopyOnWriteArrayList<>();
@@ -149,8 +150,14 @@ public class SyncSession {
          * <p>
          * Once a valid token is acquired, the session will transition to {@link #ACTIVE}.
          */
-        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN);
+        WAITING_FOR_ACCESS_TOKEN(STATE_VALUE_WAITING_FOR_ACCESS_TOKEN),
 
+        /**
+         * The Realm is open and has a connection to the server, but no data is allowed to be
+         * transferred between the device and the server. Call {@link SyncSession#start()} to start
+         * transferring data again. The state will then become {@link #ACTIVE}.
+         */
+        PAUSED(STATE_VALUE_PAUSED);
 
         final byte value;
 

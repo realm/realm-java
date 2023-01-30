@@ -96,7 +96,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
                                                                jstring j_user_agent_application_info,
                                                                jstring j_platform,
                                                                jstring j_platform_version,
-                                                               jstring j_sdk_version)
+                                                               jstring j_sdk_version,
+                                                               jstring j_cpu_arch,
+                                                               jstring j_device_name,
+                                                               jstring j_device_version,
+                                                               jstring j_framework_name,
+                                                               jstring j_framework_version
+                                                               )
 {
     try {
 
@@ -119,6 +125,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
         JStringAccessor platform_version(env, j_platform_version);
         JStringAccessor sdk_version(env, j_sdk_version);
         JByteArrayAccessor encryption_key(env, j_encryption_key);
+        JStringAccessor cpu_arch(env, j_cpu_arch);
+        JStringAccessor device_name(env, j_device_name);
+        JStringAccessor device_version(env, j_device_version);
+        JStringAccessor framework_name(env, j_framework_name);
+        JStringAccessor framework_version(env, j_framework_version);
 
         // Create Network Transport
         static JavaMethod get_network_transport_method(env, obj, "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
@@ -132,9 +143,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
                 util::Optional<std::string>(app_name),
                 util::Optional<std::string>(app_version),
                 util::Optional<std::uint64_t>(j_request_timeout_ms),
-                platform,
-                platform_version,
-                sdk_version
+                {
+                        platform,
+                        platform_version,
+                        sdk_version,
+                        "Java",
+                        cpu_arch,
+                        device_name,
+                        device_version,
+                        framework_name,
+                        framework_version
+                }
         };
 
         // Sync Config
