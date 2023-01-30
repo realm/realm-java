@@ -387,7 +387,7 @@ public abstract class Sync {
     // In this implementation we use the second method, since it's more suitable for
     // the underlying Java API we need to call to validate the certificate chain.
     @SuppressWarnings("unused")
-    synchronized static boolean sslVerifyCallback(String serverAddress, String pemData, int depth) {
+    static synchronized boolean sslVerifyCallback(String serverAddress, String pemData, int depth) {
         try {
             if (ATLAS_CERTIFICATES_CHAIN == null) {
                 ATLAS_CERTIFICATES_CHAIN = new HashMap<>();

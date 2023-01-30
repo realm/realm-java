@@ -21,7 +21,7 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
 
-#include <realm/object-store/binding_callback_thread_observer.hpp>
+#include <realm/sync/binding_callback_thread_observer.hpp>
 #include <realm/object-store/sync/app.hpp>
 #include <realm/object-store/sync/sync_manager.hpp>
 

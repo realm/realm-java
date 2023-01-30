@@ -21,7 +21,7 @@
 #include <realm/object-store/sync/sync_manager.hpp>
 #include <realm/object-store/sync/sync_session.hpp>
 #include <realm/sync/protocol.hpp>
-#include <realm/object-store/binding_callback_thread_observer.hpp>
+#include <realm/sync/binding_callback_thread_observer.hpp>
 
 #include "util.hpp"
 #include <jni_util/bson_util.hpp>
