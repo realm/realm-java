@@ -1,3 +1,6 @@
+## Developing with the Realm SDKs? We want to hear from you! [Take our short survey](https://mongodb.co1.qualtrics.com/jfe/form/SV_6fJwP5VUXddZmZg?Source=github)
+<br/>
+
 ![Realm](logo.png)
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.realm/realm-gradle-plugin?colorB=4dc427&label=Maven%20Central)](https://search.maven.org/artifact/io.realm/realm-gradle-plugin)
