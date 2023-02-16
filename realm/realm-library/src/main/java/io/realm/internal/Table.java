@@ -967,7 +967,5 @@ public class Table implements NativeObject {
 
     private static native boolean nativeIsEmbedded(long nativeTableRefPtr);
 
-//    private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded);
-
     private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded, boolean handleBackLinks);
 }

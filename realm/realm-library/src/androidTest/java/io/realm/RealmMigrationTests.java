@@ -1776,6 +1776,7 @@ public class RealmMigrationTests {
     // TODO Add unit tests for default Indexing for Primary keys
 }
 
+// Original parent with a regular object as a child
 @RealmClass(name = "Parent")
 class BackLinkParent1 extends RealmObject {
     @PrimaryKey
@@ -1786,6 +1787,7 @@ class BackLinkParent1 extends RealmObject {
     public BackLinkParent1() {}
 }
 
+// Original child as a regular object
 @RealmClass(name = "Child")
 class BackLinkChild1 extends RealmObject {
 
@@ -1795,6 +1797,7 @@ class BackLinkChild1 extends RealmObject {
 
 }
 
+// Parent, now having an embedded object as a child, respecting table names
 @RealmClass(name = "Parent")
 class BackLinkParent2 extends RealmObject {
     @PrimaryKey
@@ -1805,6 +1808,7 @@ class BackLinkParent2 extends RealmObject {
     public BackLinkParent2() {}
 }
 
+// Child, now as an embedded object, respecting table names
 @RealmClass(embedded = true, name = "Child")
 class BackLinkChild2 extends RealmObject {
 
