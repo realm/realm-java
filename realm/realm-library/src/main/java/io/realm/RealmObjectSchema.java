@@ -588,11 +588,36 @@ public abstract class RealmObjectSchema {
      * @see RealmClass#embedded()
      */
     public void setEmbedded(boolean embedded) {
+        setEmbedded(embedded, false);
+    }
+
+    /**
+     * Converts the class to be embedded or not.
+     * <p>
+     * A class can only be marked as embedded if the following invariants are satisfied:
+     * <ul>
+     *     <li>
+     *         The class is not allowed to have a primary key defined.
+     *     </li>
+     *     <li>
+     *         All existing objects of this type, must have one and exactly one parent object
+     *         already pointing to it. If 0 or more than 1 object has a reference to an object
+     *         about to be marked embedded an {@link IllegalStateException} will be thrown.
+     *     </li>
+     * </ul>
+     *
+     * This variant adds on {@link RealmObjectSchema#setEmbedded(boolean)} to add support for automatic deletion of orphan objects
+     * after converting the property into a embedded object class.
+     *
+     * @throws IllegalStateException if the class could not be converted because it broke some of the Embedded Objects invariants.
+     * @see RealmClass#embedded()
+     */
+    public void setEmbedded(boolean embedded, boolean deleteOrphanChildren) {
         if (hasPrimaryKey()) {
             throw new IllegalStateException("Embedded classes cannot have primary keys. This class " +
                     "has a primary key defined so cannot be marked as embedded: " + getClassName());
         }
-        boolean setEmbedded = table.setEmbedded(embedded);
+        boolean setEmbedded = table.setEmbedded(embedded, deleteOrphanChildren);
         if (!setEmbedded && embedded) {
             throw new IllegalStateException("The class could not be marked as embedded as some " +
                     "objects of this type break some of the Embedded Objects invariants. In order to convert " +

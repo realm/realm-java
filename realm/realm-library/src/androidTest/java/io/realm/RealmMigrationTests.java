@@ -37,6 +37,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
+
+import io.realm.annotations.PrimaryKey;
+import io.realm.annotations.RealmClass;
 import io.realm.entities.AllTypes;
 import io.realm.entities.AnnotationTypes;
 import io.realm.entities.CatOwner;
@@ -1712,6 +1715,101 @@ public class RealmMigrationTests {
         realm = Realm.getInstance(realmConfig);
     }
 
+    @Test
+    public void migrate_embeddedObject_handleBackLinks() {
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .schema(BackLinkParent1.class, BackLinkChild1.class)
+                .schemaVersion(1)
+                .build();
+
+        Realm realm1 = Realm.getInstance(config1);
+        realm1.executeTransaction(realm -> {
+            BackLinkChild1 child = new BackLinkChild1();
+            BackLinkParent1 parent = new BackLinkParent1();
+            parent.child = child;
+            BackLinkChild1 orphan = new BackLinkChild1();
+            realm.insert(parent);
+            realm.insert(orphan);
+        });
+        long parentCount1 = realm1.where(BackLinkParent1.class)
+                .count();
+        assertEquals(1L, parentCount1);
+        long childCount1 = realm1.where(BackLinkChild1.class)
+                .count();
+        assertEquals(2L, childCount1);
+        realm1.close();
+
+        RealmMigration migration = (realm, oldVersion, newVersion) -> {
+            RealmSchema schema = realm.getSchema();
+            if (oldVersion == 1L) {
+                RealmObjectSchema child = schema.get("Child");
+                assertNotNull(child);
+                try {
+                    child.setEmbedded(true);
+                } catch (Exception e) {
+                    assertEquals(IllegalStateException.class, e.getClass());
+                    assertEquals("Cannot convert 'Child' to embedded: at least one object has no incoming links and would be deleted.", e.getMessage());
+                }
+                child.setEmbedded(true, true);
+            }
+        };
+
+        // Create schema v2
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .schema(BackLinkParent2.class, BackLinkChild2.class)
+                .schemaVersion(2)
+                .migration(migration)
+                .build();
+
+        // The orphan child is erased
+        Realm realm2 = Realm.getInstance(config2);
+        long parentCount2 = realm2.where(BackLinkParent2.class)
+                .count();
+        assertEquals(1L, parentCount2);
+        long childCount2 = realm2.where(BackLinkChild2.class)
+                .count();
+        assertEquals(1L, childCount2);
+        realm2.close();
+    }
+
     // TODO Add unit tests for default nullability
     // TODO Add unit tests for default Indexing for Primary keys
+}
+
+@RealmClass(name = "Parent")
+class BackLinkParent1 extends RealmObject {
+    @PrimaryKey
+    public long id;
+
+    public BackLinkChild1 child;
+
+    public BackLinkParent1() {}
+}
+
+@RealmClass(name = "Child")
+class BackLinkChild1 extends RealmObject {
+
+    public String name;
+
+    public BackLinkChild1() {}
+
+}
+
+@RealmClass(name = "Parent")
+class BackLinkParent2 extends RealmObject {
+    @PrimaryKey
+    public long id;
+
+    public BackLinkChild2 child;
+
+    public BackLinkParent2() {}
+}
+
+@RealmClass(embedded = true, name = "Child")
+class BackLinkChild2 extends RealmObject {
+
+    public String name;
+
+    public BackLinkChild2() {}
+
 }

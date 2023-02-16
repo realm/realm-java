@@ -793,7 +793,17 @@ public class Table implements NativeObject {
      * some invariant was broken when trying to change the state
      */
     public boolean setEmbedded(boolean embedded) {
-        return nativeSetEmbedded(nativeTableRefPtr, embedded);
+        return setEmbedded(embedded, false);
+    }
+
+    /**
+     * Returns true if the state was changed, false if not. If false was returned, it meant
+     * some invariant was broken when trying to change the state. The {@code deleteOrphanChildren}
+     * parameter tells Core to automatically delete objects that become orphan children during
+     * migrations.
+     */
+    public boolean setEmbedded(boolean embedded, boolean deleteOrphanChildren) {
+        return nativeSetEmbedded(nativeTableRefPtr, embedded, deleteOrphanChildren);
     }
 
     @Nullable
@@ -957,5 +967,7 @@ public class Table implements NativeObject {
 
     private static native boolean nativeIsEmbedded(long nativeTableRefPtr);
 
-    private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded);
+//    private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded);
+
+    private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded, boolean handleBackLinks);
 }
