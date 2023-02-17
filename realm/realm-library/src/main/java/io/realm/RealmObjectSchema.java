@@ -606,18 +606,18 @@ public abstract class RealmObjectSchema {
      *     </li>
      * </ul>
      *
-     * This variant adds on {@link RealmObjectSchema#setEmbedded(boolean)} to add support for automatic deletion of orphan objects
-     * after converting the property into a embedded object class.
+     * This variant adds on {@link RealmObjectSchema#setEmbedded(boolean)} to add support for automatic handling of unsatisfied
+     * invariants after converting the property into an embedded object property.
      *
      * @throws IllegalStateException if the class could not be converted because it broke some of the Embedded Objects invariants.
      * @see RealmClass#embedded()
      */
-    public void setEmbedded(boolean embedded, boolean deleteOrphanChildren) {
+    public void setEmbedded(boolean embedded, boolean handleBackLinks) {
         if (hasPrimaryKey()) {
             throw new IllegalStateException("Embedded classes cannot have primary keys. This class " +
                     "has a primary key defined so cannot be marked as embedded: " + getClassName());
         }
-        boolean setEmbedded = table.setEmbedded(embedded, deleteOrphanChildren);
+        boolean setEmbedded = table.setEmbedded(embedded, handleBackLinks);
         if (!setEmbedded && embedded) {
             throw new IllegalStateException("The class could not be marked as embedded as some " +
                     "objects of this type break some of the Embedded Objects invariants. In order to convert " +

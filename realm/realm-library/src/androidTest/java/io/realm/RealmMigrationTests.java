@@ -1777,7 +1777,7 @@ public class RealmMigrationTests {
 }
 
 // Original parent with a regular object as a child
-@RealmClass(name = "Parent")
+@RealmClass(name = "HandleBackLinksParent")
 class BackLinkParent1 extends RealmObject {
     @PrimaryKey
     public long id;
@@ -1788,7 +1788,7 @@ class BackLinkParent1 extends RealmObject {
 }
 
 // Original child as a regular object
-@RealmClass(name = "Child")
+@RealmClass(name = "HandleBackLinksChild")
 class BackLinkChild1 extends RealmObject {
 
     public String name;
@@ -1798,7 +1798,7 @@ class BackLinkChild1 extends RealmObject {
 }
 
 // Parent, now having an embedded object as a child, respecting table names
-@RealmClass(name = "Parent")
+@RealmClass(name = "HandleBackLinksParent")
 class BackLinkParent2 extends RealmObject {
     @PrimaryKey
     public long id;
@@ -1809,7 +1809,7 @@ class BackLinkParent2 extends RealmObject {
 }
 
 // Child, now as an embedded object, respecting table names
-@RealmClass(embedded = true, name = "Child")
+@RealmClass(embedded = true, name = "HandleBackLinksChild")
 class BackLinkChild2 extends RealmObject {
 
     public String name;
