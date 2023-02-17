@@ -65,6 +65,10 @@ import io.realm.entities.StringOnlyRequired;
 import io.realm.entities.Thread;
 import io.realm.entities.embedded.EmbeddedSimpleChild;
 import io.realm.entities.embedded.EmbeddedSimpleParent;
+import io.realm.entities.migration.HandleBackLinksChild1;
+import io.realm.entities.migration.HandleBackLinksChild2;
+import io.realm.entities.migration.HandleBackLinksParent1;
+import io.realm.entities.migration.HandleBackLinksParent2;
 import io.realm.entities.migration.MigrationClassRenamed;
 import io.realm.entities.migration.MigrationCore6PKStringIndexedByDefault;
 import io.realm.entities.migration.MigrationFieldRenameAndAdd;
@@ -1716,7 +1720,7 @@ public class RealmMigrationTests {
     }
 
     @Test
-    public void migrate_embeddedObject_handleBackLinks() {
+    public void migrate_embeddedObject_deleteOrphans() {
         RealmConfiguration config1 = configFactory.createConfigurationBuilder()
                 .schema(HandleBackLinksParent1.class, HandleBackLinksChild1.class)
                 .schemaVersion(1)
@@ -1728,8 +1732,8 @@ public class RealmMigrationTests {
             HandleBackLinksParent1 parent = new HandleBackLinksParent1();
             parent.child = child;
             HandleBackLinksChild1 orphan = new HandleBackLinksChild1();
-            realm.insert(parent);
-            realm.insert(orphan);
+            realm.insertOrUpdate(parent);
+            realm.insertOrUpdate(orphan);
         });
         long parentCountV1 = realm1.where(HandleBackLinksParent1.class)
                 .count();
@@ -1778,49 +1782,72 @@ public class RealmMigrationTests {
         realm2.close();
     }
 
+    @Test
+    public void migrate_embeddedObject_clonesChildWhenReferencedMoreThanOnce() {
+        RealmConfiguration config1 = configFactory.createConfigurationBuilder()
+                .schema(HandleBackLinksParent1.class, HandleBackLinksChild1.class)
+                .schemaVersion(1)
+                .build();
+
+        Realm realm1 = Realm.getInstance(config1);
+        HandleBackLinksChild1 child = new HandleBackLinksChild1();
+        HandleBackLinksParent1 parent1 = new HandleBackLinksParent1();
+        HandleBackLinksParent1 parent2 = new HandleBackLinksParent1();
+        realm1.executeTransaction(realm -> {
+            // Copy child and set it as children for both parents.
+            // Now the managed child has two parents. This will not be allowed after converting it
+            // to an embedded object and will result into the child object being duplicated so that
+            // both parents can have a reference to a separate and different embedded object.
+            HandleBackLinksChild1 managedChild = realm.copyToRealm(child);
+            parent1.id = 1L;
+            parent1.child = managedChild;
+            realm.insert(parent1);
+            parent2.id = 2L;
+            parent2.child = managedChild;
+            realm.insert(parent2);
+        });
+        long parentCountV1 = realm1.where(HandleBackLinksParent1.class)
+                .count();
+        assertEquals(2L, parentCountV1);
+        long childCountV1 = realm1.where(HandleBackLinksChild1.class)
+                .count();
+        assertEquals(1L, childCountV1);
+        realm1.close();
+
+        RealmMigration migration = (realm, oldVersion, newVersion) -> {
+            RealmSchema schema = realm.getSchema();
+            if (oldVersion == 1L) {
+                RealmObjectSchema parentSchema = schema.get("HandleBackLinksParent1");
+                assertNotNull(parentSchema);
+                RealmObjectSchema childSchema = schema.get("HandleBackLinksChild1");
+                assertNotNull(childSchema);
+                childSchema.setEmbedded(true, true);
+
+                // Rename classes to avoid conflicts with all other tests
+                parentSchema.setClassName("HandleBackLinksParent2");
+                childSchema.setClassName("HandleBackLinksChild2");
+            }
+        };
+
+        // Create schema v2
+        RealmConfiguration config2 = configFactory.createConfigurationBuilder()
+                .schema(HandleBackLinksParent2.class, HandleBackLinksChild2.class)
+                .schemaVersion(2)
+                .migration(migration)
+                .build();
+
+        // After the migration the only child class is embedded and will not be allowed to have two parents
+        // so the child object will be duplicated
+        Realm realm2 = Realm.getInstance(config2);
+        long parentCountV2 = realm2.where(HandleBackLinksParent2.class)
+                .count();
+        assertEquals(2L, parentCountV2);
+        long childCountV2 = realm2.where(HandleBackLinksChild2.class)
+                .count();
+        assertEquals(2L, childCountV2);
+        realm2.close();
+    }
+
     // TODO Add unit tests for default nullability
     // TODO Add unit tests for default Indexing for Primary keys
-}
-
-// Original parent with a regular object as a child
-//@RealmClass(name = "HandleBackLinksParent1")
-class HandleBackLinksParent1 extends RealmObject {
-    @PrimaryKey
-    public long id;
-
-    public HandleBackLinksChild1 child;
-
-    public HandleBackLinksParent1() {}
-}
-
-// Original child as a regular object
-//@RealmClass(name = "HandleBackLinksChild1")
-class HandleBackLinksChild1 extends RealmObject {
-
-    public String name;
-
-    public HandleBackLinksChild1() {}
-
-}
-
-// Parent, now having an embedded object as a child, respecting table names
-//@RealmClass(name = "HandleBackLinksParent2")
-class HandleBackLinksParent2 extends RealmObject {
-    @PrimaryKey
-    public long id;
-
-    public HandleBackLinksChild2 child;
-
-    public HandleBackLinksParent2() {}
-}
-
-// Child, now as an embedded object, respecting table names
-//@RealmClass(embedded = true, name = "HandleBackLinksChild2")
-@RealmClass(embedded = true)
-class HandleBackLinksChild2 extends RealmObject {
-
-    public String name;
-
-    public HandleBackLinksChild2() {}
-
 }
