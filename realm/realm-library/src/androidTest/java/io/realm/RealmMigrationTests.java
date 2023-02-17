@@ -1718,57 +1718,63 @@ public class RealmMigrationTests {
     @Test
     public void migrate_embeddedObject_handleBackLinks() {
         RealmConfiguration config1 = configFactory.createConfigurationBuilder()
-                .schema(BackLinkParent1.class, BackLinkChild1.class)
+                .schema(HandleBackLinksParent1.class, HandleBackLinksChild1.class)
                 .schemaVersion(1)
                 .build();
 
         Realm realm1 = Realm.getInstance(config1);
         realm1.executeTransaction(realm -> {
-            BackLinkChild1 child = new BackLinkChild1();
-            BackLinkParent1 parent = new BackLinkParent1();
+            HandleBackLinksChild1 child = new HandleBackLinksChild1();
+            HandleBackLinksParent1 parent = new HandleBackLinksParent1();
             parent.child = child;
-            BackLinkChild1 orphan = new BackLinkChild1();
+            HandleBackLinksChild1 orphan = new HandleBackLinksChild1();
             realm.insert(parent);
             realm.insert(orphan);
         });
-        long parentCount1 = realm1.where(BackLinkParent1.class)
+        long parentCountV1 = realm1.where(HandleBackLinksParent1.class)
                 .count();
-        assertEquals(1L, parentCount1);
-        long childCount1 = realm1.where(BackLinkChild1.class)
+        assertEquals(1L, parentCountV1);
+        long childCountV1 = realm1.where(HandleBackLinksChild1.class)
                 .count();
-        assertEquals(2L, childCount1);
+        assertEquals(2L, childCountV1);
         realm1.close();
 
         RealmMigration migration = (realm, oldVersion, newVersion) -> {
             RealmSchema schema = realm.getSchema();
             if (oldVersion == 1L) {
-                RealmObjectSchema child = schema.get("Child");
+                RealmObjectSchema parent = schema.get("HandleBackLinksParent1");
+                assertNotNull(parent);
+                RealmObjectSchema child = schema.get("HandleBackLinksChild1");
                 assertNotNull(child);
                 try {
                     child.setEmbedded(true);
                 } catch (Exception e) {
                     assertEquals(IllegalStateException.class, e.getClass());
-                    assertEquals("Cannot convert 'Child' to embedded: at least one object has no incoming links and would be deleted.", e.getMessage());
+                    assertEquals("Cannot convert 'HandleBackLinksChild1' to embedded: at least one object has no incoming links and would be deleted.", e.getMessage());
                 }
                 child.setEmbedded(true, true);
+
+                // Rename classes to avoid conflicts with all other tests
+                parent.setClassName("HandleBackLinksParent2");
+                child.setClassName("HandleBackLinksChild2");
             }
         };
 
         // Create schema v2
         RealmConfiguration config2 = configFactory.createConfigurationBuilder()
-                .schema(BackLinkParent2.class, BackLinkChild2.class)
+                .schema(HandleBackLinksParent2.class, HandleBackLinksChild2.class)
                 .schemaVersion(2)
                 .migration(migration)
                 .build();
 
         // The orphan child is erased
         Realm realm2 = Realm.getInstance(config2);
-        long parentCount2 = realm2.where(BackLinkParent2.class)
+        long parentCountV2 = realm2.where(HandleBackLinksParent2.class)
                 .count();
-        assertEquals(1L, parentCount2);
-        long childCount2 = realm2.where(BackLinkChild2.class)
+        assertEquals(1L, parentCountV2);
+        long childCountV2 = realm2.where(HandleBackLinksChild2.class)
                 .count();
-        assertEquals(1L, childCount2);
+        assertEquals(1L, childCountV2);
         realm2.close();
     }
 
@@ -1777,43 +1783,44 @@ public class RealmMigrationTests {
 }
 
 // Original parent with a regular object as a child
-@RealmClass(name = "HandleBackLinksParent")
-class BackLinkParent1 extends RealmObject {
+//@RealmClass(name = "HandleBackLinksParent1")
+class HandleBackLinksParent1 extends RealmObject {
     @PrimaryKey
     public long id;
 
-    public BackLinkChild1 child;
+    public HandleBackLinksChild1 child;
 
-    public BackLinkParent1() {}
+    public HandleBackLinksParent1() {}
 }
 
 // Original child as a regular object
-@RealmClass(name = "HandleBackLinksChild")
-class BackLinkChild1 extends RealmObject {
+//@RealmClass(name = "HandleBackLinksChild1")
+class HandleBackLinksChild1 extends RealmObject {
 
     public String name;
 
-    public BackLinkChild1() {}
+    public HandleBackLinksChild1() {}
 
 }
 
 // Parent, now having an embedded object as a child, respecting table names
-@RealmClass(name = "HandleBackLinksParent")
-class BackLinkParent2 extends RealmObject {
+//@RealmClass(name = "HandleBackLinksParent2")
+class HandleBackLinksParent2 extends RealmObject {
     @PrimaryKey
     public long id;
 
-    public BackLinkChild2 child;
+    public HandleBackLinksChild2 child;
 
-    public BackLinkParent2() {}
+    public HandleBackLinksParent2() {}
 }
 
 // Child, now as an embedded object, respecting table names
-@RealmClass(embedded = true, name = "HandleBackLinksChild")
-class BackLinkChild2 extends RealmObject {
+//@RealmClass(embedded = true, name = "HandleBackLinksChild2")
+@RealmClass(embedded = true)
+class HandleBackLinksChild2 extends RealmObject {
 
     public String name;
 
-    public BackLinkChild2() {}
+    public HandleBackLinksChild2() {}
 
 }
