@@ -17,6 +17,7 @@
 package io.realm.transformer
 
 import com.android.build.api.variant.AndroidComponentsExtension
+import com.android.build.api.variant.UnitTest
 import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import io.realm.analytics.RealmAnalytics
 import io.realm.transformer.build.BuildTemplate
@@ -89,41 +90,45 @@ class RealmTransformer(private val metadata: ProjectMetaData,
 
     companion object {
 
+        @Suppress("UnstableApiUsage")
         fun register(project: Project) {
-            val androidComponents = project.extensions.getByType(AndroidComponentsExtension::class.java)
+            val androidComponents =
+                project.extensions.getByType(AndroidComponentsExtension::class.java)
             androidComponents.onVariants { variant ->
-                variant.components.forEach { component ->
-                    val taskProvider =
-                        project.tasks.register(
-                            "${component.name}RealmAccessorsTransformer",
-                            ModifyClassesTask::class.java
-                        ) {
-                            it.fullRuntimeClasspath.setFrom(component.runtimeConfiguration.incoming.artifactView { c ->
-                                c.attributes.attribute(
-                                    AndroidArtifacts.ARTIFACT_TYPE,
-                                    AndroidArtifacts.ArtifactType.CLASSES_JAR.type
-                                )
-                            }.files)
-                            it.bootClasspath.setFrom(project.getBootClasspath())
-                            it.offline.set(project.gradle.startParameter.isOffline)
-                            it.targetType.set(project.targetType())
-                            it.usesKotlin.set(project.usesKotlin())
-                            it.minSdk.set(project.getMinSdk())
-                            it.targetSdk.set(project.getTargetSdk())
-                            it.agpVersion.set(project.getAgpVersion())
-                            it.usesSync.set(Utils.isSyncEnabled(project))
-                            it.gradleVersion.set(project.gradle.gradleVersion)
-                            it.appId.set(project.getAppId())
-                        }
-                    component.artifacts.forScope(com.android.build.api.variant.ScopedArtifacts.Scope.PROJECT)
-                        .use<ModifyClassesTask>(taskProvider)
-                        .toTransform(
-                            com.android.build.api.artifact.ScopedArtifact.CLASSES,
-                            ModifyClassesTask::allJars,
-                            ModifyClassesTask::allDirectories,
-                            ModifyClassesTask::output
-                        )
-                }
+                variant.components
+                    .filterNot { it is UnitTest }
+                    .forEach { component ->
+                        val taskProvider =
+                            project.tasks.register(
+                                "${component.name}RealmAccessorsTransformer",
+                                ModifyClassesTask::class.java
+                            ) {
+                                it.fullRuntimeClasspath.setFrom(component.runtimeConfiguration.incoming.artifactView { c ->
+                                    c.attributes.attribute(
+                                        AndroidArtifacts.ARTIFACT_TYPE,
+                                        AndroidArtifacts.ArtifactType.CLASSES_JAR.type
+                                    )
+                                }.files)
+                                it.bootClasspath.setFrom(project.getBootClasspath())
+                                it.offline.set(project.gradle.startParameter.isOffline)
+                                it.targetType.set(project.targetType())
+                                it.usesKotlin.set(project.usesKotlin())
+                                it.minSdk.set(project.getMinSdk())
+                                it.targetSdk.set(project.getTargetSdk())
+                                it.agpVersion.set(project.getAgpVersion())
+                                it.usesSync.set(Utils.isSyncEnabled(project))
+                                it.gradleVersion.set(project.gradle.gradleVersion)
+                                it.appId.set(project.getAppId())
+                            }
+                        component.artifacts.forScope(com.android.build.api.variant.ScopedArtifacts.Scope.PROJECT)
+                            .use<ModifyClassesTask>(taskProvider)
+                            .toTransform(
+                                com.android.build.api.artifact.ScopedArtifact.CLASSES,
+                                ModifyClassesTask::allJars,
+                                ModifyClassesTask::allDirectories,
+                                ModifyClassesTask::output
+                            )
+                    }
             }
         }
 
