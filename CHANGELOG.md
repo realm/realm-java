@@ -8,7 +8,8 @@ the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/release
 * None.
 
 ### Fixed
-* None.
+* Unit tests not being executed. (Issue [#7771](https://github.com/realm/realm-java/issues/7771))
+* Instrumented unit tests failed to execute because of the Realm dependencies being missing. (Issue [#7736](https://github.com/realm/realm-java/issues/7736))
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
