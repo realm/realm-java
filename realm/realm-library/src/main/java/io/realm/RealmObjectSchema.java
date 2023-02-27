@@ -592,7 +592,8 @@ public abstract class RealmObjectSchema {
     }
 
     /**
-     * Converts the class to be embedded or not.
+     * Converts the class to be embedded or not allowing automatic handling of backlinks, including cloning of children objects
+     * with multiple parents.
      * <p>
      * A class can only be marked as embedded if the following invariants are satisfied:
      * <ul>
@@ -607,7 +608,8 @@ public abstract class RealmObjectSchema {
      * </ul>
      *
      * This variant adds on {@link RealmObjectSchema#setEmbedded(boolean)} to add support for automatic handling of unsatisfied
-     * invariants after converting the property into an embedded object property.
+     * invariants after converting the property into an embedded object property. In addition, children objects with multiple
+     * parents that are converted to embedded objects will be cloned to keep the link between parent and child.
      *
      * @throws IllegalStateException if the class could not be converted because it broke some of the Embedded Objects invariants.
      * @see RealmClass#embedded()
