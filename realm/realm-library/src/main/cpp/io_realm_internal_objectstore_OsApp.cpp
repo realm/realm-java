@@ -57,7 +57,7 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
         JniUtils::detach_current_thread();
     }
 
-    void handle_error(std::exception const& e) override
+    bool handle_error(std::exception const& e) override
     {
         JNIEnv* env = JniUtils::get_env(true);
         std::string msg = util::format("An exception has been thrown on the sync client thread:\n%1", e.what());
@@ -66,6 +66,8 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
         // exception to get more debug information for ourself.
         // FIXME: We really need to find a universal and clever way to get the native backtrace when exception thrown
         env->ThrowNew(m_realm_exception_class, msg.c_str());
+
+        return true;
     }
 
 private:
@@ -182,7 +184,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
         app->sync_manager()->set_logger_factory(factory);
         // Register Sync Client thread start/stop callback. Must be called after .configure()
         static AndroidClientListener client_thread_listener(env);
-        g_binding_callback_thread_observer = &client_thread_listener;
+        client_config.default_socket_provider_thread_observer = std::make_shared<BindingCallbackThreadObserver>(client_thread_listener);
 
         return reinterpret_cast<jlong>(new std::shared_ptr<App>(app));
     }
