@@ -16,8 +16,14 @@
 
 package io.realm.internal;
 
+import android.os.Build;
+
 import java.io.File;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.ProxySelector;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -332,10 +338,10 @@ public class OsRealmConfig implements NativeObject {
                     // we shouldn't ever get here if parsing the resolved url above worked
                     RealmLog.error(e, "Cannot create a URI from the Realm URL address");
                 }
-                List<java.net.Proxy> proxies = proxySelector.select(websocketUrl);
+                List<Proxy> proxies = proxySelector.select(websocketUrl);
                 if (proxies != null && !proxies.isEmpty()) {
-                    java.net.Proxy proxy = proxies.get(0);
-                    if (proxy.type() != java.net.Proxy.Type.DIRECT) {
+                    Proxy proxy = proxies.get(0);
+                    if (proxy.type() != Proxy.Type.DIRECT) {
                         byte proxyType = -1;
                         switch (proxy.type()) {
                             case HTTP:
@@ -345,12 +351,17 @@ public class OsRealmConfig implements NativeObject {
                                 // this should never happen
                         }
 
-                        if (proxy.type() == java.net.Proxy.Type.HTTP) {
-                            java.net.SocketAddress address = proxy.address();
-                            if (address instanceof java.net.InetSocketAddress) {
-                                java.net.InetSocketAddress inetAddress = (java.net.InetSocketAddress) address;
-                                nativeSetSyncConfigProxySettings(nativePtr, proxyType,
-                                        inetAddress.getHostString(), inetAddress.getPort());
+                        if (proxy.type() == Proxy.Type.HTTP) {
+                            SocketAddress address = proxy.address();
+                            if (address instanceof InetSocketAddress) {
+                                InetSocketAddress inetAddress = (InetSocketAddress) address;
+
+                                nativeSetSyncConfigProxySettings(
+                                        nativePtr,
+                                        proxyType,
+                                        getHostString(inetAddress),
+                                        inetAddress.getPort()
+                                );
                             } else {
                                 RealmLog.error("Unsupported proxy socket address type: " + address.getClass().getName());
                             }
@@ -365,6 +376,17 @@ public class OsRealmConfig implements NativeObject {
 
         }
         this.resolvedRealmURI = resolvedRealmURI;
+    }
+
+    // Backport the behavior from InetSocketAddress.getHostString, a function that is only available
+    // on SDK>=19 (KITKAT)
+    private String getHostString(InetSocketAddress socketAddress) {
+        InetAddress address = socketAddress.getAddress();
+
+        if (address.getHostName() != null)
+            return address.getHostName();
+        else
+            return address.getHostAddress();
     }
 
     @Override
