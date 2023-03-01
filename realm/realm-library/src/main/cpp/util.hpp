@@ -132,7 +132,7 @@ void ThrowNullValueException(JNIEnv* env, const realm::TableRef table, realm::Co
 
 #if REALM_ENABLE_SYNC
 #include "io_realm_internal_ErrorCategory.h"
-
+#include <realm/object-store/sync/sync_manager.hpp>
 inline jbyte categoryAsJByte(realm::ErrorCategory &categories) {// Map categories to something meaningful at SDK level
     jbyte category = -1;
     if (categories.test(realm::ErrorCategory::client_error)) {
@@ -148,6 +148,8 @@ inline jbyte categoryAsJByte(realm::ErrorCategory &categories) {// Map categorie
     }
     return category;
 }
+
+extern realm::SyncClientConfig::LoggerFactory javaLoggerFactory;
 #endif
 
 inline jlong to_jlong_or_not_found(size_t res)

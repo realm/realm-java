@@ -174,17 +174,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
             client_config.metadata_mode = SyncManager::MetadataMode::Encryption;
             client_config.custom_encryption_key = encryption_key.transform<std::vector<char>>();
         }
-
-        SharedApp app = App::get_shared_app(app_config, client_config);
-        // Init logger. Must be called after .configure()
-        SyncClientConfig::LoggerFactory factory = [](util::Logger::Level) {
-            // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
-            return std::make_unique<CoreLoggerBridge>(std::string("REALM_SYNC"));
-        };
-        app->sync_manager()->set_logger_factory(factory);
         // Register Sync Client thread start/stop callback. Must be called after .configure()
         static AndroidClientListener client_thread_listener(env);
         client_config.default_socket_provider_thread_observer = std::make_shared<BindingCallbackThreadObserver>(client_thread_listener);
+
+        SharedApp app = App::get_shared_app(app_config, client_config);
+        // Init logger. Must be called after .configure()
+        app->sync_manager()->set_logger_factory(javaLoggerFactory);
 
         return reinterpret_cast<jlong>(new std::shared_ptr<App>(app));
     }

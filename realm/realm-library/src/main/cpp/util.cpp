@@ -44,6 +44,14 @@ using namespace realm::util;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
+
+#if REALM_ENABLE_SYNC
+realm::SyncClientConfig::LoggerFactory javaLoggerFactory = [](realm::util::Logger::Level) {
+    // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
+    return std::make_unique<realm::jni_util::CoreLoggerBridge>(std::string("REALM_SYNC"));
+};
+#endif
+
 void ThrowRealmFileException(JNIEnv* env, const std::string& message, ErrorCodes::Error code, const std::string_view& path = "");
 
 void ConvertException(JNIEnv* env, const char* file, int line)

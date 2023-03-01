@@ -569,7 +569,7 @@ class EmailPasswordAuthWithCustomFunctionConfirmTests: EmailPasswordAuthTests() 
         val exception = assertFailsWith<AppException> {
             provider.retryCustomConfirmation(email)
         }
-        assertEquals("failed to confirm user $email", exception.errorMessage)
+        assertEquals("""failed to confirm user "$email"""", exception.errorMessage)
     }
 
     @Test

@@ -120,7 +120,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nati
         static JavaMethod onchange_method(env, callback_class, "onChange", "(B)V", false);
         JavaGlobalWeakRef j_callback_weak(env, j_callback);
         std::move(result).get_async([j_callback_weak](StatusOrStatusWith<sync::SubscriptionSet::State> status) noexcept {
-            JNIEnv* env = JniUtils::get_env(false);
+            JNIEnv* env = JniUtils::get_env(true);
             j_callback_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                 if (status.is_ok()) {
                     env->CallVoidMethod(obj, onchange_method, static_cast<jbyte>(status.get_value()));

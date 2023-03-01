@@ -41,6 +41,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReset(JNIEnv* env, 
         app->sync_manager()->close_all_sessions();
         app->sync_manager()->wait_for_sessions_to_terminate();
         app->sync_manager()->reset_for_testing();
+        app->sync_manager()->set_logger_factory(javaLoggerFactory);
         app::App::clear_cached_apps();
     }
     CATCH_STD()
