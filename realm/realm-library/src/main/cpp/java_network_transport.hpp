@@ -95,9 +95,9 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
                             const JavaClass &java_callback_class) {
         static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(BILjava/lang/String;)V");
         auto err = error.value();
-        auto categories = ErrorCodes::error_categories(err.code());
+        ErrorCategory categories = ErrorCodes::error_categories(err.code());
         jbyte category = categoryAsJByte(categories);
-        auto error_code = err.is_custom_error() || err.is_http_error() ? err.additional_status_code : err.code();
+        int error_code = err.is_custom_error() || err.is_http_error() ? err.additional_status_code.value() : err.code();
         env->CallVoidMethod(callback.get(),
                             java_notify_onerror,
                             category,
