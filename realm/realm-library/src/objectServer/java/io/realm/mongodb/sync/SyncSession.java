@@ -823,7 +823,6 @@ public class SyncSession {
                 // Core report errors with int64, so we need to add some extra checks
                 // to make sure the value is within a range of known errors we can map to,
                 // which are all inside Integer range
-                // TODO revisit as it seems cumbersome
                 long longErrorCode = errorCode;
                 ErrorCode mappedError = ErrorCode.fromNativeError(ErrorCategory.convertCategory(errorCategory.byteValue()), (int) longErrorCode);
                 if (longErrorCode >= Integer.MIN_VALUE && longErrorCode <= Integer.MAX_VALUE && mappedError != ErrorCode.UNKNOWN) {

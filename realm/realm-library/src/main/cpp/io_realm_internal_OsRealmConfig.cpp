@@ -269,7 +269,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
         // error handler will be called form the sync client thread
         auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
-//            auto error_category = error.error_code.category().name();
             jbyte category = 0;
 
             // From object-store/sync.cpp
@@ -317,6 +316,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                 category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CUSTOM;
             }
 
+
+            // TODO REVISIT THIS
             // System/Connection errors are defined by constants in
             // https://android.googlesource.com/kernel/lk/+/upstream-master/include/errno.h
             // However the integer values are not guaranteed to be stable according to POSIX.

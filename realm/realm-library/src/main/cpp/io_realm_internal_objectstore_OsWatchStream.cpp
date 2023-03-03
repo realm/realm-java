@@ -104,7 +104,6 @@ Java_io_realm_internal_objectstore_OsWatchStream_nativeGetError(JNIEnv *env, jcl
         auto categories = ErrorCodes::error_categories(app_error.code());
         jbyte category = categoryAsJByte(categories);
 
-//        jstring error_code_category = env->NewStringUTF(app_error.error_code.category().name());
         jstring error_code_message = env->NewStringUTF(app_error.code_string().data());
         jstring app_error_message = env->NewStringUTF(app_error.what());
 
