@@ -90,7 +90,7 @@ try {
           useEmulator = true
           emulatorImage = "system-images;android-31;default;x86_64"
           // Build core from source instead of doing it from binary
-          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
+          buildFlags = "-PbuildTargetABIs=x86_64 -PenableLTO=false -PbuildCore=true"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
