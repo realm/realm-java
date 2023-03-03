@@ -59,9 +59,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import android.util.Log;
-
-
 /**
  * Unit tests specific for RealmList with value elements.
  */

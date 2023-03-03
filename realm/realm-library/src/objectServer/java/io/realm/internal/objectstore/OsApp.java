@@ -10,7 +10,6 @@ import io.realm.internal.network.MockableNetworkTransport;
 import io.realm.internal.network.NetworkRequest;
 import io.realm.internal.network.OkHttpNetworkTransport;
 import io.realm.mongodb.AppConfiguration;
-import kotlin.Suppress;
 
 public class OsApp implements NativeObject {
     private static final long nativeFinalizerPtr = nativeGetFinalizerMethodPtr();

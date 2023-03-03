@@ -302,6 +302,7 @@ public:
         return std::string_view(m_data.get(), m_size);
     }
 
+
 private:
     JNIEnv* m_env;
     bool m_is_null;

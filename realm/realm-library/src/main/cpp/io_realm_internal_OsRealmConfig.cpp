@@ -285,11 +285,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
             auto std_error_code = error.to_status().get_std_error_code();
 
-            const std::error_category& category2 = std_error_code.category();
-            if (category2 == realm::sync::client_error_category()) {
+            const std::error_category& error_category = std_error_code.category();
+            if (error_category == realm::sync::client_error_category()) {
                 category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CLIENT;
             }
-            else if (category2 == realm::sync::protocol_error_category()) {
+            else if (error_category == realm::sync::protocol_error_category()) {
                 if (realm::sync::is_session_level_error(realm::sync::ProtocolError(std_error_code.value()))) {
                     category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SESSION;
                 }
@@ -297,7 +297,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CONNECTION;
                 }
             }
-            else if (category2 == std::system_category() || category2 == *realm_basic_system_category) {
+            else if (error_category == std::system_category() || error_category == *realm_basic_system_category) {
                 category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SYSTEM;
             }
             else {
@@ -306,7 +306,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
             auto error_message = error.what();
             int error_code = error.code();
-            std::string client_reset_path_info = "";
+            std::string client_reset_path_info;
 
             // All client reset errors will be in the protocol category. Re-assign the error code
             // to a value not used by https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp#L232
@@ -346,7 +346,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 //            }
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
-//            jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
             jstring jclient_reset_path_info = to_jstring(env, client_reset_path_info);
             jstring jsession_path = to_jstring(env, session->path());
@@ -357,7 +356,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                                 jerror_message,
                                 jclient_reset_path_info,
                                 jsession_path);
-//            env->DeleteLocalRef(jerror_category);
             env->DeleteLocalRef(jerror_message);
             env->DeleteLocalRef(jsession_path);
         };
