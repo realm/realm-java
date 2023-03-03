@@ -88,7 +88,7 @@ try {
         if (!isReleaseBranch) {
           // Build development branch
           useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
+          emulatorImage = "system-images;android-29;default;x86_64"
           // Build core from source instead of doing it from binary
           buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
@@ -98,7 +98,7 @@ try {
           // FIXME: Use emulator until we can get reliable devices on CI.
           //  But still build all ABI's and run all types of tests.
           useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
+          emulatorImage = "system-images;android-29;default;x86_64"
           buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
