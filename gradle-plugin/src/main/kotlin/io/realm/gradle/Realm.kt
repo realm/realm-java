@@ -82,6 +82,7 @@ open class Realm : Plugin<Project> {
                 )
             }
         }
+    }
 
     companion object {
 
