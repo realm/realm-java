@@ -290,7 +290,7 @@ public enum ErrorCode {
     CONNECTION_SOCKET_SHUTDOWN(Type.SYSTEM, 110, Category.RECOVERABLE), // ESHUTDOWN: Can't send after socket shutdown
     CONNECTION_REFUSED(Type.SYSTEM, 111, Category.RECOVERABLE), // ECONNREFUSED: Connection refused
     CONNECTION_ADDRESS_IN_USE(Type.SYSTEM, 112, Category.RECOVERABLE), // EADDRINUSE: Address already i use
-    CONNECTION_CONNECTION_ABORTED(Type.SYSTEM, 113, Category.RECOVERABLE), // ECONNABORTED: Connection aborted
+    CONNECTION_CONNECTION_ABORTED(Type.SYSTEM, 113, Category.RECOVERABLE); // ECONNABORTED: Connection aborted
 
     private final String type;
     private final int code;
