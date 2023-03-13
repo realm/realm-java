@@ -187,6 +187,8 @@ public class TableQuery implements NativeObject {
                     predicate,
                     values,
                     (mapping != null) ? mapping.getNativePtr() : 0);
+        // Transform the IllegalStateException, that would be thrown by core if a query argument is
+        // incompatible with queried, to an IllegalArgumentException.
         } catch (IllegalStateException e) {
             throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
         }
@@ -197,6 +199,8 @@ public class TableQuery implements NativeObject {
             nativeRawDescriptor(nativePtr,
                     descriptor,
                     (mapping != null) ? mapping.getNativePtr() : 0);
+        // Transform the IllegalStateException, that would be thrown by core if a query argument is
+        // incompatible with queried, to an IllegalArgumentException.
         } catch (IllegalStateException e) {
             throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
         }

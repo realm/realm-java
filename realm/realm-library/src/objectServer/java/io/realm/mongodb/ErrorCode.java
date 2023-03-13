@@ -292,10 +292,6 @@ public enum ErrorCode {
     CONNECTION_ADDRESS_IN_USE(Type.SYSTEM, 112, Category.RECOVERABLE), // EADDRINUSE: Address already i use
     CONNECTION_CONNECTION_ABORTED(Type.SYSTEM, 113, Category.RECOVERABLE), // ECONNABORTED: Connection aborted
 
-    MISC_END_OF_INPUT(Type.MISC, 1), // End of input
-    MISC_PREMATURE_END_OF_INPUT(Type.MISC, 2), // Premature end of input. That is, end of input at an unexpected, or illegal place in an input stream.
-    MISC_DELIMITER_NOT_FOUND(Type.MISC, 3); // Delimiter not found
-
     private final String type;
     private final int code;
     private final Category category;
@@ -376,18 +372,10 @@ public enum ErrorCode {
     }
 
     public static class Type {
-        @Deprecated
-        public static final String AUTH = "auth"; // Errors from the Realm Object Server
-        @Deprecated
-        public static final String MISC = "realm.util.misc_ext"; // Misc errors from the native Sync Client
-        @Deprecated
-        public static final String DEPRECATED = "deprecated"; // Deprecated errors
-
         // App error types
         public static final String JSON = "realm::app::JSONError"; // Errors when parsing JSON
         public static final String SERVICE = "realm::app::ServiceError"; // MongoDB Realm Response errors
         public static final String HTTP = "realm::app::HttpError"; // Errors from the HTTP layer
-        // Custom category
         public static final String JAVA = "realm::app::CustomError"; // Errors from the Java layer
 
         public static final String APP = "realm::app::ClientError"; // Session level errors from the native App Client

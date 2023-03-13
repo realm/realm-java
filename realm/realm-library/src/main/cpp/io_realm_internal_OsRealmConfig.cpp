@@ -271,9 +271,8 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
             jbyte category = 0;
 
-            // From object-store/sync.cpp
-
-            // HACK: there isn't a good way to get a hold of "our" system category
+            // Hack from object-store/sync.cpp:
+            // there isn't a good way to get a hold of "our" system category
             // so we have to make one of "our" error codes to access it
             const std::error_category* realm_basic_system_category;
             {
@@ -284,6 +283,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
             auto std_error_code = error.to_status().get_std_error_code();
 
+            int error_code = error.code();
             const std::error_category& error_category = std_error_code.category();
             if (error_category == realm::sync::client_error_category()) {
                 category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CLIENT;
@@ -296,15 +296,41 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                     category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CONNECTION;
                 }
             }
+            // System/Connection errors are defined by constants in
+            // https://android.googlesource.com/kernel/lk/+/upstream-master/include/errno.h
+            // However the integer values are not guaranteed to be stable according to POSIX.
+            //
+            // For this reason we manually map the constants to the error integer values defined in Java.
+            // For simplicity Java re-use the values currently defined in errno.h.
             else if (error_category == std::system_category() || error_category == *realm_basic_system_category) {
                 category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SYSTEM;
+
+                switch(error_code) {
+                    case ECONNRESET: error_code = 104; break;
+                    case ESHUTDOWN: error_code = 110; break;
+                    case ECONNREFUSED: error_code = 111; break;
+                    case EADDRINUSE: error_code = 112; break;
+                    case ECONNABORTED: error_code = 113; break;
+                    default:
+                        /* Do nothing */
+                        (void)0;
+                }
             }
             else {
                 category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_UNKNOWN;
+
+                switch (util::MiscExtErrors(error_code)) {
+                    case util::MiscExtErrors::end_of_input: error_code = 1; break;
+                    case util::MiscExtErrors::premature_end_of_input: error_code = 2; break;
+                    case util::MiscExtErrors::delim_not_found: error_code = 3; break;
+                    default:
+                        /* Do nothing */
+                        (void)0;
+                }
             }
 
             auto error_message = error.what();
-            int error_code = error.code();
+
             std::string client_reset_path_info;
 
             // All client reset errors will be in the protocol category. Re-assign the error code
@@ -315,36 +341,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                 error_code = 7; // See ErrorCode.java
                 category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CUSTOM;
             }
-
-
-            // TODO REVISIT THIS
-            // System/Connection errors are defined by constants in
-            // https://android.googlesource.com/kernel/lk/+/upstream-master/include/errno.h
-            // However the integer values are not guaranteed to be stable according to POSIX.
-            //
-            // For this reason we manually map the constants to the error integer values defined in Java.
-            // For simplicity Java re-use the values currently defined in errno.h.
-//            if (std::strcmp(error_category, "realm.basic_system") == 0) {
-//                switch(error_code) {
-//                    case ECONNRESET: error_code = 104; break;
-//                    case ESHUTDOWN: error_code = 110; break;
-//                    case ECONNREFUSED: error_code = 111; break;
-//                    case EADDRINUSE: error_code = 112; break;
-//                    case ECONNABORTED: error_code = 113; break;
-//                    default:
-//                        /* Do nothing */
-//                        (void)0;
-//                }
-//            } else if (std::strcmp(error_category, "realm.util.misc_ext") == 0) {
-//                switch (util::MiscExtErrors(error_code)) {
-//                    case util::MiscExtErrors::end_of_input: error_code = 1; break;
-//                    case util::MiscExtErrors::premature_end_of_input: error_code = 2; break;
-//                    case util::MiscExtErrors::delim_not_found: error_code = 3; break;
-//                    default:
-//                        /* Do nothing */
-//                        (void)0;
-//                }
-//            }
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
             jstring jerror_message = to_jstring(env, error_message);

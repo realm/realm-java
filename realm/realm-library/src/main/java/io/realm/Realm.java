@@ -1842,6 +1842,8 @@ public class Realm extends BaseRealm {
         }
         try {
             return configuration.getSchemaMediator().copyOrUpdate(this, object, update, cache, flags);
+            // Core throws a RuntimeException if there primary key already exists in realm. Here we
+            // convert it into a RealmPrimaryKeyConstraintException
         } catch (RuntimeException e) {
             // See https://github.com/realm/realm-java/issues/6262
             // For now we convert the OS exception using pattern matching on the error message.

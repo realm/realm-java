@@ -71,10 +71,6 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
     }
-//    catch(InvalidPathError& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
     catch (DB::BadVersion& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
@@ -92,80 +88,10 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.code(), e.get_path());
     }
-//    catch (RealmFileException& e) {
-//        ss << e.what() << " (" << e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
-//        ThrowRealmFileException(env, ss.str(), e.kind(), e.path());
-//    }
     catch (FileAccessError& e) {
         ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
         ThrowRealmFileException(env, ss.str(), e.code(), e.get_path());
     }
-//    catch (InvalidTransactionException& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalState, ss.str());
-//    }
-//    catch (InvalidEncryptionKeyException& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
-//    catch (Results::OutOfBoundsIndexException& e) {
-//        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
-//           << " valid: " << e.valid_count << ")";
-//        ThrowException(env, IndexOutOfBounds, ss.str());
-//    }
-//    catch (Results::IncorrectTableException& e) {
-//        ss << "Incorrect class in " << file << " line " << line << "(actual: " << e.actual
-//           << " expected: " << e.expected << ")";
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
-//    catch (Results::UnsupportedColumnTypeException& e) {
-//        ss << "Unsupported type in " << file << " line " << line << "(field name: " << e.column_name << ")";
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
-//    catch (Results::InvalidatedException& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalState, ss.str());
-//    }
-//    catch (List::OutOfBoundsIndexException& e) {
-//        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
-//           << " valid: " << e.valid_count << ")";
-//        ThrowException(env, IndexOutOfBounds, ss.str());
-//    }
-//    catch (IncorrectThreadException& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalState, ss.str());
-//    }
-//    catch(DuplicatePrimaryKeyValueException& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
-//    catch(query_parser::SyntaxError& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
-//    catch(query_parser::InvalidQueryError& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
-//    catch (realm::query_parser::InvalidQueryArgError& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
-//    catch(std::invalid_argument& e) {
-//        ss << e.what() << " in " << file << " line " << line;
-//        ThrowException(env, IllegalArgument, ss.str());
-//    }
-//    catch (realm::LogicError& e) {
-//        ExceptionKind kind;
-//        if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big ||
-//            e.kind() == LogicError::column_not_nullable) {
-//            kind = IllegalArgument;
-//        }
-//        else {
-//            kind = IllegalState;
-//        }
-//        ThrowException(env, kind, e.what());
-//    }
     catch(realm::MissingPropertyValueException& e) {
         ThrowException(env, IllegalArgument, e.what());
     }
@@ -196,7 +122,6 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (realm::Exception& e) {
         ss << e.what() << " in " << file << " line " << line;
 
-        // Remove once https://github.com/realm/realm-core/issues/6231
         if(e.code() == realm::ErrorCodes::IllegalOperation) {
             ThrowException(env, IllegalState, ss.str());
         } else {

@@ -44,6 +44,8 @@ public class OsObjectStore {
         className = Util.getTablePrefix() + className;
         try {
             nativeSetPrimaryKeyForObject(sharedRealm.getNativePtr(), className, primaryKeyFieldName);
+        // Transform the IllegalStateException that would be thrown by core if the provided key already
+        // exists in Realm, to an IllegalArgumentException.
         } catch (IllegalStateException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
