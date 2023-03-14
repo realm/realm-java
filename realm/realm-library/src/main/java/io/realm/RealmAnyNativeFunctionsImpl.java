@@ -49,12 +49,6 @@ public class RealmAnyNativeFunctionsImpl implements RealmAnyNativeFunctions {
             throw new IllegalArgumentException("Unmanaged Realm objects are not valid query arguments", cause);
         }
 
-        // Transform the IllegalStateException, that would be thrown by core if a query argument is
-        // incompatible with queried, to an IllegalArgumentException.
-        try {
-            query.rawPredicateWithPointers(mapping, predicate, args);
-        } catch (IllegalStateException e) {
-            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
-        }
+        query.rawPredicateWithPointers(mapping, predicate, args);
     }
 }
