@@ -218,7 +218,7 @@ public class SyncSession {
         if (errorHandler == null) {
             return;
         }
-        ErrorCode errCode = ErrorCode.fromNativeError(ErrorCategory.convertCategory(nativeErrorCategory), nativeErrorCode);
+        ErrorCode errCode = ErrorCode.fromNativeError(ErrorCategory.toCategory(nativeErrorCategory), nativeErrorCode);
         if (errCode == ErrorCode.CLIENT_RESET) {
             // errorMessage contains the path to the backed up file
             if (clientResetPathInfo == null) {
@@ -824,7 +824,7 @@ public class SyncSession {
                 // to make sure the value is within a range of known errors we can map to,
                 // which are all inside Integer range
                 long longErrorCode = errorCode;
-                ErrorCode mappedError = ErrorCode.fromNativeError(ErrorCategory.convertCategory(errorCategory.byteValue()), (int) longErrorCode);
+                ErrorCode mappedError = ErrorCode.fromNativeError(ErrorCategory.toCategory(errorCategory.byteValue()), (int) longErrorCode);
                 if (longErrorCode >= Integer.MIN_VALUE && longErrorCode <= Integer.MAX_VALUE && mappedError != ErrorCode.UNKNOWN) {
                     throw new AppException(mappedError, errorMessage);
                 } else {

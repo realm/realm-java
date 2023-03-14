@@ -250,7 +250,7 @@ public abstract class Sync {
      */
     @SuppressWarnings("unused")
     private void notifyErrorHandler(byte nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
-        ErrorCode errCode = ErrorCode.fromNativeError(ErrorCategory.convertCategory(nativeErrorCategory), nativeErrorCode);
+        ErrorCode errCode = ErrorCode.fromNativeError(ErrorCategory.toCategory(nativeErrorCategory), nativeErrorCode);
 
         if (errCode == ErrorCode.CLIENT_RESET) {
             // Avoid deadlock while trying to close realm instances during a client reset

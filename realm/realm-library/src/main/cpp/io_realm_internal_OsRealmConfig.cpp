@@ -269,60 +269,42 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
 
         // error handler will be called form the sync client thread
         auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
-            jbyte category = 0;
-
-            // Hack from object-store/sync.cpp:
-            // there isn't a good way to get a hold of "our" system category
-            // so we have to make one of "our" error codes to access it
-            const std::error_category* realm_basic_system_category;
-            {
-                using namespace realm::util::error;
-                std::error_code dummy = make_error_code(basic_system_errors::invalid_argument);
-                realm_basic_system_category = &dummy.category();
-            }
 
             auto std_error_code = error.to_status().get_std_error_code();
 
             int error_code = error.code();
             const std::error_category& error_category = std_error_code.category();
+
+            jbyte category;
             if (error_category == realm::sync::client_error_category()) {
                 category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CLIENT;
-            }
-            else if (error_category == realm::sync::protocol_error_category()) {
+            } else if (error_category == realm::sync::protocol_error_category()) {
                 if (realm::sync::is_session_level_error(realm::sync::ProtocolError(std_error_code.value()))) {
                     category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SESSION;
                 }
                 else {
                     category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CONNECTION;
                 }
+            } else if (error_category == std::system_category() || error_category == realm::util::error::basic_system_error_category()) {
+                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SYSTEM;
+            } else {
+                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_UNKNOWN;
             }
+
+
             // System/Connection errors are defined by constants in
             // https://android.googlesource.com/kernel/lk/+/upstream-master/include/errno.h
             // However the integer values are not guaranteed to be stable according to POSIX.
             //
             // For this reason we manually map the constants to the error integer values defined in Java.
             // For simplicity Java re-use the values currently defined in errno.h.
-            else if (error_category == std::system_category() || error_category == *realm_basic_system_category) {
-                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SYSTEM;
-
+            if (error_category == realm::util::error::basic_system_error_category()) {
                 switch(error_code) {
                     case ECONNRESET: error_code = 104; break;
                     case ESHUTDOWN: error_code = 110; break;
                     case ECONNREFUSED: error_code = 111; break;
                     case EADDRINUSE: error_code = 112; break;
                     case ECONNABORTED: error_code = 113; break;
-                    default:
-                        /* Do nothing */
-                        (void)0;
-                }
-            }
-            else {
-                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_UNKNOWN;
-
-                switch (util::MiscExtErrors(error_code)) {
-                    case util::MiscExtErrors::end_of_input: error_code = 1; break;
-                    case util::MiscExtErrors::premature_end_of_input: error_code = 2; break;
-                    case util::MiscExtErrors::delim_not_found: error_code = 3; break;
                     default:
                         /* Do nothing */
                         (void)0;

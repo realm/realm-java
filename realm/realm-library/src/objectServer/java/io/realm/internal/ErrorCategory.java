@@ -42,7 +42,7 @@ public class ErrorCategory {
      */
     public static final byte RLM_SYNC_ERROR_CATEGORY_UNKNOWN = 9;
 
-    public static String convertCategory(byte value) {
+    public static String toCategory(byte value) {
         String category;
         switch (value) {
             case RLM_APP_ERROR_CATEGORY_JSON:

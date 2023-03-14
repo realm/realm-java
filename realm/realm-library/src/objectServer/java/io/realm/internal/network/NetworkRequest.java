@@ -60,7 +60,7 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
     @SuppressWarnings("unused")  // Called by JNI
     @Override
     public void onError(byte nativeErrorCategory, int nativeErrorCode, String errorMessage) {
-        ErrorCode code = ErrorCode.fromNativeError(ErrorCategory.convertCategory(nativeErrorCategory), nativeErrorCode);
+        ErrorCode code = ErrorCode.fromNativeError(ErrorCategory.toCategory(nativeErrorCategory), nativeErrorCode);
         if (code == ErrorCode.UNKNOWN) {
             // In case of UNKNOWN errors parse as much error information on as possible.
             String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
