@@ -1,5 +1,8 @@
 ## 10.14.0 (YYYY-MM-DD)
 
+### Breaking Changes
+* [RealmApp] As a result of a refactor on the some error codes and categories have been deleted and new ones have been added, see PR for more details. ([#7760](https://github.com/realm/realm-java/pull/7760))
+
 ### Enhancements
 * None.
 
