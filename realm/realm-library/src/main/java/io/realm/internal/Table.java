@@ -793,7 +793,18 @@ public class Table implements NativeObject {
      * some invariant was broken when trying to change the state
      */
     public boolean setEmbedded(boolean embedded) {
-        return nativeSetEmbedded(nativeTableRefPtr, embedded);
+        return setEmbedded(embedded, false);
+    }
+
+    /**
+     * Returns true if the state was changed, false if not. If false was returned, it meant
+     * some invariant was broken when trying to change the state. The {@code handleBackLinks}
+     * parameter tells Core to automatically handle all unsatisfied invariants for backlinks, e.g.
+     * children becoming orphan or cloning objects with multiple references during migrations from
+     * a regular object to an embedded object.
+     */
+    public boolean setEmbedded(boolean embedded, boolean handleBackLinks) {
+        return nativeSetEmbedded(nativeTableRefPtr, embedded, handleBackLinks);
     }
 
     @Nullable
@@ -957,5 +968,5 @@ public class Table implements NativeObject {
 
     private static native boolean nativeIsEmbedded(long nativeTableRefPtr);
 
-    private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded);
+    private static native boolean nativeSetEmbedded(long nativeTableRefPtr, boolean isEmbedded, boolean handleBackLinks);
 }
