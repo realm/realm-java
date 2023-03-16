@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory
 
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
 
+const val ANDROID_TEST_IMPLEMENTATION = "androidTestImplementation"
+
 // TODO Run a Task or Visitor to collect runtimeClassPath, then serialize it
 //      Run another task that depends on the output of the first task in order to deserialize the ClassPool and process each class apart
 open class Realm : Plugin<Project> {
@@ -32,7 +34,7 @@ open class Realm : Plugin<Project> {
         val isKotlinProject: Boolean =
             project.plugins.findPlugin("kotlin-android") != null || project.plugins.findPlugin("kotlin-multiplatform") != null
         val hasAnnotationProcessorConfiguration =
-            project.getConfigurations().findByName("annotationProcessor") != null
+            project.configurations.findByName("annotationProcessor") != null
         // TODO add a parameter in 'realm' block if this should be specified by users
         val dependencyConfigurationName: String = getDependencyConfigurationName(project)
         val extension = project.extensions.create("realm", RealmPluginExtension::class.java)
@@ -66,13 +68,21 @@ open class Realm : Plugin<Project> {
                 "io.realm:realm-annotations-processor:${Version.VERSION}"
             )
         }
-        project.afterEvaluate {
-            setDependencies(
-                project,
+
+        // FIXME When injected, dependencies are not propagating correctly from the main release to the 
+        // android test releases. We solve it by inject them into the instrumented tests manually.
+        project.afterEvaluate { 
+            listOf(
                 dependencyConfigurationName,
-                extension.isSyncEnabled,
-                extension.isKotlinExtensionsEnabled
-            )
+                ANDROID_TEST_IMPLEMENTATION // force adds the dependencies to the instrumented tests configuration
+            ).forEach { dependencyConfigurationName: String ->
+                setDependencies(
+                    project,
+                    dependencyConfigurationName,
+                    extension.isSyncEnabled,
+                    extension.isKotlinExtensionsEnabled
+                )
+            }
         }
     }
 
