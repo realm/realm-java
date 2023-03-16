@@ -8,6 +8,7 @@ the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/release
 * None.
 
 ### Fixed
+* Added support for automatic handling of orphan embedded objects after migrating regular object properties to become embedded objects. (Issue [#7769](https://github.com/realm/realm-java/issues/7769)).
 * Unit tests not being executed. (Issue [#7771](https://github.com/realm/realm-java/issues/7771))
 * Instrumented unit tests failed to execute because of the Realm dependencies being missing. (Issue [#7736](https://github.com/realm/realm-java/issues/7736))
 
