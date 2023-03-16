@@ -69,10 +69,12 @@ open class Realm : Plugin<Project> {
             )
         }
 
-        project.afterEvaluate {
+        // FIXME When injected, dependencies are not propagating correctly from the main release to the 
+        // android test releases. We solve it by inject them into the instrumented tests manually.
+        project.afterEvaluate { 
             listOf(
                 dependencyConfigurationName,
-                ANDROID_TEST_IMPLEMENTATION // adds the dependencies to the instrumented tests configuration
+                ANDROID_TEST_IMPLEMENTATION // force adds the dependencies to the instrumented tests configuration
             ).forEach { dependencyConfigurationName: String ->
                 setDependencies(
                     project,

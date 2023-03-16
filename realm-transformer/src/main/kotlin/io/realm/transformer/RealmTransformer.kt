@@ -96,7 +96,14 @@ class RealmTransformer(private val metadata: ProjectMetaData,
                 project.extensions.getByType(AndroidComponentsExtension::class.java)
             androidComponents.onVariants { variant ->
                 variant.components
-                    .filterNot { it is UnitTest }
+                    .filterNot { 
+                        // FIXME With the new transformer API changes, processed classes from the Realm transformer aren't 
+                        // resolved correctly by the Unit tests gradle task causing the test runner not to execute tests.
+
+                        // This line disables the transformer on Unit test tasks. It is safe because Unit tests run
+                        // on JVM and Realm Java is not compatible with JVM.
+                        it is UnitTest 
+                    }
                     .forEach { component ->
                         val taskProvider =
                             project.tasks.register(
