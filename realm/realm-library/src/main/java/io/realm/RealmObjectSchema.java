@@ -584,15 +584,66 @@ public abstract class RealmObjectSchema {
      *     </li>
      * </ul>
      *
-     * @throws IllegalStateException if the class could not be converted because it broke some of the Embedded Objects invariants.
+     * @param embedded If @{code true}, the class type will be turned into an embedded class, and
+     * must satisfy the constraints defined above. If @{code false}, the class will be turn into
+     * a normal class. An embeded class can always be turned into a non-embedded one.
+     * @throws IllegalStateException if the class could not be converted because it broke some of
+     * the Embedded Objects invariants.
      * @see RealmClass#embedded()
      */
     public void setEmbedded(boolean embedded) {
+        setEmbedded(embedded, false);
+    }
+
+    /**
+     * Converts the class to be embedded or not, while also providing automatic handling of objects
+     * that break some of the constraints for making the class embedded.
+     * <p>
+     * A class can only be marked as embedded if the following invariants are satisfied:
+     * <ul>
+     *     <li>
+     *         The class is not allowed to have a primary key defined.
+     *     </li>
+     *     <li>
+     *         All existing objects of this type, must have one and exactly one parent object
+     *         already pointing to it. If 0 or more than 1 object has a reference to an object
+     *         about to be marked embedded an {@link IllegalStateException} will be thrown.
+     *     </li>
+     * </ul>
+     *
+     * If some of these constraints are broken you can ask Realm to resolve them automatically using
+     * the @{code resolveEmbeddedClassConstraints} parameter. Setting this to @{code true} will
+     * do the following:
+     * <ul>
+     *     <li>
+     *         An object with 0 parents, i.e. no other objects have a reference to it, will be
+     *         deleted.
+     *     </li>
+     *     <li>
+     *         An object with more than 1 parent, i.e. 2 or more objects have a reference to it,
+     *         will be copied so each copy have exactly one parent.
+     *     </li>
+     *     <li>
+     *         Objects with a primary key defined will still throw an IllegalStateException and
+     *         cannot be converted.
+     *     </li>
+     * </ul>
+     *
+     * @param embedded If @{code true}, the class type will be turned into an embedded class, and
+     * must satisfy the constraints defined above. If @{code false}, the class will be turn into
+     * a normal class. An embeded class can always be turned into a non-embedded one.
+     * @param resolveEmbeddedClassConstraints whether or not to automatically fix broken constraints
+     * if @{code embedded} was set to true. See above for a full description of what that entails.
+     * @throws IllegalStateException if the class could not be converted because it broke some of
+     * the Embedded Objects invariants and these could not be resolved automatically.
+     * @see RealmClass#embedded()
+     */
+    public void setEmbedded(boolean embedded, boolean resolveEmbeddedClassConstraints) {
         if (hasPrimaryKey()) {
             throw new IllegalStateException("Embedded classes cannot have primary keys. This class " +
                     "has a primary key defined so cannot be marked as embedded: " + getClassName());
         }
-        boolean setEmbedded = table.setEmbedded(embedded);
+        boolean setEmbedded = table.setEmbedded(embedded, resolveEmbeddedClassConstraints);
         if (!setEmbedded && embedded) {
             throw new IllegalStateException("The class could not be marked as embedded as some " +
                     "objects of this type break some of the Embedded Objects invariants. In order to convert " +
