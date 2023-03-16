@@ -2,7 +2,7 @@ This branch tracks the Realm Java SDK release with support for Android Gradle Pl
 newer. For releases supporting the current Android Gradle Plugin (7.3.x and below) please refer to 
 the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/releases/CHANGELOG.md).
 
-## 10.13.3-transformer-api (YYYY-MM-DD)
+## 10.13.3-transformer-api (2023-03-16)
 
 ### Enhancements
 * None.
