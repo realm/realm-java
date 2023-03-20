@@ -7,9 +7,9 @@ import groovy.json.JsonOutput
 // CONSTANTS
 
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
-releaseBranches = ['master', 'next-major', 'support-new-datatypes', 'releases']
+releaseBranches = ['main', 'next-major', 'support-new-datatypes', 'releases']
 // Branches that are "important", so if they do not compile they will generate a Slack notification
-slackNotificationBranches = [ 'master', 'releases', 'next-major', 'support-new-datatypes' ]
+slackNotificationBranches = [ 'main', 'releases', 'next-major', 'support-new-datatypes' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
 // tests.
 enableIntegrationTests = true
@@ -110,7 +110,7 @@ try {
           stage('Prepare Docker Images') {
             // TODO Caching is currently disabled (with -do-not-cache suffix) due to the upload speed
             //  in Copenhagen being too slow. So the upload times out.
-            buildEnv = buildDockerEnv("ci/realm-java:master", push: currentBranch == 'master-do-not-cache')
+            buildEnv = buildDockerEnv("ci/realm-java:main", push: currentBranch == 'main-do-not-cache')
             def props = readProperties file: 'dependencies.list'
             echo "Version in dependencies.list: ${props.MONGODB_REALM_SERVER}"
             def mdbRealmImage = docker.image("docker.pkg.github.com/realm/ci/mongodb-realm-test-server:${props.MONGODB_REALM_SERVER}")
@@ -334,7 +334,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
 
   // TODO: add support for running monkey on the example apps
 
-  def collectMetrics = ['master'].contains(currentBranch)
+  def collectMetrics = ['main'].contains(currentBranch)
   echo "Collecting metrics: $collectMetrics"
   if (collectMetrics) {
     stage('Collect metrics') {

@@ -1120,11 +1120,11 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeIsEmbedded(JNIEnv*
     return false;
 }
 
-JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeSetEmbedded(JNIEnv* env, jclass, jlong j_table_ptr, jboolean j_embedded)
+JNIEXPORT jboolean JNICALL Java_io_realm_internal_Table_nativeSetEmbedded(JNIEnv* env, jclass, jlong j_table_ptr, jboolean j_embedded, jboolean j_handle_backlinks)
 {
     try {
         TableRef table = TableRef(TBL_REF(j_table_ptr));
-        table->set_table_type(to_bool(j_embedded) ? Table::Type::Embedded : Table::Type::TopLevel);
+        table->set_table_type(to_bool(j_embedded) ? Table::Type::Embedded : Table::Type::TopLevel, to_bool(j_handle_backlinks));
         return true;
     }
     CATCH_STD()
