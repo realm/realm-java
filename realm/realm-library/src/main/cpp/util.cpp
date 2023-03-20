@@ -247,7 +247,7 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, ErrorCodes
         default:
             kind_code = -1;
     }
-    if(kind_code == -1) {
+    if (kind_code == -1) {
         // No matching error code, throwing a fatal error one
         ThrowException(env, FatalError, message);
     } else {
