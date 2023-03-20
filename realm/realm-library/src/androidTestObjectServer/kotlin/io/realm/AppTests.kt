@@ -70,7 +70,7 @@ class AppTests {
             app.login(credentials)
             fail()
         } catch(ex: AppException) {
-            assertEquals(ErrorCode.INVALID_PASSWORD, ex.errorCode)
+            assertEquals(ErrorCode.INVALID_EMAIL_PASSWORD, ex.errorCode)
         }
     }
 
@@ -91,7 +91,7 @@ class AppTests {
     fun loginAsync_invalidUserThrows() = looperThread.runBlocking {
         app.loginAsync(Credentials.emailPassword("foo", "bar")) { result ->
             assertFalse(result.isSuccess)
-            assertEquals(ErrorCode.INVALID_PASSWORD, result.error.errorCode)
+            assertEquals(ErrorCode.INVALID_EMAIL_PASSWORD, result.error.errorCode)
             looperThread.testComplete()
         }
     }

@@ -215,32 +215,24 @@ void ThrowRealmFileException(JNIEnv* env, const std::string& message, ErrorCodes
     // Initial value to suppress gcc warning.
     jbyte kind_code; // To suppress compile warning.
     switch (code) {
-        // TODO remove comments before merge
-//        case realm::RealmFileException::Kind::AccessError:
         case ErrorCodes::Error::InvalidDatabase:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
             break;
-//        case realm::RealmFileException::Kind::BadHistoryError:
         case ErrorCodes::Error::IncompatibleHistories:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
             break;
-//        case realm::RealmFileException::Kind::PermissionDenied:
         case ErrorCodes::Error::PermissionDenied:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
             break;
-//        case realm::RealmFileException::Kind::Exists:
         case ErrorCodes::Error::FileAlreadyExists:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_EXISTS;
             break;
-//        case realm::RealmFileException::Kind::NotFound:
         case ErrorCodes::Error::FileNotFound:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_NOT_FOUND;
             break;
-//        case realm::RealmFileException::Kind::IncompatibleLockFile:
         case ErrorCodes::Error::IncompatibleLockFile:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE;
             break;
-//        case realm::RealmFileException::Kind::FormatUpgradeRequired:
         case ErrorCodes::Error::FileFormatUpgradeRequired:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
