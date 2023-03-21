@@ -42,7 +42,13 @@ public class OsObjectStore {
     public static void setPrimaryKeyForObject(OsSharedRealm sharedRealm, String className,
                                               @Nullable String primaryKeyFieldName) {
         className = Util.getTablePrefix() + className;
-        nativeSetPrimaryKeyForObject(sharedRealm.getNativePtr(), className, primaryKeyFieldName);
+        try {
+            nativeSetPrimaryKeyForObject(sharedRealm.getNativePtr(), className, primaryKeyFieldName);
+        // Transform the IllegalStateException that would be thrown by core if the provided key already
+        // exists in Realm, to an IllegalArgumentException.
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
     }
 
     public static @Nullable String getPrimaryKeyForObject(OsSharedRealm sharedRealm, String className) {

@@ -82,7 +82,7 @@ class PushTest {
     @Test
     fun registerDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
-        assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
+        assertFailsWithErrorCode(ErrorCode.APP_UNKNOWN) {
             user.getPush(SERVICE_NAME).registerDevice(SAMPLE_TOKEN)
         }
     }
@@ -135,7 +135,7 @@ class PushTest {
     @Test
     fun deregisterDevice_throwsBecauseOfLoggedOutUser() {
         user.logOut()
-        assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
+        assertFailsWithErrorCode(ErrorCode.APP_UNKNOWN) {
             user.getPush(SERVICE_NAME).deregisterDevice()
         }
     }

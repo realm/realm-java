@@ -21,7 +21,7 @@
 #include <realm/object-store/sync/sync_manager.hpp>
 #include <realm/object-store/sync/sync_session.hpp>
 #include <realm/sync/protocol.hpp>
-#include <realm/object-store/binding_callback_thread_observer.hpp>
+#include <realm/sync/binding_callback_thread_observer.hpp>
 
 #include "util.hpp"
 #include <jni_util/bson_util.hpp>
@@ -41,6 +41,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_Sync_nativeReset(JNIEnv* env, 
         app->sync_manager()->close_all_sessions();
         app->sync_manager()->wait_for_sessions_to_terminate();
         app->sync_manager()->reset_for_testing();
+        app->sync_manager()->set_logger_factory(javaLoggerFactory);
         app::App::clear_cached_apps();
     }
     CATCH_STD()

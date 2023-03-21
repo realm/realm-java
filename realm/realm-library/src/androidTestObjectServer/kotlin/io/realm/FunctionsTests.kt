@@ -407,7 +407,7 @@ class FunctionsTests {
     @Test
     fun callFunction_afterLogout() {
         anonUser.logOut()
-        assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
+        assertFailsWithErrorCode(ErrorCode.APP_UNKNOWN) {
             functions.callFunction(FIRST_ARG_FUNCTION, listOf(1, 2, 3), Integer::class.java)
         }
     }

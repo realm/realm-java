@@ -1,10 +1,17 @@
 ## 10.14.0 (YYYY-MM-DD)
 
+### Breaking Changes
+* [RealmApp] As a result of a refactor on the some error codes and categories have been deleted and new ones have been added, see PR for more details. ([#7760](https://github.com/realm/realm-java/pull/7760))
+
 ### Enhancements
 * None.
 
 ### Fixed
-* Added support for automatic handling of orphan embedded objects after migrating regular object properties to become embedded objects. (Issue [#7769](https://github.com/realm/realm-java/issues/7769)).
+* Set<Mixed> consider string and binary data equivalent. This could cause the client to be inconsistent with the server if a string and some binary data with equivalent content was inserted from Atlas. ([#4860](https://github.com/realm/realm-core/issues/4860), since v11.0.0)
+* Fixed wrong assertion on query error that could result in a crash. ([#6038](https://github.com/realm/realm-core/issues/6038), since v11.7.0)
+* Fixed a bug that would result in `RealmDictionary` not being able to find `double` values due not taking the precision of the input parameter into consideration when using `RealmDictionary.contains`.
+* Not possible to open an encrypted file on a device with a page size bigger than the one on which the file was produced. ([#8030](https://github.com/realm/realm-swift/issues/8030), since v12.11.0)
+* Fix no notification for write transaction that contains only change to backlink property. ([#4994](https://github.com/realm/realm-core/issues/4994), since v11.4.1)
 
 ### Compatibility
 * File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -21,9 +28,12 @@
 * Added support for automatic handling of orphan embedded objects after migrating regular object properties to become embedded objects. (Issue [#7769](https://github.com/realm/realm-java/issues/7769)).
 
 ### Compatibility
-* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 13.5.0, commit 37cc58865648f343f7d6e538d45980e7f2351211.
 
 
 ## 10.13.0 (2022-12-05)

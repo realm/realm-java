@@ -57,6 +57,32 @@ static_assert(SyncSession::ConnectionState::Connected ==
               static_cast<SyncSession::ConnectionState>(io_realm_mongodb_sync_SyncSession_CONNECTION_VALUE_CONNECTED),
               "");
 
+
+
+void handleCompletion(jint callback_id, JavaMethod &java_notify_result_method,
+                      const JavaGlobalRefByCopy &session_ref, const Status &status) {
+    JNIEnv* env = JniUtils::get_env(true);
+    JavaLocalRef<jobject> java_error_category;
+    JavaLocalRef<jobject> java_error_code;
+    JavaLocalRef<jstring> java_error_message;
+
+    if (!status.is_ok()) {
+        realm::ErrorCategory categories = ErrorCodes::error_categories(status.code());
+        jbyte category = categoryAsJByte(categories);
+
+
+        java_error_category = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env,category));
+        java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env,
+                                                                                  status.code()));
+        java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(
+                status.reason().c_str()));
+    }
+
+    env->CallVoidMethod(session_ref.get(), java_notify_result_method,
+                        callback_id, java_error_category.get(), java_error_code.get(),
+                        java_error_message.get());
+}
+
 JNIEXPORT jlong JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeAddProgressListener(JNIEnv* env, jobject j_session_object,
                                                                                          jlong j_app_ptr,
                                                                                          jstring j_local_realm_path,
@@ -125,10 +151,10 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeRemoveProgre
 }
 
 JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForDownloadCompletion(JNIEnv* env,
-                                                                                     jobject session_object,
-                                                                                     jlong j_app_ptr,
-                                                                                     jint callback_id,
-                                                                                     jstring j_local_realm_path)
+                                                                                        jobject session_object,
+                                                                                        jlong j_app_ptr,
+                                                                                        jint callback_id,
+                                                                                        jstring j_local_realm_path)
 {
     try {
         auto app = *reinterpret_cast<std::shared_ptr<app::App>*>(j_app_ptr);
@@ -138,20 +164,10 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForD
         if (session) {
             static JavaClass java_sync_session_class(env, "io/realm/mongodb/sync/SyncSession");
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
-                                                        "(ILjava/lang/String;Ljava/lang/Long;Ljava/lang/String;)V");
+                                                        "(ILjava/lang/Long;Ljava/lang/Long;Ljava/lang/String;)V");
 
-            session->wait_for_download_completion([session_ref = JavaGlobalRefByCopy(env, session_object), callback_id](std::error_code error) {
-                JNIEnv* env = JniUtils::get_env(true);
-                JavaLocalRef<jstring> java_error_category;
-                JavaLocalRef<jobject> java_error_code;
-                JavaLocalRef<jstring> java_error_message;
-                if (error != std::error_code{}) {
-                    java_error_category = JavaLocalRef<jstring>(env, env->NewStringUTF(error.category().name()));
-                    java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
-                    java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
-                }
-                env->CallVoidMethod(session_ref.get(), java_notify_result_method,
-                                    callback_id, java_error_category.get(), java_error_code.get(), java_error_message.get());
+            session->wait_for_download_completion([session_ref = JavaGlobalRefByCopy(env, session_object), callback_id](const Status& status) {
+                handleCompletion(callback_id, java_notify_result_method, session_ref, status);
             });
             return to_jbool(JNI_TRUE);
         }
@@ -174,20 +190,10 @@ JNIEXPORT jboolean JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeWaitForU
         if (session) {
             static JavaClass java_sync_session_class(env, "io/realm/mongodb/sync/SyncSession");
             static JavaMethod java_notify_result_method(env, java_sync_session_class, "notifyAllChangesSent",
-                                                        "(ILjava/lang/String;Ljava/lang/Long;Ljava/lang/String;)V");
+                                                        "(ILjava/lang/Long;Ljava/lang/Long;Ljava/lang/String;)V");
 
-            session->wait_for_upload_completion([session_ref = JavaGlobalRefByCopy(env, session_object), callback_id] (std::error_code error) {
-                JNIEnv* env = JniUtils::get_env(true);
-                JavaLocalRef<jstring> java_error_category;
-                JavaLocalRef<jobject> java_error_code;
-                JavaLocalRef<jstring> java_error_message;
-                if (error != std::error_code{}) {
-                    java_error_category = JavaLocalRef<jstring>(env, env->NewStringUTF(error.category().name()));
-                    java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, error.value()));
-                    java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(error.message().c_str()));
-                }
-                env->CallVoidMethod(session_ref.get(), java_notify_result_method,
-                                    callback_id, java_error_category.get(), java_error_code.get(), java_error_message.get());
+            session->wait_for_upload_completion([session_ref = JavaGlobalRefByCopy(env, session_object), callback_id] (const Status& status) {
+                handleCompletion(callback_id, java_notify_result_method, session_ref, status);
             });
             return JNI_TRUE;
         }
@@ -212,6 +218,8 @@ JNIEXPORT jbyte JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeGetState(JN
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_DYING;
                 case SyncSession::State::Inactive:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_INACTIVE;
+                case SyncSession::State::Paused:
+                    return io_realm_mongodb_sync_SyncSession_STATE_VALUE_PAUSED;
                 case SyncSession::State::WaitingForAccessToken:
                     return io_realm_mongodb_sync_SyncSession_STATE_VALUE_WAITING_FOR_ACCESS_TOKEN;
             }
@@ -335,7 +343,7 @@ JNIEXPORT void JNICALL Java_io_realm_mongodb_sync_SyncSession_nativeStop(JNIEnv*
         JStringAccessor local_realm_path(env, j_local_realm_path);
         auto session = app->sync_manager()->get_existing_session(local_realm_path);
         if (session) {
-            session->log_out();
+            session->force_close();
         }
     }
     CATCH_STD()

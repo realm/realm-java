@@ -2689,7 +2689,14 @@ public class RealmQuery<E> {
             realmAnyArgs[i] = RealmAny.valueOf(arguments[i]);
         }
 
-        query.rawPredicate(realm.getSchema().getKeyPathMapping(), predicate, realmAnyArgs);
+        try {
+            query.rawPredicate(realm.getSchema().getKeyPathMapping(), predicate, realmAnyArgs);
+        } catch (IllegalArgumentException e) {
+            if(e.getMessage().startsWith("Illegal Argument: Request for argument at index")) {
+                throw new IllegalStateException(e.getMessage());
+            }
+            throw e;
+        }
 
         return this;
     }

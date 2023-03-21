@@ -22,7 +22,7 @@
 #include "jni_util/jni_utils.hpp"
 
 #include <realm/object-store/shared_realm.hpp>
-#include <realm/object-store/binding_callback_thread_observer.hpp>
+#include <realm/sync/binding_callback_thread_observer.hpp>
 #include <realm/object-store/sync/app.hpp>
 #include <realm/object-store/sync/sync_manager.hpp>
 #include <realm/sync/subscriptions.hpp>
@@ -49,7 +49,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSubscription_nati
 {
     try {
         auto sub = reinterpret_cast<sync::Subscription*>(j_subscription_ptr);
-        return to_jstring(env, sub->name());
+        return to_jstring(env, sub->name);
     }
     CATCH_STD()
     return nullptr;
@@ -61,7 +61,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSubscription_nati
 {
     try {
         auto sub = reinterpret_cast<sync::Subscription*>(j_subscription_ptr);
-        return to_jstring(env, sub->object_class_name());
+        return to_jstring(env, sub->object_class_name);
     }
     CATCH_STD()
     return nullptr;
@@ -73,7 +73,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSubscription_nati
 {
     try {
         auto sub = reinterpret_cast<sync::Subscription*>(j_subscription_ptr);
-        return to_jstring(env, sub->query_string());
+        return to_jstring(env, sub->query_string);
     }
     CATCH_STD()
     return nullptr;
@@ -85,7 +85,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscription_native
 {
     try {
         auto sub = reinterpret_cast<sync::Subscription*>(j_subscription_ptr);
-        return to_milliseconds(sub->created_at());
+        return to_milliseconds(sub->created_at);
     }
     CATCH_STD()
     return 0;
@@ -97,7 +97,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscription_native
 {
     try {
         auto sub = reinterpret_cast<sync::Subscription*>(j_subscription_ptr);
-        return to_milliseconds(sub->updated_at());
+        return to_milliseconds(sub->updated_at);
     }
     CATCH_STD()
     return 0;
