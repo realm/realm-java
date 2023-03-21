@@ -44,7 +44,15 @@ using namespace realm::util;
 using namespace realm::jni_util;
 using namespace realm::_impl;
 
-void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path = "");
+
+#if REALM_ENABLE_SYNC
+realm::SyncClientConfig::LoggerFactory javaLoggerFactory = [](realm::util::Logger::Level) {
+    // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
+    return std::make_unique<realm::jni_util::CoreLoggerBridge>(std::string("REALM_SYNC"));
+};
+#endif
+
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, ErrorCodes::Error code, const std::string_view& path = "");
 
 void ConvertException(JNIEnv* env, const char* file, int line)
 {
@@ -63,95 +71,26 @@ void ConvertException(JNIEnv* env, const char* file, int line)
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalState, ss.str());
     }
-    catch(InvalidPathError& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
-    }
     catch (DB::BadVersion& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, BadVersion, ss.str());
     }
-    catch (util::invalid_argument& e) {
+    catch (OutOfBounds& e) {
+        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.index
+           << " valid: " << e.size << ")";
+        ThrowException(env, IndexOutOfBounds, ss.str());
+    }
+    catch (InvalidArgument& e) {
         ss << e.what() << " in " << file << " line " << line;
         ThrowException(env, IllegalArgument, ss.str());
     }
     catch (const InvalidDatabase& e) {
         ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
-        ThrowRealmFileException(env, ss.str(), realm::RealmFileException::Kind::AccessError, e.get_path());
+        ThrowRealmFileException(env, ss.str(), e.code(), e.get_path());
     }
-    catch (RealmFileException& e) {
-        ss << e.what() << " (" << e.underlying() << ") (" << e.path() << ") in " << file << " line " << line;
-        ThrowRealmFileException(env, ss.str(), e.kind(), e.path());
-    }
-    catch (File::AccessError& e) {
+    catch (FileAccessError& e) {
         ss << e.what() << " (" << e.get_path() << ") in " << file << " line " << line;
-        ThrowException(env, FatalError, ss.str());
-    }
-    catch (InvalidTransactionException& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalState, ss.str());
-    }
-    catch (InvalidEncryptionKeyException& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch (Results::OutOfBoundsIndexException& e) {
-        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
-           << " valid: " << e.valid_count << ")";
-        ThrowException(env, IndexOutOfBounds, ss.str());
-    }
-    catch (Results::IncorrectTableException& e) {
-        ss << "Incorrect class in " << file << " line " << line << "(actual: " << e.actual
-           << " expected: " << e.expected << ")";
-        ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch (Results::UnsupportedColumnTypeException& e) {
-        ss << "Unsupported type in " << file << " line " << line << "(field name: " << e.column_name << ")";
-        ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch (Results::InvalidatedException& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalState, ss.str());
-    }
-    catch (List::OutOfBoundsIndexException& e) {
-        ss << "Out of range  in " << file << " line " << line << "(requested: " << e.requested
-           << " valid: " << e.valid_count << ")";
-        ThrowException(env, IndexOutOfBounds, ss.str());
-    }
-    catch (IncorrectThreadException& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalState, ss.str());
-    }
-    catch(DuplicatePrimaryKeyValueException& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch(query_parser::SyntaxError& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch(query_parser::InvalidQueryError& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch (realm::query_parser::InvalidQueryArgError& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch(std::invalid_argument& e) {
-        ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, IllegalArgument, ss.str());
-    }
-    catch (realm::LogicError& e) {
-        ExceptionKind kind;
-        if (e.kind() == LogicError::string_too_big || e.kind() == LogicError::binary_too_big ||
-            e.kind() == LogicError::column_not_nullable) {
-            kind = IllegalArgument;
-        }
-        else {
-            kind = IllegalState;
-        }
-        ThrowException(env, kind, e.what());
+        ThrowRealmFileException(env, ss.str(), e.code(), e.get_path());
     }
     catch(realm::MissingPropertyValueException& e) {
         ThrowException(env, IllegalArgument, e.what());
@@ -163,26 +102,31 @@ void ConvertException(JNIEnv* env, const char* file, int line)
     catch (realm::app::AppError& e) {
         // TODO Figure out exactly what kind of mapping is needed here
         if (e.is_custom_error()) {
-            ThrowException(env, IllegalArgument, e.message);
+            ThrowException(env, IllegalArgument, e.what());
         }
-        else if (e.error_code.value() == static_cast<int>(realm::app::ClientErrorCode::user_not_logged_in)) {
-            ThrowException(env, IllegalArgument, e.message);
+        else if (e.code() == ErrorCodes::ClientUserNotLoggedIn) {
+            ThrowException(env, IllegalArgument, e.what());
         }
         else {
-            ThrowException(env, IllegalState, e.message);
+            ThrowException(env, IllegalState, e.what());
         }
     }
 #endif
-    catch (std::logic_error& e) {
+    catch (LogicError& e) {
         ThrowException(env, IllegalState, e.what());
     }
-    catch (std::runtime_error& e) {
+    catch (realm::RuntimeError& e) {
         ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, RuntimeError, ss.str());
+        ThrowException(env, ExceptionKind::RuntimeError, ss.str());
     }
-    catch (std::exception& e) {
+    catch (realm::Exception& e) {
         ss << e.what() << " in " << file << " line " << line;
-        ThrowException(env, FatalError, ss.str());
+
+        if(e.code() == realm::ErrorCodes::IllegalOperation) {
+            ThrowException(env, IllegalState, ss.str());
+        } else {
+            ThrowException(env, FatalError, ss.str());
+        }
     }
     /* catch (...) is not needed if we only throw exceptions derived from std::exception */
 }
@@ -229,8 +173,7 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
             jExceptionClass = env->FindClass("io/realm/exceptions/RealmError");
             message = "Unrecoverable error. " + classStr;
             break;
-
-        case RuntimeError:
+        case ExceptionKind::RuntimeError:
             jExceptionClass = env->FindClass("java/lang/RuntimeException");
             message = classStr;
             break;
@@ -264,41 +207,48 @@ void ThrowException(JNIEnv* env, ExceptionKind exception, const std::string& cla
     env->DeleteLocalRef(jExceptionClass);
 }
 
-void ThrowRealmFileException(JNIEnv* env, const std::string& message, realm::RealmFileException::Kind kind, const std::string& path)
+void ThrowRealmFileException(JNIEnv* env, const std::string& message, ErrorCodes::Error code, const std::string_view& path)
 {
     static JavaClass  jrealm_file_exception_cls(env, "io/realm/exceptions/RealmFileException");
     static JavaMethod constructor(env, jrealm_file_exception_cls, "<init>", "(BLjava/lang/String;)V");
 
     // Initial value to suppress gcc warning.
-    jbyte kind_code = -1; // To suppress compile warning.
-    switch (kind) {
-        case realm::RealmFileException::Kind::AccessError:
+    jbyte kind_code; // To suppress compile warning.
+    switch (code) {
+        case ErrorCodes::Error::InvalidDatabase:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_ACCESS_ERROR;
             break;
-        case realm::RealmFileException::Kind::BadHistoryError:
+        case ErrorCodes::Error::IncompatibleHistories:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_BAD_HISTORY;
             break;
-        case realm::RealmFileException::Kind::PermissionDenied:
+        case ErrorCodes::Error::PermissionDenied:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_PERMISSION_DENIED;
             break;
-        case realm::RealmFileException::Kind::Exists:
+        case ErrorCodes::Error::FileAlreadyExists:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_EXISTS;
             break;
-        case realm::RealmFileException::Kind::NotFound:
+        case ErrorCodes::Error::FileNotFound:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_NOT_FOUND;
             break;
-        case realm::RealmFileException::Kind::IncompatibleLockFile:
+        case ErrorCodes::Error::IncompatibleLockFile:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_INCOMPATIBLE_LOCK_FILE;
             break;
-        case realm::RealmFileException::Kind::FormatUpgradeRequired:
+        case ErrorCodes::Error::FileFormatUpgradeRequired:
             kind_code = io_realm_internal_OsSharedRealm_FILE_EXCEPTION_KIND_FORMAT_UPGRADE_REQUIRED;
             break;
+        default:
+            kind_code = -1;
     }
-    jstring jmessage = to_jstring(env, message);
-    jstring jpath = to_jstring(env, path);
-    jobject exception = env->NewObject(jrealm_file_exception_cls, constructor, kind_code, jmessage, jpath);
-    env->Throw(reinterpret_cast<jthrowable>(exception));
-    env->DeleteLocalRef(exception);
+    if (kind_code == -1) {
+        // No matching error code, throwing a fatal error one
+        ThrowException(env, FatalError, message);
+    } else {
+        jstring jmessage = to_jstring(env, message);
+        jstring jpath = to_jstring(env, path);
+        jobject exception = env->NewObject(jrealm_file_exception_cls, constructor, kind_code, jmessage, jpath);
+        env->Throw(reinterpret_cast<jthrowable>(exception));
+        env->DeleteLocalRef(exception);
+    }
 }
 
 void ThrowNullValueException(JNIEnv* env, const TableRef table, ColKey col_key)
@@ -368,7 +318,7 @@ private:
     {
         size_t size;
         if (int_cast_with_overflow_detect(e->GetStringLength(s), size))
-            throw util::runtime_error("String size overflow");
+            throw realm::RuntimeError(ErrorCodes::RuntimeError, "String size overflow");
         return size;
     }
 };
@@ -462,7 +412,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
     if (str.size() <= stack_buf_size) {
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
         if (retcode != 0) {
-            throw util::runtime_error(string_to_hex("Failure when converting short string to UTF-16", str, in_begin, in_end,
+            throw realm::RuntimeError(ErrorCodes::RuntimeError,string_to_hex("Failure when converting short string to UTF-16", str, in_begin, in_end,
                                               out_curr, out_end, size_t(0), retcode));
         }
         if (in_begin == in_end) {
@@ -475,11 +425,11 @@ jstring to_jstring(JNIEnv* env, StringData str)
         size_t error_code;
         size_t size = Xcode::find_utf16_buf_size(in_begin2, in_end, error_code);
         if (in_begin2 != in_end) {
-            throw util::runtime_error(string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr,
+            throw realm::RuntimeError(ErrorCodes::RuntimeError,string_to_hex("Failure when computing UTF-16 size", str, in_begin, in_end, out_curr,
                                               out_end, size, error_code));
         }
         if (int_add_with_overflow_detect(size, stack_buf_size)) {
-            throw util::runtime_error("String size overflow");
+            throw realm::RuntimeError(ErrorCodes::RuntimeError,"String size overflow");
         }
         dyn_buf.reset(new jchar[size]);
         out_curr = std::copy(out_begin, out_curr, dyn_buf.get());
@@ -487,7 +437,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
         out_end = dyn_buf.get() + size;
         size_t retcode = Xcode::to_utf16(in_begin, in_end, out_curr, out_end);
         if (retcode != 0) {
-            throw util::runtime_error(string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end,
+            throw realm::RuntimeError(ErrorCodes::RuntimeError,string_to_hex("Failure when converting long string to UTF-16", str, in_begin, in_end,
                                               out_curr, out_end, size_t(0), retcode));
         }
         REALM_ASSERT(in_begin == in_end);
@@ -496,7 +446,7 @@ jstring to_jstring(JNIEnv* env, StringData str)
 transcode_complete : {
     jsize out_size;
     if (int_cast_with_overflow_detect(out_curr - out_begin, out_size)) {
-        throw util::runtime_error("String size overflow");
+        throw realm::RuntimeError(ErrorCodes::RuntimeError,"String size overflow");
     }
 
     return env->NewString(out_begin, out_size);
@@ -544,11 +494,11 @@ JStringAccessor::JStringAccessor(JNIEnv* env, jstring str, bool delete_jstring_r
         char* out_end = m_data.get() + buf_size;
         size_t error_code;
         if (!Xcode::to_utf8(in_begin, in_end, out_begin, out_end, error_code)) {
-            throw util::invalid_argument(
+            throw realm::InvalidArgument(
                 string_to_hex("Failure when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         if (in_begin != in_end) {
-            throw util::invalid_argument(
+            throw realm::InvalidArgument(
                 string_to_hex("in_begin != in_end when converting to UTF-8", chars.data(), chars.size(), error_code));
         }
         m_size = out_begin - m_data.get();

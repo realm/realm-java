@@ -25,6 +25,7 @@ import io.realm.entities.SyncStringOnly
 import io.realm.entities.SyncStringOnlyModule
 import io.realm.exceptions.RealmFileException
 import io.realm.exceptions.RealmMigrationNeededException
+import io.realm.internal.ErrorCategory
 import io.realm.kotlin.syncSession
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
@@ -855,7 +856,7 @@ class SessionTests {
             RealmLog.setLevel(LogLevel.WARN)
             val testLogger = TestLogger()
             RealmLog.add(testLogger)
-            session.notifySessionError("unknown", 3, "Unknown Error", "")
+            session.notifySessionError(ErrorCategory.RLM_SYNC_ERROR_CATEGORY_UNKNOWN, 3, "Unknown Error", "")
             RealmLog.remove(testLogger)
             // TODO See comment above
             RealmLog.setLevel(level)

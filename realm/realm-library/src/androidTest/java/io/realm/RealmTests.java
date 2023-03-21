@@ -4781,7 +4781,7 @@ public class RealmTests {
 
     // Test for https://github.com/realm/realm-java/issues/6152
     @Test
-    @Ignore // See https://github.com/realm/realm-java/issues/7628
+    @Ignore("See https://github.com/realm/realm-java/issues/7628")
     public void encryption_stressTest() {
         realm.close();
         looperThread.runBlocking(() -> {

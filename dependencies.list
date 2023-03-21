@@ -1,18 +1,18 @@
 # Realm Core release used by Realm Java
 # https://github.com/realm/realm-core/releases
-REALM_CORE=12.6.0
+REALM_CORE=13.5.0
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
-MONGODB_REALM_SERVER=2022-09-01
+MONGODB_REALM_SERVER=2023-02-28
 
 # `BAAS` and `BAAS-UI` projects commit hashes matching MONGODB_REALM_SERVER image version
 # note that the MONGODB_REALM_SERVER image is a nightly build, find the matching commits
 # for that date within the following repositories: 
 # https://github.com/10gen/baas/ 
 # https://github.com/10gen/baas-ui/
-REALM_BAAS_GIT_HASH=b15a2807ab42b77f9c5349bb03a2b8402ebe7d5a
-REALM_BAAS_UI_GIT_HASH=c4025f8b5449c8487a40322401449941fb481d29
+REALM_BAAS_GIT_HASH=7ba774ab4740e892f701870b4afc6a2c9c682202
+REALM_BAAS_UI_GIT_HASH=50bd2bb1d78a8a6ab04202aaa2f50350882b0fe2
 
 # Common Android settings across projects
 GRADLE_BUILD_TOOLS=7.1.0

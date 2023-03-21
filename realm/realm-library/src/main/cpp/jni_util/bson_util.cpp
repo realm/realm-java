@@ -35,7 +35,7 @@ Bson JniBsonProtocol::jstring_to_bson(JNIEnv* env, const jstring arg) {
 
 const Bson& JniBsonProtocol::check(const realm::bson::Bson& bson, const realm::bson::Bson::Type type, const std::string message) {
     if (bson.type() != type) {
-        throw realm::util::invalid_argument(message);
+        throw realm::InvalidArgument(message);
     }
     return bson;
 }

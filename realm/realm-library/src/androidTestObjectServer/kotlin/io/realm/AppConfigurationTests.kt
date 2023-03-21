@@ -464,7 +464,7 @@ class AppConfigurationTests {
             }
         }
         RealmLog.add(logger)
-        assertFailsWithErrorCode(ErrorCode.SERVICE_UNKNOWN) {
+        assertFailsWithErrorCode(ErrorCode.APP_UNKNOWN) {
             app.registerUserAndLogin(username, password)
         }
         RealmLog.remove(logger)

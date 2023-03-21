@@ -306,7 +306,7 @@ class EmailPasswordAuthWithAutoConfirm: EmailPasswordAuthTests() {
         try {
             provider.callResetPasswordFunction(email, "new-password", "wrong-magic-word")
         } catch (error: AppException) {
-            assertEquals(ErrorCode.SERVICE_UNKNOWN, error.errorCode)
+            assertEquals(ErrorCode.APP_UNKNOWN, error.errorCode)
         } finally {
             admin.setResetFunction(enabled = false)
         }
@@ -327,7 +327,7 @@ class EmailPasswordAuthWithAutoConfirm: EmailPasswordAuthTests() {
                     if (result.isSuccess) {
                         fail()
                     } else {
-                        assertEquals(ErrorCode.SERVICE_UNKNOWN, result.error.errorCode)
+                        assertEquals(ErrorCode.APP_UNKNOWN, result.error.errorCode)
                         looperThread.testComplete()
                     }
                 }
@@ -569,7 +569,7 @@ class EmailPasswordAuthWithCustomFunctionConfirmTests: EmailPasswordAuthTests() 
         val exception = assertFailsWith<AppException> {
             provider.retryCustomConfirmation(email)
         }
-        assertEquals("failed to confirm user $email", exception.errorMessage)
+        assertEquals("""failed to confirm user "$email"""", exception.errorMessage)
     }
 
     @Test

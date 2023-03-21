@@ -6,6 +6,7 @@ import android.os.NetworkOnMainThreadException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.internal.ErrorCategory;
 import io.realm.internal.Keep;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
 import io.realm.log.RealmLog;
@@ -58,8 +59,8 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
      */
     @SuppressWarnings("unused")  // Called by JNI
     @Override
-    public void onError(String nativeErrorCategory, int nativeErrorCode, String errorMessage) {
-        ErrorCode code = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+    public void onError(byte nativeErrorCategory, int nativeErrorCode, String errorMessage) {
+        ErrorCode code = ErrorCode.fromNativeError(ErrorCategory.toCategory(nativeErrorCategory), nativeErrorCode);
         if (code == ErrorCode.UNKNOWN) {
             // In case of UNKNOWN errors parse as much error information on as possible.
             String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);

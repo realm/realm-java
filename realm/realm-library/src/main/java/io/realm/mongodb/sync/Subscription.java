@@ -97,5 +97,5 @@ public interface Subscription {
      *
      * @return the query covered by this subscription.
      */
-    public String getQuery();
+    String getQuery();
 }

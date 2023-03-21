@@ -96,7 +96,7 @@ public class OsMap implements NativeObject {
         } else if (value instanceof Long) {
             return nativeContainsLong(nativePtr, (long) value);
         } else if (value instanceof Double) {
-            return nativeContainsLong(nativePtr, ((Double) value).longValue());
+            return nativeContainsDouble(nativePtr, (double) value);
         } else if (value instanceof Short) {
             return nativeContainsLong(nativePtr, ((Short) value).longValue());
         } else if (value instanceof Byte) {
@@ -156,7 +156,15 @@ public class OsMap implements NativeObject {
 
     public void put(Object key, @Nullable Object value) {
         if (value == null) {
-            nativePutNull(nativePtr, (String) key);
+            try {
+                nativePutNull(nativePtr, (String) key);
+            } catch (IllegalArgumentException e) {
+                if (e.getMessage().contains("Value cannot be null")) {
+                    throw new NullPointerException(e.getMessage());
+                } else {
+                    throw e;
+                }
+            }
         } else {
             String valueClassName = value.getClass().getCanonicalName();
             if (Long.class.getCanonicalName().equals(valueClassName)) {
@@ -328,6 +336,8 @@ public class OsMap implements NativeObject {
     private static native Object[] nativeGetEntryForPrimitive(long nativePtr, int position);
 
     private static native boolean nativeContainsNull(long nativePtr);
+
+    private static native boolean nativeContainsDouble(long nativePtr, double value);
 
     private static native boolean nativeContainsLong(long nativePtr, long value);
 

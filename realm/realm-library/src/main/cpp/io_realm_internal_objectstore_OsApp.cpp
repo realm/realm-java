@@ -21,7 +21,7 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
 
-#include <realm/object-store/binding_callback_thread_observer.hpp>
+#include <realm/sync/binding_callback_thread_observer.hpp>
 #include <realm/object-store/sync/app.hpp>
 #include <realm/object-store/sync/sync_manager.hpp>
 
@@ -57,7 +57,7 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
         JniUtils::detach_current_thread();
     }
 
-    void handle_error(std::exception const& e) override
+    bool handle_error(std::exception const& e) override
     {
         JNIEnv* env = JniUtils::get_env(true);
         std::string msg = util::format("An exception has been thrown on the sync client thread:\n%1", e.what());
@@ -66,6 +66,8 @@ struct AndroidClientListener : public realm::BindingCallbackThreadObserver {
         // exception to get more debug information for ourself.
         // FIXME: We really need to find a universal and clever way to get the native backtrace when exception thrown
         env->ThrowNew(m_realm_exception_class, msg.c_str());
+
+        return true;
     }
 
 private:
@@ -96,7 +98,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
                                                                jstring j_user_agent_application_info,
                                                                jstring j_platform,
                                                                jstring j_platform_version,
-                                                               jstring j_sdk_version)
+                                                               jstring j_sdk_version,
+                                                               jstring j_cpu_arch,
+                                                               jstring j_device_name,
+                                                               jstring j_device_version,
+                                                               jstring j_framework_name,
+                                                               jstring j_framework_version
+                                                               )
 {
     try {
 
@@ -119,6 +127,11 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
         JStringAccessor platform_version(env, j_platform_version);
         JStringAccessor sdk_version(env, j_sdk_version);
         JByteArrayAccessor encryption_key(env, j_encryption_key);
+        JStringAccessor cpu_arch(env, j_cpu_arch);
+        JStringAccessor device_name(env, j_device_name);
+        JStringAccessor device_version(env, j_device_version);
+        JStringAccessor framework_name(env, j_framework_name);
+        JStringAccessor framework_version(env, j_framework_version);
 
         // Create Network Transport
         static JavaMethod get_network_transport_method(env, obj, "getNetworkTransport", "()Lio/realm/internal/objectstore/OsJavaNetworkTransport;");
@@ -132,9 +145,17 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
                 util::Optional<std::string>(app_name),
                 util::Optional<std::string>(app_version),
                 util::Optional<std::uint64_t>(j_request_timeout_ms),
-                platform,
-                platform_version,
-                sdk_version
+                {
+                        platform,
+                        platform_version,
+                        sdk_version,
+                        "Java",
+                        cpu_arch,
+                        device_name,
+                        device_version,
+                        framework_name,
+                        framework_version
+                }
         };
 
         // Sync Config
@@ -153,17 +174,13 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
             client_config.metadata_mode = SyncManager::MetadataMode::Encryption;
             client_config.custom_encryption_key = encryption_key.transform<std::vector<char>>();
         }
+        // Register Sync Client thread start/stop callback. Must be called after .configure()
+        static AndroidClientListener client_thread_listener(env);
+        client_config.default_socket_provider_thread_observer = std::make_shared<BindingCallbackThreadObserver>(client_thread_listener);
 
         SharedApp app = App::get_shared_app(app_config, client_config);
         // Init logger. Must be called after .configure()
-        SyncClientConfig::LoggerFactory factory = [](util::Logger::Level) {
-            // The level param is ignored. Use the global RealmLog.setLevel() to control all log levels.
-            return std::make_unique<CoreLoggerBridge>(std::string("REALM_SYNC"));
-        };
-        app->sync_manager()->set_logger_factory(factory);
-        // Register Sync Client thread start/stop callback. Must be called after .configure()
-        static AndroidClientListener client_thread_listener(env);
-        g_binding_callback_thread_observer = &client_thread_listener;
+        app->sync_manager()->set_logger_factory(javaLoggerFactory);
 
         return reinterpret_cast<jlong>(new std::shared_ptr<App>(app));
     }

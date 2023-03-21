@@ -587,6 +587,21 @@ Java_io_realm_internal_OsMap_nativeContainsLong(JNIEnv* env, jclass, jlong wrapp
 }
 
 JNIEXPORT jboolean JNICALL
+Java_io_realm_internal_OsMap_nativeContainsDouble(JNIEnv* env, jclass, jlong wrapper_ptr,
+                                                  jdouble j_value) {
+    try {
+        auto& wrapper = *reinterpret_cast<ObservableDictionaryWrapper*>(wrapper_ptr);
+        auto& dictionary = wrapper.collection();
+        size_t find_result = dictionary.find_any(Mixed(j_value));
+        if (find_result != realm::not_found) {
+            return true;
+        }
+    }
+    CATCH_STD()
+    return false;
+}
+
+JNIEXPORT jboolean JNICALL
 Java_io_realm_internal_OsMap_nativeContainsBoolean(JNIEnv* env, jclass, jlong wrapper_ptr,
                                                    jboolean j_value) {
     try {

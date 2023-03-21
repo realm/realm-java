@@ -88,9 +88,9 @@ try {
         if (!isReleaseBranch) {
           // Build development branch
           useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
+          emulatorImage = "system-images;android-31;default;x86_64"
           // Build core from source instead of doing it from binary
-          buildFlags = "-PbuildTargetABIs=x86 -PenableLTO=false -PbuildCore=true"
+          buildFlags = "-PbuildTargetABIs=x86_64 -PenableLTO=false -PbuildCore=true"
           instrumentationTestTarget = "connectedObjectServerDebugAndroidTest"
           deviceSerial = "emulator-5554"
         } else {
@@ -98,7 +98,7 @@ try {
           // FIXME: Use emulator until we can get reliable devices on CI.
           //  But still build all ABI's and run all types of tests.
           useEmulator = true
-          emulatorImage = "system-images;android-29;default;x86"
+          emulatorImage = "system-images;android-31;default;x86_64"
           buildFlags = "-PenableLTO=true -PbuildCore=true"
           instrumentationTestTarget = "connectedAndroidTest"
           deviceSerial = "emulator-5554"
@@ -163,7 +163,7 @@ try {
                 sh """yes '\n' | avdmanager create avd -n CIEmulator -k '${emulatorImage}' --force"""
                 sh "adb start-server" // https://stackoverflow.com/questions/56198290/problems-with-adb-exe
                 // Need to go to ANDROID_HOME due to https://askubuntu.com/questions/1005944/emulator-avd-does-not-launch-the-virtual-device
-                sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4096 -memory 4096 &"
+                sh "cd \$ANDROID_HOME/tools && emulator -avd CIEmulator -no-boot-anim -no-window -wipe-data -noaudio -partition-size 4096 -memory 1536 &"
                 try {
                   runBuild(buildFlags, instrumentationTestTarget)
                 } finally {
