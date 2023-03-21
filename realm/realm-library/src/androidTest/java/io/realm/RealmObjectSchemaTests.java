@@ -749,6 +749,51 @@ public class RealmObjectSchemaTests {
             }
             schema.removeField(fieldName);
         }
+        for (FieldDictionaryType fieldType: FieldDictionaryType.values()) {
+            switch (fieldType) {
+                case DICTIONARY:
+                    // Dictionaries containing RealmObject values must always be nullable
+                    // and should throw an error if attempted to be made non-null.
+                    schema.addRealmDictionaryField(fieldName, schema);
+                    assertTrue(schema.isNullable(fieldName));
+                    try {
+                        schema.setNullable(fieldName, false);
+                        fail();
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                    break;
+                case MIXED_DICTIONARY:
+                    // Dictionaries containing Mixed values must always be nullable
+                    // and should throw an error if attempted to be made non-null.
+                    schema.addRealmDictionaryField(fieldName, fieldType.getType());
+                    assertTrue(schema.isNullable(fieldName));
+                    try {
+                        schema.setNullable(fieldName, false);
+                        fail();
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                    break;
+                case STRING_DICTIONARY:
+                    // TODO Just pulling this one case out to trigger the crash, we should
+                    //  move this into its own test case. So this test case can be as simple as
+                    //  possible.
+                    // All simple list types.
+                    schema.addRealmDictionaryField(fieldName, fieldType.getType());
+                    DynamicRealmObject obj = ((DynamicRealm)realm).createObject(schema.getClassName());
+                    RealmDictionary<String> dict = obj.getDictionary(fieldName, String.class);
+                    dict.put("foo", "bar");
+                    assertEquals("Type: " + fieldType, fieldType.isNullable(), schema.isNullable(fieldName));
+                    schema.setNullable(fieldName, !fieldType.isNullable());
+                    assertEquals("Type: " + fieldType, !fieldType.isNullable(), schema.isNullable(fieldName));
+                default:
+                    // All simple list types.
+                    schema.addRealmDictionaryField(fieldName, fieldType.getType());
+                    assertEquals("Type: " + fieldType, fieldType.isNullable(), schema.isNullable(fieldName));
+                    schema.setNullable(fieldName, !fieldType.isNullable());
+                    assertEquals("Type: " + fieldType, !fieldType.isNullable(), schema.isNullable(fieldName));
+            }
+            schema.removeField(fieldName);
+        }
     }
 
     @Test
