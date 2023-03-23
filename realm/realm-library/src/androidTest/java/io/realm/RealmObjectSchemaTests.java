@@ -147,27 +147,27 @@ public class RealmObjectSchemaTests {
     }
 
     // Enumerate all list types
-    public enum FieldListType {
-        STRING_LIST(String.class, true),
-        SHORT_LIST(Short.class, true), PRIMITIVE_SHORT_LIST(short.class, false),
-        INT_LIST(Integer.class, true), PRIMITIVE_INT_LIST(int.class, false),
-        LONG_LIST(Long.class, true), PRIMITIVE_LONG_LIST(long.class, false),
-        BYTE_LIST(Byte.class, true), PRIMITIVE_BYTE_LIST(byte.class, false),
-        BOOLEAN_LIST(Boolean.class, true), PRIMITIVE_BOOLEAN_LIST(boolean.class, false),
-        FLOAT_LIST(Float.class, true), PRIMITIVE_FLOAT_LIST(float.class, false),
-        DOUBLE_LIST(Double.class, true), PRIMITIVE_DOUBLE_LIST(double.class, false),
-        BLOB_LIST(byte[].class, true),
-        DATE_LIST(Date.class, true),
-        OBJECT_ID_LIST(ObjectId.class, true),
-        DECIMAL128_LIST(Decimal128.class, true),
-        UUID_LIST(UUID.class, true),
-        MIXED_LIST(RealmAny.class, true),
-        LIST(RealmList.class, false); // List of Realm Objects
+    public enum FielCollectionType {
+        STRING_COLLECTION(String.class, true),
+        SHORT_COLLECTION(Short.class, true), PRIMITIVE_SHORT_COLLECTION(short.class, false),
+        INT_COLLECTION(Integer.class, true), PRIMITIVE_INT_COLLECTION(int.class, false),
+        LONG_COLLECTION(Long.class, true), PRIMITIVE_LONG_COLLECTION(long.class, false),
+        BYTE_COLLECTION(Byte.class, true), PRIMITIVE_BYTE_COLLECTION(byte.class, false),
+        BOOLEAN_COLLECTION(Boolean.class, true), PRIMITIVE_BOOLEAN_COLLECTION(boolean.class, false),
+        FLOAT_COLLECTION(Float.class, true), PRIMITIVE_FLOAT_COLLECTION(float.class, false),
+        DOUBLE_COLLECTION(Double.class, true), PRIMITIVE_DOUBLE_COLLECTION(double.class, false),
+        BLOB_COLLECTION(byte[].class, true),
+        DATE_COLLECTION(Date.class, true),
+        OBJECT_ID_COLLECTION(ObjectId.class, true),
+        DECIMAL128_COLLECTION(Decimal128.class, true),
+        UUID_COLLECTION(UUID.class, true),
+        MIXED_COLLECTION(RealmAny.class, true),
+        COLLECTION(RealmObject.class, false); // List of Realm Objects
 
         final Class<?> clazz;
         final boolean defaultNullable;
 
-        FieldListType(Class<?> clazz, boolean defaultNullable) {
+        FielCollectionType(Class<?> clazz, boolean defaultNullable) {
             this.clazz = clazz;
             this.defaultNullable = defaultNullable;
         }
@@ -351,9 +351,9 @@ public class RealmObjectSchemaTests {
                     checkAddedAndRemovable(fieldName);
             }
         }
-        for (FieldListType fieldType : FieldListType.values()) {
+        for (FielCollectionType fieldType : FielCollectionType.values()) {
             switch (fieldType) {
-                case LIST:
+                case COLLECTION:
                     schema.addRealmListField(fieldName, DOG_SCHEMA);
                     checkAddedAndRemovable(fieldName);
                     break;
@@ -486,10 +486,10 @@ public class RealmObjectSchemaTests {
                     schema.removeField(fieldName);
             }
         }
-        for (FieldListType fieldType : FieldListType.values()) {
+        for (FielCollectionType fieldType : FielCollectionType.values()) {
             switch(fieldType) {
-                case LIST:
-                case MIXED_LIST:
+                case COLLECTION:
+                case MIXED_COLLECTION:
                     continue; // Not possible.
                 default:
                     // All simple list types
@@ -727,10 +727,10 @@ public class RealmObjectSchemaTests {
             }
             schema.removeField(fieldName);
         }
-        for (FieldListType fieldType : FieldListType.values()) {
+        for (FielCollectionType fieldType : FielCollectionType.values()) {
             switch (fieldType) {
-                case LIST:
-                case MIXED_LIST:
+                case COLLECTION:
+                case MIXED_COLLECTION:
                     // Lists are not nullable and cannot be configured to be so.
                     schema.addRealmListField(fieldName, schema);
                     assertFalse(schema.isNullable(fieldName));
@@ -743,6 +743,29 @@ public class RealmObjectSchemaTests {
                 default:
                     // All simple list types.
                     schema.addRealmListField(fieldName, fieldType.getType());
+                    assertEquals("Type: " + fieldType, fieldType.isNullable(), schema.isNullable(fieldName));
+                    schema.setNullable(fieldName, !fieldType.isNullable());
+                    assertEquals("Type: " + fieldType, !fieldType.isNullable(), schema.isNullable(fieldName));
+            }
+            schema.removeField(fieldName);
+        }
+        // Same but for sets
+        for (FielCollectionType fieldType : FielCollectionType.values()) {
+            switch (fieldType) {
+                case COLLECTION:
+                case MIXED_COLLECTION:
+                    // Collections are not nullable and cannot be configured to be so.
+                    schema.addRealmSetField(fieldName, schema);
+                    assertFalse(schema.isNullable(fieldName));
+                    try {
+                        schema.setNullable(fieldName, true);
+                        fail();
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                    break;
+                default:
+                    // All simple Set types.
+                    schema.addRealmSetField(fieldName, fieldType.getType());
                     assertEquals("Type: " + fieldType, fieldType.isNullable(), schema.isNullable(fieldName));
                     schema.setNullable(fieldName, !fieldType.isNullable());
                     assertEquals("Type: " + fieldType, !fieldType.isNullable(), schema.isNullable(fieldName));
@@ -826,10 +849,10 @@ public class RealmObjectSchemaTests {
             }
             schema.removeField(fieldName);
         }
-        for (FieldListType fieldType : FieldListType.values()) {
+        for (FielCollectionType fieldType : FielCollectionType.values()) {
             switch (fieldType) {
-                case LIST:
-                case MIXED_LIST:
+                case COLLECTION:
+                case MIXED_COLLECTION:
                     // Lists are always non-nullable and cannot be configured otherwise.
                     schema.addRealmListField(fieldName, schema);
                     assertTrue(schema.isRequired((fieldName)));
@@ -898,58 +921,58 @@ public class RealmObjectSchemaTests {
                     break;
             }
         }
-        for (FieldListType fieldType : FieldListType.values()) {
+        for (FielCollectionType fieldType : FielCollectionType.values()) {
             switch(fieldType) {
-                case LIST:
+                case COLLECTION:
                     // Skip always non-nullable fields.
                     break;
-                case STRING_LIST:
+                case STRING_COLLECTION:
                     checkListValueConversionToDefaultValue(String.class, "");
                     break;
-                case SHORT_LIST:
+                case SHORT_COLLECTION:
                     checkListValueConversionToDefaultValue(Short.class, (short) 0);
                     break;
-                case INT_LIST:
+                case INT_COLLECTION:
                     checkListValueConversionToDefaultValue(Integer.class, 0);
                     break;
-                case LONG_LIST:
+                case LONG_COLLECTION:
                     checkListValueConversionToDefaultValue(Long.class, 0L);
                     break;
-                case BYTE_LIST:
+                case BYTE_COLLECTION:
                     checkListValueConversionToDefaultValue(Byte.class, (byte) 0);
                     break;
-                case BOOLEAN_LIST:
+                case BOOLEAN_COLLECTION:
                     checkListValueConversionToDefaultValue(Boolean.class, false);
                     break;
-                case FLOAT_LIST:
+                case FLOAT_COLLECTION:
                     checkListValueConversionToDefaultValue(Float.class, 0.0F);
                     break;
-                case DOUBLE_LIST:
+                case DOUBLE_COLLECTION:
                     checkListValueConversionToDefaultValue(Double.class, 0.0D);
                     break;
-                case BLOB_LIST:
+                case BLOB_COLLECTION:
                     checkListValueConversionToDefaultValue(byte[].class, new byte[0]);
                     break;
-                case DATE_LIST:
+                case DATE_COLLECTION:
                     checkListValueConversionToDefaultValue(Date.class, new Date(0));
                     break;
-                case OBJECT_ID_LIST:
+                case OBJECT_ID_COLLECTION:
                     checkListValueConversionToDefaultValue(ObjectId.class, new ObjectId("000000000000000000000000"));
                     break;
-                case DECIMAL128_LIST:
+                case DECIMAL128_COLLECTION:
                     checkListValueConversionToDefaultValue(Decimal128.class, Decimal128.parse("0"));
                     break;
-                case UUID_LIST:
+                case UUID_COLLECTION:
                     checkListValueConversionToDefaultValue(UUID.class, UUID.fromString("00000000-0000-0000-0000-000000000000"));
                     break;
-                case PRIMITIVE_INT_LIST:
-                case PRIMITIVE_LONG_LIST:
-                case PRIMITIVE_BYTE_LIST:
-                case PRIMITIVE_BOOLEAN_LIST:
-                case PRIMITIVE_FLOAT_LIST:
-                case PRIMITIVE_DOUBLE_LIST:
-                case PRIMITIVE_SHORT_LIST:
-                case MIXED_LIST:
+                case PRIMITIVE_INT_COLLECTION:
+                case PRIMITIVE_LONG_COLLECTION:
+                case PRIMITIVE_BYTE_COLLECTION:
+                case PRIMITIVE_BOOLEAN_COLLECTION:
+                case PRIMITIVE_FLOAT_COLLECTION:
+                case PRIMITIVE_DOUBLE_COLLECTION:
+                case PRIMITIVE_SHORT_COLLECTION:
+                case MIXED_COLLECTION:
                     // Skip not-nullable fields
                     break;
                 default:
