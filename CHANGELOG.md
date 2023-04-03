@@ -1,10 +1,15 @@
 ## 10.14.0 (YYYY-MM-DD)
 
+This release will bump the Realm file format from version 22 to 23. Opening a file with an older format will automatically upgrade it. Downgrading to a previous file format is not possible.
+
 ### Breaking Changes
 * [RealmApp] As a result of a refactor on the some error codes and categories have been deleted and new ones have been added, see PR for more details. ([#7760](https://github.com/realm/realm-java/pull/7760))
 
 ### Enhancements
-* None.
+* Updated OpenSSL from 1.1.1n to 3.0.8. 
+* Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
+* Realm will now continuously track and reduce the size of the Realm file when it is in use rather that only when opening the file with Configuration.compactOnLaunch enabled. (Core Issue [#5754](https://github.com/realm/realm-core/issues/5754))
+* Multiple processes can now access the same encrypted Realm instead of throwing `Encrypted interprocess sharing is currently unsupported`. (Core Issue [#1845](https://github.com/realm/realm-core/issues/1845))
 
 ### Fixed
 * Set<Mixed> consider string and binary data equivalent. This could cause the client to be inconsistent with the server if a string and some binary data with equivalent content was inserted from Atlas. ([#4860](https://github.com/realm/realm-core/issues/4860), since v11.0.0)
@@ -19,7 +24,7 @@
 * Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
 
 ### Internal
-* Updated to Realm Core 13.6.0, commit e5435e8e76b7e33f2d7ef6d5bb189cab47dc40db.
+* Updated to Realm Core 13.9.0, commit 063927de66f79a0afffbbe36c0bb14d27deba8f2.
 
 
 ## 10.13.1 (2023-03-16)
