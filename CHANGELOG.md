@@ -1,4 +1,4 @@
-## 10.14.0 (YYYY-MM-DD)
+## 10.14.0 (2023-04-13)
 
 This release will bump the Realm file format from version 22 to 23. Opening a file with an older format will automatically upgrade it. Downgrading to a previous file format is not possible.
 
