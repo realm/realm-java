@@ -2,8 +2,7 @@ This branch tracks the Realm Java SDK release with support for Android Gradle Pl
 newer. For releases supporting the current Android Gradle Plugin (7.3.x and below) please refer to 
 the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/releases/CHANGELOG.md).
 
-
-## 10.14.0-transformer-api (YYYY-MM-DD)
+## 10.14.0-transformer-api (2023-04-14)
 
 This release will bump the Realm file format from version 22 to 23. Opening a file with an older format will automatically upgrade it. Downgrading to a previous file format is not possible.
 
