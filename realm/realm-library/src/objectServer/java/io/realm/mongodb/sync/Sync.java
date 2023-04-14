@@ -41,6 +41,7 @@ import javax.net.ssl.X509TrustManager;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.realm.annotations.Beta;
+import io.realm.internal.ErrorCategory;
 import io.realm.internal.jni.JniBsonProtocol;
 import io.realm.mongodb.AppConfiguration;
 import io.realm.mongodb.ErrorCode;
@@ -248,8 +249,8 @@ public abstract class Sync {
      * session to contact.
      */
     @SuppressWarnings("unused")
-    private void notifyErrorHandler(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
-        ErrorCode errCode = ErrorCode.fromNativeError(nativeErrorCategory, nativeErrorCode);
+    private void notifyErrorHandler(byte nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
+        ErrorCode errCode = ErrorCode.fromNativeError(ErrorCategory.toCategory(nativeErrorCategory), nativeErrorCode);
 
         if (errCode == ErrorCode.CLIENT_RESET) {
             // Avoid deadlock while trying to close realm instances during a client reset
@@ -264,7 +265,7 @@ public abstract class Sync {
         }
     }
 
-    private void doNotifyError(String nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
+    private void doNotifyError(byte nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
         SyncSession syncSession = sessions.get(path);
         if (syncSession != null) {
             try {
@@ -387,7 +388,7 @@ public abstract class Sync {
     // In this implementation we use the second method, since it's more suitable for
     // the underlying Java API we need to call to validate the certificate chain.
     @SuppressWarnings("unused")
-    synchronized static boolean sslVerifyCallback(String serverAddress, String pemData, int depth) {
+    static synchronized boolean sslVerifyCallback(String serverAddress, String pemData, int depth) {
         try {
             if (ATLAS_CERTIFICATES_CHAIN == null) {
                 ATLAS_CERTIFICATES_CHAIN = new HashMap<>();

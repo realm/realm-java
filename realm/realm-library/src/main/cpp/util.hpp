@@ -130,6 +130,28 @@ void ThrowNullValueException(JNIEnv* env, const realm::TableRef table, realm::Co
 #endif
 
 
+#if REALM_ENABLE_SYNC
+#include "io_realm_internal_ErrorCategory.h"
+#include <realm/object-store/sync/sync_manager.hpp>
+inline jbyte categoryAsJByte(realm::ErrorCategory &categories) {// Map categories to something meaningful at SDK level
+    jbyte category = -1;
+    if (categories.test(realm::ErrorCategory::client_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CLIENT;
+    } else if (categories.test(realm::ErrorCategory::json_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_JSON;
+    } else if (categories.test(realm::ErrorCategory::service_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_SERVICE;
+    } else if (categories.test(realm::ErrorCategory::http_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_HTTP;
+    } else if (categories.test(realm::ErrorCategory::custom_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CUSTOM;
+    }
+    return category;
+}
+
+extern realm::SyncClientConfig::LoggerFactory javaLoggerFactory;
+#endif
+
 inline jlong to_jlong_or_not_found(size_t res)
 {
     return (res == realm::not_found) ? jlong(-1) : jlong(res);

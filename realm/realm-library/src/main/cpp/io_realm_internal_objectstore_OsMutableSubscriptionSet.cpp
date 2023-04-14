@@ -22,7 +22,7 @@
 #include "jni_util/jni_utils.hpp"
 
 #include <realm/object-store/shared_realm.hpp>
-#include <realm/object-store/binding_callback_thread_observer.hpp>
+#include <realm/sync/binding_callback_thread_observer.hpp>
 #include <realm/object-store/sync/app.hpp>
 #include <realm/object-store/sync/sync_manager.hpp>
 #include <realm/sync/subscriptions.hpp>
@@ -80,7 +80,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_objectstore_OsMutableSubscript
         auto subscriptions = reinterpret_cast<sync::MutableSubscriptionSet*>(j_subscriptions_set_ptr);
         JStringAccessor name(env, j_name);
         for (auto it = subscriptions->begin(); it != subscriptions->end(); ++it) {
-            if (it->name() == name) {
+            if (it->name == name) {
                 subscriptions->erase(it);
                 return true;
             }
@@ -99,7 +99,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_objectstore_OsMutableSubscript
         auto subscriptions = reinterpret_cast<sync::MutableSubscriptionSet*>(j_subscriptions_set_ptr);
         auto sub = reinterpret_cast<sync::Subscription*>(j_subscription_ptr);
         for (auto it = subscriptions->begin(); it != subscriptions->end(); ++it) {
-            if (it->id() == sub->id()) {
+            if (it->id == sub->id) {
                 subscriptions->erase(it);
                 return true;
             }
@@ -133,7 +133,7 @@ JNIEXPORT jboolean JNICALL Java_io_realm_internal_objectstore_OsMutableSubscript
         JStringAccessor type(env, j_clazz_type);
         bool remove = false;
         for (auto it = subscriptions->begin(); it != subscriptions->end(); ++it) {
-            if (it->object_class_name() == type) {
+            if (it->object_class_name == type) {
                 it = subscriptions->erase(it);
                 remove = true;
                 if (it == subscriptions->end()) {

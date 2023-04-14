@@ -82,17 +82,17 @@ RUN yes | sdkmanager \
     'platforms;android-30' \
     'platform-tools' \
     'ndk;23.1.7779620' \
-    'system-images;android-29;default;x86'
+    'system-images;android-31;default;x86_64'
 
 # Make the SDK universally writable
 RUN chmod -R a+rwX ${ANDROID_HOME}
 
 # Ensure a new enough version of CMake is available.
 RUN cd /opt \
-    && wget -nv https://cmake.org/files/v3.21/cmake-3.21.4-linux-x86_64.tar.gz \
-    && tar zxf cmake-3.21.4-linux-x86_64.tar.gz
+    && wget -nv https://cmake.org/files/v3.22/cmake-3.22.1-linux-x86_64.tar.gz \
+    && tar zxf cmake-3.22.1-linux-x86_64.tar.gz
 
 # Workaround for https://issuetracker.google.com/issues/206099937
-RUN ln -s /usr/bin/ninja /opt/cmake-3.21.4-linux-x86_64/bin/ninja
+RUN ln -s /usr/bin/ninja /opt/cmake-3.22.1-linux-x86_64/bin/ninja
 
-ENV PATH "/opt/cmake-3.21.4-linux-x86_64/bin:$PATH"
+ENV PATH "/opt/cmake-3.22.1-linux-x86_64/bin:$PATH"

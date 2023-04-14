@@ -91,25 +91,31 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
         env->DeleteLocalRef(request_headers);
     }
 
+    static void handleError(const JavaGlobalRefByCopy &callback, util::Optional<AppError> &error, JNIEnv *env,
+                            const JavaClass &java_callback_class) {
+        static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(BILjava/lang/String;)V");
+        auto err = error.value();
+        ErrorCategory categories = ErrorCodes::error_categories(err.code());
+        jbyte category = categoryAsJByte(categories);
+        int error_code = err.is_custom_error() || err.is_http_error() ? err.additional_status_code.value() : err.code();
+        env->CallVoidMethod(callback.get(),
+                            java_notify_onerror,
+                            category,
+                            error_code,
+                            to_jstring(env, err.what()));
+    }
+
     // Helper method for constructing callbacks for REST calls that must return an actual result to Java
     template<typename T>
     static util::UniqueFunction<void(T, util::Optional<app::AppError>&&)> create_result_callback(JNIEnv* env, jobject j_callback, const std::function<jobject (JNIEnv*, T)>& success_mapper) {
         return [callback = JavaGlobalRefByCopy(env, j_callback), success_mapper](T result, util::Optional<app::AppError>&& error) {
             JNIEnv* env = JniUtils::get_env(true);
-
             static JavaClass java_callback_class(env, "io/realm/internal/network/NetworkRequest");
-            static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(Ljava/lang/String;ILjava/lang/String;)V");
-            static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
 
             if (error) {
-                auto err = error.value();
-                std::string error_category = err.error_code.category().name();
-                env->CallVoidMethod(callback.get(),
-                                    java_notify_onerror,
-                                    to_jstring(env, error_category),
-                                    err.error_code.value(),
-                                    to_jstring(env, err.message));
+                handleError(callback, error, env, java_callback_class);
             } else {
+                static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
                 jobject success_obj = success_mapper(env, result);
                 env->CallVoidMethod(callback.get(), java_notify_onsuccess, success_obj);
             }
@@ -122,18 +128,11 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
             JNIEnv* env = JniUtils::get_env(true);
 
             static JavaClass java_callback_class(env, "io/realm/internal/network/NetworkRequest");
-            static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(Ljava/lang/String;ILjava/lang/String;)V");
-            static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
 
             if (error) {
-                auto err = error.value();
-                std::string error_category = err.error_code.category().name();
-                env->CallVoidMethod(callback.get(),
-                                    java_notify_onerror,
-                                    to_jstring(env, error_category),
-                                    err.error_code.value(),
-                                    to_jstring(env, err.message));
+                handleError(callback, error, env, java_callback_class);
             } else {
+                static JavaMethod java_notify_onsuccess(env, java_callback_class, "onSuccess", "(Ljava/lang/Object;)V");
                 env->CallVoidMethod(callback.get(), java_notify_onsuccess, NULL);
             }
         };

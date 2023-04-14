@@ -23,7 +23,7 @@
 #include "jni_util/jni_utils.hpp"
 
 #include <realm/object-store/shared_realm.hpp>
-#include <realm/object-store/binding_callback_thread_observer.hpp>
+#include <realm/sync/binding_callback_thread_observer.hpp>
 #include <realm/object-store/sync/app.hpp>
 #include <realm/object-store/sync/sync_manager.hpp>
 #include <realm/sync/subscriptions.hpp>
@@ -120,7 +120,7 @@ JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nati
         static JavaMethod onchange_method(env, callback_class, "onChange", "(B)V", false);
         JavaGlobalWeakRef j_callback_weak(env, j_callback);
         std::move(result).get_async([j_callback_weak](StatusOrStatusWith<sync::SubscriptionSet::State> status) noexcept {
-            JNIEnv* env = JniUtils::get_env(false);
+            JNIEnv* env = JniUtils::get_env(true);
             j_callback_weak.call_with_local_ref(env, [&](JNIEnv* env, jobject obj) {
                 if (status.is_ok()) {
                     env->CallVoidMethod(obj, onchange_method, static_cast<jbyte>(status.get_value()));
@@ -141,9 +141,9 @@ Java_io_realm_internal_objectstore_OsSubscriptionSet_nativeFindByName(JNIEnv *en
     try {
         auto subscriptions = reinterpret_cast<sync::SubscriptionSet*>(j_subscription_set_ptr);
         JStringAccessor name(env, j_name);
-        sync::SubscriptionSet::const_iterator iter = subscriptions->find(name);
-        if (iter != subscriptions->end()) {
-            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*iter)));
+        const sync::Subscription* subscription = subscriptions->find(name);
+        if (subscription != nullptr) {
+            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*subscription)));
         } else {
             return -1;
         }
@@ -159,9 +159,9 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsSubscriptionSet_nat
     try {
         auto subscriptions = reinterpret_cast<sync::SubscriptionSet*>(j_subscription_set_ptr);
         auto query = reinterpret_cast<Query*>(j_query_ptr);
-        sync::SubscriptionSet::const_iterator iter = subscriptions->find(*query);
-        if (iter != subscriptions->end()) {
-            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*iter)));
+        const sync::Subscription* subscription = subscriptions->find(*query);
+        if (subscription != nullptr) {
+            return reinterpret_cast<jlong>(new sync::Subscription(std::move(*subscription)));
         } else {
             return -1;
         }

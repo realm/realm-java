@@ -37,6 +37,7 @@
 #include "jni_util/java_global_weak_ref.hpp"
 #include "jni_util/jni_utils.hpp"
 #include "jni_util/java_exception_thrower.hpp"
+#include <realm/util/basic_system_errors.hpp>
 
 using namespace realm;
 using namespace realm::jni_util;
@@ -264,23 +265,32 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
-                                                     "(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+                                                     "(BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 
         // error handler will be called form the sync client thread
         auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
-            auto error_category = error.error_code.category().name();
-            auto error_message = error.message;
-            auto error_code = error.error_code.value();
-            std::string client_reset_path_info = "";
 
-            // All client reset errors will be in the protocol category. Re-assign the error code
-            // to a value not used by https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp#L232
-            // This way we only have one error in Java representing Client Reset.
-            if (error.is_client_reset_requested()) {
-                client_reset_path_info = error.user_info[SyncError::c_recovery_file_path_key];
-                error_code = 7; // See ErrorCode.java
-                error_category = "realm::app::CustomError";
+            auto std_error_code = error.to_status().get_std_error_code();
+
+            int error_code = error.code();
+            const std::error_category& error_category = std_error_code.category();
+
+            jbyte category;
+            if (error_category == realm::sync::client_error_category()) {
+                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CLIENT;
+            } else if (error_category == realm::sync::protocol_error_category()) {
+                if (realm::sync::is_session_level_error(realm::sync::ProtocolError(std_error_code.value()))) {
+                    category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SESSION;
+                }
+                else {
+                    category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CONNECTION;
+                }
+            } else if (error_category == std::system_category() || error_category == realm::util::error::basic_system_error_category()) {
+                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SYSTEM;
+            } else {
+                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_UNKNOWN;
             }
+
 
             // System/Connection errors are defined by constants in
             // https://android.googlesource.com/kernel/lk/+/upstream-master/include/errno.h
@@ -288,7 +298,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             //
             // For this reason we manually map the constants to the error integer values defined in Java.
             // For simplicity Java re-use the values currently defined in errno.h.
-            if (std::strcmp(error_category, "realm.basic_system") == 0) {
+            if (error_category == realm::util::error::basic_system_error_category()) {
                 switch(error_code) {
                     case ECONNRESET: error_code = 104; break;
                     case ESHUTDOWN: error_code = 110; break;
@@ -299,30 +309,32 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                         /* Do nothing */
                         (void)0;
                 }
-            } else if (std::strcmp(error_category, "realm.util.misc_ext") == 0) {
-                switch (util::MiscExtErrors(error_code)) {
-                    case util::MiscExtErrors::end_of_input: error_code = 1; break;
-                    case util::MiscExtErrors::premature_end_of_input: error_code = 2; break;
-                    case util::MiscExtErrors::delim_not_found: error_code = 3; break;
-                    default:
-                        /* Do nothing */
-                        (void)0;
-                }
+            }
+
+            auto error_message = error.what();
+
+            std::string client_reset_path_info;
+
+            // All client reset errors will be in the protocol category. Re-assign the error code
+            // to a value not used by https://github.com/realm/realm-sync/blob/develop/src/realm/sync/protocol.hpp#L232
+            // This way we only have one error in Java representing Client Reset.
+            if (error.is_client_reset_requested()) {
+                client_reset_path_info = error.user_info[SyncError::c_recovery_file_path_key];
+                error_code = 7; // See ErrorCode.java
+                category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CUSTOM;
             }
 
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
-            jstring jerror_category = to_jstring(env, error_category);
             jstring jerror_message = to_jstring(env, error_message);
             jstring jclient_reset_path_info = to_jstring(env, client_reset_path_info);
             jstring jsession_path = to_jstring(env, session->path());
             env->CallVoidMethod(sync_service_object.get(),
                                 java_error_callback_method,
-                                jerror_category,
+                                category,
                                 error_code,
                                 jerror_message,
                                 jclient_reset_path_info,
                                 jsession_path);
-            env->DeleteLocalRef(jerror_category);
             env->DeleteLocalRef(jerror_message);
             env->DeleteLocalRef(jsession_path);
         };

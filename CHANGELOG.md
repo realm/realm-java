@@ -2,6 +2,37 @@ This branch tracks the Realm Java SDK release with support for Android Gradle Pl
 newer. For releases supporting the current Android Gradle Plugin (7.3.x and below) please refer to 
 the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/releases/CHANGELOG.md).
 
+
+## 10.14.0-transformer-api (YYYY-MM-DD)
+
+This release will bump the Realm file format from version 22 to 23. Opening a file with an older format will automatically upgrade it. Downgrading to a previous file format is not possible.
+
+### Breaking Changes
+* [RealmApp] As a result of a refactor on the some error codes and categories have been deleted and new ones have been added, see PR for more details. ([#7760](https://github.com/realm/realm-java/pull/7760))
+
+### Enhancements
+* Updated OpenSSL from 1.1.1n to 3.0.8. 
+* Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
+* Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
+* Realm will now continuously track and reduce the size of the Realm file when it is in use rather that only when opening the file with Configuration.compactOnLaunch enabled. (Core Issue [#5754](https://github.com/realm/realm-core/issues/5754))
+* Multiple processes can now access the same encrypted Realm instead of throwing `Encrypted interprocess sharing is currently unsupported`. (Core Issue [#1845](https://github.com/realm/realm-core/issues/1845))
+
+### Fixed
+* Set<Mixed> consider string and binary data equivalent. This could cause the client to be inconsistent with the server if a string and some binary data with equivalent content was inserted from Atlas. ([#4860](https://github.com/realm/realm-core/issues/4860), since v11.0.0)
+* Fixed wrong assertion on query error that could result in a crash. ([#6038](https://github.com/realm/realm-core/issues/6038), since v11.7.0)
+* Fixed a bug that would result in `RealmDictionary` not being able to find `double` values due not taking the precision of the input parameter into consideration when using `RealmDictionary.contains`.
+* Not possible to open an encrypted file on a device with a page size bigger than the one on which the file was produced. ([#8030](https://github.com/realm/realm-swift/issues/8030), since v12.11.0)
+* Fix no notification for write transaction that contains only change to backlink property. ([#4994](https://github.com/realm/realm-core/issues/4994), since v11.4.1)
+
+### Compatibility
+* File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 13.9.0, commit 063927de66f79a0afffbbe36c0bb14d27deba8f2.
+
+
 ## 10.13.3-transformer-api (2023-03-16)
 
 ### Enhancements

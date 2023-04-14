@@ -40,7 +40,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -400,6 +402,66 @@ public class TestHelper {
         return sb.toString();
     }
 
+    public static class MessageBuffer {
+
+        private final int size;
+
+        private int writeIndex = 0;
+        private int availablePos = 0;
+
+        public String[] entries;
+
+        public MessageBuffer(int size) {
+            this.size = size;
+            this.entries = new String[size];
+        }
+
+        public void put(String entry) {
+            if (availablePos < size) {
+                if (writeIndex >= size) {
+                    writeIndex = 0;
+                }
+                entries[writeIndex] = entry;
+                writeIndex++;
+                availablePos++;
+            }
+        }
+
+        public String take() {
+            if (availablePos == 0) {
+                return null;
+            }
+            int nextAvailable = writeIndex - availablePos;
+            if (nextAvailable < 0) {
+                nextAvailable += size;
+            }
+            String nextObj = entries[nextAvailable];
+            availablePos--;
+            return nextObj;
+        }
+
+        public Iterator<String> iterator() {
+            return new Iterator<String>() {
+
+                private int pos = -1;
+
+                @Override
+                public boolean hasNext() {
+                    return pos + 1 < size;
+                }
+
+                @Override
+                public String next() {
+                    pos = pos + 1;
+                    if (pos > size) {
+                        throw new NoSuchElementException("Went beyond message buffer capacity.");
+                    }
+                    return entries[pos];
+                }
+            };
+        }
+    }
+
     /**
      * Returns a naive logger that can be used to test the values that are sent to the logger.
      */
@@ -407,8 +469,10 @@ public class TestHelper {
 
         private final int minimumLevel;
         public String message;
-        public String previousMessage;
         public Throwable throwable;
+
+        // Store just a few log entries
+        public MessageBuffer messageBuffer = new MessageBuffer(5);
 
         public TestLogger() {
             this(LogLevel.DEBUG);
@@ -421,7 +485,7 @@ public class TestHelper {
         @Override
         public void log(int level, String tag, Throwable throwable, String message) {
             if (minimumLevel <= level) {
-                this.previousMessage = this.message;
+                messageBuffer.put(message);
                 this.message = message;
                 this.throwable = throwable;
             }

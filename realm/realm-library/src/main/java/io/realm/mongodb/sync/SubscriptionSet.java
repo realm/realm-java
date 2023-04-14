@@ -42,7 +42,7 @@ public interface SubscriptionSet extends Iterable<Subscription> {
     /**
      * The possible states a subscription set can be in.
      */
-    public enum State {
+    enum State {
         /**
          * The initial state of subscriptions when opening a new Realm or when entering a
          * {@link #update(UpdateCallback)}. This state is only valid for

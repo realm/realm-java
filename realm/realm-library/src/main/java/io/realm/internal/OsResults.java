@@ -387,11 +387,19 @@ public class OsResults implements NativeObject, ObservableCollection {
     }
 
     public Number aggregateNumber(Aggregate aggregateMethod, long columnKey) {
-        return (Number) nativeAggregate(nativePtr, columnKey, aggregateMethod.getValue());
+        try {
+            return (Number) nativeAggregate(nativePtr, columnKey, aggregateMethod.getValue());
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
+        }
     }
 
     public Date aggregateDate(Aggregate aggregateMethod, long columnIndex) {
-        return (Date) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
+        try {
+            return (Date) nativeAggregate(nativePtr, columnIndex, aggregateMethod.getValue());
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
+        }
     }
 
     public long size() {
@@ -404,7 +412,7 @@ public class OsResults implements NativeObject, ObservableCollection {
 
     public OsResults sort(@Nullable OsKeyPathMapping mapping, String fieldName, Sort sortOrder) {
         String query = TableQuery.buildSortDescriptor(new String[] {fieldName}, new Sort[] {sortOrder});
-        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
+        return new OsResults(sharedRealm, table, stringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
     public OsResults sort(@Nullable OsKeyPathMapping mapping, String[] fieldNames, Sort[] sortOrders) {
@@ -417,12 +425,12 @@ public class OsResults implements NativeObject, ObservableCollection {
         }
 
         String query = TableQuery.buildSortDescriptor(fieldNames, sortOrders);
-        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
+        return new OsResults(sharedRealm, table, stringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
     public OsResults distinct(@Nullable OsKeyPathMapping mapping, String[] fieldNames) {
         String query = TableQuery.buildDistinctDescriptor(fieldNames);
-        return new OsResults(sharedRealm, table, nativeStringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
+        return new OsResults(sharedRealm, table, stringDescriptor(nativePtr, query, (mapping != null) ? mapping.getNativePtr() : 0));
     }
 
     public boolean contains(UncheckedRow row) {
@@ -742,8 +750,28 @@ public class OsResults implements NativeObject, ObservableCollection {
         if (loaded) {
             return;
         }
-        nativeEvaluateQueryIfNeeded(nativePtr, false);
+        try {
+            nativeEvaluateQueryIfNeeded(nativePtr, false);
+        } catch (IllegalStateException e) {
+            throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("Cannot sort on a collection property")) {
+                throw new IllegalStateException("Illegal Argument: " + e.getMessage());
+            }
+        }
         notifyChangeListeners(0);
+    }
+
+    private static long stringDescriptor(long nativePtr, String descriptor, long mapping){
+        try {
+            return nativeStringDescriptor(nativePtr, descriptor, mapping);
+        } catch (IllegalStateException e) {
+            if (e.getMessage().contains("Realm accessed from incorrect thread.")) {
+                throw e;
+            } else {
+                throw new IllegalArgumentException("Illegal Argument: " + e.getMessage());
+            }
+        }
     }
 
     private static native long nativeGetFinalizerPtr();
