@@ -148,18 +148,7 @@ class RealmTransformer(private val metadata: ProjectMetaData,
         }
 
         private fun Project.usesKotlin(): Boolean {
-            for (conf in project.configurations) {
-                try {
-                    for (artifact: ResolvedArtifact in conf.resolvedConfiguration.resolvedArtifacts) {
-                        if (artifact.name.startsWith("kotlin-stdlib")) {
-                            return true
-                        }
-                    }
-                } catch (ignore: Exception) {
-                    // Some artifacts might not be able to resolve, in this case, just ignore them.
-                }
-            }
-            return false
+            return project.pluginManager.hasPlugin("kotlin-kapt")
         }
     }
 
