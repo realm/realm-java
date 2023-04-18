@@ -95,11 +95,8 @@ open class Realm : Plugin<Project> {
                     // minimum version compatible with https://developer.android.com/studio/releases/gradle-plugin-api-updates#support_for_transformations_based_on_whole_program_analysis
                     logger.debug("Realm Plugin used with AGP version: ${version.major}.${version.minor}.")
                 }
-                version >= SimpleAGPVersion(4, 2) -> {
-                    throw GradleException("Realm Plugin used with incompatible AGP version: ${version.major}.${version.minor}. You should consider using a Realm-Java v10.11.0 or lower. Or migrate your project to use AGP 7.4 or newer.")
-                }
                 else -> {
-                    throw GradleException("Android Gradle Plugin $version is not supported")
+                    throw GradleException("Android Gradle Plugin $version is not supported. Upgrade to Realm Java `10.15.0` or later.")
                 }
             }
         }
