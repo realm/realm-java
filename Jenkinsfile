@@ -7,9 +7,9 @@ import groovy.json.JsonOutput
 // CONSTANTS
 
 // Branches from which we release SNAPSHOT's. Only release branches need to run on actual hardware.
-releaseBranches = ['main', 'next-major', 'support-new-datatypes', 'releases']
+releaseBranches = ['main', 'next-major', 'support-new-datatypes', 'releases', 'release/transformer-api' ]
 // Branches that are "important", so if they do not compile they will generate a Slack notification
-slackNotificationBranches = [ 'main', 'releases', 'next-major', 'support-new-datatypes' ]
+slackNotificationBranches = [ 'main', 'releases', 'next-major', 'support-new-datatypes', 'release/transformer-api' ]
 // WARNING: Only set to `false` as an absolute last resort. Doing this will disable all integration
 // tests.
 enableIntegrationTests = true
@@ -321,6 +321,7 @@ def runBuild(buildFlags, instrumentationTestTarget) {
           backgroundPid = startLogCatCollector()
           forwardAdbPorts()
           gradle('realm', "${instrumentationTestTarget} ${buildFlags}")
+          gradle('examples', ":unitTestExample:connectedDebugAndroidTest")
         } finally {
           stopLogCatCollector(backgroundPid)
           storeJunitResults 'realm/realm-library/build/outputs/androidTest-results/connected/**/TEST-*.xml'

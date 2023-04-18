@@ -26,7 +26,11 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         Realm.init(this);
-        RealmConfiguration configuration = new RealmConfiguration.Builder().deleteRealmIfMigrationNeeded().build();
+        RealmConfiguration configuration = new RealmConfiguration.Builder()
+                .deleteRealmIfMigrationNeeded()
+                .allowWritesOnUiThread(true)
+                .allowQueriesOnUiThread(true)
+                .build();
         Realm.setDefaultConfiguration(configuration);
     }
 }

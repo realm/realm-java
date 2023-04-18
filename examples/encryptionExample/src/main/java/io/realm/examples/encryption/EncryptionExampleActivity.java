@@ -52,6 +52,8 @@ public class EncryptionExampleActivity extends Activity {
 
         RealmConfiguration realmConfiguration = new RealmConfiguration.Builder()
                 .encryptionKey(key)
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
                 .build();
 
         // Start with a clean slate every time

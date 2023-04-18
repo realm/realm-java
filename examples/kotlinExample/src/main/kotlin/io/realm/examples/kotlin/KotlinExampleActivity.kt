@@ -22,6 +22,7 @@ import android.util.Log
 import android.widget.LinearLayout
 import android.widget.TextView
 import io.realm.Realm
+import io.realm.RealmConfiguration
 import io.realm.Sort
 import io.realm.examples.kotlin.model.Cat
 import io.realm.examples.kotlin.model.Dog
@@ -45,6 +46,13 @@ class KotlinExampleActivity : Activity() {
 
         rootLayout = findViewById(R.id.container)
         rootLayout.removeAllViews()
+
+        Realm.setDefaultConfiguration(
+            RealmConfiguration.Builder()
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
+                .build()
+        )
 
         // Open the realm for the UI thread.
         realm = Realm.getDefaultInstance()

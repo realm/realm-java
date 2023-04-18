@@ -17,8 +17,8 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim()
@@ -44,4 +44,10 @@ publishing {
 java {
     withSourcesJar()
     withJavadocJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+javadoc {
+    options.encoding = 'UTF-8'
 }

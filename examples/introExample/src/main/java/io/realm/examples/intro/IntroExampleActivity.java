@@ -28,6 +28,7 @@ import java.util.Arrays;
 
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.examples.intro.model.Cat;
@@ -66,7 +67,10 @@ public class IntroExampleActivity extends Activity {
         Realm.deleteRealm(Realm.getDefaultConfiguration());
 
         // Create the Realm instance
-        realm = Realm.getDefaultInstance();
+        RealmConfiguration build = new RealmConfiguration.Builder()
+                .allowWritesOnUiThread(true)
+                .allowQueriesOnUiThread(true).build();
+        realm = Realm.getInstance(build);
 
         // Asynchronous queries are evaluated on a background thread,
         // and passed to the registered change listener when it's done.

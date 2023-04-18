@@ -5,7 +5,7 @@ import org.gradle.api.internal.project.ProjectInternal
 buildscript {
     def properties = new Properties()
     properties.load(new FileInputStream("${rootDir}/../dependencies.list"))
-
+    ext.kotlin_version = properties.get('KOTLIN')
     repositories {
         jcenter()
         maven {
@@ -15,10 +15,12 @@ buildscript {
     dependencies {
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:${properties.get('BUILD_INFO_EXTRACTOR_GRADLE')}"
         classpath "io.github.gradle-nexus:publish-plugin:${properties.get("GRADLE_NEXUS_PLUGIN")}"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
-apply plugin: 'groovy-gradle-plugin'
+apply plugin: 'kotlin'
+apply plugin: 'java-gradle-plugin'
 apply plugin: 'maven-publish'
 
 def props = new Properties()
@@ -33,8 +35,8 @@ repositories {
     jcenter()
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 11
+targetCompatibility = 11
 
 group = 'io.realm'
 version = file("${projectDir}/../version.txt").text.trim()
@@ -78,8 +80,8 @@ dependencies {
 }
 
 task generateVersionClass(type: Copy) {
-    from 'src/main/templates/Version.java'
-    into 'build/generated-src/main/java/io/realm'
+    from 'src/main/templates/Version.kt'
+    into 'build/generated-src/main/kotlin/io/realm'
     filter(ReplaceTokens, tokens: [version: version])
     outputs.upToDateWhen { false }
 }
@@ -88,12 +90,12 @@ task generateVersionClass(type: Copy) {
 sourceSets {
     main {
         java {
-            srcDir 'build/generated-src/main/java'
+            srcDirs += ['build/generated-src/main/kotlin']
         }
     }
 }
 
-compileJava.dependsOn generateVersionClass
+compileKotlin.dependsOn generateVersionClass
 
 apply from: "${rootDir}/../mavencentral-publications.gradle"
 apply from: "${rootDir}/../mavencentral-publish.gradle"

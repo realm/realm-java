@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.examples.unittesting.model.Person;
 
@@ -43,7 +44,12 @@ public class ExampleActivity extends AppCompatActivity {
         rootLayout.removeAllViews();
 
         // Open the default Realm for the UI thread.
-        realm = Realm.getDefaultInstance();
+        RealmConfiguration conf = new RealmConfiguration
+                .Builder()
+                .allowWritesOnUiThread(true)
+                .allowQueriesOnUiThread(true)
+                .build();
+        realm = Realm.getInstance(conf);
 
         // Clean up from previous run
         cleanUp();

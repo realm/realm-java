@@ -33,7 +33,7 @@ import java.util.*
 class ComputerIdentifierGenerator {
     companion object {
         private const val UNKNOWN = "unknown"
-        private val OS: String = System.getProperty("os.name").toLowerCase()
+        private val OS: String = System.getProperty("os.name").lowercase(Locale.getDefault())
         private val isWindows: Boolean = OS.contains("win")
         private val isMac: Boolean = OS.contains("mac")
         private val isLinux: Boolean = OS.contains("inux")
