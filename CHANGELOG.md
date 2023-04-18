@@ -1,13 +1,9 @@
-This branch tracks the Realm Java SDK release with support for Android Gradle Plugin version 7.4 and
-newer. For releases supporting the current Android Gradle Plugin (7.3.x and below) please refer to 
-the main release [CHANGELOG.md](https://github.com/realm/realm-java/blob/releases/CHANGELOG.md).
-
-## 10.14.1-transformer-api (YYYY-MM-DD)
-
-This release will bump the Realm file format from version 22 to 23. Opening a file with an older format will automatically upgrade it. Downgrading to a previous file format is not possible.
+## 10.15.0 (YYYY-MM-DD)
 
 ### Breaking Changes
-* None.
+* Minimum version of Android Gradle Plugin has been raised to 7.4.
+* Minimum version of Java has been raised to 11.
+* Minimum supported version of Gradle has been raised to 7.5.
 
 ### Enhancements
 * None.
@@ -18,7 +14,7 @@ This release will bump the Realm file format from version 22 to 23. Opening a fi
 ### Compatibility
 * File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
 * APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
-* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+* Realm Studio 13.0.0 or above is required to open Realms created by this version.
 
 ### Internal
 * None.
@@ -34,6 +30,35 @@ This release will bump the Realm file format from version 22 to 23. Opening a fi
 ### Enhancements
 * Updated OpenSSL from 1.1.1n to 3.0.8. 
 * Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
+* Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
+* Realm will now continuously track and reduce the size of the Realm file when it is in use rather that only when opening the file with Configuration.compactOnLaunch enabled. (Core Issue [#5754](https://github.com/realm/realm-core/issues/5754))
+* Multiple processes can now access the same encrypted Realm instead of throwing `Encrypted interprocess sharing is currently unsupported`. (Core Issue [#1845](https://github.com/realm/realm-core/issues/1845))
+
+### Fixed
+* Set<Mixed> consider string and binary data equivalent. This could cause the client to be inconsistent with the server if a string and some binary data with equivalent content was inserted from Atlas. ([#4860](https://github.com/realm/realm-core/issues/4860), since v11.0.0)
+* Fixed wrong assertion on query error that could result in a crash. ([#6038](https://github.com/realm/realm-core/issues/6038), since v11.7.0)
+* Fixed a bug that would result in `RealmDictionary` not being able to find `double` values due not taking the precision of the input parameter into consideration when using `RealmDictionary.contains`.
+* Not possible to open an encrypted file on a device with a page size bigger than the one on which the file was produced. ([#8030](https://github.com/realm/realm-swift/issues/8030), since v12.11.0)
+* Fix no notification for write transaction that contains only change to backlink property. ([#4994](https://github.com/realm/realm-core/issues/4994), since v11.4.1)
+
+### Compatibility
+* File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 13.9.0, commit 063927de66f79a0afffbbe36c0bb14d27deba8f2.
+
+
+## 10.14.0 (2023-04-13)
+
+This release will bump the Realm file format from version 22 to 23. Opening a file with an older format will automatically upgrade it. Downgrading to a previous file format is not possible.
+
+### Breaking Changes
+* [RealmApp] As a result of a refactor on the some error codes and categories have been deleted and new ones have been added, see PR for more details. ([#7760](https://github.com/realm/realm-java/pull/7760))
+
+### Enhancements
+* Updated OpenSSL from 1.1.1n to 3.0.8. 
 * Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
 * Realm will now continuously track and reduce the size of the Realm file when it is in use rather that only when opening the file with Configuration.compactOnLaunch enabled. (Core Issue [#5754](https://github.com/realm/realm-core/issues/5754))
 * Multiple processes can now access the same encrypted Realm instead of throwing `Encrypted interprocess sharing is currently unsupported`. (Core Issue [#1845](https://github.com/realm/realm-core/issues/1845))
@@ -110,7 +135,44 @@ This release will bump the Realm file format from version 22 to 23. Opening a fi
 * Thanks to @pstavytskyi-turo for adding support for Gradle configuration cache. (Issue [#7299](https://github.com/realm/realm-java/issues/7299))
 
 
+## 10.13.1 (2023-03-16)
+
+### Enhancements
+* None.
+
+### Fixed
+* Added support for automatic handling of orphan embedded objects after migrating regular object properties to become embedded objects. (Issue [#7769](https://github.com/realm/realm-java/issues/7769)).
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* None.
+
+
 ## 10.13.0-transformer-api (2012-12-12)
+
+### Enhancements
+* [RealmApp] Added option for working with Device Sync from an internal network. `SyncConfiguration.trustedRootCA(assetPath)` can embed a custom certificate in the app that will be used by Sync. (Issue [#7739](https://github.com/realm/realm-java/pull/7739)).
+* [RealmApp] Added option for working with Device Sync from an internal network. `SyncConfiguration.disableSSLVerification()` makes it possible to turn off local SSL validation. (Issue [#7739](https://github.com/realm/realm-java/pull/7739)).
+
+### Fixed
+* Fixed database corruption and encryption issues on apple platforms. (Issue [#5076](https://github.com/realm/realm-js/issues/5076))
+* [Sync] Bootstraps will not be applied in a single write transaction - they will be applied 1MB of changesets at a time. (Issue [#5999](https://github.com/realm/realm-core/pull/5999)).
+* [Sync] Fixed a race condition which could result in operation cancelled errors being delivered to `Realm.open` rather than the actual sync error which caused things to fail. (Issue [#5968](https://github.com/realm/realm-core/pull/5968)).
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Updated to Realm Core 12.13.0, commit b77443ca7fa25407869ca537bf3ae912b1427bff.
+
+
+## 10.13.0 (2022-12-05)
 
 ### Enhancements
 * [RealmApp] Added option for working with Device Sync from an internal network. `SyncConfiguration.trustedRootCA(assetPath)` can embed a custom certificate in the app that will be used by Sync. (Issue [#7739](https://github.com/realm/realm-java/pull/7739)).
@@ -134,6 +196,25 @@ This release will bump the Realm file format from version 22 to 23. Opening a fi
 
 ### Breaking Changes
 * Only works with Android Gradle Plugin 7.4 or newer. (Issue [#7714](https://github.com/realm/realm-java/issues/7714))
+
+### Enhancements
+* [RealmApp] Introduced `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client, and discards any unsynced data if not possible. This is now the default client reset policy if not explicitly set in the `SyncConfiguration`.
+* [RealmApp] Introduced `SyncSession.RecoverUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client and will revert to manual client reset if not possible.
+* [RealmApp] Flexible sync client reset is no longer limited to `ManuallyRecoverChangesStrategy`, it now supports all available strategies: `RecoverOrDiscardUnsyncedChangesStrategy`, `RecoverUnsyncedChangesStrategy`, `DiscardUnsyncedChangesStrategy` and `ManuallyRecoverChangesStrategy`.
+
+### Fixed
+* Now queries can point to fields with query language-reserved words like 'desc', 'sort', 'distinct', etc. Issue [#7705](https://github.com/realm/realm-java/issues/7705)
+
+### Compatibility
+* File format: Generates Realms with format v22. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 11.0.0-alpha.0 or above is required to open Realms created by this version.
+
+### Internal
+* Update to Realm Core 12.6.0, commit: 5da7744b4056ad185c025bccf0924f17f73f7a91.
+
+
+## 10.12.0 (2022-09-22)
 
 ### Enhancements
 * [RealmApp] Introduced `SyncSession.RecoverOrDiscardUnsyncedChangesStrategy`, an alternative automatic client reset strategy that tries to automatically recover any unsynced data from the client, and discards any unsynced data if not possible. This is now the default client reset policy if not explicitly set in the `SyncConfiguration`.
