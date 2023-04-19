@@ -21,7 +21,7 @@ KOTLIN=1.6.21
 KOTLIN_COROUTINES=1.6.0
 
 # Common classpath dependencies
-gradle=7.3.3
+gradle=7.5
 ndkVersion=23.1.7779620
 BUILD_INFO_EXTRACTOR_GRADLE=4.17.0
 GRADLE_NEXUS_PLUGIN=1.0.0

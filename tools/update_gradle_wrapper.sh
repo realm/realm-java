@@ -18,7 +18,7 @@ read -n1 -r -p "Press any key to continue..." key
 for i in $(find $(pwd) -type f -name gradlew); do
     cd $(dirname $i)
     pwd
-    ./gradlew wrapper --gradle-version=$GRADLE
+    ./gradlew wrapper --gradle-version=$GRADLE --distribution-type all
 done
 
 cd $HERE
