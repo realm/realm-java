@@ -9,7 +9,7 @@
 * None.
 
 ### Fixed
-* None.
+* Building with Realm on Java 17 would fail with `java.lang.IllegalAccessError: class io.realm.processor.Utils (in unnamed module @0x5316ec7f) cannot access class com.sun.tools.javac.code.Symbol$ClassSymbol`. (Issue [#7799](https://github.com/realm/realm-java/issues/7799))
 
 ### Compatibility
 * File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.

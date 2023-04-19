@@ -82,3 +82,14 @@ tasks.withType(JavaCompile) {
 tasks.withType(Test) {
     systemProperty "file.encoding", "UTF-8"
 }
+
+// Allow Java 17 to access internal compiler API's
+// See https://openjdk.org/jeps/261#Breaking-encapsulation for more information
+jar {
+    manifest {
+        attributes(
+            "Manifest-Version": "2.0",
+            "Add-Opens": "jdk.compiler/com.sun.tools.javac.code"
+        )
+    }
+}
