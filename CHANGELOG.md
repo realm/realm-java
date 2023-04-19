@@ -1,4 +1,4 @@
-## 10.15.0 (YYYY-MM-DD)
+## 10.15.0 (2023-04-19)
 
 ### Breaking Changes
 * Minimum version of Android Gradle Plugin has been raised to 7.4.
