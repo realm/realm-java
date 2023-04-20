@@ -13,8 +13,8 @@ dependencies {
     implementation "org.mongodb:bson:${properties.getProperty('BSON_DEPENDENCY')}"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     testImplementation files('../realm-library/build/intermediates/aar_main_jar/baseRelease/classes.jar') // Java projects cannot depend on AAR files
-    testImplementation group:'junit', name:'junit', version:'4.12'
-    testImplementation group:'com.google.testing.compile', name:'compile-testing', version:'0.19'
+    testImplementation group:'junit', name:'junit', version:'4.13.1'
+    testImplementation group:'com.google.testing.compile', name:'compile-testing', version:'0.21.0'
     testImplementation files(file("${System.env.ANDROID_HOME}/platforms/android-29/android.jar"))
 }
 
@@ -81,15 +81,11 @@ tasks.withType(JavaCompile) {
 }
 tasks.withType(Test) {
     systemProperty "file.encoding", "UTF-8"
-}
+    // Work-around for https://github.com/google/compile-testing/issues/222
+    jvmArgs(
+        "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+        "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+        "--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
 
-// Allow Java 17 to access internal compiler API's
-// See https://openjdk.org/jeps/261#Breaking-encapsulation for more information
-jar {
-    manifest {
-        attributes(
-            "Manifest-Version": "2.0",
-            "Add-Opens": "jdk.compiler/com.sun.tools.javac.code"
-        )
-    }
+    )
 }

@@ -18,11 +18,6 @@
 
 package io.realm.processor
 
-import com.sun.tools.javac.code.Attribute
-import com.sun.tools.javac.code.Scope
-import com.sun.tools.javac.code.Symbol
-import com.sun.tools.javac.code.Type
-import com.sun.tools.javac.util.Pair
 import io.realm.annotations.RealmNamingPolicy
 import io.realm.processor.nameconverter.*
 import javax.annotation.processing.Messager
@@ -39,17 +34,6 @@ import javax.tools.Diagnostic
  * Utility methods working with the Realm processor.
  */
 object Utils {
-
-    // API for retrieving symbols differs between JDK 8 and 9, so retrieve symbol information by
-    // reflection
-    private val classSymbolMembersMethod = Symbol.ClassSymbol::class.java.getMethod("members")
-    private val scopeElementsMethod = try {
-        // JDK 8
-        Scope::class.java.getMethod("getElements")
-    } catch (e: NoSuchMethodException) {
-        // JDK 9+
-        Scope::class.java.getMethod("getSymbols")
-    }
 
     private lateinit var typeUtils: Types
     private lateinit var messager: Messager
@@ -662,23 +646,21 @@ object Utils {
 
     private fun TypeMirror.isEmbedded() : Boolean {
         var isEmbedded = false
-
-        if (this is Type.ClassType) {
-            val declarationAttributes: com.sun.tools.javac.util.List<Attribute.Compound>? = tsym.metadata?.declarationAttributes
-            if (declarationAttributes != null) {
-                loop@for (attribute: Attribute.Compound in declarationAttributes) {
-                    if (attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.RealmClass") {
-                        for (pair: Pair<Symbol.MethodSymbol, Attribute> in attribute.values) {
-                            if (pair.fst.name.toString() == "embedded") {
-                                isEmbedded = pair.snd.value as Boolean
-                                break@loop
-                            }
+        if (this.kind === TypeKind.DECLARED) {
+            val declaredType: DeclaredType = this as DeclaredType
+            val typeElement = declaredType.asElement() as TypeElement
+            isEmbedded = typeElement.annotationMirrors.firstOrNull { annotation: AnnotationMirror ->
+                val annotationType = annotation.annotationType
+                if (annotationType.asElement().toString() == "io.realm.annotations.RealmClass") {
+                    for (entry: Map.Entry<ExecutableElement?, AnnotationValue?> in annotation.elementValues) {
+                        if (entry.key?.simpleName.toString() == "embedded") {
+                            return (entry.value?.value == true)
                         }
                     }
                 }
-            }
+                return false
+            } != null
         }
-
         return isEmbedded
     }
 
@@ -695,15 +677,18 @@ object Utils {
     }
 
     private fun TypeMirror.hasPrimaryKey(): Boolean {
-        if (this is Type.ClassType) {
-            val scope = classSymbolMembersMethod.invoke(tsym)
-            val elements: Iterable<Symbol> = scopeElementsMethod.invoke(scope) as Iterable<Symbol>
-            val symbols = elements.filter { it is Symbol.VarSymbol }
-            return symbols.any {
-                it.declarationAttributes.any { attribute ->
-                    attribute.type.tsym.qualifiedName.toString() == "io.realm.annotations.PrimaryKey"
-                }
-            }
+        if (this.kind === TypeKind.DECLARED) {
+            val declaredType = this as DeclaredType
+            val typeElement = declaredType.asElement() as TypeElement
+            val classElements: MutableList<out Element> = typeElement.enclosedElements
+            return classElements
+                .filter { el: Element -> el.kind == ElementKind.FIELD}
+                .firstOrNull { el: Element ->
+                    return el.annotationMirrors.firstOrNull { annotation: AnnotationMirror ->
+                        val annotationType: DeclaredType = annotation.annotationType
+                        annotationType.asElement().toString() == "io.realm.annotations.PrimaryKey"
+                    } != null
+                } != null
         }
         return false
     }
