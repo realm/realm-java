@@ -649,18 +649,17 @@ object Utils {
         if (this.kind === TypeKind.DECLARED) {
             val declaredType: DeclaredType = this as DeclaredType
             val typeElement = declaredType.asElement() as TypeElement
-            val annotations: MutableList<out AnnotationMirror> = typeElement.annotationMirrors
-            for (annotation: AnnotationMirror in annotations) {
+            isEmbedded = typeElement.annotationMirrors.firstOrNull { annotation: AnnotationMirror ->
                 val annotationType = annotation.annotationType
                 if (annotationType.asElement().toString() == "io.realm.annotations.RealmClass") {
                     for (entry: Map.Entry<ExecutableElement?, AnnotationValue?> in annotation.elementValues) {
                         if (entry.key?.simpleName.toString() == "embedded") {
-                            isEmbedded = (entry.value?.value == true)
-                            break
+                            return (entry.value?.value == true)
                         }
                     }
                 }
-            }
+                return false
+            } != null
         }
         return isEmbedded
     }
@@ -682,17 +681,14 @@ object Utils {
             val declaredType = this as DeclaredType
             val typeElement = declaredType.asElement() as TypeElement
             val classElements: MutableList<out Element> = typeElement.enclosedElements
-            for (element: Element in classElements) {
-                if (element.kind === ElementKind.FIELD) {
-                    val annotations: MutableList<out AnnotationMirror> = element.annotationMirrors
-                    for (annotation: AnnotationMirror in annotations) {
+            return classElements
+                .filter { el: Element -> el.kind == ElementKind.FIELD}
+                .firstOrNull { el: Element ->
+                    return el.annotationMirrors.firstOrNull { annotation: AnnotationMirror ->
                         val annotationType: DeclaredType = annotation.annotationType
-                        if (annotationType.asElement().toString() == "io.realm.annotations.PrimaryKey") {
-                            return true
-                        }
-                    }
-                }
-            }
+                        annotationType.asElement().toString() == "io.realm.annotations.PrimaryKey"
+                    } != null
+                } != null
         }
         return false
     }
