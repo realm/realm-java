@@ -94,11 +94,7 @@ abstract class BuildTemplate(
                         // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
                         // `/`. It depends on how the jar file was created.
                         // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
-                        path
-                            .substring(
-                                startIndex = 0,
-                                endIndex = path.length - DOT_CLASS.length
-                            )
+                        path.substring(startIndex = 0, endIndex = path.length - DOT_CLASS.length)
                             .replace('/', '.')
                             .replace('\\', '.')
                     }

@@ -64,26 +64,29 @@ const val READ_TIMEOUT = 2000L;
 // Wrapper for storing data from org.gradle.api.Project as we cannot store a class variable to it
 // as that conflict with the Configuration Cache.
 data class ProjectMetaData(
-        val bootClassPath: Set<File>,
-        val usesKotlin: Boolean,
-        val targetType: String,
-        val targetSdk: String,
-        val minSdk: String,
-        val agpVersion: String,
-        val appId: String,
-        val gradleVersion: String,
-        val usesSync: Boolean,
-        val isGradleOffline: Boolean) {
+    val bootClassPath: Set<File>,
+    val usesKotlin: Boolean,
+    val targetType: String,
+    val targetSdk: String,
+    val minSdk: String,
+    val agpVersion: String,
+    val appId: String,
+    val gradleVersion: String,
+    val usesSync: Boolean,
+    val isGradleOffline: Boolean
+) {
 }
 
 /**
  * This class implements the Transform API provided by the Android Gradle plugin.
  */
-class RealmTransformer(private val metadata: ProjectMetaData,
-                       private val inputs: ListProperty<Directory>,
-                       private val allJars: ListProperty<RegularFile>,
-                       private val referencedInputs: ConfigurableFileCollection,
-                       private val output: RegularFileProperty) {
+class RealmTransformer(
+    private val metadata: ProjectMetaData,
+    private val inputs: ListProperty<Directory>,
+    private val allJars: ListProperty<RegularFile>,
+    private val referencedInputs: ConfigurableFileCollection,
+    private val output: RegularFileProperty
+) {
 
     private val analytics: RealmAnalytics? = try {
         val analytics = RealmAnalytics()
@@ -200,6 +203,7 @@ class RealmTransformer(private val metadata: ProjectMetaData,
                     inputs = inputs.get(),
                     incrementalInputChanges = inputChanges as IncrementalInputChanges
                 )
+
                 else -> FullBuild(
                     metadata = metadata,
                     allJars = allJars.get(),
@@ -237,10 +241,10 @@ class RealmTransformer(private val metadata: ProjectMetaData,
     }
 }
 
-abstract class ModifyClassesTask: DefaultTask() {
+abstract class ModifyClassesTask : DefaultTask() {
 
     @get:Classpath
-    abstract val fullRuntimeClasspath : ConfigurableFileCollection
+    abstract val fullRuntimeClasspath: ConfigurableFileCollection
 
     @get:InputFiles
     abstract val allJars: ListProperty<RegularFile>
@@ -286,24 +290,24 @@ abstract class ModifyClassesTask: DefaultTask() {
     @TaskAction
     fun taskAction(inputChanges: InputChanges) {
         val metadata = ProjectMetaData(
-                bootClassPath = bootClasspath.files,
-                usesKotlin = usesKotlin.get(),
-                targetType = targetType.get(),
-                targetSdk = targetSdk.get(),
-                minSdk = minSdk.get(),
-                agpVersion = agpVersion.get(),
-                appId = appId.get(),
-                gradleVersion = gradleVersion.get(),
-                usesSync = usesSync.get(),
-                isGradleOffline = offline.get(),
+            bootClassPath = bootClasspath.files,
+            usesKotlin = usesKotlin.get(),
+            targetType = targetType.get(),
+            targetSdk = targetSdk.get(),
+            minSdk = minSdk.get(),
+            agpVersion = agpVersion.get(),
+            appId = appId.get(),
+            gradleVersion = gradleVersion.get(),
+            usesSync = usesSync.get(),
+            isGradleOffline = offline.get(),
         )
 
         RealmTransformer(
-                metadata = metadata,
-                inputs = allDirectories,
-                allJars = allJars,
-                referencedInputs = fullRuntimeClasspath,
-                output = output,
+            metadata = metadata,
+            inputs = allDirectories,
+            allJars = allJars,
+            referencedInputs = fullRuntimeClasspath,
+            output = output,
         ).transform(inputChanges)
     }
 }
