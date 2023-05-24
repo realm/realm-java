@@ -30,10 +30,10 @@ import javassist.expr.FieldAccess
 class BytecodeModifier {
 
     companion object {
-
-        fun isModelField(field: CtField): Boolean {
-            return !field.hasAnnotation(Ignore::class.java) && !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers())
-        }
+        fun CtField.isModelField(): Boolean =
+            !hasAnnotation(Ignore::class.java) &&
+                    !Modifier.isTransient(modifiers) &&
+                    !Modifier.isStatic(modifiers)
 
         /**
          * Adds Realm specific accessors to a model class.
@@ -44,15 +44,15 @@ class BytecodeModifier {
         @JvmStatic
         fun addRealmAccessors(clazz: CtClass) {
             val methods: List<String> = clazz.declaredMethods.map { it.name }
-            clazz.declaredFields.forEach { field: CtField ->
-                if (isModelField(field)) {
+            clazz.declaredFields
+                .filter { it.isModelField() }
+                .forEach { field: CtField ->
                     if (!methods.contains("realmGet\$${field.name}")) {
                         clazz.addMethod(CtNewMethod.getter("realmGet\$${field.name}", field))
                     }
                     if (!methods.contains("realmSet\$${field.name}")) {
                         clazz.addMethod(CtNewMethod.setter("realmSet\$${field.name}", field))
                     }
-                }
             }
         }
 
@@ -63,26 +63,40 @@ class BytecodeModifier {
          * @param managedFields List of fields whose access should be replaced
          */
         @JvmStatic
-        fun useRealmAccessors(classPool: ClassPool, clazz: CtClass, managedFields: List<CtField>?) {
-            clazz.declaredBehaviors.forEach { behavior ->
-                logger.debug("    Behavior: ${behavior.name}")
-                if (
-                        (
-                                behavior is CtMethod &&
-                                        !behavior.name.startsWith("realmGet$") &&
-                                        !behavior.name.startsWith("realmSet$")
-                                ) || (
-                                behavior is CtConstructor
-                                )
-                ) {
-                    if (managedFields != null) {
-                        behavior.instrument(FieldAccessToAccessorConverterUsingList(managedFields, clazz, behavior))
-                    } else {
-                        behavior.instrument(FieldAccessToAccessorConverterUsingClassPool(classPool, clazz, behavior))
-                    }
+        fun useRealmAccessors(
+            classPool: ClassPool,
+            clazz: CtClass,
+            managedFields: List<CtField>? = null
+        ) {
+            val methodBehaviours = clazz.declaredBehaviors
+                .filterIsInstance<CtMethod>()
+                .filterNot { it.name.startsWith("realmGet$") }
+                .filterNot { it.name.startsWith("realmSet$") }
 
+            val constructorBehaviours = clazz.declaredBehaviors
+                .filterIsInstance<CtConstructor>()
+
+            (methodBehaviours + constructorBehaviours)
+                .forEach { behavior ->
+                    logger.debug("    Behavior: ${behavior.name}")
+                    if (managedFields != null) {
+                        behavior.instrument(
+                            FieldAccessToAccessorConverterUsingList(
+                                managedFields = managedFields,
+                                ctClass = clazz,
+                                behaviour = behavior
+                            )
+                        )
+                    } else {
+                        behavior.instrument(
+                            FieldAccessToAccessorConverterUsingClassPool(
+                                classPool = classPool,
+                                ctClass = clazz,
+                                behaviour = behavior
+                            )
+                        )
+                    }
                 }
-            }
         }
 
         /**
@@ -142,7 +156,7 @@ class BytecodeModifier {
                 val fieldName: String = fieldAccess.fieldName
                 if (fieldAccess.isReader) {
                     fieldAccess.replace("\$_ = $0.realmGet\$$fieldName();")
-                } else if (fieldAccess.isWriter()) {
+                } else if (fieldAccess.isWriter) {
                     fieldAccess.replace("\$0.realmSet\$$fieldName(\$1);")
                 }
             }
@@ -159,43 +173,41 @@ class BytecodeModifier {
 
         val realmObjectProxyInterface: CtClass = classPool.get("io.realm.internal.RealmObjectProxy")
 
+        private fun FieldAccess.classOrNull(): CtClass? = try { classPool.get(className) } catch (e: NotFoundException) { null }
+
         @Throws(CannotCompileException::class)
         override fun edit(fieldAccess: FieldAccess) {
             logger.debug("      Field being accessed: ${fieldAccess.className}.${fieldAccess.fieldName}")
 
-            val fieldAccessCtClass: CtClass? = try { classPool.get(fieldAccess.className) } catch (e: NotFoundException) { null }
-            if (fieldAccessCtClass != null && isRealmModelClass(fieldAccessCtClass) && isModelField(fieldAccess.field)) {
-                logger.debug("        Realm: Manipulating ${ctClass.simpleName}.${behaviour.name}(): ${fieldAccess.fieldName}")
-                logger.debug("        Methods: ${ctClass.declaredMethods}")
+            fieldAccess.classOrNull()?.let { fieldAccessCtClass ->
+                if (fieldAccessCtClass.isRealmModelClass() && fieldAccess.field.isModelField()) {
+                    logger.debug("        Realm: Manipulating ${ctClass.simpleName}.${behaviour.name}(): ${fieldAccess.fieldName}")
+                    logger.debug("        Methods: ${ctClass.declaredMethods}")
 
-                // make sure accessors are added, otherwise javassist will fail with
-                // javassist.CannotCompileException: [source error] realmGet$id() not found in 'foo.Model'
-                addRealmAccessors(fieldAccessCtClass)
+                    // make sure accessors are added, otherwise javassist will fail with
+                    // javassist.CannotCompileException: [source error] realmGet$id() not found in 'foo.Model'
+                    addRealmAccessors(fieldAccessCtClass)
 
-                val fieldName: String = fieldAccess . fieldName
-                if (fieldAccess.isReader) {
-                    fieldAccess.replace("\$_ = \$0.realmGet\$$fieldName();")
-                } else if (fieldAccess.isWriter) {
-                    fieldAccess.replace("\$0.realmSet\$$fieldName(\$1);")
-                }
-            }
-        }
-
-        fun isRealmModelClass(clazz: CtClass): Boolean {
-            return arrayOf(clazz).filter {
-                if (it.hasAnnotation(RealmClass::class.java)) {
-                    return true
-                } else {
-                    try {
-                        return it.superclass?.hasAnnotation(RealmClass::class.java) == true
-                    } catch (ignored: NotFoundException) {
-                        return false
+                    val fieldName: String = fieldAccess . fieldName
+                    if (fieldAccess.isReader) {
+                        fieldAccess.replace("\$_ = \$0.realmGet\$$fieldName();")
+                    } else if (fieldAccess.isWriter) {
+                        fieldAccess.replace("\$0.realmSet\$$fieldName(\$1);")
                     }
                 }
             }
-            .filter { !it.safeSubtypeOf(realmObjectProxyInterface) }
-            .any { it.name != "io.realm.RealmObject" }
         }
+
+        fun hasRealmClassAnnotation(superclass: CtClass?) = try {
+            superclass?.hasAnnotation(RealmClass::class.java) == true
+        } catch (ignored: NotFoundException) {
+            false
+        }
+
+        fun CtClass.isRealmModelClass(): Boolean =
+            name != "io.realm.RealmObject" &&
+                    (hasAnnotation(RealmClass::class.java) || hasRealmClassAnnotation(superclass)) &&
+                    safeSubtypeOf(realmObjectProxyInterface)
     }
 
 }

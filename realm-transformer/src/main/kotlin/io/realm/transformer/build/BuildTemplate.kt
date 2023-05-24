@@ -21,18 +21,15 @@ import javassist.CtClass
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.provider.ListProperty
 import java.io.File
 import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
-import java.util.jar.JarEntry
 import java.util.jar.JarFile
-import java.util.jar.JarOutputStream
 import java.util.regex.Pattern
 
-public const val DOT_CLASS = ".class"
-public const val DOT_JAR = ".jar"
+const val DOT_CLASS = ".class"
+const val DOT_JAR = ".jar"
 
 /**
  * Abstract class defining the structure of doing different types of builds.
@@ -40,20 +37,28 @@ public const val DOT_JAR = ".jar"
  */
 abstract class BuildTemplate(
     private val metadata: ProjectMetaData,
-    private val allJars: ListProperty<RegularFile>,
+    private val allJars: MutableList<RegularFile>,
     protected val outputProvider: FileSystem,
+    val inputs: MutableList<Directory>
 ) {
-    protected lateinit var inputs: ListProperty<Directory>
     protected lateinit var classPool: ManagedClassPool
-    protected val outputClassNames: MutableSet<String> = hashSetOf()
-    protected val outputReferencedClassNames: MutableSet<String> = hashSetOf()
-    protected val outputModelClasses: ArrayList<CtClass> = arrayListOf()
+    protected lateinit var outputClassNames: Set<String>
+    private lateinit var outputReferencedClassNames: Set<String>
+    protected lateinit var outputModelClasses: List<CtClass>
     protected val processedClasses = mutableMapOf<String, CtClass>()
+
+    protected fun File.categorize(dirPath: String): String =
+        absolutePath
+            .substring(
+                startIndex = dirPath.length + 1,
+                endIndex = absolutePath.length - DOT_CLASS.length
+            )
+            .replace(File.separatorChar, '.')
 
     /**
      * Find all the class names available for transforms as well as all referenced classes.
      */
-    abstract fun prepareOutputClasses(inputs: ListProperty<Directory>)
+    abstract fun prepareOutputClasses()
 
     /**
      * Helper method for going through all `TransformInput` and sort classes into buckets of
@@ -65,11 +70,31 @@ abstract class BuildTemplate(
      * @param jaFiles the set of files found in jar files. These will never be transformed. This should
      * already be done when creating the jar file.
      */
-    protected abstract fun categorizeClassNames(inputs: ListProperty<Directory>,
-                                          directoryFiles: MutableSet<String>)
+    protected abstract fun categorizeClassNames(): Set<String>
 
-    protected abstract fun categorizeClassNames(referencedInputs: ConfigurableFileCollection,
-                                                jarFiles: MutableSet<String>)
+    private fun categorizeClassNames(referencedInputs: ConfigurableFileCollection): Set<String> =
+        referencedInputs.flatMap { file ->
+            JarFile(file).use { jarFile ->
+                jarFile.entries()
+                    .toList()
+                    .filter { jarEntry ->
+                        !jarEntry.isDirectory && jarEntry.name.endsWith(DOT_CLASS)
+                    }
+                    .map { jarEntry ->
+                        val path: String = jarEntry.name
+                        // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
+                        // `/`. It depends on how the jar file was created.
+                        // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
+                        path
+                            .substring(
+                                startIndex = 0,
+                                endIndex = path.length - DOT_CLASS.length
+                            )
+                            .replace('/', '.')
+                            .replace('\\', '.')
+                    }
+            }// Crash transformer if this fails to close
+        }.toSet()
 
     /**
      * Returns `true` if this build contains no relevant classes to transform.
@@ -80,7 +105,7 @@ abstract class BuildTemplate(
 
 
     fun prepareReferencedClasses(referencedInputs: ConfigurableFileCollection) {
-        categorizeClassNames(referencedInputs, outputReferencedClassNames) // referenced files
+        outputReferencedClassNames = categorizeClassNames(referencedInputs) // referenced files
 
         // Create and populate the Javassist class pool
         this.classPool = ManagedClassPool(inputs, referencedInputs)
@@ -125,51 +150,55 @@ abstract class BuildTemplate(
     abstract fun transformDirectAccessToModelFields()
 
     fun copyProcessedClasses() {
-        for ((fqname: String, clazz: CtClass) in processedClasses) {
-            val path = outputProvider.getPath("${fqname.replace('.', '/')}.class")
-            Files.createDirectories(path.parent)
-            Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream ->
-                stream.write(clazz.toBytecode())
-                stream.close()
-            }
+        processedClasses.forEach { (fqName: String, clazz: CtClass) ->
+            outputProvider.addEntry(
+                "${fqName.replace('.', '/')}.class",
+                clazz.toBytecode()
+            )
         }
     }
 
     fun copyResourceFiles() {
-        inputs.get().forEach { directory: Directory ->
+        inputs.forEach { directory: Directory ->
             val dirName = directory.asFile.absolutePath + File.separator
-            directory.asFile.walk().filter(File::isFile).forEach { file ->
-                if (!file.absolutePath.endsWith(DOT_CLASS)) {
+            directory.asFile.walk().filter(File::isFile)
+                .filterNot { it.absolutePath.endsWith(DOT_CLASS) }
+                .forEach { file ->
                     val pathWithoutPrefix = file.absolutePath.removePrefix(dirName)
                     // We need to transform platform paths into consistent zip entry paths
                     // https://github.com/realm/realm-java/issues/7757
                     val zipEntryPath = pathWithoutPrefix.replace(File.separatorChar, '/')
 
-                    val path = outputProvider.getPath(zipEntryPath)
-                    Files.createDirectories(path.parent)
-                    Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream ->
-                        stream.write(file.readBytes())
-                        stream.close()
-                    }
+                    outputProvider.addEntry(zipEntryPath, file.readBytes())
                 }
-            }
         }
-        allJars.get().forEach { file ->
-            val jarFile = JarFile(file.asFile)
-            for (jarEntry: JarEntry in jarFile.entries()) {
-                val path = outputProvider.getPath(jarEntry.name)
-                Files.createDirectories(path.parent)
-                Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream->
-                    jarFile.getInputStream(jarEntry).use {
-                        stream.write(it.readBytes())
+        allJars.forEach { file ->
+            JarFile(file.asFile).use { jarFile ->
+                jarFile.entries().toList()
+                    .forEach { jarEntry ->
+                        val jarBytes = jarFile.getInputStream(jarEntry).use {
+                            it.readBytes()
+                        }
+
+                        outputProvider.addEntry(
+                            jarEntry.name,
+                            jarBytes
+                        )
                     }
-                    stream.close()
-                }
             }
-            jarFile.close()
         }
 
         classPool.close()
+    }
+
+    private fun FileSystem.addEntry(entryPath: String, input: ByteArray) {
+        getPath(entryPath).let { path ->
+            Files.createDirectories(path.parent)
+            Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream ->
+                stream.write(input)
+                stream.close()
+            }
+        }
     }
 
     /**
@@ -190,10 +219,6 @@ abstract class BuildTemplate(
         }
     }
 
-    fun getOutputModelClasses(): Set<CtClass> {
-        return outputModelClasses.toSet()
-    }
-
-    protected abstract fun findModelClasses(classNames: Set<String>): Collection<CtClass>
+    protected abstract fun findModelClasses(classNames: Set<String>): List<CtClass>
 
 }

@@ -23,117 +23,78 @@ import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
 import javassist.NotFoundException
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.provider.ListProperty
 import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.execution.history.changes.IncrementalInputChanges
 import java.io.File
 import java.nio.file.FileSystem
-import java.util.jar.JarFile
 import kotlin.io.path.deleteIfExists
 
 class IncrementalBuild(
     metadata: ProjectMetaData,
-    allJars: ListProperty<RegularFile>,
+    allJars: MutableList<RegularFile>,
     outputProvider: FileSystem,
-    private val incrementalInputChanges: IncrementalInputChanges
+    private val incrementalInputChanges: IncrementalInputChanges,
+    inputs: MutableList<Directory>
 ) : BuildTemplate(
     metadata = metadata,
     allJars = allJars,
-    outputProvider = outputProvider
+    outputProvider = outputProvider,
+    inputs = inputs
 ) {
     private fun removeDeletedEntries() {
-        // Remove all deleted entries
-        inputs.get().forEach { directory ->
+        inputs.forEach { directory ->
             val dirPath: String = directory.asFile.absolutePath
 
-            incrementalInputChanges.allFileChanges.filter {
-                it as DefaultFileChange
-                it.isRemoved
-            }.forEach { fileDetails ->
-                fileDetails as DefaultFileChange
-                // The file was modified
-
-                val filePath: String = fileDetails.file.absolutePath
-                if (filePath.endsWith(DOT_CLASS)) {
-                    val path =
-                        filePath.substring(dirPath.length + 1, filePath.length - DOT_CLASS.length)
-
-                    outputProvider.getPath(path).deleteIfExists() // TODO Validate it deletes stuff
+            incrementalInputChanges.allFileChanges
+                .filter { details ->
+                    details as DefaultFileChange
+                    details.isRemoved
                 }
-            }
+                .map { it.file }
+                .filter { file -> file.absolutePath.endsWith(DOT_CLASS) }
+                .map { it.categorize(dirPath) }
+                .forEach { path ->
+                    // TODO Validate it deletes stuff
+                    logger.debug("Deleting output entry: $path")
+                    outputProvider.getPath(path).deleteIfExists()
+                }
         }
     }
 
-    override fun prepareOutputClasses(inputs: ListProperty<Directory>) {
-        this.inputs = inputs;
-        removeDeletedEntries()
-        categorizeClassNames(inputs, outputClassNames)
+    override fun prepareOutputClasses() {
+        removeDeletedEntries() // TODO move around
+        outputClassNames = categorizeClassNames()
+
         logger.debug("Incremental build. Files being processed: ${outputClassNames.size}.")
         logger.debug("Incremental files: ${outputClassNames.joinToString(",")}")
     }
 
-    override fun categorizeClassNames(
-        inputs: ListProperty<Directory>,
-        directoryFiles: MutableSet<String>
-    ) {
+    override fun categorizeClassNames():Set<String> {
+        // TODO Maybe extract this
         val fileChangeMap = incrementalInputChanges
             .allFileChanges.associateBy { details ->
                 details as DefaultFileChange
                 details.path
             }
 
-        inputs.get().forEach { directory ->
+        return inputs.flatMap { directory ->
             val dirPath: String = directory.asFile.absolutePath
+
             directory.asFile.walk()
                 .filter(File::isFile)
                 .filter { file -> file.absolutePath in fileChangeMap }
-                .forEach { file ->
-                    // The file was modified
-                    val filePath: String = file.absolutePath
-                    if (filePath.endsWith(DOT_CLASS)) {
-                        val className = filePath
-                            .substring(dirPath.length + 1, filePath.length - DOT_CLASS.length)
-                            .replace(File.separatorChar, '.')
-                        directoryFiles.add(className)
-                    }
-                }
-        }
-    }
-
-    override fun categorizeClassNames(
-        referencedInputs: ConfigurableFileCollection,
-        jarFiles: MutableSet<String>
-    ) {
-        referencedInputs.forEach {
-            val jarFile = JarFile(it)
-            jarFile.entries()
-                .toList()
-                .filter {
-                    !it.isDirectory && it.name.endsWith(DOT_CLASS)
-                }
-                .forEach {
-                    val path: String = it.name
-                    // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
-                    // `/`. It depends on how the jar file was created.
-                    // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
-                    val className: String = path
-                        .substring(0, path.length - DOT_CLASS.length)
-                        .replace('/', '.')
-                        .replace('\\', '.')
-                    jarFiles.add(className)
-                }
-            jarFile.close() // Crash transformer if this fails
-        }
+                .filter { file -> file.absolutePath.endsWith(DOT_CLASS) }
+                .map { it.categorize(dirPath) }
+        }.toSet()
     }
 
     override fun filterForModelClasses(
         outputClassNames: Set<String>,
         outputReferencedClassNames: Set<String>
     ) {
-        outputModelClasses.addAll(findModelClasses(outputClassNames))
+        outputModelClasses = findModelClasses(outputClassNames)
     }
 
     override fun transformDirectAccessToModelFields() {
@@ -141,69 +102,12 @@ class IncrementalBuild(
         outputClassNames.forEach { className ->
             logger.debug("Modify accessors in class: $className")
             val ctClass: CtClass = classPool.getCtClass(className)
-            BytecodeModifier.useRealmAccessors(classPool, ctClass, null)
+            BytecodeModifier.useRealmAccessors(classPool, ctClass)
             processedClasses[className] = ctClass
         }
     }
 
-//    /**
-//     * Categorize the transform input into its two main categorizes: `directoryFiles` which are
-//     * source files in the current project and `jarFiles` which are source files found in jars.
-//     *
-//     * @param inputs set of input files
-//     * @param directoryFiles the set of files in directories getting compiled. These are candidates for the transformer.
-//     * @param jarFiles the set of files that are possible referenced but never transformed (required by JavaAssist).
-//     * @param isIncremental `true` if build is incremental.
-//     */
-//    override fun categorizeClassNames(inputs: Collection<TransformInput>,
-//                                      directoryFiles: MutableSet<String>,
-//                                      jarFiles: MutableSet<String>) {
-//        inputs.forEach {
-//            it.directoryInputs.forEach {
-//                val dirPath: String = it.file.absolutePath
-//
-//                it.changedFiles.entries.forEach {
-//                    if (it.value == Status.NOTCHANGED || it.value == Status.REMOVED) {
-//                        return@forEach
-//                    }
-//                    val filePath: String = it.key.absolutePath
-//                    if (filePath.endsWith(DOT_CLASS)) {
-//                        val className = filePath
-//                            .substring(dirPath.length + 1, filePath.length - DOT_CLASS.length)
-//                            .replace(File.separatorChar, '.')
-//                        directoryFiles.add(className)
-//                    }
-//                }
-//            }
-//
-//            it.jarInputs.forEach {
-//                if (it.status == Status.REMOVED) {
-//                    return@forEach
-//                }
-//
-//                val jarFile = JarFile(it.file)
-//                jarFile.entries()
-//                    .toList()
-//                    .filter {
-//                        !it.isDirectory && it.name.endsWith(DOT_CLASS)
-//                    }
-//                    .forEach {
-//                        val path: String = it.name
-//                        // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
-//                        // `/`. It depends on how the jar file was created.
-//                        // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
-//                        val className: String = path
-//                            .substring(0, path.length - DOT_CLASS.length)
-//                            .replace('/', '.')
-//                            .replace('\\', '.')
-//                        jarFiles.add(className)
-//                    }
-//                jarFile.close() // Crash transformer if this fails
-//            }
-//        }
-//    }
-
-    override fun findModelClasses(classNames: Set<String>): Collection<CtClass> {
+    override fun findModelClasses(classNames: Set<String>): List<CtClass> {
         val realmObjectProxyInterface: CtClass = classPool.get("io.realm.internal.RealmObjectProxy")
         // For incremental builds we need to determine if a class is a model class file
         // based on information in the file itself. This require checks that are only
@@ -216,19 +120,19 @@ class IncrementalBuild(
             // or their superclass has it (if extends RealmObject). The annotation processor
             // will have ensured the annotation is only present in these cases.
             .filter {
-                var result: Boolean
-                if (it.hasAnnotation(RealmClass::class.java)) {
-                    result = true
-                } else {
-                    try {
-                        result = it.superclass?.hasAnnotation(RealmClass::class.java) == true
-                    } catch (e: NotFoundException) {
-                        // Can happen if the super class is part of the `android.jar` which might
-                        // not have been loaded. In any case, any base class part of Android cannot
-                        // be a Realm model class.
-                        result = false
+                val result: Boolean =
+                    if (it.hasAnnotation(RealmClass::class.java)) {
+                        true
+                    } else {
+                        try {
+                            it.superclass?.hasAnnotation(RealmClass::class.java) == true
+                        } catch (e: NotFoundException) {
+                            // Can happen if the super class is part of the `android.jar` which might
+                            // not have been loaded. In any case, any base class part of Android cannot
+                            // be a Realm model class.
+                            false
+                        }
                     }
-                }
                 return@filter result
             }
             // Proxy classes are generated by the Realm Annotation Processor and might accidentally

@@ -28,7 +28,6 @@ import io.realm.transformer.ext.getMinSdk
 import io.realm.transformer.ext.getBootClasspath
 import io.realm.transformer.ext.getAppId
 import io.realm.transformer.ext.getAgpVersion
-import org.apache.tools.ant.taskdefs.Zip
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -49,17 +48,12 @@ import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
-import java.util.jar.JarEntry
-import java.util.jar.JarInputStream
 import java.util.jar.JarOutputStream
-import java.util.zip.ZipEntry
 
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
@@ -165,6 +159,19 @@ class RealmTransformer(private val metadata: ProjectMetaData,
         }
     }
 
+    // Checks if a JarFile exists, if not it creates an empty one.
+    private fun touchJarFile(jarFile: RegularFile) {
+        if (!jarFile.asFile.exists()) {
+            JarOutputStream(
+                BufferedOutputStream(
+                    FileOutputStream(
+                        output.get().asFile
+                    )
+                )
+            ).close()
+        }
+    }
+
     /**
      * Implements the transform algorithm. The heaviest part of the transform is loading the
      * {@code CtClass} from JavaAssist, so this should be avoided as much as possible.
@@ -178,24 +185,30 @@ class RealmTransformer(private val metadata: ProjectMetaData,
         val timer = Stopwatch()
         timer.start("Realm Transform time")
 
-        if (!output.get().asFile.exists()) {
-            // This creates the file so it can be later open with FileSystems.
-            JarOutputStream(
-                BufferedOutputStream(
-                    FileOutputStream(
-                        output.get().asFile
-                    )
-                )
-            ).close()
+        val jarFileOutput: FileSystem = output.get().let { jarFile ->
+            // Workaround to create the Jar if does not exist, as FileSystems fails to do so.
+            touchJarFile(jarFile)
+            FileSystems.newFileSystem(output.get().asFile.toPath(), null)
         }
 
-        val jarOutput = FileSystems.newFileSystem(output.get().asFile.toPath(), null)
-
         val build: BuildTemplate =
-            if (inputChanges.isIncremental) IncrementalBuild(metadata, allJars, jarOutput, inputChanges as IncrementalInputChanges)
-            else FullBuild(metadata, allJars, jarOutput)
+            when {
+                inputChanges.isIncremental -> IncrementalBuild(
+                    metadata = metadata,
+                    allJars = allJars.get(),
+                    outputProvider = jarFileOutput,
+                    inputs = inputs.get(),
+                    incrementalInputChanges = inputChanges as IncrementalInputChanges
+                )
+                else -> FullBuild(
+                    metadata = metadata,
+                    allJars = allJars.get(),
+                    outputProvider = jarFileOutput,
+                    inputs = inputs.get()
+                )
+            }
 
-        build.prepareOutputClasses(inputs)
+        build.prepareOutputClasses()
         timer.splitTime("Prepare output classes")
         if (build.hasNoOutput()) {
             // Abort transform as quickly as possible if no files where found for processing.
@@ -214,7 +227,7 @@ class RealmTransformer(private val metadata: ProjectMetaData,
         timer.splitTime("Copy processed classes")
         build.copyResourceFiles()
         timer.splitTime("Copy jar files")
-        jarOutput.close()
+        jarFileOutput.close()
         exitTransform(timer)
     }
 
