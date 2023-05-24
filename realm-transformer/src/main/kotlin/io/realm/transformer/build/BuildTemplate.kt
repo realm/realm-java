@@ -23,6 +23,9 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.ListProperty
 import java.io.File
+import java.nio.file.FileSystem
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
@@ -35,8 +38,11 @@ public const val DOT_JAR = ".jar"
  * Abstract class defining the structure of doing different types of builds.
  *
  */
-abstract class BuildTemplate(private val metadata: ProjectMetaData, private val allJars: ListProperty<RegularFile>, protected val outputProvider: JarOutputStream, val transform: RealmTransformer) {
-
+abstract class BuildTemplate(
+    private val metadata: ProjectMetaData,
+    private val allJars: ListProperty<RegularFile>,
+    protected val outputProvider: FileSystem,
+) {
     protected lateinit var inputs: ListProperty<Directory>
     protected lateinit var classPool: ManagedClassPool
     protected val outputClassNames: MutableSet<String> = hashSetOf()
@@ -120,9 +126,12 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
 
     fun copyProcessedClasses() {
         for ((fqname: String, clazz: CtClass) in processedClasses) {
-            outputProvider.putNextEntry(JarEntry("${fqname.replace('.', '/')}.class"))
-            outputProvider.write(clazz.toBytecode())
-            outputProvider.closeEntry()
+            val path = outputProvider.getPath("${fqname.replace('.', '/')}.class")
+            Files.createDirectories(path.parent)
+            Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream ->
+                stream.write(clazz.toBytecode())
+                stream.close()
+            }
         }
     }
 
@@ -135,20 +144,27 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
                     // We need to transform platform paths into consistent zip entry paths
                     // https://github.com/realm/realm-java/issues/7757
                     val zipEntryPath = pathWithoutPrefix.replace(File.separatorChar, '/')
-                    outputProvider.putNextEntry(JarEntry(zipEntryPath))
-                    outputProvider.write(file.readBytes())
-                    outputProvider.closeEntry()
+
+                    val path = outputProvider.getPath(zipEntryPath)
+                    Files.createDirectories(path.parent)
+                    Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream ->
+                        stream.write(file.readBytes())
+                        stream.close()
+                    }
                 }
             }
         }
         allJars.get().forEach { file ->
             val jarFile = JarFile(file.asFile)
             for (jarEntry: JarEntry in jarFile.entries()) {
-                outputProvider.putNextEntry(JarEntry(jarEntry.name))
-                jarFile.getInputStream(jarEntry).use {
-                    outputProvider.write(it.readBytes())
+                val path = outputProvider.getPath(jarEntry.name)
+                Files.createDirectories(path.parent)
+                Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream->
+                    jarFile.getInputStream(jarEntry).use {
+                        stream.write(it.readBytes())
+                    }
+                    stream.close()
                 }
-                outputProvider.closeEntry()
             }
             jarFile.close()
         }

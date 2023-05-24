@@ -18,7 +18,6 @@ package io.realm.transformer.build
 
 import io.realm.transformer.BytecodeModifier
 import io.realm.transformer.ProjectMetaData
-import io.realm.transformer.RealmTransformer
 import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
@@ -28,12 +27,19 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.provider.ListProperty
 import java.io.File
+import java.nio.file.FileSystem
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
 
-class FullBuild(metadata: ProjectMetaData, allJars: ListProperty<RegularFile>, outputProvider: JarOutputStream, transformer: RealmTransformer)
-    : BuildTemplate(metadata, allJars, outputProvider, transformer) {
-
+class FullBuild(
+    metadata: ProjectMetaData,
+    allJars: ListProperty<RegularFile>,
+    outputProvider: FileSystem
+) : BuildTemplate(
+    metadata = metadata,
+    allJars = allJars,
+    outputProvider = outputProvider
+) {
     private val allModelClasses: ArrayList<CtClass> = arrayListOf()
 
     override fun prepareOutputClasses(inputs: ListProperty<Directory>) {

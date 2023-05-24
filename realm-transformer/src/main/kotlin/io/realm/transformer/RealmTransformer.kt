@@ -22,14 +22,15 @@ import com.android.build.gradle.internal.publishing.AndroidArtifacts
 import io.realm.analytics.RealmAnalytics
 import io.realm.transformer.build.BuildTemplate
 import io.realm.transformer.build.FullBuild
+import io.realm.transformer.build.IncrementalBuild
 import io.realm.transformer.ext.getTargetSdk
 import io.realm.transformer.ext.getMinSdk
 import io.realm.transformer.ext.getBootClasspath
 import io.realm.transformer.ext.getAppId
 import io.realm.transformer.ext.getAgpVersion
+import org.apache.tools.ant.taskdefs.Zip
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
@@ -40,13 +41,25 @@ import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.execution.history.changes.IncrementalInputChanges
+import org.gradle.work.Incremental
+import org.gradle.work.InputChanges
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.nio.file.FileSystem
+import java.nio.file.FileSystems
+import java.util.jar.JarEntry
+import java.util.jar.JarInputStream
 import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
 
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
@@ -96,13 +109,13 @@ class RealmTransformer(private val metadata: ProjectMetaData,
                 project.extensions.getByType(AndroidComponentsExtension::class.java)
             androidComponents.onVariants { variant ->
                 variant.components
-                    .filterNot { 
+                    .filterNot {
                         // FIXME With the new transformer API changes, processed classes from the Realm transformer aren't 
                         // resolved correctly by the Unit tests gradle task causing the test runner not to execute tests.
 
                         // This line disables the transformer on Unit test tasks. It is safe because Unit tests run
                         // on JVM and Realm Java is not compatible with JVM.
-                        it is UnitTest 
+                        it is UnitTest
                     }
                     .forEach { component ->
                         val taskProvider =
@@ -161,19 +174,26 @@ class RealmTransformer(private val metadata: ProjectMetaData,
      * to the model class. Something we cannot do when building incrementally. In that case
      * we have to deduce all information from the class at hand.
      */
-    internal fun transform() {
+    internal fun transform(inputChanges: InputChanges) {
         val timer = Stopwatch()
         timer.start("Realm Transform time")
 
-        val jarOutput = JarOutputStream(
-            BufferedOutputStream(
-                FileOutputStream(
-                    output.get().asFile
+        if (!output.get().asFile.exists()) {
+            // This creates the file so it can be later open with FileSystems.
+            JarOutputStream(
+                BufferedOutputStream(
+                    FileOutputStream(
+                        output.get().asFile
+                    )
                 )
-            )
-        )
+            ).close()
+        }
 
-        val build: BuildTemplate = FullBuild(metadata, allJars, jarOutput, this)
+        val jarOutput = FileSystems.newFileSystem(output.get().asFile.toPath(), null)
+
+        val build: BuildTemplate =
+            if (inputChanges.isIncremental) IncrementalBuild(metadata, allJars, jarOutput, inputChanges as IncrementalInputChanges)
+            else FullBuild(metadata, allJars, jarOutput)
 
         build.prepareOutputClasses(inputs)
         timer.splitTime("Prepare output classes")
@@ -212,6 +232,8 @@ abstract class ModifyClassesTask: DefaultTask() {
     @get:InputFiles
     abstract val allJars: ListProperty<RegularFile>
 
+    @get:Incremental
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputFiles
     abstract val allDirectories: ListProperty<Directory>
 
@@ -249,7 +271,7 @@ abstract class ModifyClassesTask: DefaultTask() {
     abstract val output: RegularFileProperty
 
     @TaskAction
-    fun taskAction() {
+    fun taskAction(inputChanges: InputChanges) {
         val metadata = ProjectMetaData(
                 bootClassPath = bootClasspath.files,
                 usesKotlin = usesKotlin.get(),
@@ -268,7 +290,7 @@ abstract class ModifyClassesTask: DefaultTask() {
                 allJars = allJars,
                 referencedInputs = fullRuntimeClasspath,
                 output = output,
-        ).transform()
+        ).transform(inputChanges)
     }
 }
 
