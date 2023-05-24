@@ -198,7 +198,7 @@ abstract class BuildTemplate(
 
     private fun FileSystem.addEntry(entryPath: String, input: ByteArray) {
         getPath(entryPath).let { path ->
-            Files.createDirectories(path.parent)
+            path.parent?.let { Files.createDirectories(it) }
             Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream ->
                 stream.write(input)
                 stream.close()
