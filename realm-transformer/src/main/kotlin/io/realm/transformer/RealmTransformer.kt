@@ -58,8 +58,8 @@ import java.util.jar.JarOutputStream
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
 
-val CONNECT_TIMEOUT = 4000L;
-val READ_TIMEOUT = 2000L;
+const val CONNECT_TIMEOUT = 4000L;
+const val READ_TIMEOUT = 2000L;
 
 // Wrapper for storing data from org.gradle.api.Project as we cannot store a class variable to it
 // as that conflict with the Configuration Cache.
@@ -297,6 +297,7 @@ abstract class ModifyClassesTask: DefaultTask() {
                 usesSync = usesSync.get(),
                 isGradleOffline = offline.get(),
         )
+
         RealmTransformer(
                 metadata = metadata,
                 inputs = allDirectories,

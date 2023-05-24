@@ -22,19 +22,15 @@ import io.realm.transformer.ProjectMetaData
 import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
-import javassist.CtField
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import java.io.File
 import java.nio.file.FileSystem
-import java.util.jar.JarFile
 
 class FullBuild(
     metadata: ProjectMetaData,
-    allJars: MutableList<RegularFile>,
+    allJars: List<RegularFile>,
     outputProvider: FileSystem,
-    inputs: MutableList<Directory>
+    inputs: List<Directory>
 ) : BuildTemplate(
     metadata = metadata,
     allJars = allJars,
@@ -47,17 +43,6 @@ class FullBuild(
         outputClassNames = categorizeClassNames()
         logger.debug("Full build. Number of files being processed: ${outputClassNames.size}.")
     }
-
-    override fun categorizeClassNames(): Set<String> =
-        inputs.flatMap { directory ->
-            val dirPath: String = directory.asFile.absolutePath
-            directory.asFile.walk()
-                .filter(File::isFile)
-                .filter { file -> file.absolutePath.endsWith(DOT_CLASS) }
-                .map { file ->
-                    file.categorize(dirPath)
-                }
-        }.toSet()
 
     override fun findModelClasses(classNames: Set<String>): List<CtClass> {
         val realmObjectProxyInterface: CtClass = classPool.get("io.realm.internal.RealmObjectProxy")

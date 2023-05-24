@@ -25,6 +25,7 @@ import javassist.CtClass
 import javassist.NotFoundException
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
+import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.internal.execution.history.changes.DefaultFileChange
 import org.gradle.internal.execution.history.changes.IncrementalInputChanges
 import java.io.File
@@ -33,16 +34,18 @@ import kotlin.io.path.deleteIfExists
 
 class IncrementalBuild(
     metadata: ProjectMetaData,
-    allJars: MutableList<RegularFile>,
+    allJars: List<RegularFile>,
+    inputs: List<Directory>,
     outputProvider: FileSystem,
     private val incrementalInputChanges: IncrementalInputChanges,
-    inputs: MutableList<Directory>
 ) : BuildTemplate(
     metadata = metadata,
     allJars = allJars,
     outputProvider = outputProvider,
     inputs = inputs
 ) {
+    private lateinit var fileChangeMap: Map<String, InputFileDetails>
+
     private fun removeDeletedEntries() {
         inputs.forEach { directory ->
             val dirPath: String = directory.asFile.absolutePath
@@ -63,32 +66,27 @@ class IncrementalBuild(
         }
     }
 
+    private fun processDeltas() {
+        fileChangeMap = incrementalInputChanges
+            .allFileChanges.associateBy { details ->
+                details as DefaultFileChange
+                details.path
+            }
+
+        // we require to delete any removed entry from the final JAR
+        removeDeletedEntries()
+    }
+
     override fun prepareOutputClasses() {
-        removeDeletedEntries() // TODO move around
+        processDeltas()
+
         outputClassNames = categorizeClassNames()
 
         logger.debug("Incremental build. Files being processed: ${outputClassNames.size}.")
         logger.debug("Incremental files: ${outputClassNames.joinToString(",")}")
     }
 
-    override fun categorizeClassNames():Set<String> {
-        // TODO Maybe extract this
-        val fileChangeMap = incrementalInputChanges
-            .allFileChanges.associateBy { details ->
-                details as DefaultFileChange
-                details.path
-            }
-
-        return inputs.flatMap { directory ->
-            val dirPath: String = directory.asFile.absolutePath
-
-            directory.asFile.walk()
-                .filter(File::isFile)
-                .filter { file -> file.absolutePath in fileChangeMap }
-                .filter { file -> file.absolutePath.endsWith(DOT_CLASS) }
-                .map { it.categorize(dirPath) }
-        }.toSet()
-    }
+    override fun File.shouldCategorize(): Boolean = absolutePath in fileChangeMap
 
     override fun filterForModelClasses(
         outputClassNames: Set<String>,

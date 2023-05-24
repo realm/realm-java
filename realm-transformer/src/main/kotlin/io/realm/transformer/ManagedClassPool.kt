@@ -27,7 +27,7 @@ import java.io.File
  * This class is a wrapper around JavaAssists {@code ClassPool} class that allows for correct cleanup
  * of the resources used.
  */
-class ManagedClassPool(inputs: MutableList<Directory>, referencedInputs: ConfigurableFileCollection) : ClassPool(), Closeable {
+class ManagedClassPool(inputs: List<Directory>, referencedInputs: ConfigurableFileCollection) : ClassPool(), Closeable {
 
     private val pathElements: ArrayList<ClassPath> = arrayListOf()
 

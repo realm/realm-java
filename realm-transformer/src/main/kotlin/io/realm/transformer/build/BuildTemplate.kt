@@ -29,7 +29,6 @@ import java.util.jar.JarFile
 import java.util.regex.Pattern
 
 const val DOT_CLASS = ".class"
-const val DOT_JAR = ".jar"
 
 /**
  * Abstract class defining the structure of doing different types of builds.
@@ -37,9 +36,9 @@ const val DOT_JAR = ".jar"
  */
 abstract class BuildTemplate(
     private val metadata: ProjectMetaData,
-    private val allJars: MutableList<RegularFile>,
+    private val allJars: List<RegularFile>,
     protected val outputProvider: FileSystem,
-    val inputs: MutableList<Directory>
+    val inputs: List<Directory>,
 ) {
     protected lateinit var classPool: ManagedClassPool
     protected lateinit var outputClassNames: Set<String>
@@ -70,7 +69,17 @@ abstract class BuildTemplate(
      * @param jaFiles the set of files found in jar files. These will never be transformed. This should
      * already be done when creating the jar file.
      */
-    protected abstract fun categorizeClassNames(): Set<String>
+     fun categorizeClassNames():Set<String> {
+        return inputs.flatMap { directory ->
+            val dirPath: String = directory.asFile.absolutePath
+
+            directory.asFile.walk()
+                .filter(File::isFile)
+                .filter { file -> file.shouldCategorize() }
+                .filter { file -> file.absolutePath.endsWith(DOT_CLASS) }
+                .map { it.categorize(dirPath) }
+        }.toSet()
+    }
 
     private fun categorizeClassNames(referencedInputs: ConfigurableFileCollection): Set<String> =
         referencedInputs.flatMap { file ->
@@ -221,4 +230,5 @@ abstract class BuildTemplate(
 
     protected abstract fun findModelClasses(classNames: Set<String>): List<CtClass>
 
+    open fun File.shouldCategorize(): Boolean = true
 }
