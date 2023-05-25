@@ -23,11 +23,14 @@ import io.realm.analytics.RealmAnalytics
 import io.realm.transformer.build.BuildTemplate
 import io.realm.transformer.build.FullBuild
 import io.realm.transformer.build.IncrementalBuild
-import io.realm.transformer.ext.getTargetSdk
-import io.realm.transformer.ext.getMinSdk
-import io.realm.transformer.ext.getBootClasspath
-import io.realm.transformer.ext.getAppId
+import io.realm.transformer.ext.areIncrementalBuildsDisabled
 import io.realm.transformer.ext.getAgpVersion
+import io.realm.transformer.ext.getAppId
+import io.realm.transformer.ext.getBootClasspath
+import io.realm.transformer.ext.getMinSdk
+import io.realm.transformer.ext.getTargetSdk
+import io.realm.transformer.ext.targetType
+import io.realm.transformer.ext.usesKotlin
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -95,23 +98,26 @@ fun registerRealmTransformerTask(project: Project) {
                     project.tasks.register(
                         "${component.name}RealmAccessorsTransformer",
                         RealmTransformerTask::class.java
-                    ) {
-                        it.referencedInputs.setFrom(component.runtimeConfiguration.incoming.artifactView { c ->
-                            c.attributes.attribute(
-                                AndroidArtifacts.ARTIFACT_TYPE,
-                                AndroidArtifacts.ArtifactType.CLASSES_JAR.type
-                            )
-                        }.files)
-                        it.bootClasspath.setFrom(project.getBootClasspath())
-                        it.offline.set(project.gradle.startParameter.isOffline)
-                        it.targetType.set(project.targetType())
-                        it.usesKotlin.set(project.usesKotlin())
-                        it.minSdk.set(project.getMinSdk())
-                        it.targetSdk.set(project.getTargetSdk())
-                        it.agpVersion.set(project.getAgpVersion())
-                        it.usesSync.set(Utils.isSyncEnabled(project))
-                        it.gradleVersion.set(project.gradle.gradleVersion)
-                        it.appId.set(project.getAppId())
+                    ) { task ->
+                        task.apply {
+                            referencedInputs.setFrom(component.runtimeConfiguration.incoming.artifactView { c ->
+                                c.attributes.attribute(
+                                    AndroidArtifacts.ARTIFACT_TYPE,
+                                    AndroidArtifacts.ArtifactType.CLASSES_JAR.type
+                                )
+                            }.files)
+                            bootClasspath.setFrom(project.getBootClasspath())
+                            offline.set(project.gradle.startParameter.isOffline)
+                            targetType.set(project.targetType())
+                            usesKotlin.set(project.usesKotlin())
+                            minSdk.set(project.getMinSdk())
+                            targetSdk.set(project.getTargetSdk())
+                            agpVersion.set(project.getAgpVersion())
+                            usesSync.set(Utils.isSyncEnabled(project))
+                            gradleVersion.set(project.gradle.gradleVersion)
+                            appId.set(project.getAppId())
+                            areIncrementalBuildsDisabled.set(project.areIncrementalBuildsDisabled())
+                        }
                     }
                 component.artifacts.forScope(com.android.build.api.variant.ScopedArtifacts.Scope.PROJECT)
                     .use<RealmTransformerTask>(taskProvider)
@@ -123,18 +129,6 @@ fun registerRealmTransformerTask(project: Project) {
                     )
             }
     }
-}
-
-private fun Project.targetType(): String = with(project.plugins) {
-    when {
-        findPlugin("com.android.application") != null -> "app"
-        findPlugin("com.android.library") != null -> "library"
-        else -> "unknown"
-    }
-}
-
-private fun Project.usesKotlin(): Boolean {
-    return project.pluginManager.hasPlugin("kotlin-kapt")
 }
 
 /**
@@ -186,6 +180,8 @@ abstract class RealmTransformerTask : DefaultTask() {
     @get:OutputFiles
     abstract val output: RegularFileProperty
 
+    @get:Input
+    abstract val areIncrementalBuildsDisabled: Property<Boolean>
 
     // Checks if a JarFile exists, if not it creates an empty one.
     private fun touchJarFile(jarFile: RegularFile) {
@@ -253,19 +249,20 @@ abstract class RealmTransformerTask : DefaultTask() {
 
         val build: BuildTemplate =
             when {
-                inputChanges.isIncremental -> IncrementalBuild(
+                areIncrementalBuildsDisabled.get() || !inputChanges.isIncremental ->
+                    FullBuild(
+                        metadata = metadata,
+                        inputJars = inputJars.get(),
+                        inputDirectories = inputDirectories.get(),
+                        output = jarFileOutput,
+                    )
+                else ->
+                    IncrementalBuild(
                     metadata = metadata,
                     inputJars = inputJars.get(),
                     inputDirectories = inputDirectories.get(),
                     output = jarFileOutput,
                     incrementalInputChanges = inputChanges as IncrementalInputChanges,
-                )
-
-                else -> FullBuild(
-                    metadata = metadata,
-                    inputJars = inputJars.get(),
-                    inputDirectories = inputDirectories.get(),
-                    output = jarFileOutput,
                 )
             }
 
