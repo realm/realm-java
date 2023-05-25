@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import java.io.File
+import java.io.InputStream
 import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.StandardOpenOption
@@ -47,17 +48,6 @@ abstract class BuildTemplate(
     protected val processedClasses = mutableMapOf<String, CtClass>()
 
     /**
-     * Computes the path in the output FileSystem for a given class.
-     */
-    protected fun File.categorize(dirPath: String): String =
-        absolutePath
-            .substring(
-                startIndex = dirPath.length + 1,
-                endIndex = absolutePath.length - DOT_CLASS.length
-            )
-            .replace(File.separatorChar, '.')
-
-    /**
      * Finds all the class names available for transforms as well as all referenced classes.
      */
     abstract fun prepareOutputClasses()
@@ -68,7 +58,7 @@ abstract class BuildTemplate(
      *
      * @return paths in the output FileSystem for the classes to be processed.
      */
-     fun categorizeClassNames():Set<String> {
+     fun categorizeClassNames(): Set<String> {
         return inputs.flatMap { directory ->
             val dirPath: String = directory.asFile.absolutePath
 
@@ -120,7 +110,6 @@ abstract class BuildTemplate(
 
     protected abstract fun filterForModelClasses(outputClassNames: Set<String>, outputReferencedClassNames: Set<String>)
 
-
     fun markMediatorsAsTransformed() {
         val baseProxyMediator: CtClass = classPool.get("io.realm.internal.RealmProxyMediator")
         val mediatorPattern: Pattern = Pattern.compile("^io\\.realm\\.[^.]+Mediator$")
@@ -154,7 +143,7 @@ abstract class BuildTemplate(
         processedClasses.forEach { (fqName: String, clazz: CtClass) ->
             output.addEntry(
                 "${fqName.replace('.', '/')}.class",
-                clazz.toBytecode()
+                clazz.toBytecode().inputStream()
             )
         }
     }
@@ -170,21 +159,20 @@ abstract class BuildTemplate(
                     // https://github.com/realm/realm-java/issues/7757
                     val zipEntryPath = pathWithoutPrefix.replace(File.separatorChar, '/')
 
-                    output.addEntry(zipEntryPath, file.readBytes())
+                    output.addEntry(zipEntryPath, file.inputStream())
                 }
         }
         allJars.forEach { file ->
             JarFile(file.asFile).use { jarFile ->
-                jarFile.entries().toList()
+                jarFile.entries()
+                    .toList()
                     .forEach { jarEntry ->
-                        val jarBytes = jarFile.getInputStream(jarEntry).use {
-                            it.readBytes()
+                        jarFile.getInputStream(jarEntry).use {
+                            output.addEntry(
+                                jarEntry.name,
+                                it
+                            )
                         }
-
-                        output.addEntry(
-                            jarEntry.name,
-                            jarBytes
-                        )
                     }
             }
         }
@@ -196,11 +184,11 @@ abstract class BuildTemplate(
      * Helper method that adds an entry into a FileSystem. It takes the path and the contents, and
      * creates and intermediate directory.
      */
-    private fun FileSystem.addEntry(entryPath: String, input: ByteArray) {
+    private fun FileSystem.addEntry(entryPath: String, input: InputStream) {
         getPath(entryPath).let { path ->
             path.parent?.let { Files.createDirectories(it) }
             Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream ->
-                stream.write(input)
+                input.copyTo(stream)
                 stream.close()
             }
         }
@@ -225,6 +213,17 @@ abstract class BuildTemplate(
     }
 
     protected abstract fun findModelClasses(classNames: Set<String>): List<CtClass>
+
+    /**
+     * Helper method that computes the path in the output FileSystem for a given class.
+     */
+    protected fun File.categorize(dirPath: String): String =
+        absolutePath
+            .substring(
+                startIndex = dirPath.length + 1,
+                endIndex = absolutePath.length - DOT_CLASS.length
+            )
+            .replace(File.separatorChar, '.')
 
     /**
      * Tells if a given file has to be categorized.

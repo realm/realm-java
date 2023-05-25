@@ -225,9 +225,9 @@ abstract class RealmTransformerTask : DefaultTask() {
         )
 
         val analytics: RealmAnalytics? = try {
-            val analytics = RealmAnalytics()
-            analytics.calculateAnalyticsData(metadata)
-            analytics
+            RealmAnalytics().apply {
+                calculateAnalyticsData(metadata)
+            }
         } catch (e: Exception) {
             // Analytics should never crash the build.
             logger.debug("Could not calculate Realm analytics data:\n$e")

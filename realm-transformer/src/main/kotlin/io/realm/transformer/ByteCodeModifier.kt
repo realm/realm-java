@@ -18,6 +18,7 @@ package io.realm.transformer
 
 import io.realm.annotations.Ignore
 import io.realm.annotations.RealmClass
+import io.realm.transformer.ext.hasRealmClassAnnotation
 import io.realm.transformer.ext.safeSubtypeOf
 import javassist.*
 import javassist.expr.ExprEditor
@@ -198,16 +199,9 @@ class BytecodeModifier {
             }
         }
 
-        fun hasRealmClassAnnotation(superclass: CtClass?) = try {
-            superclass?.hasAnnotation(RealmClass::class.java) == true
-        } catch (ignored: NotFoundException) {
-            false
-        }
-
         fun CtClass.isRealmModelClass(): Boolean =
             name != "io.realm.RealmObject" &&
                     (hasAnnotation(RealmClass::class.java) || hasRealmClassAnnotation(superclass)) &&
                     safeSubtypeOf(realmObjectProxyInterface)
     }
-
 }
