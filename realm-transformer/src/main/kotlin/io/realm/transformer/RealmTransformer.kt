@@ -74,180 +74,76 @@ data class ProjectMetaData(
     val gradleVersion: String,
     val usesSync: Boolean,
     val isGradleOffline: Boolean
-) {
+)
+
+@Suppress("UnstableApiUsage")
+fun registerRealmTransformerTask(project: Project) {
+    val androidComponents =
+        project.extensions.getByType(AndroidComponentsExtension::class.java)
+    androidComponents.onVariants { variant ->
+        variant.components
+            .filterNot {
+                // FIXME With the new transformer API changes, processed classes from the Realm transformer aren't
+                // resolved correctly by the Unit tests gradle task causing the test runner not to execute tests.
+
+                // This line disables the transformer on Unit test tasks. It is safe because Unit tests run
+                // on JVM and Realm Java is not compatible with JVM.
+                it is UnitTest
+            }
+            .forEach { component ->
+                val taskProvider =
+                    project.tasks.register(
+                        "${component.name}RealmAccessorsTransformer",
+                        RealmTransformerTask::class.java
+                    ) {
+                        it.referencedInputs.setFrom(component.runtimeConfiguration.incoming.artifactView { c ->
+                            c.attributes.attribute(
+                                AndroidArtifacts.ARTIFACT_TYPE,
+                                AndroidArtifacts.ArtifactType.CLASSES_JAR.type
+                            )
+                        }.files)
+                        it.bootClasspath.setFrom(project.getBootClasspath())
+                        it.offline.set(project.gradle.startParameter.isOffline)
+                        it.targetType.set(project.targetType())
+                        it.usesKotlin.set(project.usesKotlin())
+                        it.minSdk.set(project.getMinSdk())
+                        it.targetSdk.set(project.getTargetSdk())
+                        it.agpVersion.set(project.getAgpVersion())
+                        it.usesSync.set(Utils.isSyncEnabled(project))
+                        it.gradleVersion.set(project.gradle.gradleVersion)
+                        it.appId.set(project.getAppId())
+                    }
+                component.artifacts.forScope(com.android.build.api.variant.ScopedArtifacts.Scope.PROJECT)
+                    .use<RealmTransformerTask>(taskProvider)
+                    .toTransform(
+                        com.android.build.api.artifact.ScopedArtifact.CLASSES,
+                        RealmTransformerTask::inputJars,
+                        RealmTransformerTask::inputDirectories,
+                        RealmTransformerTask::output
+                    )
+            }
+    }
+}
+
+private fun Project.targetType(): String = with(project.plugins) {
+    when {
+        findPlugin("com.android.application") != null -> "app"
+        findPlugin("com.android.library") != null -> "library"
+        else -> "unknown"
+    }
+}
+
+private fun Project.usesKotlin(): Boolean {
+    return project.pluginManager.hasPlugin("kotlin-kapt")
 }
 
 /**
  * This class implements the Transform API provided by the Android Gradle plugin.
  */
-class RealmTransformer(
-    private val metadata: ProjectMetaData,
-    private val inputDirectories: ListProperty<Directory>,
-    private val inputJars: ListProperty<RegularFile>,
-    private val referencedInputs: ConfigurableFileCollection,
-    private val output: RegularFileProperty
-) {
-
-    private val analytics: RealmAnalytics? = try {
-        val analytics = RealmAnalytics()
-        analytics.calculateAnalyticsData(metadata)
-        analytics
-    } catch (e: Exception) {
-        // Analytics should never crash the build.
-        logger.debug("Could not calculate Realm analytics data:\n$e")
-        null
-    }
-
-    companion object {
-
-        @Suppress("UnstableApiUsage")
-        fun register(project: Project) {
-            val androidComponents =
-                project.extensions.getByType(AndroidComponentsExtension::class.java)
-            androidComponents.onVariants { variant ->
-                variant.components
-                    .filterNot {
-                        // FIXME With the new transformer API changes, processed classes from the Realm transformer aren't 
-                        // resolved correctly by the Unit tests gradle task causing the test runner not to execute tests.
-
-                        // This line disables the transformer on Unit test tasks. It is safe because Unit tests run
-                        // on JVM and Realm Java is not compatible with JVM.
-                        it is UnitTest
-                    }
-                    .forEach { component ->
-                        val taskProvider =
-                            project.tasks.register(
-                                "${component.name}RealmAccessorsTransformer",
-                                ModifyClassesTask::class.java
-                            ) {
-                                it.fullRuntimeClasspath.setFrom(component.runtimeConfiguration.incoming.artifactView { c ->
-                                    c.attributes.attribute(
-                                        AndroidArtifacts.ARTIFACT_TYPE,
-                                        AndroidArtifacts.ArtifactType.CLASSES_JAR.type
-                                    )
-                                }.files)
-                                it.bootClasspath.setFrom(project.getBootClasspath())
-                                it.offline.set(project.gradle.startParameter.isOffline)
-                                it.targetType.set(project.targetType())
-                                it.usesKotlin.set(project.usesKotlin())
-                                it.minSdk.set(project.getMinSdk())
-                                it.targetSdk.set(project.getTargetSdk())
-                                it.agpVersion.set(project.getAgpVersion())
-                                it.usesSync.set(Utils.isSyncEnabled(project))
-                                it.gradleVersion.set(project.gradle.gradleVersion)
-                                it.appId.set(project.getAppId())
-                            }
-                        component.artifacts.forScope(com.android.build.api.variant.ScopedArtifacts.Scope.PROJECT)
-                            .use<ModifyClassesTask>(taskProvider)
-                            .toTransform(
-                                com.android.build.api.artifact.ScopedArtifact.CLASSES,
-                                ModifyClassesTask::inputJars,
-                                ModifyClassesTask::inputDirectories,
-                                ModifyClassesTask::output
-                            )
-                    }
-            }
-        }
-
-        private fun Project.targetType(): String = with(project.plugins) {
-            when {
-                findPlugin("com.android.application") != null -> "app"
-                findPlugin("com.android.library") != null -> "library"
-                else -> "unknown"
-            }
-        }
-
-        private fun Project.usesKotlin(): Boolean {
-            return project.pluginManager.hasPlugin("kotlin-kapt")
-        }
-    }
-
-    // Checks if a JarFile exists, if not it creates an empty one.
-    private fun touchJarFile(jarFile: RegularFile) {
-        if (!jarFile.asFile.exists()) {
-            JarOutputStream(
-                BufferedOutputStream(
-                    FileOutputStream(
-                        output.get().asFile
-                    )
-                )
-            ).close()
-        }
-    }
-
-    /**
-     * Implements the transform algorithm. The heaviest part of the transform is loading the
-     * {@code CtClass} from JavaAssist, so this should be avoided as much as possible.
-     *
-     * This is also the reason that there are significant changes between a full build and a
-     * incremental build. In a full build, we can use text matching to go from a proxy class
-     * to the model class. Something we cannot do when building incrementally. In that case
-     * we have to deduce all information from the class at hand.
-     */
-    internal fun transform(inputChanges: InputChanges) {
-        val timer = Stopwatch()
-        timer.start("Realm Transform time")
-
-        // The output of this transform is a Jar file
-        // We use FileSystem instead of a JarOutputStream because it allows modifying the entries of
-        // the Jar file, and thus incremental updates.
-        val jarFileOutput: FileSystem = output.get().let { jarFile ->
-            // Workaround to create the Jar if does not exist, as FileSystems fails to do so.
-            touchJarFile(jarFile)
-            FileSystems.newFileSystem(output.get().asFile.toPath(), null)
-        }
-
-        val build: BuildTemplate =
-            when {
-                inputChanges.isIncremental -> IncrementalBuild(
-                    metadata = metadata,
-                    inputJars = inputJars.get(),
-                    inputDirectories = inputDirectories.get(),
-                    output = jarFileOutput,
-                    incrementalInputChanges = inputChanges as IncrementalInputChanges,
-                )
-
-                else -> FullBuild(
-                    metadata = metadata,
-                    inputJars = inputJars.get(),
-                    inputDirectories = inputDirectories.get(),
-                    output = jarFileOutput,
-                )
-            }
-
-        build.prepareOutputClasses()
-        timer.splitTime("Prepare output classes")
-        if (build.hasNoOutput()) {
-            // Abort transform as quickly as possible if no files where found for processing.
-            exitTransform(timer)
-            return
-        }
-        build.prepareReferencedClasses(referencedInputs)
-        timer.splitTime("Prepare referenced classes")
-        build.markMediatorsAsTransformed()
-        timer.splitTime("Mark mediators as transformed")
-        build.transformModelClasses()
-        timer.splitTime("Transform model classes")
-        build.transformDirectAccessToModelFields()
-        timer.splitTime("Transform references to model fields")
-        build.copyProcessedClasses()
-        timer.splitTime("Copy processed classes")
-        build.copyResourceFiles()
-        timer.splitTime("Copy jar files")
-        jarFileOutput.close()
-        exitTransform(timer)
-    }
-
-    private fun exitTransform(timer: Stopwatch) {
-        timer.stop()
-        analytics?.execute()
-    }
-}
-
-abstract class ModifyClassesTask : DefaultTask() {
+abstract class RealmTransformerTask : DefaultTask() {
 
     @get:Classpath
-    abstract val fullRuntimeClasspath: ConfigurableFileCollection
+    abstract val referencedInputs: ConfigurableFileCollection
 
     @get:InputFiles
     abstract val inputJars: ListProperty<RegularFile>
@@ -290,8 +186,31 @@ abstract class ModifyClassesTask : DefaultTask() {
     @get:OutputFiles
     abstract val output: RegularFileProperty
 
+
+    // Checks if a JarFile exists, if not it creates an empty one.
+    private fun touchJarFile(jarFile: RegularFile) {
+        if (!jarFile.asFile.exists()) {
+            JarOutputStream(
+                BufferedOutputStream(
+                    FileOutputStream(
+                        output.get().asFile
+                    )
+                )
+            ).close()
+        }
+    }
+
+    /**
+     * Implements the transform algorithm. The heaviest part of the transform is loading the
+     * {@code CtClass} from JavaAssist, so this should be avoided as much as possible.
+     *
+     * This is also the reason that there are significant changes between a full build and a
+     * incremental build. In a full build, we can use text matching to go from a proxy class
+     * to the model class. Something we cannot do when building incrementally. In that case
+     * we have to deduce all information from the class at hand.
+     */
     @TaskAction
-    fun taskAction(inputChanges: InputChanges) {
+    fun transform(inputChanges: InputChanges) {
         val metadata = ProjectMetaData(
             bootClassPath = bootClasspath.files,
             usesKotlin = usesKotlin.get(),
@@ -305,13 +224,72 @@ abstract class ModifyClassesTask : DefaultTask() {
             isGradleOffline = offline.get(),
         )
 
-        RealmTransformer(
-            metadata = metadata,
-            inputDirectories = inputDirectories,
-            inputJars = inputJars,
-            referencedInputs = fullRuntimeClasspath,
-            output = output,
-        ).transform(inputChanges)
+        val analytics: RealmAnalytics? = try {
+            val analytics = RealmAnalytics()
+            analytics.calculateAnalyticsData(metadata)
+            analytics
+        } catch (e: Exception) {
+            // Analytics should never crash the build.
+            logger.debug("Could not calculate Realm analytics data:\n$e")
+            null
+        }
+
+        val timer = Stopwatch()
+        val exitTransform = {
+            timer.stop()
+            analytics?.execute()
+        }
+
+        timer.start("Realm Transform time")
+
+        // The output of this transform is a Jar file
+        // We use FileSystem instead of a JarOutputStream because it allows modifying the entries of
+        // the Jar file, and thus incremental updates.
+        val jarFileOutput: FileSystem = output.get().let { jarFile ->
+            // Workaround to create the Jar if does not exist, as FileSystems fails to do so.
+            touchJarFile(jarFile)
+            FileSystems.newFileSystem(output.get().asFile.toPath(), null)
+        }
+
+        val build: BuildTemplate =
+            when {
+                inputChanges.isIncremental -> IncrementalBuild(
+                    metadata = metadata,
+                    inputJars = inputJars.get(),
+                    inputDirectories = inputDirectories.get(),
+                    output = jarFileOutput,
+                    incrementalInputChanges = inputChanges as IncrementalInputChanges,
+                )
+
+                else -> FullBuild(
+                    metadata = metadata,
+                    inputJars = inputJars.get(),
+                    inputDirectories = inputDirectories.get(),
+                    output = jarFileOutput,
+                )
+            }
+
+        build.prepareOutputClasses()
+        timer.splitTime("Prepare output classes")
+        if (build.hasNoOutput()) {
+            // Abort transform as quickly as possible if no files where found for processing.
+            exitTransform()
+            return
+        }
+        build.prepareReferencedClasses(referencedInputs)
+        timer.splitTime("Prepare referenced classes")
+        build.markMediatorsAsTransformed()
+        timer.splitTime("Mark mediators as transformed")
+        build.transformModelClasses()
+        timer.splitTime("Transform model classes")
+        build.transformDirectAccessToModelFields()
+        timer.splitTime("Transform references to model fields")
+        build.copyProcessedClasses()
+        timer.splitTime("Copy processed classes")
+        build.copyResourceFiles()
+        timer.splitTime("Copy jar files")
+        jarFileOutput.close()
+        exitTransform()
     }
 }
 

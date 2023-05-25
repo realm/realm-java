@@ -153,7 +153,7 @@ android {
     }
 }
 
-io.realm.transformer.RealmTransformer.@Companion.register(project)
+io.realm.transformer.RealmTransformerKt.registerRealmTransformerTask(project)
 // TODO RealmBuildTransformer only supports stripping symbols from Jars so must be applied
 //  after the accessor transformer (that combines all inputs into one common Jar)
 io.realm.buildtransformer.RealmBuildTransformer.@Companion.register(

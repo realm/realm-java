@@ -175,5 +175,5 @@ artifacts {
 
 publishToMavenLocal.dependsOn assemble
 
-io.realm.transformer.RealmTransformer.@Companion.register(project)
+io.realm.transformer.RealmTransformerKt.registerRealmTransformerTask(project)
 
