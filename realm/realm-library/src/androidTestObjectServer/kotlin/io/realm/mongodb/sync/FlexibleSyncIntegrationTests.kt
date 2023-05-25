@@ -16,6 +16,7 @@
 
 package io.realm.mongodb.sync
 
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
@@ -599,7 +600,7 @@ class FlexibleSyncIntegrationTests {
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
 
-        serverAdmin.triggerClientReset(realm.syncSession, withRecoveryModeEnabled = false) {
+        serverAdmin.triggerClientReset(realm.syncSession, withRecoveryModeEnabled = false, latch) {
             realm.executeTransaction {
                 realm.copyToRealm(FlexSyncColor().apply {
                     this.section = this@FlexibleSyncIntegrationTests.section
@@ -608,6 +609,8 @@ class FlexibleSyncIntegrationTests {
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
+
+        Log.d("TTT", ">>>>>>>>>>> Test complete <<<<<<<<<<<<")
 
         looperThread.testComplete(latch)
     }
