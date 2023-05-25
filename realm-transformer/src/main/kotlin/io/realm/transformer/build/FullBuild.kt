@@ -24,18 +24,19 @@ import io.realm.transformer.logger
 import javassist.CtClass
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
+import java.io.File
 import java.nio.file.FileSystem
 
 class FullBuild(
     metadata: ProjectMetaData,
-    allJars: List<RegularFile>,
-    outputProvider: FileSystem,
-    inputs: List<Directory>
+    inputJars: List<RegularFile>,
+    output: FileSystem,
+    inputDirectories: List<Directory>
 ) : BuildTemplate(
     metadata = metadata,
-    allJars = allJars,
-    outputProvider = outputProvider,
-    inputs = inputs
+    allJars = inputJars,
+    output = output,
+    inputs = inputDirectories
 ) {
     private lateinit var allModelClasses: List<CtClass>
 
@@ -65,6 +66,9 @@ class FullBuild(
             }
             .map { it.superclass }
     }
+
+    // Full builds must categorize all classes.
+    override fun File.shouldCategorize(): Boolean = true
 
     override fun filterForModelClasses(classNames: Set<String>, extraClassNames: Set<String>) {
         val allClassNames: Set<String> = merge(classNames, extraClassNames)
@@ -108,5 +112,4 @@ class FullBuild(
         merged.addAll(set2)
         return merged
     }
-
 }

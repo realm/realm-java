@@ -34,15 +34,15 @@ import kotlin.io.path.deleteIfExists
 
 class IncrementalBuild(
     metadata: ProjectMetaData,
-    allJars: List<RegularFile>,
-    inputs: List<Directory>,
-    outputProvider: FileSystem,
     private val incrementalInputChanges: IncrementalInputChanges,
+    inputJars: List<RegularFile>,
+    inputDirectories: List<Directory>,
+    output: FileSystem,
 ) : BuildTemplate(
     metadata = metadata,
-    allJars = allJars,
-    outputProvider = outputProvider,
-    inputs = inputs
+    allJars = inputJars,
+    inputs = inputDirectories,
+    output = output,
 ) {
     private lateinit var fileChangeMap: Map<String, InputFileDetails>
 
@@ -61,7 +61,7 @@ class IncrementalBuild(
                 .forEach { path ->
                     // TODO Validate it deletes stuff
                     logger.debug("Deleting output entry: $path")
-                    outputProvider.getPath(path).deleteIfExists()
+                    output.getPath(path).deleteIfExists()
                 }
         }
     }

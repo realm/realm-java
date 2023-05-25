@@ -82,8 +82,8 @@ data class ProjectMetaData(
  */
 class RealmTransformer(
     private val metadata: ProjectMetaData,
-    private val inputs: ListProperty<Directory>,
-    private val allJars: ListProperty<RegularFile>,
+    private val inputDirectories: ListProperty<Directory>,
+    private val inputJars: ListProperty<RegularFile>,
     private val referencedInputs: ConfigurableFileCollection,
     private val output: RegularFileProperty
 ) {
@@ -141,8 +141,8 @@ class RealmTransformer(
                             .use<ModifyClassesTask>(taskProvider)
                             .toTransform(
                                 com.android.build.api.artifact.ScopedArtifact.CLASSES,
-                                ModifyClassesTask::allJars,
-                                ModifyClassesTask::allDirectories,
+                                ModifyClassesTask::inputJars,
+                                ModifyClassesTask::inputDirectories,
                                 ModifyClassesTask::output
                             )
                     }
@@ -188,6 +188,9 @@ class RealmTransformer(
         val timer = Stopwatch()
         timer.start("Realm Transform time")
 
+        // The output of this transform is a Jar file
+        // We use FileSystem instead of a JarOutputStream because it allows modifying the entries of
+        // the Jar file, and thus incremental updates.
         val jarFileOutput: FileSystem = output.get().let { jarFile ->
             // Workaround to create the Jar if does not exist, as FileSystems fails to do so.
             touchJarFile(jarFile)
@@ -198,17 +201,17 @@ class RealmTransformer(
             when {
                 inputChanges.isIncremental -> IncrementalBuild(
                     metadata = metadata,
-                    allJars = allJars.get(),
-                    outputProvider = jarFileOutput,
-                    inputs = inputs.get(),
-                    incrementalInputChanges = inputChanges as IncrementalInputChanges
+                    inputJars = inputJars.get(),
+                    inputDirectories = inputDirectories.get(),
+                    output = jarFileOutput,
+                    incrementalInputChanges = inputChanges as IncrementalInputChanges,
                 )
 
                 else -> FullBuild(
                     metadata = metadata,
-                    allJars = allJars.get(),
-                    outputProvider = jarFileOutput,
-                    inputs = inputs.get()
+                    inputJars = inputJars.get(),
+                    inputDirectories = inputDirectories.get(),
+                    output = jarFileOutput,
                 )
             }
 
@@ -247,12 +250,12 @@ abstract class ModifyClassesTask : DefaultTask() {
     abstract val fullRuntimeClasspath: ConfigurableFileCollection
 
     @get:InputFiles
-    abstract val allJars: ListProperty<RegularFile>
+    abstract val inputJars: ListProperty<RegularFile>
 
     @get:Incremental
-    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
     @get:InputFiles
-    abstract val allDirectories: ListProperty<Directory>
+    abstract val inputDirectories: ListProperty<Directory>
 
     @get:InputFiles
     abstract val bootClasspath: ConfigurableFileCollection
@@ -304,8 +307,8 @@ abstract class ModifyClassesTask : DefaultTask() {
 
         RealmTransformer(
             metadata = metadata,
-            inputs = allDirectories,
-            allJars = allJars,
+            inputDirectories = inputDirectories,
+            inputJars = inputJars,
             referencedInputs = fullRuntimeClasspath,
             output = output,
         ).transform(inputChanges)

@@ -37,7 +37,7 @@ const val DOT_CLASS = ".class"
 abstract class BuildTemplate(
     private val metadata: ProjectMetaData,
     private val allJars: List<RegularFile>,
-    protected val outputProvider: FileSystem,
+    protected val output: FileSystem,
     val inputs: List<Directory>,
 ) {
     protected lateinit var classPool: ManagedClassPool
@@ -46,6 +46,9 @@ abstract class BuildTemplate(
     protected lateinit var outputModelClasses: List<CtClass>
     protected val processedClasses = mutableMapOf<String, CtClass>()
 
+    /**
+     * Computes the path in the output FileSystem for a given class.
+     */
     protected fun File.categorize(dirPath: String): String =
         absolutePath
             .substring(
@@ -55,19 +58,15 @@ abstract class BuildTemplate(
             .replace(File.separatorChar, '.')
 
     /**
-     * Find all the class names available for transforms as well as all referenced classes.
+     * Finds all the class names available for transforms as well as all referenced classes.
      */
     abstract fun prepareOutputClasses()
 
     /**
-     * Helper method for going through all `TransformInput` and sort classes into buckets of
-     * source files in the current project or source files found in jar files.
+     * Helper method where we go through all input classes and sort them into buckets of source files
+     * in the current project or source files found in jar files.
      *
-     * @param inputs set of input files
-     * @param directoryFiles the set of files in directories getting compiled. These are potential
-     * candidates for the transformer.
-     * @param jaFiles the set of files found in jar files. These will never be transformed. This should
-     * already be done when creating the jar file.
+     * @return paths in the output FileSystem for the classes to be processed.
      */
      fun categorizeClassNames():Set<String> {
         return inputs.flatMap { directory ->
@@ -104,10 +103,7 @@ abstract class BuildTemplate(
     /**
      * Returns `true` if this build contains no relevant classes to transform.
      */
-    fun hasNoOutput(): Boolean {
-        return outputClassNames.isEmpty()
-    }
-
+    fun hasNoOutput(): Boolean = outputClassNames.isEmpty()
 
     fun prepareReferencedClasses(referencedInputs: ConfigurableFileCollection) {
         outputReferencedClassNames = categorizeClassNames(referencedInputs) // referenced files
@@ -156,7 +152,7 @@ abstract class BuildTemplate(
 
     fun copyProcessedClasses() {
         processedClasses.forEach { (fqName: String, clazz: CtClass) ->
-            outputProvider.addEntry(
+            output.addEntry(
                 "${fqName.replace('.', '/')}.class",
                 clazz.toBytecode()
             )
@@ -174,7 +170,7 @@ abstract class BuildTemplate(
                     // https://github.com/realm/realm-java/issues/7757
                     val zipEntryPath = pathWithoutPrefix.replace(File.separatorChar, '/')
 
-                    outputProvider.addEntry(zipEntryPath, file.readBytes())
+                    output.addEntry(zipEntryPath, file.readBytes())
                 }
         }
         allJars.forEach { file ->
@@ -185,7 +181,7 @@ abstract class BuildTemplate(
                             it.readBytes()
                         }
 
-                        outputProvider.addEntry(
+                        output.addEntry(
                             jarEntry.name,
                             jarBytes
                         )
@@ -196,6 +192,10 @@ abstract class BuildTemplate(
         classPool.close()
     }
 
+    /**
+     * Helper method that adds an entry into a FileSystem. It takes the path and the contents, and
+     * creates and intermediate directory.
+     */
     private fun FileSystem.addEntry(entryPath: String, input: ByteArray) {
         getPath(entryPath).let { path ->
             path.parent?.let { Files.createDirectories(it) }
@@ -226,5 +226,8 @@ abstract class BuildTemplate(
 
     protected abstract fun findModelClasses(classNames: Set<String>): List<CtClass>
 
-    open fun File.shouldCategorize(): Boolean = true
+    /**
+     * Tells if a given file has to be categorized.
+     */
+    abstract fun File.shouldCategorize(): Boolean
 }
