@@ -609,9 +609,7 @@ class FlexibleSyncIntegrationTests {
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
-
-        Log.d("TTT", ">>>>>>>>>>> Test complete <<<<<<<<<<<<")
-
+        
         looperThread.testComplete(latch)
     }
 
