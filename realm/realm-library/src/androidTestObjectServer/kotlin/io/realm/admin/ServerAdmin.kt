@@ -340,6 +340,7 @@ class ServerAdmin(private val app: App) {
             syncSession.start()
             syncSession.downloadAllServerChanges()
         } finally {
+            Thread.sleep(5000)
             setIsRecoveryModeEnabled(wasRecoveryModeEnabled)
         }
     }
