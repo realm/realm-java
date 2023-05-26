@@ -25,16 +25,15 @@ import io.realm.transformer.logger
 import javassist.CtClass
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.tasks.incremental.InputFileDetails
-import org.gradle.internal.execution.history.changes.DefaultFileChange
-import org.gradle.internal.execution.history.changes.IncrementalInputChanges
+import org.gradle.work.ChangeType
+import org.gradle.work.FileChange
 import java.io.File
 import java.nio.file.FileSystem
 import kotlin.io.path.deleteIfExists
 
 class IncrementalBuild(
     metadata: ProjectMetaData,
-    private val incrementalInputChanges: IncrementalInputChanges,
+    private val fileChanges: Iterable<FileChange>,
     inputJars: List<RegularFile>,
     inputDirectories: List<Directory>,
     output: FileSystem,
@@ -45,16 +44,16 @@ class IncrementalBuild(
     output = output,
 ) {
     // Map containing all file changes
-    private lateinit var fileChangeMap: Map<String, InputFileDetails>
+    private lateinit var fileChangeMap: Map<String, FileChange>
 
     private fun removeDeletedEntries() {
         inputs.forEach { directory ->
             val dirPath: String = directory.asFile.absolutePath
 
-            incrementalInputChanges.allFileChanges
+            fileChanges
+                .asSequence()
                 .filter { details ->
-                    details as DefaultFileChange
-                    details.isRemoved
+                    details.changeType == ChangeType.REMOVED
                 }
                 .map { it.file }
                 .filter { file -> file.absolutePath.endsWith(DOT_CLASS) }
@@ -72,10 +71,10 @@ class IncrementalBuild(
     }
 
     private fun processDeltas() {
-        fileChangeMap = incrementalInputChanges
-            .allFileChanges.associateBy { details ->
-                details as DefaultFileChange
-                details.path
+        fileChangeMap = fileChanges
+            .asSequence()
+            .associateBy { details ->
+                details.file.absolutePath
             }
 
         // we require to delete any removed entry from the final JAR

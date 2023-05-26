@@ -35,10 +35,12 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -46,7 +48,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.execution.history.changes.IncrementalInputChanges
+import org.gradle.work.FileChange
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
 import org.slf4j.Logger
@@ -247,6 +249,8 @@ abstract class RealmTransformerTask : DefaultTask() {
             FileSystems.newFileSystem(output.get().asFile.toPath(), null)
         }
 
+        val fileChanges: MutableIterable<FileChange> = inputChanges.getFileChanges(inputDirectories as Provider<out FileSystemLocation>)
+
         val build: BuildTemplate =
             when {
                 areIncrementalBuildsDisabled.get() || !inputChanges.isIncremental ->
@@ -262,7 +266,7 @@ abstract class RealmTransformerTask : DefaultTask() {
                     inputJars = inputJars.get(),
                     inputDirectories = inputDirectories.get(),
                     output = jarFileOutput,
-                    incrementalInputChanges = inputChanges as IncrementalInputChanges,
+                    fileChanges = fileChanges,
                 )
             }
 
