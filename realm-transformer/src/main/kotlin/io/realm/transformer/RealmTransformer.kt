@@ -148,7 +148,7 @@ abstract class RealmTransformerTask : DefaultTask() {
     abstract val inputJars: ListProperty<RegularFile>
 
     @get:Incremental
-    @get:PathSensitive(PathSensitivity.ABSOLUTE)
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
     val inputDirectories: ConfigurableFileCollection = objectFactory.fileCollection().from(inputDirectoriesInternal)
 
