@@ -23,7 +23,7 @@ import io.realm.transformer.ext.hasRealmClassAnnotation
 import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
-import org.gradle.api.file.Directory
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFile
 import org.gradle.work.ChangeType
 import org.gradle.work.FileChange
@@ -35,7 +35,7 @@ class IncrementalBuild(
     metadata: ProjectMetaData,
     private val fileChanges: Iterable<FileChange>,
     inputJars: List<RegularFile>,
-    inputDirectories: List<Directory>,
+    inputDirectories: ConfigurableFileCollection,
     output: FileSystem,
 ) : BuildTemplate(
     metadata = metadata,
@@ -48,7 +48,7 @@ class IncrementalBuild(
 
     private fun removeDeletedEntries() {
         inputs.forEach { directory ->
-            val dirPath: String = directory.asFile.absolutePath
+            val dirPath: String = directory.absolutePath
 
             fileChanges
                 .asSequence()

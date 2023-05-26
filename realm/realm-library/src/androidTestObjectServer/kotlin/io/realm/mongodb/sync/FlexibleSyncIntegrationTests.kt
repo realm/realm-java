@@ -609,7 +609,7 @@ class FlexibleSyncIntegrationTests {
 
             assertEquals(1, realm.where<FlexSyncColor>().count())
         }
-        
+
         looperThread.testComplete(latch)
     }
 

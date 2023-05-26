@@ -39,7 +39,7 @@ abstract class BuildTemplate(
     private val metadata: ProjectMetaData,
     private val allJars: List<RegularFile>,
     protected val output: FileSystem,
-    val inputs: List<Directory>,
+    val inputs: ConfigurableFileCollection,
 ) {
     protected lateinit var classPool: ManagedClassPool
     protected lateinit var outputClassNames: Set<String>
@@ -60,9 +60,9 @@ abstract class BuildTemplate(
      */
      fun categorizeClassNames(): Set<String> {
         return inputs.flatMap { directory ->
-            val dirPath: String = directory.asFile.absolutePath
+            val dirPath: String = directory.absolutePath
 
-            directory.asFile.walk()
+            directory.walk()
                 .filter(File::isFile)
                 .filter { file -> file.shouldCategorize() }
                 .filter { file -> file.absolutePath.endsWith(DOT_CLASS) }
@@ -149,9 +149,9 @@ abstract class BuildTemplate(
     }
 
     fun copyResourceFiles() {
-        inputs.forEach { directory: Directory ->
-            val dirName = directory.asFile.absolutePath + File.separator
-            directory.asFile.walk().filter(File::isFile)
+        inputs.forEach { directory: File ->
+            val dirName = directory.absolutePath + File.separator
+            directory.walk().filter(File::isFile)
                 .filterNot { it.absolutePath.endsWith(DOT_CLASS) }
                 .forEach { file ->
                     val pathWithoutPrefix = file.absolutePath.removePrefix(dirName)

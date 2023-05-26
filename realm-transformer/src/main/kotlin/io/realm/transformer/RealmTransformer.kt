@@ -35,15 +35,15 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
-import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -59,6 +59,7 @@ import java.io.FileOutputStream
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.util.jar.JarOutputStream
+import javax.inject.Inject
 
 // Package level logger
 val logger: Logger = LoggerFactory.getLogger("realm-logger")
@@ -126,7 +127,7 @@ fun registerRealmTransformerTask(project: Project) {
                     .toTransform(
                         com.android.build.api.artifact.ScopedArtifact.CLASSES,
                         RealmTransformerTask::inputJars,
-                        RealmTransformerTask::inputDirectories,
+                        RealmTransformerTask::inputDirectoriesInternal,
                         RealmTransformerTask::output
                     )
             }
@@ -137,6 +138,8 @@ fun registerRealmTransformerTask(project: Project) {
  * This class implements the Transform API provided by the Android Gradle plugin.
  */
 abstract class RealmTransformerTask : DefaultTask() {
+    @get:Inject
+    abstract val objectFactory: ObjectFactory
 
     @get:Classpath
     abstract val referencedInputs: ConfigurableFileCollection
@@ -147,7 +150,10 @@ abstract class RealmTransformerTask : DefaultTask() {
     @get:Incremental
     @get:PathSensitive(PathSensitivity.ABSOLUTE)
     @get:InputFiles
-    abstract val inputDirectories: ListProperty<Directory>
+    val inputDirectories: ConfigurableFileCollection = objectFactory.fileCollection().from(inputDirectoriesInternal)
+
+    @get:Internal
+    abstract val inputDirectoriesInternal: ListProperty<Directory>
 
     @get:InputFiles
     abstract val bootClasspath: ConfigurableFileCollection
@@ -249,25 +255,28 @@ abstract class RealmTransformerTask : DefaultTask() {
             FileSystems.newFileSystem(output.get().asFile.toPath(), null)
         }
 
-        val fileChanges: MutableIterable<FileChange> = inputChanges.getFileChanges(inputDirectories as Provider<out FileSystemLocation>)
-
         val build: BuildTemplate =
             when {
                 areIncrementalBuildsDisabled.get() || !inputChanges.isIncremental ->
                     FullBuild(
                         metadata = metadata,
                         inputJars = inputJars.get(),
-                        inputDirectories = inputDirectories.get(),
+                        inputDirectories = inputDirectories,
                         output = jarFileOutput,
                     )
-                else ->
+
+                else -> {
+                    val fileChanges: MutableIterable<FileChange> =
+                        inputChanges.getFileChanges(inputDirectories)
+
                     IncrementalBuild(
-                    metadata = metadata,
-                    inputJars = inputJars.get(),
-                    inputDirectories = inputDirectories.get(),
-                    output = jarFileOutput,
-                    fileChanges = fileChanges,
-                )
+                        metadata = metadata,
+                        inputJars = inputJars.get(),
+                        inputDirectories = inputDirectories,
+                        output = jarFileOutput,
+                        fileChanges = fileChanges,
+                    )
+                }
             }
 
         build.prepareOutputClasses()

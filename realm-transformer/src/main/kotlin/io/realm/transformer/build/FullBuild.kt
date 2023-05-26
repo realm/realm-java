@@ -22,7 +22,7 @@ import io.realm.transformer.ProjectMetaData
 import io.realm.transformer.ext.safeSubtypeOf
 import io.realm.transformer.logger
 import javassist.CtClass
-import org.gradle.api.file.Directory
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFile
 import java.io.File
 import java.nio.file.FileSystem
@@ -31,7 +31,7 @@ class FullBuild(
     metadata: ProjectMetaData,
     inputJars: List<RegularFile>,
     output: FileSystem,
-    inputDirectories: List<Directory>
+    inputDirectories: ConfigurableFileCollection
 ) : BuildTemplate(
     metadata = metadata,
     allJars = inputJars,
