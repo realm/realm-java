@@ -20,7 +20,6 @@ import javassist.ClassPath
 import javassist.ClassPool
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
-import org.gradle.api.provider.ListProperty
 import java.io.Closeable
 import java.io.File
 
@@ -28,7 +27,7 @@ import java.io.File
  * This class is a wrapper around JavaAssists {@code ClassPool} class that allows for correct cleanup
  * of the resources used.
  */
-class ManagedClassPool(inputs: ListProperty<Directory>, referencedInputs: ConfigurableFileCollection) : ClassPool(), Closeable {
+class ManagedClassPool(inputs: ConfigurableFileCollection, referencedInputs: ConfigurableFileCollection) : ClassPool(), Closeable {
 
     private val pathElements: ArrayList<ClassPath> = arrayListOf()
 
@@ -45,8 +44,8 @@ class ManagedClassPool(inputs: ListProperty<Directory>, referencedInputs: Config
         // will use a cached object and all the classes will be frozen.
         appendSystemPath()
 
-        inputs.get().forEach{ directory: Directory ->
-            directory.asFile.walk().filter(File::isDirectory).forEach {
+        inputs.forEach{ directory: File ->
+            directory.walk().filter(File::isDirectory).forEach {
                 pathElements.add(appendClassPath(it.absolutePath))
             }
         }

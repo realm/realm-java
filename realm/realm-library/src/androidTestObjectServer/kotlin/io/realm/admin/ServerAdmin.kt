@@ -1,18 +1,18 @@
 package io.realm.admin
 
-import android.os.SystemClock
 import io.realm.log.LogLevel
 import io.realm.log.RealmLog
 import io.realm.mongodb.App
 import io.realm.mongodb.User
 import io.realm.mongodb.sync.SyncSession
+import io.realm.TestHelper
 import okhttp3.*
 import okio.Buffer
 import org.json.JSONArray
 import org.json.JSONObject
 import java.nio.charset.Charset
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-
 /**
  * Wrapper around MongoDB Realm Server Admin functions needed for tests.
  */
@@ -320,9 +320,12 @@ class ServerAdmin(private val app: App) {
     // Will trigger a client reset with the recovery mode disabled if needed
     // Disabling the recovery mode would force a `RecoverOrDiscardUnsyncedChangesStrategy` to
     // discard the local changes even if they are recoverable.
-    fun triggerClientReset(syncSession: SyncSession,
-                           withRecoveryModeEnabled: Boolean = true,
-                           block: () -> Unit)
+    fun triggerClientReset(
+        syncSession: SyncSession,
+        withRecoveryModeEnabled: Boolean = true,
+        latch: CountDownLatch? = null,
+        block: () -> Unit
+    )
     {
         // Later, we will restore the original status
         val wasRecoveryModeEnabled = isRecoveryModeEnabled()
@@ -340,6 +343,7 @@ class ServerAdmin(private val app: App) {
             syncSession.start()
             syncSession.downloadAllServerChanges()
         } finally {
+            latch?.let { TestHelper.awaitOrFail(it) }
             setIsRecoveryModeEnabled(wasRecoveryModeEnabled)
         }
     }
