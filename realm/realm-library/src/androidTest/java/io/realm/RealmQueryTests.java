@@ -4499,7 +4499,9 @@ public class RealmQueryTests extends QueryTests {
                     transactionRealm.createObject(DictionaryAllTypes.class).getColumnStringDictionary().put("key2", "value1");
                 }
         );
-        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class).rawPredicate("TRUEPREDICATE SORT(columnStringDictionary['key1'] DESC)").findAll();
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class)
+                .rawPredicate("TRUEPREDICATE SORT(columnStringDictionary['key1'] ASC)")
+                .findAll();
 
         // Missing keys will be sorted as 'null' values
         assertEquals(4, results.size());

@@ -146,15 +146,15 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
                 util::Optional<std::string>(app_version),
                 util::Optional<std::uint64_t>(j_request_timeout_ms),
                 {
-                        platform,
                         platform_version,
                         sdk_version,
                         "Java",
-                        cpu_arch,
                         device_name,
                         device_version,
                         framework_name,
-                        framework_version
+                        framework_version,
+                        // TODO bundle_id should be match metric submitted value and be injected at compiler time.
+                        ""
                 }
         };
 
