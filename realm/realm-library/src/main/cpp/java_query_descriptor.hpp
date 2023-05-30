@@ -61,7 +61,7 @@ private:
     JNIEnv* m_env;
     jobject m_sort_desc_obj;
 
-    std::vector<std::vector<ColKey>> get_column_keys() const noexcept;
+    std::vector<std::vector<ExtendedColumnKey>> get_column_keys() const noexcept;
     std::vector<bool> get_ascendings() const noexcept;
 
     jni_util::JavaClass const& get_sort_desc_class() const noexcept;

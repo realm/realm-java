@@ -4,7 +4,7 @@
 * None.
 
 ### Enhancements
-* None.
+* Add support for sorting qeury results on dictionary values through `RealmQuery.rawPredicate("<PREDICATE> SORT(<DICTIONARY-PROPERTY>['<DICTIONARY-KEY>'] <ORDER>)")` (Issue [#7817](https://github.com/realm/realm-java/issues/7817)).
 
 ### Fixed
 * None.
@@ -17,7 +17,7 @@
 * Android Gradle Plugin 7.4.0 and above.
 
 ### Internal
-* None.
+* Updated to Realm Core 13.13.0, commit 79183be6417821431fff44a6d416a68664957c66.
 
 
 ## 10.15.1 (2023-05-20)

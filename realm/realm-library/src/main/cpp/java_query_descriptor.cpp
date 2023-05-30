@@ -42,18 +42,18 @@ DistinctDescriptor JavaQueryDescriptor::distinct_descriptor() const noexcept
     return DistinctDescriptor(get_column_keys());
 }
 
-std::vector<std::vector<ColKey>> JavaQueryDescriptor::get_column_keys() const noexcept
+std::vector<std::vector<ExtendedColumnKey>> JavaQueryDescriptor::get_column_keys() const noexcept
 {
     static JavaMethod get_column_keys_method(m_env, get_sort_desc_class(), "getColumnKeys", "()[[J");
     jobjectArray column_indices =
             static_cast<jobjectArray>(m_env->CallObjectMethod(m_sort_desc_obj, get_column_keys_method));
     JObjectArrayAccessor<JLongArrayAccessor, jlongArray> arrays(m_env, column_indices);
     jsize arr_len = arrays.size();
-    std::vector<std::vector<ColKey>> keys;
+    std::vector<std::vector<ExtendedColumnKey>> keys;
 
     for (int i = 0; i < arr_len; ++i) {
         auto jni_long_array = arrays[i];
-        std::vector<ColKey> col_keys;
+        std::vector<ExtendedColumnKey> col_keys;
         for (int j = 0; j < jni_long_array.size(); ++j) {
             col_keys.push_back(ColKey(jni_long_array[j]));
         }
