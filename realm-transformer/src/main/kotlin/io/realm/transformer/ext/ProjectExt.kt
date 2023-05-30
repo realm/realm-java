@@ -85,3 +85,22 @@ private fun getAndroidExtension(project: Project): BaseExtension {
     // trigger the transformer code in the first place.
     return project.extensions.getByName("android") as BaseExtension
 }
+
+fun Project.areIncrementalBuildsDisabled() =
+    if(extensions.extraProperties.has("io.realm.disableIncrementalBuilds")){
+        extensions.extraProperties["io.realm.disableIncrementalBuilds"] == "true"
+    } else {
+        false
+    }
+
+fun Project.targetType(): String = with(project.plugins) {
+    when {
+        findPlugin("com.android.application") != null -> "app"
+        findPlugin("com.android.library") != null -> "library"
+        else -> "unknown"
+    }
+}
+
+fun Project.usesKotlin(): Boolean {
+    return project.pluginManager.hasPlugin("kotlin-kapt")
+}

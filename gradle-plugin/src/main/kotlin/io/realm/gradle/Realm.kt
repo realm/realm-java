@@ -2,7 +2,7 @@ package io.realm.gradle
 
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.LibraryPlugin
-import io.realm.transformer.RealmTransformer
+import io.realm.transformer.registerRealmTransformerTask
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -41,8 +41,7 @@ open class Realm : Plugin<Project> {
 
         extension.isKotlinExtensionsEnabled = isKotlinProject
 
-
-        RealmTransformer.register(project)
+        registerRealmTransformerTask(project)
 
         project.dependencies.add(
             dependencyConfigurationName,

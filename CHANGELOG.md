@@ -7,7 +7,7 @@
 * None.
 
 ### Fixed
-* None.
+* Add support for incremental builds on the bytecode transformation with the new AGP transform API. Incremental builds can be disabled by setting the gradle property `io.realm.disableIncrementalBuilds` to `true`. (Issue [#7802](https://github.com/realm/realm-java/issues/7802))
 
 ### Compatibility
 * File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.

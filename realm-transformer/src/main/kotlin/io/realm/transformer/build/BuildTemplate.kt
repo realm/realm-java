@@ -21,60 +21,82 @@ import javassist.CtClass
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.provider.ListProperty
 import java.io.File
-import java.util.jar.JarEntry
+import java.io.InputStream
+import java.nio.file.FileSystem
+import java.nio.file.Files
+import java.nio.file.StandardOpenOption
 import java.util.jar.JarFile
-import java.util.jar.JarOutputStream
 import java.util.regex.Pattern
 
-public const val DOT_CLASS = ".class"
-public const val DOT_JAR = ".jar"
+const val DOT_CLASS = ".class"
 
 /**
  * Abstract class defining the structure of doing different types of builds.
  *
  */
-abstract class BuildTemplate(private val metadata: ProjectMetaData, private val allJars: ListProperty<RegularFile>, protected val outputProvider: JarOutputStream, val transform: RealmTransformer) {
-
-    protected lateinit var inputs: ListProperty<Directory>
+abstract class BuildTemplate(
+    private val metadata: ProjectMetaData,
+    private val allJars: List<RegularFile>,
+    protected val output: FileSystem,
+    val inputs: ConfigurableFileCollection,
+) {
     protected lateinit var classPool: ManagedClassPool
-    protected val outputClassNames: MutableSet<String> = hashSetOf()
-    protected val outputReferencedClassNames: MutableSet<String> = hashSetOf()
-    protected val outputModelClasses: ArrayList<CtClass> = arrayListOf()
+    protected lateinit var outputClassNames: Set<String>
+    private lateinit var outputReferencedClassNames: Set<String>
+    protected lateinit var outputModelClasses: List<CtClass>
     protected val processedClasses = mutableMapOf<String, CtClass>()
 
     /**
-     * Find all the class names available for transforms as well as all referenced classes.
+     * Finds all the class names available for transforms as well as all referenced classes.
      */
-    abstract fun prepareOutputClasses(inputs: ListProperty<Directory>)
+    abstract fun prepareOutputClasses()
 
     /**
-     * Helper method for going through all `TransformInput` and sort classes into buckets of
-     * source files in the current project or source files found in jar files.
+     * Helper method where we go through all input classes and sort them into buckets of source files
+     * in the current project or source files found in jar files.
      *
-     * @param inputs set of input files
-     * @param directoryFiles the set of files in directories getting compiled. These are potential
-     * candidates for the transformer.
-     * @param jaFiles the set of files found in jar files. These will never be transformed. This should
-     * already be done when creating the jar file.
+     * @return paths in the output FileSystem for the classes to be processed.
      */
-    protected abstract fun categorizeClassNames(inputs: ListProperty<Directory>,
-                                          directoryFiles: MutableSet<String>)
+     fun categorizeClassNames(): Set<String> {
+        return inputs.flatMap { directory ->
+            val dirPath: String = directory.absolutePath
 
-    protected abstract fun categorizeClassNames(referencedInputs: ConfigurableFileCollection,
-                                                jarFiles: MutableSet<String>)
+            directory.walk()
+                .filter(File::isFile)
+                .filter { file -> file.shouldCategorize() }
+                .filter { file -> file.absolutePath.endsWith(DOT_CLASS) }
+                .map { it.categorize(dirPath) }
+        }.toSet()
+    }
+
+    private fun categorizeClassNames(referencedInputs: ConfigurableFileCollection): Set<String> =
+        referencedInputs.flatMap { file ->
+            JarFile(file).use { jarFile ->
+                jarFile.entries()
+                    .toList()
+                    .filter { jarEntry ->
+                        !jarEntry.isDirectory && jarEntry.name.endsWith(DOT_CLASS)
+                    }
+                    .map { jarEntry ->
+                        val path: String = jarEntry.name
+                        // The jar might not using File.separatorChar as the path separator. So we just replace both `\` and
+                        // `/`. It depends on how the jar file was created.
+                        // See http://stackoverflow.com/questions/13846000/file-separators-of-path-name-of-zipentry
+                        path.substring(startIndex = 0, endIndex = path.length - DOT_CLASS.length)
+                            .replace('/', '.')
+                            .replace('\\', '.')
+                    }
+            }// Crash transformer if this fails to close
+        }.toSet()
 
     /**
      * Returns `true` if this build contains no relevant classes to transform.
      */
-    fun hasNoOutput(): Boolean {
-        return outputClassNames.isEmpty()
-    }
-
+    fun hasNoOutput(): Boolean = outputClassNames.isEmpty()
 
     fun prepareReferencedClasses(referencedInputs: ConfigurableFileCollection) {
-        categorizeClassNames(referencedInputs, outputReferencedClassNames) // referenced files
+        outputReferencedClassNames = categorizeClassNames(referencedInputs) // referenced files
 
         // Create and populate the Javassist class pool
         this.classPool = ManagedClassPool(inputs, referencedInputs)
@@ -87,7 +109,6 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
     }
 
     protected abstract fun filterForModelClasses(outputClassNames: Set<String>, outputReferencedClassNames: Set<String>)
-
 
     fun markMediatorsAsTransformed() {
         val baseProxyMediator: CtClass = classPool.get("io.realm.internal.RealmProxyMediator")
@@ -119,41 +140,58 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
     abstract fun transformDirectAccessToModelFields()
 
     fun copyProcessedClasses() {
-        for ((fqname: String, clazz: CtClass) in processedClasses) {
-            outputProvider.putNextEntry(JarEntry("${fqname.replace('.', '/')}.class"))
-            outputProvider.write(clazz.toBytecode())
-            outputProvider.closeEntry()
+        processedClasses.forEach { (fqName: String, clazz: CtClass) ->
+            output.addEntry(
+                "${fqName.replace('.', '/')}.class",
+                clazz.toBytecode().inputStream()
+            )
         }
     }
 
     fun copyResourceFiles() {
-        inputs.get().forEach { directory: Directory ->
-            val dirName = directory.asFile.absolutePath + File.separator
-            directory.asFile.walk().filter(File::isFile).forEach { file ->
-                if (!file.absolutePath.endsWith(DOT_CLASS)) {
+        inputs.forEach { directory: File ->
+            val dirName = directory.absolutePath + File.separator
+            directory.walk().filter(File::isFile)
+                .filterNot { it.absolutePath.endsWith(DOT_CLASS) }
+                .forEach { file ->
                     val pathWithoutPrefix = file.absolutePath.removePrefix(dirName)
                     // We need to transform platform paths into consistent zip entry paths
                     // https://github.com/realm/realm-java/issues/7757
                     val zipEntryPath = pathWithoutPrefix.replace(File.separatorChar, '/')
-                    outputProvider.putNextEntry(JarEntry(zipEntryPath))
-                    outputProvider.write(file.readBytes())
-                    outputProvider.closeEntry()
+
+                    output.addEntry(zipEntryPath, file.inputStream())
                 }
-            }
         }
-        allJars.get().forEach { file ->
-            val jarFile = JarFile(file.asFile)
-            for (jarEntry: JarEntry in jarFile.entries()) {
-                outputProvider.putNextEntry(JarEntry(jarEntry.name))
-                jarFile.getInputStream(jarEntry).use {
-                    outputProvider.write(it.readBytes())
-                }
-                outputProvider.closeEntry()
+        allJars.forEach { file ->
+            JarFile(file.asFile).use { jarFile ->
+                jarFile.entries()
+                    .toList()
+                    .forEach { jarEntry ->
+                        jarFile.getInputStream(jarEntry).use {
+                            output.addEntry(
+                                jarEntry.name,
+                                it
+                            )
+                        }
+                    }
             }
-            jarFile.close()
         }
 
         classPool.close()
+    }
+
+    /**
+     * Helper method that adds an entry into a FileSystem. It takes the path and the contents, and
+     * creates and intermediate directory.
+     */
+    private fun FileSystem.addEntry(entryPath: String, input: InputStream) {
+        getPath(entryPath).let { path ->
+            path.parent?.let { Files.createDirectories(it) }
+            Files.newOutputStream(path, StandardOpenOption.CREATE).use { stream ->
+                input.copyTo(stream)
+                stream.close()
+            }
+        }
     }
 
     /**
@@ -174,10 +212,21 @@ abstract class BuildTemplate(private val metadata: ProjectMetaData, private val 
         }
     }
 
-    fun getOutputModelClasses(): Set<CtClass> {
-        return outputModelClasses.toSet()
-    }
+    protected abstract fun findModelClasses(classNames: Set<String>): List<CtClass>
 
-    protected abstract fun findModelClasses(classNames: Set<String>): Collection<CtClass>
+    /**
+     * Helper method that computes the path in the output FileSystem for a given class.
+     */
+    protected fun File.categorize(dirPath: String): String =
+        absolutePath
+            .substring(
+                startIndex = dirPath.length + 1,
+                endIndex = absolutePath.length - DOT_CLASS.length
+            )
+            .replace(File.separatorChar, '.')
 
+    /**
+     * Tells if a given file has to be categorized.
+     */
+    abstract fun File.shouldCategorize(): Boolean
 }

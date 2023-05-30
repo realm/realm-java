@@ -15,6 +15,7 @@
  */
 package io.realm.transformer.ext
 
+import io.realm.annotations.RealmClass
 import javassist.CtClass
 import javassist.NotFoundException
 import javassist.bytecode.ClassFile
@@ -79,4 +80,10 @@ fun CtClass.safeSubtypeOf(typeToCheckAgainst: CtClass): Boolean {
     }
 
     return false
+}
+
+fun hasRealmClassAnnotation(superclass: CtClass?) = try {
+    superclass?.hasAnnotation(RealmClass::class.java) == true
+} catch (ignored: NotFoundException) {
+    false
 }
