@@ -4489,6 +4489,31 @@ public class RealmQueryTests extends QueryTests {
         realm.where(DictionaryAllTypes.class).containsEntry(DictionaryAllTypes.FIELD_STRING_DICTIONARY, null);
     }
 
+    // Illegal Argument: Illegal Argument: Cannot sort on a collection property
+    @Test
+    public void dictionary_sortByDictionaryElement() {
+        realm.executeTransaction(transactionRealm -> {
+                    transactionRealm.createObject(DictionaryAllTypes.class).getColumnStringDictionary().put("key1", "value1");
+                    transactionRealm.createObject(DictionaryAllTypes.class).getColumnStringDictionary().put("key1", "value2");
+                    transactionRealm.createObject(DictionaryAllTypes.class).getColumnStringDictionary().put("key1", "value0");
+                    transactionRealm.createObject(DictionaryAllTypes.class).getColumnStringDictionary().put("key2", "value1");
+                }
+        );
+        RealmResults<DictionaryAllTypes> results = realm.where(DictionaryAllTypes.class)
+                .rawPredicate("TRUEPREDICATE SORT(columnStringDictionary['key1'] ASC)")
+                .findAll();
+
+        // Missing keys will be sorted as 'null' values
+        assertEquals(4, results.size());
+
+        String prevValue = null;
+        for (DictionaryAllTypes result : results) {
+            String value = result.getColumnStringDictionary().get("key1");
+            assertTrue(prevValue == null || value != null && prevValue.compareTo(value) <= 0);
+            prevValue = value;
+        }
+    }
+
     // FIXME Maybe move to QueryDescriptor or maybe even to RealmFieldType?
     private boolean supportDistinct(RealmFieldType type) {
         switch (type) {

@@ -472,7 +472,7 @@ public class TestHelper {
         public Throwable throwable;
 
         // Store just a few log entries
-        public MessageBuffer messageBuffer = new MessageBuffer(5);
+        public MessageBuffer messageBuffer = new MessageBuffer(10);
 
         public TestLogger() {
             this(LogLevel.DEBUG);

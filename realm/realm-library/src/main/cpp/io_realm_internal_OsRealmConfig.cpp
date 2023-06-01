@@ -337,6 +337,11 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
                                 jsession_path);
             env->DeleteLocalRef(jerror_message);
             env->DeleteLocalRef(jsession_path);
+            if (env->ExceptionCheck()) {
+                env->ExceptionDescribe();
+                env->ExceptionClear();
+                throw std::runtime_error("User-provided callback failed");
+            }
         };
 
         // Get logged in user

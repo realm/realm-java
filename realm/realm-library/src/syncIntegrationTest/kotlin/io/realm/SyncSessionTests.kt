@@ -49,9 +49,9 @@ fun validateManualResetIsAvailable(
     assertFalse(error.backupFile.exists())
     assertTrue(error.originalFile.exists())
 
-    assertEquals(
-        "CLIENT_RESET(realm::app::CustomError:7): Automatic recovery from client reset failed",
-        error.toString()
+    assertTrue(
+        error.toString(),
+        error.toString().startsWith("CLIENT_RESET(realm::app::CustomError:7):"),
     )
 }
 
