@@ -167,6 +167,8 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
         client_config.base_file_path = base_file_path;
         client_config.user_agent_binding_info = user_agent_binding_info;
         client_config.user_agent_application_info = user_agent_application_info;
+        // Disable multiplexing. See https://github.com/realm/realm-core/issues/6656
+        client_config.multiplex_sessions = false;
 
         if(j_encryption_key == nullptr){
             client_config.metadata_mode = SyncManager::MetadataMode::NoEncryption;

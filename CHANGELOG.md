@@ -5,6 +5,8 @@
 
 ### Enhancements
 * Add support for sorting qeury results on dictionary values through `RealmQuery.rawPredicate("<PREDICATE> SORT(<DICTIONARY-PROPERTY>['<DICTIONARY-KEY>'] <ORDER>)")` (Issue [#7817](https://github.com/realm/realm-java/issues/7817)).
+* Improve performance of equality queries on a non-indexed mixed property by about 30%. ([#6506](https://github.com/realm/realm-core/issues/6506))
+* [RealmApp] Support for migrating from Partition-based to Flexible Sync automatically on the device if the server has migrated to Flexible Sync. (Core Issue #6554)
 
 ### Fixed
 * None.
