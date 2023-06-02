@@ -1,3 +1,25 @@
+## 10.16.1-SNAPSHOT (YYYY-MM-DD)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixed
+* None.
+
+### Compatibility
+* File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 13.0.0 or above is required to open Realms created by this version.
+* Gradle 7.5 and above.
+* Android Gradle Plugin 7.4.0 and above.
+
+### Internal
+* None.
+
+
 ## 10.16.0 (2023-06-02)
 
 ### Breaking Changes
@@ -7,7 +29,6 @@
 * Add support for sorting query results on dictionary values through `RealmQuery.rawPredicate("<PREDICATE> SORT(<DICTIONARY-PROPERTY>['<DICTIONARY-KEY>'] <ORDER>)")` (Issue [#7817](https://github.com/realm/realm-java/issues/7817)).
 * Improve performance of equality queries on a non-indexed mixed property by about 30%. (Core Issue [#6506](https://github.com/realm/realm-core/issues/6506))
 * [RealmApp] Support for migrating from Partition-based to Flexible Sync automatically on the device if the server has migrated to Flexible Sync. (Core Issue [#6554](https://github.com/realm/realm-core/issues/6554))
-
 
 ### Fixed
 * Add support for incremental builds on the bytecode transformation with the new AGP transform API. Incremental builds can be disabled by setting the gradle property `io.realm.disableIncrementalBuilds` to `true`. (Issue [#7802](https://github.com/realm/realm-java/issues/7802))
