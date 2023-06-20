@@ -5,6 +5,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.realm.internal.ErrorCategory;
 import io.realm.mongodb.ErrorCode;
 import io.realm.mongodb.AppException;
 import io.realm.internal.KeepMember;
@@ -22,7 +23,8 @@ public class OsAsyncOpenTask {
     private final OsRealmConfig config;
     private long nativePtr;
     private final CountDownLatch taskComplete = new CountDownLatch(1);
-    private final AtomicReference<String> error = new AtomicReference<>(null);
+    private final AtomicReference<ErrorCode> errorCode = new AtomicReference<>(null);
+    private final AtomicReference<String> errorMessage = new AtomicReference<>(null);
 
     public OsAsyncOpenTask(OsRealmConfig config) {
         this.config = config;
@@ -38,9 +40,10 @@ public class OsAsyncOpenTask {
             throw e;
         }
 
-        String errorMessage = error.get();
-        if (errorMessage != null) {
-            throw new AppException(ErrorCode.UNKNOWN, errorMessage);
+        ErrorCode errorCode = this.errorCode.get();
+        String errorMessage = this.errorMessage.get();
+        if (errorCode != null && errorMessage != null) {
+            throw new AppException(errorCode, errorMessage);
         }
     }
 
@@ -50,7 +53,8 @@ public class OsAsyncOpenTask {
     @KeepMember
     @SuppressWarnings("unused")
     private void notifyRealmReady() {
-        error.set(null);
+        errorCode.set(null);
+        errorMessage.set(null);
         taskComplete.countDown();
     }
 
@@ -59,8 +63,10 @@ public class OsAsyncOpenTask {
      */
     @KeepMember
     @SuppressWarnings("unused")
-    private void notifyError(String errorMessage) {
-        error.set(errorMessage);
+    private void notifyError(byte nativeErrorCategory, int nativeErrorCode, String errorMessage) {
+        ErrorCode errorCode = ErrorCode.fromNativeError(ErrorCategory.toCategory(nativeErrorCategory), nativeErrorCode);
+        this.errorCode.set(errorCode);
+        this.errorMessage.set(errorMessage);
         taskComplete.countDown();
     }
 

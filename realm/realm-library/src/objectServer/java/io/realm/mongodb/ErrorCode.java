@@ -80,42 +80,42 @@ public enum ErrorCode {
     BAD_CHANGESETS(Type.PROTOCOL, 113),                             // Bad changesets (UPLOAD)
 
     // Session level errors from the native Sync Client
-    SESSION_CLOSED(Type.PROTOCOL, 200, Category.RECOVERABLE),      // Session closed (no error)
-    OTHER_SESSION_ERROR(Type.PROTOCOL, 201, Category.RECOVERABLE), // Other session level error
-    TOKEN_EXPIRED(Type.PROTOCOL, 202, Category.RECOVERABLE),       // Access token expired
+    SESSION_CLOSED(Type.SESSION, 200, Category.RECOVERABLE),      // Session closed (no error)
+    OTHER_SESSION_ERROR(Type.SESSION, 201, Category.RECOVERABLE), // Other session level error
+    TOKEN_EXPIRED(Type.SESSION, 202, Category.RECOVERABLE),       // Access token expired
 
     // Session fatal: Auth wrong. Cannot be fixed without a new User/SyncConfiguration.
-    BAD_AUTHENTICATION(Type.PROTOCOL, 203),                        // Bad user authentication (BIND, REFRESH)
-    ILLEGAL_REALM_PATH(Type.PROTOCOL, 204),                        // Illegal Realm path (BIND)
-    NO_SUCH_PATH(Type.PROTOCOL, 205),                              // No such Realm (BIND)
-    PERMISSION_DENIED(Type.PROTOCOL, 206),                         // Permission denied (BIND, REFRESH)
+    BAD_AUTHENTICATION(Type.SESSION, 203),                        // Bad user authentication (BIND, REFRESH)
+    ILLEGAL_REALM_PATH(Type.SESSION, 204),                        // Illegal Realm path (BIND)
+    NO_SUCH_PATH(Type.SESSION, 205),                              // No such Realm (BIND)
+    PERMISSION_DENIED(Type.SESSION, 206),                         // Permission denied (BIND, REFRESH)
 
     // Fatal: Wrong server/client versions. Trying to sync incompatible files or the file was corrupted.
-    BAD_SERVER_FILE_IDENT(Type.PROTOCOL, 207),                     // Bad server file identifier (IDENT)
-    BAD_CLIENT_FILE_IDENT(Type.PROTOCOL, 208),                     // Bad client file identifier (IDENT)
-    BAD_SERVER_VERSION(Type.PROTOCOL, 209),                        // Bad server version (IDENT, UPLOAD)
-    BAD_CLIENT_VERSION(Type.PROTOCOL, 210),                        // Bad client version (IDENT, UPLOAD)
-    DIVERGING_HISTORIES(Type.PROTOCOL, 211),                       // Diverging histories (IDENT)
-    BAD_CHANGESET(Type.PROTOCOL, 212),                             // Bad changeset (UPLOAD)
-    DISABLED_SESSION(Type.PROTOCOL, 213),                          // Disabled session
-    PARTIAL_SYNC_DISABLED(Type.PROTOCOL, 214),                     // Partial sync disabled (BIND)
-    UNSUPPORTED_SESSION_FEATURE(Type.PROTOCOL, 215),               // Unsupported session-level feature
-    BAD_ORIGIN_FILE_IDENT(Type.PROTOCOL, 216),                     // Bad origin file identifier (UPLOAD)
-    BAD_CLIENT_FILE(Type.PROTOCOL, 217),                           // Synchronization no longer possible for client-side file
-    SERVER_FILE_DELETED(Type.PROTOCOL, 218),                       // Server file was deleted while session was bound to it
-    CLIENT_FILE_BLACKLISTED(Type.PROTOCOL, 219),                   // Client file has been blacklisted (IDENT)
-    USER_BLACKLISTED(Type.PROTOCOL, 220),                          // User has been blacklisted (BIND)
-    TRANSACT_BEFORE_UPLOAD(Type.PROTOCOL, 221),                    // Serialized transaction before upload completion
-    CLIENT_FILE_EXPIRED(Type.PROTOCOL, 222),                       // Client file has expired
-    USER_MISMATCH(Type.PROTOCOL, 223),                             // User mismatch for client file identifier (IDENT)
-    TOO_MANY_SESSIONS(Type.PROTOCOL, 224),                         // Too many sessions in connection (BIND)
-    INVALID_SCHEMA_CHANGE(Type.PROTOCOL, 225),                     // Invalid schema change (UPLOAD)
-    BAD_QUERY(Type.PROTOCOL, 226),                                 // Client query is invalid/malformed (IDENT, QUERY)
-    OBJECT_ALREADY_EXISTS(Type.PROTOCOL, 227),                     // Client tried to create an object that already exists outside their view (UPLOAD)
-    SERVER_PERMISSIONS_CHANGED(Type.PROTOCOL, 228),                // Server permissions for this file ident have changed since the last time it was used (IDENT)
-    INITIAL_SYNC_NOT_COMPLETE(Type.PROTOCOL, 229),                 // Client tried to open a session before initial sync is complete (BIND)
-    WRITE_NOT_ALLOWED(Type.PROTOCOL, 230),                         // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query - requires client reset (UPLOAD)
-    COMPENSATING_WRITE(Type.PROTOCOL, 231),                        // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query, and the server undid the change
+    BAD_SERVER_FILE_IDENT(Type.SESSION, 207),                     // Bad server file identifier (IDENT)
+    BAD_CLIENT_FILE_IDENT(Type.SESSION, 208),                     // Bad client file identifier (IDENT)
+    BAD_SERVER_VERSION(Type.SESSION, 209),                        // Bad server version (IDENT, UPLOAD)
+    BAD_CLIENT_VERSION(Type.SESSION, 210),                        // Bad client version (IDENT, UPLOAD)
+    DIVERGING_HISTORIES(Type.SESSION, 211),                       // Diverging histories (IDENT)
+    BAD_CHANGESET(Type.SESSION, 212),                             // Bad changeset (UPLOAD)
+    DISABLED_SESSION(Type.SESSION, 213),                          // Disabled session
+    PARTIAL_SYNC_DISABLED(Type.SESSION, 214),                     // Partial sync disabled (BIND)
+    UNSUPPORTED_SESSION_FEATURE(Type.SESSION, 215),               // Unsupported session-level feature
+    BAD_ORIGIN_FILE_IDENT(Type.SESSION, 216),                     // Bad origin file identifier (UPLOAD)
+    BAD_CLIENT_FILE(Type.SESSION, 217),                           // Synchronization no longer possible for client-side file
+    SERVER_FILE_DELETED(Type.SESSION, 218),                       // Server file was deleted while session was bound to it
+    CLIENT_FILE_BLACKLISTED(Type.SESSION, 219),                   // Client file has been blacklisted (IDENT)
+    USER_BLACKLISTED(Type.SESSION, 220),                          // User has been blacklisted (BIND)
+    TRANSACT_BEFORE_UPLOAD(Type.SESSION, 221),                    // Serialized transaction before upload completion
+    CLIENT_FILE_EXPIRED(Type.SESSION, 222),                       // Client file has expired
+    USER_MISMATCH(Type.SESSION, 223),                             // User mismatch for client file identifier (IDENT)
+    TOO_MANY_SESSIONS(Type.SESSION, 224),                         // Too many sessions in connection (BIND)
+    INVALID_SCHEMA_CHANGE(Type.SESSION, 225),                     // Invalid schema change (UPLOAD)
+    BAD_QUERY(Type.SESSION, 226),                                 // Client query is invalid/malformed (IDENT, QUERY)
+    OBJECT_ALREADY_EXISTS(Type.SESSION, 227),                     // Client tried to create an object that already exists outside their view (UPLOAD)
+    SERVER_PERMISSIONS_CHANGED(Type.SESSION, 228),                // Server permissions for this file ident have changed since the last time it was used (IDENT)
+    INITIAL_SYNC_NOT_COMPLETE(Type.SESSION, 229),                 // Client tried to open a session before initial sync is complete (BIND)
+    WRITE_NOT_ALLOWED(Type.SESSION, 230),                         // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query - requires client reset (UPLOAD)
+    COMPENSATING_WRITE(Type.SESSION, 231),                        // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query, and the server undid the change
 
     //
     // Type.Client
@@ -123,38 +123,38 @@ public enum ErrorCode {
     // Sync Network Client errors.
     // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L75
     //
-    CLIENT_CONNECTION_CLOSED(Type.SESSION, 100),            // Connection closed (no error)
-    CLIENT_UNKNOWN_MESSAGE(Type.SESSION, 101),              // Unknown type of input message
-    CLIENT_LIMITS_EXCEEDED(Type.SESSION, 103),              // Limits exceeded in input message
-    CLIENT_BAD_SESSION_IDENT(Type.SESSION, 104),            // Bad session identifier in input message
-    CLIENT_BAD_MESSAGE_ORDER(Type.SESSION, 105),            // Bad input message order
-    CLIENT_BAD_CLIENT_FILE_IDENT(Type.SESSION, 106),        // Bad client file identifier (IDENT)
-    CLIENT_BAD_PROGRESS(Type.SESSION, 107),                 // Bad progress information (DOWNLOAD)
-    CLIENT_BAD_CHANGESET_HEADER_SYNTAX(Type.SESSION, 108),  // Bad syntax in changeset header (DOWNLOAD)
-    CLIENT_BAD_CHANGESET_SIZE(Type.SESSION, 109),           // Bad changeset size in changeset header (DOWNLOAD)
-    CLIENT_BAD_ORIGIN_FILE_IDENT(Type.SESSION, 110),        // Bad origin file identifier in changeset header (DOWNLOAD)
-    CLIENT_BAD_SERVER_VERSION(Type.SESSION, 111),           // Bad server version in changeset header (DOWNLOAD)
-    CLIENT_BAD_CHANGESET(Type.SESSION, 112),                // Bad changeset (DOWNLOAD)
-    CLIENT_BAD_REQUEST_IDENT(Type.SESSION, 113),            // Bad request identifier (MARK)
-    CLIENT_BAD_ERROR_CODE(Type.SESSION, 114),               // Bad error code (ERROR)
-    CLIENT_BAD_COMPRESSION(Type.SESSION, 115),              // Bad compression (DOWNLOAD)
-    CLIENT_BAD_CLIENT_VERSION_DOWNLOAD(Type.SESSION, 116),  // Bad last integrated client version in changeset header (DOWNLOAD)
-    CLIENT_SSL_SERVER_CERT_REJECTED(Type.SESSION, 117),     // SSL server certificate rejected
-    CLIENT_PONG_TIMEOUT(Type.SESSION, 118),                 // Timeout on reception of PONG respone message
-    CLIENT_BAD_CLIENT_FILE_IDENT_SALT(Type.SESSION, 119),   // Bad client file identifier salt (IDENT)
-    CLIENT_FILE_IDENT(Type.SESSION, 120),                   // Bad file identifier (ALLOC)
-    CLIENT_CONNECT_TIMEOUT(Type.SESSION, 121),              // Sync connection was not fully established in time
-    CLIENT_BAD_TIMESTAMP(Type.SESSION, 122),                // Bad timestamp (PONG)
-    CLIENT_BAD_PROTOCOL_FROM_SERVER(Type.SESSION, 123),     // Bad or missing protocol version information from server
-    CLIENT_TOO_OLD_FOR_SERVER(Type.SESSION, 124),           // Protocol version negotiation failed: Client is too old for server
-    CLIENT_TOO_NEW_FOR_SERVER(Type.SESSION, 125),           // Protocol version negotiation failed: Client is too new for server
-    CLIENT_PROTOCOL_MISMATCH(Type.SESSION, 126),            // Protocol version negotiation failed: No version supported by both client and server
-    CLIENT_BAD_STATE_MESSAGE(Type.SESSION, 127),            // Bad values in state message (STATE)
-    CLIENT_MISSING_PROTOCOL_FEATURE(Type.SESSION, 128),     // Requested feature missing in negotiated protocol version
-    CLIENT_BAD_SERIAL_TRANSACT_STATUS(Type.SESSION, 129),   // Bad status of serialized transaction (TRANSACT)
-    CLIENT_BAD_OBJECT_ID_SUBSTITUTIONS(Type.SESSION, 130),  // Bad encoded object identifier substitutions (TRANSACT)
-    CLIENT_HTTP_TUNNEL_FAILED(Type.SESSION, 131),           // Failed to establish HTTP tunnel with configured proxy
-    AUTO_CLIENT_RESET_FAILURE(Type.SESSION, 132),           // Automatic client reset failed
+    CLIENT_CONNECTION_CLOSED(Type.CLIENT, 100),            // Connection closed (no error)
+    CLIENT_UNKNOWN_MESSAGE(Type.CLIENT, 101),              // Unknown type of input message
+    CLIENT_LIMITS_EXCEEDED(Type.CLIENT, 103),              // Limits exceeded in input message
+    CLIENT_BAD_SESSION_IDENT(Type.CLIENT, 104),            // Bad session identifier in input message
+    CLIENT_BAD_MESSAGE_ORDER(Type.CLIENT, 105),            // Bad input message order
+    CLIENT_BAD_CLIENT_FILE_IDENT(Type.CLIENT, 106),        // Bad client file identifier (IDENT)
+    CLIENT_BAD_PROGRESS(Type.CLIENT, 107),                 // Bad progress information (DOWNLOAD)
+    CLIENT_BAD_CHANGESET_HEADER_SYNTAX(Type.CLIENT, 108),  // Bad syntax in changeset header (DOWNLOAD)
+    CLIENT_BAD_CHANGESET_SIZE(Type.CLIENT, 109),           // Bad changeset size in changeset header (DOWNLOAD)
+    CLIENT_BAD_ORIGIN_FILE_IDENT(Type.CLIENT, 110),        // Bad origin file identifier in changeset header (DOWNLOAD)
+    CLIENT_BAD_SERVER_VERSION(Type.CLIENT, 111),           // Bad server version in changeset header (DOWNLOAD)
+    CLIENT_BAD_CHANGESET(Type.CLIENT, 112),                // Bad changeset (DOWNLOAD)
+    CLIENT_BAD_REQUEST_IDENT(Type.CLIENT, 113),            // Bad request identifier (MARK)
+    CLIENT_BAD_ERROR_CODE(Type.CLIENT, 114),               // Bad error code (ERROR)
+    CLIENT_BAD_COMPRESSION(Type.CLIENT, 115),              // Bad compression (DOWNLOAD)
+    CLIENT_BAD_CLIENT_VERSION_DOWNLOAD(Type.CLIENT, 116),  // Bad last integrated client version in changeset header (DOWNLOAD)
+    CLIENT_SSL_SERVER_CERT_REJECTED(Type.CLIENT, 117),     // SSL server certificate rejected
+    CLIENT_PONG_TIMEOUT(Type.CLIENT, 118),                 // Timeout on reception of PONG respone message
+    CLIENT_BAD_CLIENT_FILE_IDENT_SALT(Type.CLIENT, 119),   // Bad client file identifier salt (IDENT)
+    CLIENT_FILE_IDENT(Type.CLIENT, 120),                   // Bad file identifier (ALLOC)
+    CLIENT_CONNECT_TIMEOUT(Type.CLIENT, 121),              // Sync connection was not fully established in time
+    CLIENT_BAD_TIMESTAMP(Type.CLIENT, 122),                // Bad timestamp (PONG)
+    CLIENT_BAD_PROTOCOL_FROM_SERVER(Type.CLIENT, 123),     // Bad or missing protocol version information from server
+    CLIENT_TOO_OLD_FOR_SERVER(Type.CLIENT, 124),           // Protocol version negotiation failed: Client is too old for server
+    CLIENT_TOO_NEW_FOR_SERVER(Type.CLIENT, 125),           // Protocol version negotiation failed: Client is too new for server
+    CLIENT_PROTOCOL_MISMATCH(Type.CLIENT, 126),            // Protocol version negotiation failed: No version supported by both client and server
+    CLIENT_BAD_STATE_MESSAGE(Type.CLIENT, 127),            // Bad values in state message (STATE)
+    CLIENT_MISSING_PROTOCOL_FEATURE(Type.CLIENT, 128),     // Requested feature missing in negotiated protocol version
+    CLIENT_BAD_SERIAL_TRANSACT_STATUS(Type.CLIENT, 129),   // Bad status of serialized transaction (TRANSACT)
+    CLIENT_BAD_OBJECT_ID_SUBSTITUTIONS(Type.CLIENT, 130),  // Bad encoded object identifier substitutions (TRANSACT)
+    CLIENT_HTTP_TUNNEL_FAILED(Type.CLIENT, 131),           // Failed to establish HTTP tunnel with configured proxy
+    AUTO_CLIENT_RESET_FAILURE(Type.CLIENT, 132),           // Automatic client reset failed
 
     //
     // Type.HTTP

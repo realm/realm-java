@@ -1002,6 +1002,32 @@ class SyncedRealmTests {
         }
     }
 
+    @Test
+    fun protocolErrorsAreMappedCorrectly() {
+        val user = createNewUser()
+        lateinit var syncError: AppException
+        val config = SyncConfiguration.Builder(user, 42L) // Wrong partition value type
+            .errorHandler { _, error ->
+                syncError = error
+            }
+            .waitForInitialRemoteData()
+            .schema(SyncColor::class.java)
+            .build()
+
+        val error = assertFailsWith<AppException> {
+            Realm.getInstance(config)
+        }
+        // Error is reported in the Sync Error Handler before throwing
+        assertNotNull(syncError)
+        assertEquals(ErrorCode.Type.SESSION, syncError.errorType)
+        assertEquals(ErrorCode.ILLEGAL_REALM_PATH, syncError.errorCode)
+
+        // But `Realm.getInstance()` also throws
+        assertEquals(ErrorCode.Type.SESSION, error.errorType)
+        assertEquals(ErrorCode.ILLEGAL_REALM_PATH, error.errorCode)
+        assertEquals(syncError.message, error.message)
+    }
+
     private fun createDefaultConfig(user: User, partitionValue: String = defaultPartitionValue): SyncConfiguration {
         return SyncConfiguration.Builder(user, partitionValue)
                 .modules(DefaultSyncSchema())
