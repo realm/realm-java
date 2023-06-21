@@ -41,10 +41,6 @@
 
 #if REALM_ENABLE_SYNC
 #include <realm/sync/client_base.hpp>
-//#include <realm/object-store/sync/app.hpp>
-//#include <realm/object-store/sync/sync_manager.hpp>
-//#include <realm/object-store/sync/sync_session.hpp>
-//#include <realm/util/misc_ext_errors.hpp>
 #endif
 
 #define CHECK_PARAMETERS 1 // Check all parameters in API and throw exceptions in java if invalid
