@@ -658,12 +658,14 @@ class SyncSessionTests {
                     realm.createObject(SyncDog::class.java, ObjectId())
                 }
 
-                assertFailsWith<AppException> {
+                val error = assertFailsWith<AppException> {
                     // This throws as the server has NOT been configured to have long partitions!
                     realm.syncSession.uploadAllLocalChanges()
                 }.also {
                     looperThread.testComplete()
                 }
+                assertEquals(ErrorCode.Type.SESSION, error.errorType)
+                assertEquals(ErrorCode.ILLEGAL_REALM_PATH, error.errorCode)
             }
         }
     }
