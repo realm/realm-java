@@ -149,7 +149,17 @@ inline jbyte categoryAsJByte(const realm::Status &status) {
     const std::error_category& error_category = std_error_code.category();
     realm::ErrorCategory categories = realm::ErrorCodes::error_categories(status.code());
     jbyte category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_UNKNOWN;
-    if (error_category == realm::sync::client_error_category()) {
+    if (categories.test(realm::ErrorCategory::client_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CLIENT;
+    } else if (categories.test(realm::ErrorCategory::json_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_JSON;
+    } else if (categories.test(realm::ErrorCategory::service_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_SERVICE;
+    } else if (categories.test(realm::ErrorCategory::http_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_HTTP;
+    } else if (categories.test(realm::ErrorCategory::custom_error)) {
+        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CUSTOM;
+    } else if (error_category == realm::sync::client_error_category()) {
         category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CLIENT;
     } else if (error_category == realm::sync::protocol_error_category()) {
         if (realm::sync::is_session_level_error(realm::sync::ProtocolError(std_error_code.value()))) {
@@ -160,17 +170,8 @@ inline jbyte categoryAsJByte(const realm::Status &status) {
         }
     } else if (error_category == std::system_category() || error_category == realm::util::error::basic_system_error_category()) {
         category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SYSTEM;
-    } else if (categories.test(realm::ErrorCategory::client_error)) {
-        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CLIENT;
-    } else if (categories.test(realm::ErrorCategory::json_error)) {
-        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_JSON;
-    } else if (categories.test(realm::ErrorCategory::service_error)) {
-        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_SERVICE;
-    } else if (categories.test(realm::ErrorCategory::http_error)) {
-        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_HTTP;
-    } else if (categories.test(realm::ErrorCategory::custom_error)) {
-        category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CUSTOM;
     }
+
     return category;
 }
 
