@@ -336,6 +336,10 @@ public abstract class Sync {
      *
      * Only call this method when testing.
      *
+     * WARNING: This method will not prepare the metadata for an actual Client Reset, thus trying
+     * to call `ClientResetRequiredError.executeClientReset()` will not actually work, since the
+     * underlying metadata has not been correctly modified.
+     *
      * @param session Session to trigger Client Reset for.
      */
     void simulateClientReset(SyncSession session) {

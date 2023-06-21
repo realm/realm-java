@@ -20,6 +20,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.realm.*
 import io.realm.TestHelper.TestLogger
+import io.realm.admin.ServerAdmin
 import io.realm.entities.DefaultSyncSchema
 import io.realm.entities.SyncStringOnly
 import io.realm.entities.SyncStringOnlyModule
@@ -47,6 +48,7 @@ import kotlin.test.*
 class SessionTests {
     private lateinit var configuration: SyncConfiguration
     private lateinit var app: TestApp
+    private lateinit var admin: ServerAdmin
     private lateinit var user: User
 
     @get:Rule
@@ -58,6 +60,7 @@ class SessionTests {
     fun setUp() {
         Realm.init(InstrumentationRegistry.getInstrumentation().targetContext)
         app = TestApp()
+        admin = ServerAdmin(app)
         // TODO We could potentially work without a fully functioning user to speed up tests, but
         //  seems like the old  way of "faking" it, does now work for now, so using a real user.
         // user = SyncTestUtils.createTestUser(app)
@@ -265,10 +268,7 @@ class SessionTests {
                     assertEquals(filePathFromError, filePathFromConfig)
                     assertFalse(error.backupFile.exists())
                     assertTrue(error.originalFile.exists())
-                    // Note, this error message is just the one created by ObjectStore for testing
-                    // The server will send a different message. This just ensures that we don't
-                    // accidentially modify or remove the message.
-                    assertEquals("Simulate Client Reset", error.message)
+                    assertTrue(error.message!!.contains("Bad client file identifier"), error.message)
                     looperThread.testComplete()
                 }
                 .build()
@@ -277,7 +277,7 @@ class SessionTests {
         looperThread.closeAfterTest(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     // Check that we can manually execute the Client Reset.
@@ -311,7 +311,7 @@ class SessionTests {
         resources.add(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     // Check that we can use the backup SyncConfiguration to open the Realm.
@@ -358,7 +358,7 @@ class SessionTests {
         resources.add(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     // Check that we can open the backup file without using the provided SyncConfiguration,
@@ -424,7 +424,7 @@ class SessionTests {
         resources.add(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     // make sure the backup file Realm is encrypted with the same key as the original synced Realm.
@@ -476,7 +476,7 @@ class SessionTests {
         resources.add(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
 
@@ -491,10 +491,7 @@ class SessionTests {
                 assertEquals(filePathFromError, filePathFromConfig)
                 assertFalse(error.backupFile.exists())
                 assertTrue(error.originalFile.exists())
-                // Note, this error message is just the one created by ObjectStore for testing
-                // The server will send a different message. This just ensures that we don't
-                // accidentially modify or remove the message.
-                assertEquals("Simulate Client Reset", error.message)
+                assertTrue(error.message!!.contains("Bad client file identifier"), error.message)
                 looperThread.testComplete()
             }
             .build()
@@ -503,7 +500,7 @@ class SessionTests {
         looperThread.closeAfterTest(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     // Check that we can manually execute the Client Reset.
@@ -536,7 +533,7 @@ class SessionTests {
         resources.add(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     // Check that we can use the backup SyncConfiguration to open the Realm.
@@ -585,7 +582,7 @@ class SessionTests {
         resources.add(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     // Check that we can open the backup file without using the provided SyncConfiguration,
@@ -651,7 +648,7 @@ class SessionTests {
         resources.add(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     // make sure the backup file Realm is encrypted with the same key as the original synced Realm.
@@ -712,7 +709,7 @@ class SessionTests {
         resources.add(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     @Test

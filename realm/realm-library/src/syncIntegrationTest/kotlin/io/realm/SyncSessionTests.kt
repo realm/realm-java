@@ -1096,7 +1096,7 @@ class SyncSessionTests {
         val realm = Realm.getInstance(config)
         resources.add(realm)
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession)
+        admin.triggerClientReset(realm.syncSession) { /* Do nothing */ }
     }
 
     @Test
