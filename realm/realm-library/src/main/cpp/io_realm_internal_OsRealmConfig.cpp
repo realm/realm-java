@@ -271,8 +271,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
 
             auto std_error_code = error.to_status().get_std_error_code();
-
-            int error_code = error.code();
+            int error_code = error.to_status().get_std_error_code().value();
             const std::error_category& error_category = std_error_code.category();
 
             jbyte category;

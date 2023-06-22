@@ -101,8 +101,7 @@ Java_io_realm_internal_objectstore_OsWatchStream_nativeGetError(JNIEnv *env, jcl
         WatchStream *watch_stream = reinterpret_cast<WatchStream *>(j_watch_stream_ptr);
 
         auto app_error = watch_stream->error();
-        auto categories = ErrorCodes::error_categories(app_error.code());
-        jbyte category = categoryAsJByte(categories);
+        jbyte category = categoryAsJByte(app_error.to_status());
 
         jstring error_code_message = env->NewStringUTF(app_error.code_string().data());
         jstring app_error_message = env->NewStringUTF(app_error.what());

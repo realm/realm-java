@@ -67,13 +67,10 @@ void handleCompletion(jint callback_id, JavaMethod &java_notify_result_method,
     JavaLocalRef<jstring> java_error_message;
 
     if (!status.is_ok()) {
-        realm::ErrorCategory categories = ErrorCodes::error_categories(status.code());
-        jbyte category = categoryAsJByte(categories);
-
-
+        jbyte category = categoryAsJByte(status);
         java_error_category = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env,category));
         java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env,
-                                                                                  status.code()));
+                                                                                  status.get_std_error_code().value()));
         java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(
                 status.reason().c_str()));
     }

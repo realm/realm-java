@@ -36,7 +36,7 @@ class TestSyncConfigurationFactory : TestRealmConfigurationFactory() {
     }
 
     fun createSyncConfigurationBuilder(user: User): SyncConfiguration.Builder {
-        return SyncConfiguration.Builder(user, "default")
+        return SyncConfiguration.Builder(user, TestHelper.getRandomString(20))
                 .testSessionStopPolicy(OsRealmConfig.SyncSessionStopPolicy.IMMEDIATELY)
     }
 
