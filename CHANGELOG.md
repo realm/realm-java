@@ -1,4 +1,4 @@
-## 10.17.0-SNAPSHOT (YYYY-MM-DD)
+## 10.16.1 (2023-06-26)
 
 ### Breaking Changes
 * None.
