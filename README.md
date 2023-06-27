@@ -1,4 +1,7 @@
-![Realm](logo.png)
+<picture>
+    <source srcset="./media/logo-dark.svg" media="(prefers-color-scheme: dark)" alt="realm by MongoDB">
+    <img src="./media/logo.svg" alt="realm by MongoDB">
+</picture>
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.realm/realm-gradle-plugin?colorB=4dc427&label=Maven%20Central)](https://search.maven.org/artifact/io.realm/realm-gradle-plugin)
 [![License](https://img.shields.io/badge/License-Apache-blue.svg)](https://github.com/realm/realm-java/blob/master/LICENSE)
@@ -16,6 +19,7 @@ The [Realm Kotlin SDK](https://github.com/realm/realm-kotlin) is now GA and can 
 * **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](https://realm.io/docs/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
 * **Modern:** Realm supports easy thread-safety, relationships & encryption.
 * **Fast:** Realm is faster than even raw SQLite on common operations while maintaining an extremely rich feature set.
+* **[Device Sync](https://www.mongodb.com/atlas/app-services/device-sync)**: Makes it simple to keep data in sync across users, devices, and your backend in real-time. Get started for free with [a template application](https://github.com/mongodb/template-app-react-native-todo) and [create the cloud backend](http://mongodb.com/realm/register?utm_medium=github_atlas_CTA&utm_source=realm_js_github).
 
 ## Getting Started
 
