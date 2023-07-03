@@ -233,8 +233,8 @@ public class OsRealmConfig implements NativeObject {
         String syncAccessToken = (String) syncConfigurationOptions[j++];
         String deviceId = (String) syncConfigurationOptions[j++];
         Byte sessionStopPolicy = (Byte) syncConfigurationOptions[j++];
-        String urlPrefix = (String)(syncConfigurationOptions[j++]);
-        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[j++]);
+        String urlPrefix = (String) (syncConfigurationOptions[j++]);
+        String customAuthorizationHeaderName = (String) (syncConfigurationOptions[j++]);
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
@@ -298,7 +298,7 @@ public class OsRealmConfig implements NativeObject {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
 
-        URI resolvedRealmURI  = null;
+        URI resolvedRealmURI = null;
         // Set sync config
         if (syncRealmUrl != null) {
             String resolvedSyncRealmUrl = nativeCreateAndSetSyncConfig(
@@ -355,13 +355,17 @@ public class OsRealmConfig implements NativeObject {
                             SocketAddress address = proxy.address();
                             if (address instanceof InetSocketAddress) {
                                 InetSocketAddress inetAddress = (InetSocketAddress) address;
-
-                                nativeSetSyncConfigProxySettings(
-                                        nativePtr,
-                                        proxyType,
-                                        getHostString(inetAddress),
-                                        inetAddress.getPort()
-                                );
+                                String hostname = getHostString(inetAddress);
+                                if (hostname != null) {
+                                    nativeSetSyncConfigProxySettings(
+                                            nativePtr,
+                                            proxyType,
+                                            hostname,
+                                            inetAddress.getPort()
+                                    );
+                                } else {
+                                    RealmLog.error("Could not retrieve proxy's hostname.");
+                                }
                             } else {
                                 RealmLog.error("Unsupported proxy socket address type: " + address.getClass().getName());
                             }
@@ -378,15 +382,26 @@ public class OsRealmConfig implements NativeObject {
         this.resolvedRealmURI = resolvedRealmURI;
     }
 
-    // Backport the behavior from InetSocketAddress.getHostString, a function that is only available
-    // on SDK>=19 (KITKAT)
+    /**
+     * Backport the behavior from <a href="https://github.com/openjdk-mirror/jdk7u-jdk/blob/f4d80957e89a19a29bb9f9807d2a28351ed7f7df/src/share/classes/java/net/InetSocketAddress.java#L242">InetSocketAddress.getHostString</a>, a function that is only available
+     * from SDK 19 (KITKAT)
+     *
+     * @param socketAddress address to extract the hostname from.
+     * @return hostname or the String form of the address.
+     */
     private String getHostString(InetSocketAddress socketAddress) {
-        InetAddress address = socketAddress.getAddress();
+        if (socketAddress.getHostName() != null) {
+            return socketAddress.getHostName();
+        }
+        if (socketAddress.getAddress() != null) {
+            InetAddress address = socketAddress.getAddress();
 
-        if (address.getHostName() != null)
-            return address.getHostName();
-        else
-            return address.getHostAddress();
+            if (address.getHostName() != null) {
+                return address.getHostName();
+            } else
+                return address.getHostAddress();
+        }
+        return null;
     }
 
     @Override
@@ -428,12 +443,12 @@ public class OsRealmConfig implements NativeObject {
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
     private native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl,
-                                                              String userId, String userProvider, String refreshToken, String accessToken,
-                                                              String deviceId, byte sessionStopPolicy, String urlPrefix,
-                                                              String customAuthorizationHeaderName,
-                                                              String[] customHeaders, byte clientResetMode,
-                                                              Object beforeClientResetHandler, Object afterClientResetHandler,
-                                                              String partionKeyValue, Object syncService);
+                                                       String userId, String userProvider, String refreshToken, String accessToken,
+                                                       String deviceId, byte sessionStopPolicy, String urlPrefix,
+                                                       String customAuthorizationHeaderName,
+                                                       String[] customHeaders, byte clientResetMode,
+                                                       Object beforeClientResetHandler, Object afterClientResetHandler,
+                                                       String partionKeyValue, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
