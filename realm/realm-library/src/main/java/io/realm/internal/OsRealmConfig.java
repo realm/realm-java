@@ -443,12 +443,12 @@ public class OsRealmConfig implements NativeObject {
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
     private native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl,
-                                                           String userId, String userProvider, String refreshToken, String accessToken,
-                                                           String deviceId, byte sessionStopPolicy, String urlPrefix,
-                                                           String customAuthorizationHeaderName,
-                                                           String[] customHeaders, byte clientResetMode,
-                                                           Object beforeClientResetHandler, Object afterClientResetHandler,
-                                                           String partionKeyValue, Object syncService);
+                                                              String userId, String userProvider, String refreshToken, String accessToken,
+                                                              String deviceId, byte sessionStopPolicy, String urlPrefix,
+                                                              String customAuthorizationHeaderName,
+                                                              String[] customHeaders, byte clientResetMode,
+                                                              Object beforeClientResetHandler, Object afterClientResetHandler,
+                                                              String partionKeyValue, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
