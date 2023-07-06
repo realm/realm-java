@@ -233,8 +233,8 @@ public class OsRealmConfig implements NativeObject {
         String syncAccessToken = (String) syncConfigurationOptions[j++];
         String deviceId = (String) syncConfigurationOptions[j++];
         Byte sessionStopPolicy = (Byte) syncConfigurationOptions[j++];
-        String urlPrefix = (String) (syncConfigurationOptions[j++]);
-        String customAuthorizationHeaderName = (String) (syncConfigurationOptions[j++]);
+        String urlPrefix = (String)(syncConfigurationOptions[j++]);
+        String customAuthorizationHeaderName = (String)(syncConfigurationOptions[j++]);
         //noinspection unchecked
         Map<String, String> customHeadersMap = (Map<String, String>) (syncConfigurationOptions[j++]);
         Byte clientResyncMode = (Byte) syncConfigurationOptions[j++];
@@ -298,7 +298,7 @@ public class OsRealmConfig implements NativeObject {
             nativeSetInitializationCallback(nativePtr, initializationCallback);
         }
 
-        URI resolvedRealmURI = null;
+        URI resolvedRealmURI  = null;
         // Set sync config
         if (syncRealmUrl != null) {
             String resolvedSyncRealmUrl = nativeCreateAndSetSyncConfig(
@@ -443,12 +443,12 @@ public class OsRealmConfig implements NativeObject {
     private static native void nativeEnableChangeNotification(long nativePtr, boolean enableNotification);
 
     private native String nativeCreateAndSetSyncConfig(long appPtr, long configPtr, String syncRealmUrl,
-                                                       String userId, String userProvider, String refreshToken, String accessToken,
-                                                       String deviceId, byte sessionStopPolicy, String urlPrefix,
-                                                       String customAuthorizationHeaderName,
-                                                       String[] customHeaders, byte clientResetMode,
-                                                       Object beforeClientResetHandler, Object afterClientResetHandler,
-                                                       String partionKeyValue, Object syncService);
+                                                           String userId, String userProvider, String refreshToken, String accessToken,
+                                                           String deviceId, byte sessionStopPolicy, String urlPrefix,
+                                                           String customAuthorizationHeaderName,
+                                                           String[] customHeaders, byte clientResetMode,
+                                                           Object beforeClientResetHandler, Object afterClientResetHandler,
+                                                           String partionKeyValue, Object syncService);
 
     private static native void nativeSetSyncConfigSslSettings(long nativePtr,
                                                               boolean validateSsl, String trustCertificatePath);
