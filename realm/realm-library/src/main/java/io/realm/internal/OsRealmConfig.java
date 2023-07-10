@@ -355,13 +355,17 @@ public class OsRealmConfig implements NativeObject {
                             SocketAddress address = proxy.address();
                             if (address instanceof InetSocketAddress) {
                                 InetSocketAddress inetAddress = (InetSocketAddress) address;
-
-                                nativeSetSyncConfigProxySettings(
-                                        nativePtr,
-                                        proxyType,
-                                        getHostString(inetAddress),
-                                        inetAddress.getPort()
-                                );
+                                String hostname = getHostString(inetAddress);
+                                if (hostname != null) {
+                                    nativeSetSyncConfigProxySettings(
+                                            nativePtr,
+                                            proxyType,
+                                            hostname,
+                                            inetAddress.getPort()
+                                    );
+                                } else {
+                                    RealmLog.error("Could not retrieve proxy's hostname.");
+                                }
                             } else {
                                 RealmLog.error("Unsupported proxy socket address type: " + address.getClass().getName());
                             }
@@ -378,15 +382,26 @@ public class OsRealmConfig implements NativeObject {
         this.resolvedRealmURI = resolvedRealmURI;
     }
 
-    // Backport the behavior from InetSocketAddress.getHostString, a function that is only available
-    // on SDK>=19 (KITKAT)
+    /**
+     * Backport the behavior from <a href="https://github.com/openjdk-mirror/jdk7u-jdk/blob/f4d80957e89a19a29bb9f9807d2a28351ed7f7df/src/share/classes/java/net/InetSocketAddress.java#L242">InetSocketAddress.getHostString</a>, a function that is only available
+     * from SDK 19 (KITKAT)
+     *
+     * @param socketAddress address to extract the hostname from.
+     * @return hostname or the String form of the address.
+     */
     private String getHostString(InetSocketAddress socketAddress) {
-        InetAddress address = socketAddress.getAddress();
+        if (socketAddress.getHostName() != null) {
+            return socketAddress.getHostName();
+        }
+        if (socketAddress.getAddress() != null) {
+            InetAddress address = socketAddress.getAddress();
 
-        if (address.getHostName() != null)
-            return address.getHostName();
-        else
-            return address.getHostAddress();
+            if (address.getHostName() != null) {
+                return address.getHostName();
+            } else
+                return address.getHostAddress();
+        }
+        return null;
     }
 
     @Override
