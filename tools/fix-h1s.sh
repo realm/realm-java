@@ -1,7 +1,18 @@
 #!/bin/bash -ex
 
-# Assume javadoc has been run
-pushd "`dirname "$0"`"/../docs/html
+usage() {
+cat <<EOF
+Usage: $0 <javadoc-root-dir>
+EOF
+}
+
+if [ "$#" -ne 1 ] ; then
+  usage
+  exit 1
+fi
+
+# Assume Dokka has been run
+pushd $1
 
 find . -name "*.html" | while read ln
 do

@@ -106,7 +106,7 @@ create_javadoc() {
   echo "Creating JavaDoc..."
   cd $REALM_JAVA_PATH
   eval "./gradlew javadoc $GRADLE_BUILD_PARAMS --stacktrace" 
-  eval "./tools/fix-h1s.sh"
+  eval "./tools/fix-h1s.sh realm/realm-library/build/docs/javadoc/"
   cd $HERE
 }
 
