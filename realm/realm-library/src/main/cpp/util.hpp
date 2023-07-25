@@ -28,14 +28,20 @@
 #include <inttypes.h>
 
 #include <realm.hpp>
+#include <realm/error_codes.hpp>
 #include <realm/timestamp.hpp>
 #include <realm/table.hpp>
+#include <realm/util/basic_system_errors.hpp>
 #include <realm/util/safe_int_ops.hpp>
 #include "io_realm_internal_Util.h"
 
 #include "java_exception_def.hpp"
 #include "jni_util/log.hpp"
 #include "jni_util/java_exception_thrower.hpp"
+
+#if REALM_ENABLE_SYNC
+#include <realm/sync/client_base.hpp>
+#endif
 
 #define CHECK_PARAMETERS 1 // Check all parameters in API and throw exceptions in java if invalid
 
@@ -133,8 +139,12 @@ void ThrowNullValueException(JNIEnv* env, const realm::TableRef table, realm::Co
 #if REALM_ENABLE_SYNC
 #include "io_realm_internal_ErrorCategory.h"
 #include <realm/object-store/sync/sync_manager.hpp>
-inline jbyte categoryAsJByte(realm::ErrorCategory &categories) {// Map categories to something meaningful at SDK level
-    jbyte category = -1;
+
+inline jbyte categoryAsJByte(const realm::Status &status) {
+    auto std_error_code = status.get_std_error_code();
+    const std::error_category& error_category = std_error_code.category();
+    realm::ErrorCategory categories = realm::ErrorCodes::error_categories(status.code());
+    jbyte category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_UNKNOWN;
     if (categories.test(realm::ErrorCategory::client_error)) {
         category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CLIENT;
     } else if (categories.test(realm::ErrorCategory::json_error)) {
@@ -145,7 +155,19 @@ inline jbyte categoryAsJByte(realm::ErrorCategory &categories) {// Map categorie
         category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_HTTP;
     } else if (categories.test(realm::ErrorCategory::custom_error)) {
         category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CUSTOM;
+    } else if (error_category == realm::sync::client_error_category()) {
+        category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CLIENT;
+    } else if (error_category == realm::sync::protocol_error_category()) {
+        if (realm::sync::is_session_level_error(realm::sync::ProtocolError(std_error_code.value()))) {
+            category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SESSION;
+        }
+        else {
+            category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CONNECTION;
+        }
+    } else if (error_category == std::system_category() || error_category == realm::util::error::basic_system_error_category()) {
+        category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SYSTEM;
     }
+
     return category;
 }
 

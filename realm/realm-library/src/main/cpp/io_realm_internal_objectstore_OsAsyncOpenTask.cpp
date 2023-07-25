@@ -37,7 +37,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
 
         static JavaClass java_async_open_task_class(env, "io/realm/internal/objectstore/OsAsyncOpenTask");
         static JavaMethod java_notify_realm_ready(env, java_async_open_task_class, "notifyRealmReady", "()V", false);
-        static JavaMethod java_notify_error(env, java_async_open_task_class, "notifyError", "(Ljava/lang/String;)V", false);
+        static JavaMethod java_notify_error(env, java_async_open_task_class, "notifyError", "(BILjava/lang/String;)V", false);
 
         auto global_obj = env->NewGlobalRef(obj);
         auto& config = *reinterpret_cast<Realm::Config*>(config_ptr);
@@ -54,9 +54,19 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
                 try {
                     std::rethrow_exception(error);
                 }
-                catch (const std::exception& e) {
+                catch(const realm::Exception& e) {
+                    const realm::Status& status = e.to_status();
+                    jint error_code = status.get_std_error_code().value();
+                    jbyte category = categoryAsJByte(e.to_status());
                     jstring j_error_msg = to_jstring(local_env, e.what());
-                    local_env->CallVoidMethod(task.get(), java_notify_error, j_error_msg);
+                    local_env->CallVoidMethod(task.get(), java_notify_error, category, error_code, j_error_msg);
+                    local_env->DeleteLocalRef(j_error_msg);
+                }
+                catch (const std::exception& e) {
+                    jint error_code = -1;
+                    jbyte category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_UNKNOWN;
+                    jstring j_error_msg = to_jstring(local_env, e.what());
+                    local_env->CallVoidMethod(task.get(), java_notify_error, category, error_code, j_error_msg);
                     local_env->DeleteLocalRef(j_error_msg);
                 }
             }
