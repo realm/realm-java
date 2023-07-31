@@ -654,7 +654,7 @@ inline Obj JavaContext::unbox(JavaValue const& v, CreatePolicy policy, ObjKey cu
         return Obj();
     }
     REALM_ASSERT(object_schema);
-    return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, policy, current_row).obj();
+    return Object::create(const_cast<JavaContext&>(*this), realm, *object_schema, v, policy, current_row).get_obj();
 }
 
 template <>

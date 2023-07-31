@@ -80,7 +80,7 @@ struct ChangeCallback {
 
         // The local ref of jstring needs to be released to avoid reach the local ref table size limitation.
         std::vector<JavaGlobalRefByMove> field_names;
-        auto table = m_wrapper->m_object.obj().get_table();
+        auto table = m_wrapper->m_object.get_obj().get_table();
         for (const auto& col: change_set.columns) {
             if (col.second.empty()) {
                 continue;

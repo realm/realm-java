@@ -7,6 +7,7 @@
 * None.
 
 ### Fixed
+* Rare corruption causing 'Invalid streaming format cookie'-exception. Typically following compact, convert or copying to a new file. (Issue [#7775](https://github.com/realm/realm-java/issues/7775), since v10.13.0 (Core v12.12.0))
 * [RealmApp] Crash when opening a Realm with a proxy enabled. (Issue [#7828](https://github.com/realm/realm-java/issues/7828))
 
 ### Compatibility
@@ -17,7 +18,7 @@
 * Android Gradle Plugin 7.4.0 and above.
 
 ### Internal
-* None.
+* Updated to Realm Core 13.17.1, commit fb5bdccba1daad0bd6e65757a6a1596dc98cebf4.
 
 
 ## 10.16.1 (2023-06-26)

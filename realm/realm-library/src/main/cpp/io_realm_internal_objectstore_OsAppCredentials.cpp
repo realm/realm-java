@@ -80,12 +80,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAppCredentials_nati
             }
             case io_realm_internal_objectstore_OsAppCredentials_TYPE_API_KEY: {
                 JStringAccessor token(env, (jstring) env->GetObjectArrayElement(j_args, 0));
-                creds = AppCredentials::user_api_key(token);
-                break;
-            }
-            case io_realm_internal_objectstore_OsAppCredentials_TYPE_SERVER_API_KEY: {
-                JStringAccessor token(env, (jstring) env->GetObjectArrayElement(j_args, 0));
-                creds = AppCredentials::server_api_key(token);
+                creds = AppCredentials::api_key(token);
                 break;
             }
             case io_realm_internal_objectstore_OsAppCredentials_TYPE_CUSTOM_FUNCTION: {

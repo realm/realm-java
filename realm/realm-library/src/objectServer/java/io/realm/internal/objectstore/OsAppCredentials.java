@@ -32,14 +32,13 @@ public class OsAppCredentials implements NativeObject {
 
     private static final int TYPE_ANONYMOUS = 1;
     private static final int TYPE_API_KEY = 2;
-    private static final int TYPE_SERVER_API_KEY = 3;
-    private static final int TYPE_APPLE = 4;
-    private static final int TYPE_CUSTOM_FUNCTION = 5;
-    private static final int TYPE_EMAIL_PASSWORD = 6;
-    private static final int TYPE_FACEBOOK = 7;
-    private static final int TYPE_JWT = 8;
-    private static final int TYPE_GOOGLE_AUTH_CODE = 9;
-    private static final int TYPE_GOOGLE_ID_TOKEN = 10;
+    private static final int TYPE_APPLE = 3;
+    private static final int TYPE_CUSTOM_FUNCTION = 4;
+    private static final int TYPE_EMAIL_PASSWORD = 5;
+    private static final int TYPE_FACEBOOK = 6;
+    private static final int TYPE_JWT = 7;
+    private static final int TYPE_GOOGLE_AUTH_CODE = 8;
+    private static final int TYPE_GOOGLE_ID_TOKEN = 9;
 
     private static final long finalizerPtr = nativeGetFinalizerMethodPtr();
 
@@ -49,10 +48,6 @@ public class OsAppCredentials implements NativeObject {
 
     public static OsAppCredentials apiKey(String key) {
         return new OsAppCredentials(nativeCreate(TYPE_API_KEY, key));
-    }
-
-    public static OsAppCredentials serverApiKey(String key) {
-        return new OsAppCredentials(nativeCreate(TYPE_SERVER_API_KEY, key));
     }
 
     public static OsAppCredentials apple(String idToken) {
