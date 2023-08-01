@@ -17,7 +17,6 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -548,6 +547,36 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     fail("Unknown type: " + type);
             }
         }
+    }
+
+    @Test
+    public void coreQueryRegression() {
+        realm.beginTransaction();
+
+        AllJavaTypesUnsupportedTypes o1 = new AllJavaTypesUnsupportedTypes();
+        o1.setFieldId(1);
+        AllJavaTypesUnsupportedTypes o1Managed = realm.copyToRealm(o1);
+
+        AllJavaTypesUnsupportedTypes o2 = new AllJavaTypesUnsupportedTypes();
+        o2.setFieldId(2);
+        o2.setFieldList(new RealmList<>(o1Managed));
+
+        AllJavaTypesUnsupportedTypes o2managed = realm.copyToRealmOrUpdate(o2);
+
+        AllJavaTypesUnsupportedTypes o3 = new AllJavaTypesUnsupportedTypes();
+        o3.setFieldId(3);
+        o3.setFieldList(new RealmList<>(o2managed));
+        realm.copyToRealm(o3);
+
+        realm.commitTransaction();
+
+        RealmResults<AllJavaTypesUnsupportedTypes> all = realm.where(AllJavaTypesUnsupportedTypes.class).findAll();
+        assertEquals(3, all.size());
+
+        RealmQuery<AllJavaTypesUnsupportedTypes> empty = realm.where(AllJavaTypesUnsupportedTypes.class)
+                .rawPredicate("@links.AllJavaTypesUnsupportedTypes.fieldList.columnRealmDictionary.@size == 0");
+
+        assertEquals(2, empty.count());
     }
 
     @Test
