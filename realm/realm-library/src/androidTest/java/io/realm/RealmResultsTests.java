@@ -33,6 +33,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -1939,7 +1940,7 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void asJSON() throws JSONException {
-        Date date = Calendar.getInstance().getTime();
+        Date date = Date.from(Calendar.getInstance().getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // Core return dates in UTC time
         String now = sdf.format(date);
@@ -2144,7 +2145,7 @@ public class RealmResultsTests extends CollectionTests {
 
     @Test
     public void asJSON_cycles() throws JSONException {
-        Date date = Calendar.getInstance().getTime();
+        Date date = Date.from(Calendar.getInstance().getTime().toInstant().truncatedTo(ChronoUnit.SECONDS));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT")); // Core return dates in UTC time
         String now = sdf.format(date);
