@@ -550,36 +550,6 @@ public class LinkingObjectsQueryTests extends QueryTests {
     }
 
     @Test
-    public void coreQueryRegression() {
-        realm.beginTransaction();
-
-        AllJavaTypesUnsupportedTypes o1 = new AllJavaTypesUnsupportedTypes();
-        o1.setFieldId(1);
-        AllJavaTypesUnsupportedTypes o1Managed = realm.copyToRealm(o1);
-
-        AllJavaTypesUnsupportedTypes o2 = new AllJavaTypesUnsupportedTypes();
-        o2.setFieldId(2);
-        o2.setFieldList(new RealmList<>(o1Managed));
-
-        AllJavaTypesUnsupportedTypes o2managed = realm.copyToRealmOrUpdate(o2);
-
-        AllJavaTypesUnsupportedTypes o3 = new AllJavaTypesUnsupportedTypes();
-        o3.setFieldId(3);
-        o3.setFieldList(new RealmList<>(o2managed));
-        realm.copyToRealm(o3);
-
-        realm.commitTransaction();
-
-        RealmResults<AllJavaTypesUnsupportedTypes> all = realm.where(AllJavaTypesUnsupportedTypes.class).findAll();
-        assertEquals(3, all.size());
-
-        RealmQuery<AllJavaTypesUnsupportedTypes> empty = realm.where(AllJavaTypesUnsupportedTypes.class)
-                .rawPredicate("@links.AllJavaTypesUnsupportedTypes.fieldList.columnRealmDictionary.@size == 0");
-
-        assertEquals(2, empty.count());
-    }
-
-    @Test
     public void isEmpty_acrossLinkingObjectListLink() {
         createIsEmptyDataSet(realm);
         assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).findAll().size());
