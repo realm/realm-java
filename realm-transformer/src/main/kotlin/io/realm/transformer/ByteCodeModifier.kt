@@ -189,7 +189,7 @@ class BytecodeModifier {
                     // javassist.CannotCompileException: [source error] realmGet$id() not found in 'foo.Model'
                     addRealmAccessors(fieldAccessCtClass)
 
-                    val fieldName: String = fieldAccess . fieldName
+                    val fieldName: String = fieldAccess.fieldName
                     if (fieldAccess.isReader) {
                         fieldAccess.replace("\$_ = \$0.realmGet\$$fieldName();")
                     } else if (fieldAccess.isWriter) {
@@ -202,6 +202,6 @@ class BytecodeModifier {
         fun CtClass.isRealmModelClass(): Boolean =
             name != "io.realm.RealmObject" &&
                     (hasAnnotation(RealmClass::class.java) || hasRealmClassAnnotation(superclass)) &&
-                    safeSubtypeOf(realmObjectProxyInterface)
+                    !safeSubtypeOf(realmObjectProxyInterface)
     }
 }
