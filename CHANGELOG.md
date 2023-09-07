@@ -7,6 +7,7 @@
 * None.
 
 ### Fixed
+* Realm objects accessors behave as an unmanaged object after an incremental build. (Issue [#7844](https://github.com/realm/realm-java/pull/7844))
 * [RealmApp] Crash when opening a Realm with a proxy enabled. (Issue [#7828](https://github.com/realm/realm-java/issues/7828))
 
 ### Compatibility
