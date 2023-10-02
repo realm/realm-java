@@ -2781,7 +2781,7 @@ public class RealmQueryTests extends QueryTests {
                     assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_SET).count());
                     break;
                 case LINK_SET:
-                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
