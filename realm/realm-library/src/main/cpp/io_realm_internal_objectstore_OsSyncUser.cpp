@@ -185,17 +185,6 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGe
     return nullptr;
 }
 
-JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetLocalIdentity(JNIEnv* env, jclass, jlong j_native_ptr)
-{
-    try {
-        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->local_identity());
-    }
-    CATCH_STD();
-    return nullptr;
-}
-
-
 JNIEXPORT jbyte JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetState(JNIEnv* env, jclass, jlong j_native_ptr)
 {
     try {
@@ -212,32 +201,11 @@ JNIEXPORT jbyte JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetS
     return static_cast<jbyte>(-1);
 }
 
-JNIEXPORT void JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeSetState(JNIEnv* env, jclass, jlong j_native_ptr, jbyte j_state)
-{
-    try {
-        auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        switch(j_state) {
-            case io_realm_internal_objectstore_OsSyncUser_STATE_LOGGED_OUT:
-                user->set_state(SyncUser::State::LoggedOut);
-                break;
-            case io_realm_internal_objectstore_OsSyncUser_STATE_LOGGED_IN:
-                user->set_state(SyncUser::State::LoggedIn);
-                break;
-            case io_realm_internal_objectstore_OsSyncUser_STATE_REMOVED:
-                user->set_state(SyncUser::State::Removed);
-                break;
-            default:
-                throw std::logic_error(util::format("Unknown state: %1", j_state));
-        }
-    }
-    CATCH_STD();
-}
-
 JNIEXPORT jstring JNICALL Java_io_realm_internal_objectstore_OsSyncUser_nativeGetProviderType(JNIEnv* env, jclass, jlong j_native_ptr)
 {
     try {
         auto user = *reinterpret_cast<std::shared_ptr<SyncUser>*>(j_native_ptr);
-        return to_jstring(env, user->provider_type());
+        return to_jstring(env, user->identities().begin()->provider_type);
     }
     CATCH_STD();
     return nullptr;

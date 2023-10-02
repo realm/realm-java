@@ -56,7 +56,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsAsyncOpenTask_start
                 }
                 catch(const realm::Exception& e) {
                     const realm::Status& status = e.to_status();
-                    jint error_code = status.get_std_error_code().value();
+                    auto error_code = static_cast<int32_t>(status.code());
                     jbyte category = categoryAsJByte(e.to_status());
                     jstring j_error_msg = to_jstring(local_env, e.what());
                     local_env->CallVoidMethod(task.get(), java_notify_error, category, error_code, j_error_msg);

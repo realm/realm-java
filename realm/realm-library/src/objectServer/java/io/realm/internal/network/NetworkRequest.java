@@ -6,6 +6,8 @@ import android.os.NetworkOnMainThreadException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.Nullable;
+
 import io.realm.internal.ErrorCategory;
 import io.realm.internal.Keep;
 import io.realm.internal.objectstore.OsJavaNetworkTransport;
@@ -59,14 +61,31 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
      */
     @SuppressWarnings("unused")  // Called by JNI
     @Override
-    public void onError(byte nativeErrorCategory, int nativeErrorCode, String errorMessage) {
+    public void onError(byte nativeErrorCategory, int nativeErrorCode, @Nullable String errorMessage, @Nullable String logUrl) {
+        String formattedErrorMessage = "";
+        if (errorMessage != null && !errorMessage.isEmpty()) {
+            if (formattedErrorMessage.endsWith(".")) {
+                formattedErrorMessage = errorMessage;
+            } else {
+                formattedErrorMessage = errorMessage + ".";
+            }
+        }
+        if (logUrl != null && !logUrl.isEmpty()) {
+            String logMsg = "Server log entry: " + logUrl;
+            if (formattedErrorMessage.isEmpty()) {
+                formattedErrorMessage = logMsg;
+            } else {
+                formattedErrorMessage += " " + logMsg;
+            }
+        }
+
         ErrorCode code = ErrorCode.fromNativeError(ErrorCategory.toCategory(nativeErrorCategory), nativeErrorCode);
         if (code == ErrorCode.UNKNOWN) {
             // In case of UNKNOWN errors parse as much error information on as possible.
-            String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, errorMessage);
+            String detailedErrorMessage = String.format("{%s::%s} %s", nativeErrorCategory, nativeErrorCode, formattedErrorMessage);
             error.set(new AppException(code, detailedErrorMessage));
         } else {
-            error.set(new AppException(code, errorMessage));
+            error.set(new AppException(code, formattedErrorMessage));
         }
         latch.countDown();
     }

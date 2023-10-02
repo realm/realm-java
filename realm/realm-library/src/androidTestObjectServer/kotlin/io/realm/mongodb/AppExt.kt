@@ -19,6 +19,7 @@ import io.realm.RealmExt
 import io.realm.admin.ServerAdmin
 import io.realm.mongodb.sync.testReset
 import io.realm.testClearApplicationContext
+import io.realm.TestHelper
 
 /**
  * Resets the Realm Application and delete all local state.
@@ -37,7 +38,7 @@ fun App.close() {
  * Helper function for quickly logging in test users.
  * This only works if users in the Realm Application are configured to be automatically confirmed.
  */
-fun App.registerUserAndLogin(email: String, password: String): User {
+fun App.registerUserAndLogin(email: String = TestHelper.getRandomEmail(), password: String = "123456"): User {
     emailPassword.registerUser(email, password)
     return login(Credentials.emailPassword(email, password))
 }

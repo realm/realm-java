@@ -55,8 +55,29 @@ public enum ErrorCode {
     EVENT_DESERIALIZING(Type.JAVA, 1200),
 
     // Custom Object Store errors
-    CLIENT_RESET(Type.JAVA, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsRealmConfig.cpp
+    CLIENT_RESET(Type.CUSTOM, 7),                   // Client Reset required. Don't change this value without modifying io_realm_internal_OsRealmConfig.cpp
 
+    // Sync errors
+    // Catch-all sync errors. The error code should be part of the error message.
+    UNKNOWN_SYNC_ERROR(Type.SYNC, -1),
+    AUTOMATIC_CLIENT_RESET_FAILED(Type.SYNC, 1028),
+    BAD_CHANGESET(Type.SYNC, 1015),
+    BAD_SYNC_PARTITION_VALUE(Type.SYNC, 1029),
+//    CONNECTION_CLOSED(Type.SYNC, 1030),
+    INVALID_SUBSCRIPTION_QUERY(Type.SYNC, 1031),
+    SYNC_CLIENT_RESET_REQUIRED(Type.SYNC, 1032),
+    SYNC_COMPENSATING_WRITE(Type.SYNC, 1033),
+    SYNC_CONNECT_FAILED(Type.SYNC, 1034),
+    SYNC_INVALID_SCHEMA_CHANGE(Type.SYNC, 1035),
+    SYNC_PERMISSION_DENIED(Type.SYNC, 1036),
+    SYNC_PROTOCOL_INVARIANT_FAILED(Type.SYNC, 1037),
+    SYNC_PROTOCOL_NEGOTIATION_FAILED(Type.SYNC, 1038),
+    SYNC_SERVER_PERMISSIONS_CHANGED(Type.SYNC, 1039),
+    SYNC_USER_MISMATCH(Type.SYNC, 1040),
+    TLS_HANDSHAKE_FAILED(Type.SYNC, 1041),
+    WRONG_SYNC_TYPE(Type.SYNC, 1042),
+    SYNC_WRITE_NOT_ALLOWED(Type.SYNC, 1043),
+    
     //
     // Type.Protocol
     //
@@ -64,57 +85,96 @@ public enum ErrorCode {
     //
     // See https://github.com/realm/realm-core/blob/master/src/realm/sync/protocol.hpp#L260
     //
-    CONNECTION_CLOSED(Type.PROTOCOL, 100, Category.RECOVERABLE),    // Connection closed (no error)
-    OTHER_ERROR(Type.PROTOCOL, 101),                                // Other connection level error
+    CONNECTION_CLOSED(Type.SYNC, 1030, Category.RECOVERABLE),    // Connection closed (no error)
+    // OTHER_ERROR(Type.PROTOCOL, 101),    TODO Runtime -> Map to RealmException?                            // Other connection level error
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     UNKNOWN_MESSAGE(Type.PROTOCOL, 102),                            // Unknown type of input message
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_SYNTAX(Type.PROTOCOL, 103),                                 // Bad syntax in input message head
+    @Deprecated // Is not used anymore
     LIMITS_EXCEEDED(Type.PROTOCOL, 104),                            // Limits exceeded in input message
+    @Deprecated // Use SYNC_PROTOCOL_NEGOTIATION_FAILED instead
     WRONG_PROTOCOL_VERSION(Type.PROTOCOL, 105),                     // Wrong protocol version (CLIENT)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_SESSION_IDENT(Type.PROTOCOL, 106),                          // Bad session identifier in input message
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     REUSE_OF_SESSION_IDENT(Type.PROTOCOL, 107),                     // Overlapping reuse of session identifier (BIND)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BOUND_IN_OTHER_SESSION(Type.PROTOCOL, 108),                     // Client file bound in other session (IDENT)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_MESSAGE_ORDER(Type.PROTOCOL, 109),                          // Bad input message order
-    BAD_DECOMPRESSION(Type.PROTOCOL, 110),                          // Error in decompression (UPLOAD)
+//    BAD_DECOMPRESSION(Type.PROTOCOL, 110),  TODO Runtime -> Map to RealmException?                      // Error in decompression (UPLOAD)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_CHANGESET_HEADER_SYNTAX(Type.PROTOCOL, 111),                // Bad server version in changeset header (DOWNLOAD)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_CHANGESET_SIZE(Type.PROTOCOL, 112),                         // Bad size specified in changeset header (UPLOAD)
+    @Deprecated // Use BAD_CHANGESET instead
     BAD_CHANGESETS(Type.PROTOCOL, 113),                             // Bad changesets (UPLOAD)
-
+//
     // Session level errors from the native Sync Client
+    @Deprecated // Use CONNECTION_CLOSED instead
     SESSION_CLOSED(Type.SESSION, 200, Category.RECOVERABLE),      // Session closed (no error)
-    OTHER_SESSION_ERROR(Type.SESSION, 201, Category.RECOVERABLE), // Other session level error
+//    OTHER_SESSION_ERROR(Type.SESSION, 201, Category.RECOVERABLE), TODO Runtime -> Map to RealmException? // Other session level error
+    @Deprecated // Not used anymore
     TOKEN_EXPIRED(Type.SESSION, 202, Category.RECOVERABLE),       // Access token expired
 
     // Session fatal: Auth wrong. Cannot be fixed without a new User/SyncConfiguration.
+    @Deprecated // Not used anymore
     BAD_AUTHENTICATION(Type.SESSION, 203),                        // Bad user authentication (BIND, REFRESH)
+    @Deprecated // Use BAD_SYNC_PARTITION_VALUE instead
     ILLEGAL_REALM_PATH(Type.SESSION, 204),                        // Illegal Realm path (BIND)
+    @Deprecated // Not used anymore
     NO_SUCH_PATH(Type.SESSION, 205),                              // No such Realm (BIND)
+    @Deprecated // Use SYNC_PERMISSION_DENIED instead
     PERMISSION_DENIED(Type.SESSION, 206),                         // Permission denied (BIND, REFRESH)
 
     // Fatal: Wrong server/client versions. Trying to sync incompatible files or the file was corrupted.
+    @Deprecated // Not used anymore
     BAD_SERVER_FILE_IDENT(Type.SESSION, 207),                     // Bad server file identifier (IDENT)
+    @Deprecated // Use SYNC_CLIENT_RESET_REQUIRED instead
     BAD_CLIENT_FILE_IDENT(Type.SESSION, 208),                     // Bad client file identifier (IDENT)
+    @Deprecated // Use SYNC_CLIENT_RESET_REQUIRED instead
     BAD_SERVER_VERSION(Type.SESSION, 209),                        // Bad server version (IDENT, UPLOAD)
+    @Deprecated // Use SYNC_CLIENT_RESET_REQUIRED instead
     BAD_CLIENT_VERSION(Type.SESSION, 210),                        // Bad client version (IDENT, UPLOAD)
+    @Deprecated // Use SYNC_CLIENT_RESET_REQUIRED instead
     DIVERGING_HISTORIES(Type.SESSION, 211),                       // Diverging histories (IDENT)
-    BAD_CHANGESET(Type.SESSION, 212),                             // Bad changeset (UPLOAD)
-    DISABLED_SESSION(Type.SESSION, 213),                          // Disabled session
+//    DISABLED_SESSION(Type.SESSION, 213),                          // Disabled session
+    @Deprecated // Not used anymore
     PARTIAL_SYNC_DISABLED(Type.SESSION, 214),                     // Partial sync disabled (BIND)
+    @Deprecated // Not used anymore
     UNSUPPORTED_SESSION_FEATURE(Type.SESSION, 215),               // Unsupported session-level feature
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_ORIGIN_FILE_IDENT(Type.SESSION, 216),                     // Bad origin file identifier (UPLOAD)
+    @Deprecated // Use SYNC_CLIENT_RESET_REQUIRED instead
     BAD_CLIENT_FILE(Type.SESSION, 217),                           // Synchronization no longer possible for client-side file
+    @Deprecated // Not used anymore
     SERVER_FILE_DELETED(Type.SESSION, 218),                       // Server file was deleted while session was bound to it
+    @Deprecated // Not used anymore
     CLIENT_FILE_BLACKLISTED(Type.SESSION, 219),                   // Client file has been blacklisted (IDENT)
+    @Deprecated // Not used anymore
     USER_BLACKLISTED(Type.SESSION, 220),                          // User has been blacklisted (BIND)
+    @Deprecated // Not used anymore
     TRANSACT_BEFORE_UPLOAD(Type.SESSION, 221),                    // Serialized transaction before upload completion
+    @Deprecated // Use SYNC_CLIENT_RESET_REQUIRED instead
     CLIENT_FILE_EXPIRED(Type.SESSION, 222),                       // Client file has expired
+    @Deprecated // Use SYNC_USER_MISMATCH instead
     USER_MISMATCH(Type.SESSION, 223),                             // User mismatch for client file identifier (IDENT)
+    @Deprecated // Not used anymore
     TOO_MANY_SESSIONS(Type.SESSION, 224),                         // Too many sessions in connection (BIND)
+    @Deprecated // Use INVALID_SCHEMA_CHANGE instead
     INVALID_SCHEMA_CHANGE(Type.SESSION, 225),                     // Invalid schema change (UPLOAD)
+    @Deprecated // Use INVALID_SUBSCRIPTION_QUERY instead
     BAD_QUERY(Type.SESSION, 226),                                 // Client query is invalid/malformed (IDENT, QUERY)
+    // TODO Seems to be a new error code?
     OBJECT_ALREADY_EXISTS(Type.SESSION, 227),                     // Client tried to create an object that already exists outside their view (UPLOAD)
+    @Deprecated // Use SYNC_SERVER_PERMISSIONS_CHANGED instead
     SERVER_PERMISSIONS_CHANGED(Type.SESSION, 228),                // Server permissions for this file ident have changed since the last time it was used (IDENT)
+    @Deprecated // Use CONNECTION_CLOSED instead
     INITIAL_SYNC_NOT_COMPLETE(Type.SESSION, 229),                 // Client tried to open a session before initial sync is complete (BIND)
+    @Deprecated // Use SYNC_WRITE_NOT_ALLOWED
     WRITE_NOT_ALLOWED(Type.SESSION, 230),                         // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query - requires client reset (UPLOAD)
+    @Deprecated // Use SYNC_COMPENSATING_WRITE instead
     COMPENSATING_WRITE(Type.SESSION, 231),                        // Client attempted a write that is disallowed by permissions, or modifies an object outside the current query, and the server undid the change
 
     //
@@ -123,37 +183,69 @@ public enum ErrorCode {
     // Sync Network Client errors.
     // See https://github.com/realm/realm-core/blob/master/src/realm/sync/client_base.hpp#L75
     //
+    @Deprecated // Use CONNECTION_CLOSED instead
     CLIENT_CONNECTION_CLOSED(Type.CLIENT, 100),            // Connection closed (no error)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_UNKNOWN_MESSAGE(Type.CLIENT, 101),              // Unknown type of input message
+    @Deprecated // Not used anymore
     CLIENT_LIMITS_EXCEEDED(Type.CLIENT, 103),              // Limits exceeded in input message
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_BAD_SESSION_IDENT(Type.CLIENT, 104),            // Bad session identifier in input message
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_BAD_MESSAGE_ORDER(Type.CLIENT, 105),            // Bad input message order
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_BAD_CLIENT_FILE_IDENT(Type.CLIENT, 106),        // Bad client file identifier (IDENT)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_BAD_PROGRESS(Type.CLIENT, 107),                 // Bad progress information (DOWNLOAD)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_BAD_CHANGESET_HEADER_SYNTAX(Type.CLIENT, 108),  // Bad syntax in changeset header (DOWNLOAD)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_BAD_CHANGESET_SIZE(Type.CLIENT, 109),           // Bad changeset size in changeset header (DOWNLOAD)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_BAD_ORIGIN_FILE_IDENT(Type.CLIENT, 110),        // Bad origin file identifier in changeset header (DOWNLOAD)
+    @Deprecated // Use CLIENT_RESET instead
     CLIENT_BAD_SERVER_VERSION(Type.CLIENT, 111),           // Bad server version in changeset header (DOWNLOAD)
+    @Deprecated // Use BAD_CHANGESET instead
     CLIENT_BAD_CHANGESET(Type.CLIENT, 112),                // Bad changeset (DOWNLOAD)
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_BAD_REQUEST_IDENT(Type.CLIENT, 113),            // Bad request identifier (MARK)
+    @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     CLIENT_BAD_ERROR_CODE(Type.CLIENT, 114),               // Bad error code (ERROR)
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_BAD_COMPRESSION(Type.CLIENT, 115),              // Bad compression (DOWNLOAD)
+    @Deprecated // Not used anymore
     CLIENT_BAD_CLIENT_VERSION_DOWNLOAD(Type.CLIENT, 116),  // Bad last integrated client version in changeset header (DOWNLOAD)
+    @Deprecated // Use TLS_HANDSHAKE_FAILED instead
     CLIENT_SSL_SERVER_CERT_REJECTED(Type.CLIENT, 117),     // SSL server certificate rejected
+    @Deprecated // Use CONNECTION_CLOSED instead
     CLIENT_PONG_TIMEOUT(Type.CLIENT, 118),                 // Timeout on reception of PONG respone message
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_BAD_CLIENT_FILE_IDENT_SALT(Type.CLIENT, 119),   // Bad client file identifier salt (IDENT)
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_FILE_IDENT(Type.CLIENT, 120),                   // Bad file identifier (ALLOC)
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_CONNECT_TIMEOUT(Type.CLIENT, 121),              // Sync connection was not fully established in time
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_BAD_TIMESTAMP(Type.CLIENT, 122),                // Bad timestamp (PONG)
+    @Deprecated // Use SYNC_PROTOCOL_NEGOTIATION_FAILED instead
     CLIENT_BAD_PROTOCOL_FROM_SERVER(Type.CLIENT, 123),     // Bad or missing protocol version information from server
+    @Deprecated // Use SYNC_PROTOCOL_NEGOTIATION_FAILED instead
     CLIENT_TOO_OLD_FOR_SERVER(Type.CLIENT, 124),           // Protocol version negotiation failed: Client is too old for server
+    @Deprecated // Use SYNC_PROTOCOL_NEGOTIATION_FAILED instead
     CLIENT_TOO_NEW_FOR_SERVER(Type.CLIENT, 125),           // Protocol version negotiation failed: Client is too new for server
+    @Deprecated // Use SYNC_PROTOCOL_NEGOTIATION_FAILED instead
     CLIENT_PROTOCOL_MISMATCH(Type.CLIENT, 126),            // Protocol version negotiation failed: No version supported by both client and server
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_BAD_STATE_MESSAGE(Type.CLIENT, 127),            // Bad values in state message (STATE)
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_MISSING_PROTOCOL_FEATURE(Type.CLIENT, 128),     // Requested feature missing in negotiated protocol version
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_BAD_SERIAL_TRANSACT_STATUS(Type.CLIENT, 129),   // Bad status of serialized transaction (TRANSACT)
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_BAD_OBJECT_ID_SUBSTITUTIONS(Type.CLIENT, 130),  // Bad encoded object identifier substitutions (TRANSACT)
+    @Deprecated // Use UNKNOWN_SYNC_ERROR instead
     CLIENT_HTTP_TUNNEL_FAILED(Type.CLIENT, 131),           // Failed to establish HTTP tunnel with configured proxy
+    @Deprecated // Use AUTOMATIC_CLIENT_RESET_FAILED instead
     AUTO_CLIENT_RESET_FAILURE(Type.CLIENT, 132),           // Automatic client reset failed
 
     //
@@ -372,27 +464,35 @@ public enum ErrorCode {
     }
 
     public static class Type {
+
+        // Generic errors
+        public static final String LOGIC = "LogicError";
+        public static final String RUNTIME = "RuntimeError";
+        public static final String INVALID_ARGUMENT = "IllegalArgumentError";
+        public static final String FILE_ACCESS = "FileAccessError";
+        public static final String SYSTEM = "realm.basic_system"; // Connection/System errors from the native Sync Client
+
         // App error types
+        public static final String APP = "realm::app::ClientError"; // Session level errors from the native App Client
         public static final String JSON = "realm::app::JSONError"; // Errors when parsing JSON
         public static final String SERVICE = "realm::app::ServiceError"; // MongoDB Realm Response errors
         public static final String HTTP = "realm::app::HttpError"; // Errors from the HTTP layer
+        @Deprecated // Use CUSTOM instead.
         public static final String JAVA = "realm::app::CustomError"; // Errors from the Java layer
-
-        public static final String APP = "realm::app::ClientError"; // Session level errors from the native App Client
+        public static final String CUSTOM = "realm::app::CustomError";
 
         // Sync error types
-
-        // This one is category CLIENT
+        @Deprecated // Use SYNC instead
         public static final String CLIENT = "realm::sync::ClientError"; // Session level errors from the native Sync Client
-        // connection level errors
+        @Deprecated // Use SYNC instead
         public static final String PROTOCOL = "realm::sync::ProtocolError"; // Protocol level errors from the native Sync Client
-        // session level errors
+        @Deprecated // Use SYNC instead
         public static final String SESSION = "realm::sync::Session"; // Session errors from the native Sync Client
+        public static final String WEBSOCKET = "realm::sync::WebSocketError";
+        public static final String SYNC = "realm::sync::SyncError";
 
-        public static final String SYSTEM = "realm.basic_system"; // Connection/System errors from the native Sync Client
-
-        // unknown to client
-        public static final String UNKNOWN = "unknown"; // Catch-all category
+        // Catch-all category
+        public static final String UNKNOWN = "unknown";
     }
 
     public enum Category {

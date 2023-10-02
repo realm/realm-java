@@ -142,8 +142,6 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
                 app_id,
                 network_transport,
                 util::Optional<std::string>(base_url),
-                util::Optional<std::string>(app_name),
-                util::Optional<std::string>(app_version),
                 util::Optional<std::uint64_t>(j_request_timeout_ms),
                 {
                         platform_version,

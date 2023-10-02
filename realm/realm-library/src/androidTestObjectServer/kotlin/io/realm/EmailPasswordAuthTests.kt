@@ -36,6 +36,7 @@ import io.realm.TEST_APP_1
 import io.realm.TEST_APP_2
 import io.realm.TEST_APP_3
 import kotlin.random.Random
+import kotlin.test.assertContains
 
 abstract class EmailPasswordAuthTests {
 
@@ -569,7 +570,7 @@ class EmailPasswordAuthWithCustomFunctionConfirmTests: EmailPasswordAuthTests() 
         val exception = assertFailsWith<AppException> {
             provider.retryCustomConfirmation(email)
         }
-        assertEquals("""failed to confirm user "$email"""", exception.errorMessage)
+        assertContains(exception.errorMessage!!, "failed to confirm user \"$email\"")
     }
 
     @Test

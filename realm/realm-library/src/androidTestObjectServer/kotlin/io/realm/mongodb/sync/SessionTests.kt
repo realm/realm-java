@@ -168,7 +168,7 @@ class SessionTests {
 
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTOMATIC_CLIENT_RESET_FAILED)
     }
 
     // Check that a if Seamless loss Client Reset fails the error is correctly reported.
@@ -213,7 +213,7 @@ class SessionTests {
 
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTOMATIC_CLIENT_RESET_FAILED)
     }
 
     @Test
@@ -253,7 +253,7 @@ class SessionTests {
 
         val realm = Realm.getInstance(config)
         looperThread.closeAfterTest(realm)
-        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTOMATIC_CLIENT_RESET_FAILED)
     }
 
     // Check that a Client Reset is correctly reported.
@@ -744,7 +744,7 @@ class SessionTests {
         looperThread.closeAfterTest(realm)
 
         // Trigger error
-        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTO_CLIENT_RESET_FAILURE)
+        user.app.sync.simulateClientReset(realm.syncSession, ErrorCode.AUTOMATIC_CLIENT_RESET_FAILED)
     }
 
     @Test

@@ -103,6 +103,10 @@ public class SyncObjectServerFacade extends ObjectServerFacade {
         if (config instanceof SyncConfiguration) {
             SyncConfiguration syncConfig = (SyncConfiguration) config;
             User user = syncConfig.getUser();
+            // Check if user is logged out
+            if (!user.isLoggedIn()) {
+                throw new IllegalStateException("User is not logged in: " + user);
+            }
             App app = user.getApp();
             String rosServerUrl = syncConfig.getServerUrl().toString();
             String rosUserIdentity = user.getId();

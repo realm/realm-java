@@ -250,7 +250,7 @@ public abstract class OsJavaNetworkTransport {
     @Keep
     public abstract static class NetworkTransportJNIResultCallback {
         public void onSuccess(Object result) {}
-        public void onError(byte nativeErrorCategory, int nativeErrorCode, String errorMessage) {}
+        public void onError(byte nativeErrorCategory, int nativeErrorCode, String errorMessage, String logUrl) {}
     }
 
     private static native void nativeHandleResponse(Response response, long completionBlockPtr);

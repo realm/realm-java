@@ -265,31 +265,14 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         // Doing the methods lookup from the thread that loaded the lib, to avoid
         // https://developer.android.com/training/articles/perf-jni.html#faq_FindClass
         static JavaMethod java_error_callback_method(env, sync_manager_class, "notifyErrorHandler",
-                                                     "(BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+                                                     "(BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 
         // error handler will be called form the sync client thread
         auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
-
-            auto std_error_code = error.to_status().get_std_error_code();
-            int error_code = error.to_status().get_std_error_code().value();
-            const std::error_category& error_category = std_error_code.category();
-
-            jbyte category;
-            if (error_category == realm::sync::client_error_category()) {
-                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CLIENT;
-            } else if (error_category == realm::sync::protocol_error_category()) {
-                if (realm::sync::is_session_level_error(realm::sync::ProtocolError(std_error_code.value()))) {
-                    category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SESSION;
-                }
-                else {
-                    category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CONNECTION;
-                }
-            } else if (error_category == std::system_category() || error_category == realm::util::error::basic_system_error_category()) {
-                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_SYSTEM;
-            } else {
-                category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_UNKNOWN;
-            }
-
+            JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
+            ErrorCodes::Error error_code = error.status.code();
+            auto error_code_value = static_cast<int32_t>(error_code); // TODO is this correct?
+            jbyte error_category = categoryAsJByte(error.status);
 
             // System/Connection errors are defined by constants in
             // https://android.googlesource.com/kernel/lk/+/upstream-master/include/errno.h
@@ -297,20 +280,18 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             //
             // For this reason we manually map the constants to the error integer values defined in Java.
             // For simplicity Java re-use the values currently defined in errno.h.
-            if (error_category == realm::util::error::basic_system_error_category()) {
-                switch(error_code) {
-                    case ECONNRESET: error_code = 104; break;
-                    case ESHUTDOWN: error_code = 110; break;
-                    case ECONNREFUSED: error_code = 111; break;
-                    case EADDRINUSE: error_code = 112; break;
-                    case ECONNABORTED: error_code = 113; break;
+            if (ErrorCodes::error_categories(error.status.code()).test(realm::ErrorCategory::system_error)) {
+                switch(error_code_value) {
+                    case ECONNRESET: error_code_value = 104; break;
+                    case ESHUTDOWN: error_code_value = 110; break;
+                    case ECONNREFUSED: error_code_value = 111; break;
+                    case EADDRINUSE: error_code_value = 112; break;
+                    case ECONNABORTED: error_code_value = 113; break;
                     default:
                         /* Do nothing */
                         (void)0;
                 }
             }
-
-            auto error_message = error.what();
 
             std::string client_reset_path_info;
 
@@ -319,22 +300,23 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             // This way we only have one error in Java representing Client Reset.
             if (error.is_client_reset_requested()) {
                 client_reset_path_info = error.user_info[SyncError::c_recovery_file_path_key];
-                error_code = 7; // See ErrorCode.java
-                category = io_realm_internal_ErrorCategory_RLM_APP_ERROR_CATEGORY_CUSTOM;
+                error_code_value = 7; // See ErrorCode.java
+                error_category = io_realm_internal_ErrorCategory_RLM_SYNC_ERROR_CATEGORY_CUSTOM;
             }
-
-            JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
-            jstring jerror_message = to_jstring(env, error_message);
+            jstring jerror_message = to_jstring(env, error.simple_message);
+            jstring jerror_message_log_url = to_jstring(env, error.logURL);
             jstring jclient_reset_path_info = to_jstring(env, client_reset_path_info);
             jstring jsession_path = to_jstring(env, session->path());
             env->CallVoidMethod(sync_service_object.get(),
                                 java_error_callback_method,
-                                category,
-                                error_code,
+                                error_category,
+                                error_code_value,
                                 jerror_message,
+                                jerror_message_log_url,
                                 jclient_reset_path_info,
                                 jsession_path);
             env->DeleteLocalRef(jerror_message);
+            env->DeleteLocalRef(jerror_message_log_url);
             env->DeleteLocalRef(jsession_path);
             if (env->ExceptionCheck()) {
                 env->ExceptionDescribe();
@@ -353,7 +335,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
             JStringAccessor refresh_token(env, j_refresh_token);
             JStringAccessor access_token(env, j_access_token);
             JStringAccessor device_id(env, j_device_id);
-            user = app->sync_manager()->get_user(user_id, refresh_token, access_token, user_provider, device_id);
+            user = app->sync_manager()->get_user(user_id, refresh_token, access_token, device_id);
         }
 
         SyncSessionStopPolicy session_stop_policy = static_cast<SyncSessionStopPolicy>(j_session_stop_policy);
