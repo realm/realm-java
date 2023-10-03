@@ -59,11 +59,12 @@ public enum ErrorCode {
 
     // Sync errors
     // Catch-all sync errors. The error code should be part of the error message.
+    RUNTIME_ERROR(Type.RUNTIME, 1000),
     UNKNOWN_SYNC_ERROR(Type.SYNC, -1),
     AUTOMATIC_CLIENT_RESET_FAILED(Type.SYNC, 1028),
     BAD_CHANGESET(Type.SYNC, 1015),
     BAD_SYNC_PARTITION_VALUE(Type.SYNC, 1029),
-//    CONNECTION_CLOSED(Type.SYNC, 1030),
+    CONNECTION_CLOSED(Type.SYNC, 1030, Category.RECOVERABLE),
     INVALID_SUBSCRIPTION_QUERY(Type.SYNC, 1031),
     SYNC_CLIENT_RESET_REQUIRED(Type.SYNC, 1032),
     SYNC_COMPENSATING_WRITE(Type.SYNC, 1033),
@@ -85,8 +86,8 @@ public enum ErrorCode {
     //
     // See https://github.com/realm/realm-core/blob/master/src/realm/sync/protocol.hpp#L260
     //
-    CONNECTION_CLOSED(Type.SYNC, 1030, Category.RECOVERABLE),    // Connection closed (no error)
-    // OTHER_ERROR(Type.PROTOCOL, 101),    TODO Runtime -> Map to RealmException?                            // Other connection level error
+    @Deprecated // Use RUNTIME_ERROR instead
+    OTHER_ERROR(Type.PROTOCOL, 101),                                          // Other connection level error
     @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     UNKNOWN_MESSAGE(Type.PROTOCOL, 102),                            // Unknown type of input message
     @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
@@ -103,18 +104,20 @@ public enum ErrorCode {
     BOUND_IN_OTHER_SESSION(Type.PROTOCOL, 108),                     // Client file bound in other session (IDENT)
     @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_MESSAGE_ORDER(Type.PROTOCOL, 109),                          // Bad input message order
-//    BAD_DECOMPRESSION(Type.PROTOCOL, 110),  TODO Runtime -> Map to RealmException?                      // Error in decompression (UPLOAD)
+    @Deprecated // Use RUNTIME_ERROR instead
+    BAD_DECOMPRESSION(Type.PROTOCOL, 110),                                   // Error in decompression (UPLOAD)
     @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_CHANGESET_HEADER_SYNTAX(Type.PROTOCOL, 111),                // Bad server version in changeset header (DOWNLOAD)
     @Deprecated // Use SYNC_PROTOCOL_INVARIANT_FAILED instead
     BAD_CHANGESET_SIZE(Type.PROTOCOL, 112),                         // Bad size specified in changeset header (UPLOAD)
     @Deprecated // Use BAD_CHANGESET instead
     BAD_CHANGESETS(Type.PROTOCOL, 113),                             // Bad changesets (UPLOAD)
-//
+
     // Session level errors from the native Sync Client
     @Deprecated // Use CONNECTION_CLOSED instead
     SESSION_CLOSED(Type.SESSION, 200, Category.RECOVERABLE),      // Session closed (no error)
-//    OTHER_SESSION_ERROR(Type.SESSION, 201, Category.RECOVERABLE), TODO Runtime -> Map to RealmException? // Other session level error
+    @Deprecated // Use RUNTIME_ERROR instead
+    OTHER_SESSION_ERROR(Type.SESSION, 201, Category.RECOVERABLE),           // Other session level error
     @Deprecated // Not used anymore
     TOKEN_EXPIRED(Type.SESSION, 202, Category.RECOVERABLE),       // Access token expired
 
@@ -139,7 +142,8 @@ public enum ErrorCode {
     BAD_CLIENT_VERSION(Type.SESSION, 210),                        // Bad client version (IDENT, UPLOAD)
     @Deprecated // Use SYNC_CLIENT_RESET_REQUIRED instead
     DIVERGING_HISTORIES(Type.SESSION, 211),                       // Diverging histories (IDENT)
-//    DISABLED_SESSION(Type.SESSION, 213),                          // Disabled session
+    @Deprecated // Not used anymore
+    DISABLED_SESSION(Type.SESSION, 213),                                   // Disabled session
     @Deprecated // Not used anymore
     PARTIAL_SYNC_DISABLED(Type.SESSION, 214),                     // Partial sync disabled (BIND)
     @Deprecated // Not used anymore
@@ -166,8 +170,6 @@ public enum ErrorCode {
     INVALID_SCHEMA_CHANGE(Type.SESSION, 225),                     // Invalid schema change (UPLOAD)
     @Deprecated // Use INVALID_SUBSCRIPTION_QUERY instead
     BAD_QUERY(Type.SESSION, 226),                                 // Client query is invalid/malformed (IDENT, QUERY)
-    // TODO Seems to be a new error code?
-    OBJECT_ALREADY_EXISTS(Type.SESSION, 227),                     // Client tried to create an object that already exists outside their view (UPLOAD)
     @Deprecated // Use SYNC_SERVER_PERMISSIONS_CHANGED instead
     SERVER_PERMISSIONS_CHANGED(Type.SESSION, 228),                // Server permissions for this file ident have changed since the last time it was used (IDENT)
     @Deprecated // Use CONNECTION_CLOSED instead

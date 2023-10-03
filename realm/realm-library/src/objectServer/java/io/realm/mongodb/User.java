@@ -154,10 +154,14 @@ public class User {
     }
 
     /**
-     * Returns the provider type used to log the user
+     * Returns the provider type of this users first identity. This is normally the one
+     * used to log the user in, but not always.
      *
-     * @return the provider type of the user
+     * @return the provider type of the user.
+     *
+     * @deprecated Use {@link #getIdentities()} instead.
      */
+    @Deprecated
     public Credentials.Provider getProviderType() {
         return Credentials.Provider.fromId(osUser.getProviderType());
     }

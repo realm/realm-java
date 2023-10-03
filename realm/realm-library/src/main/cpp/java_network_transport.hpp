@@ -93,7 +93,6 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
     static void handleError(const JavaGlobalRefByCopy &callback, util::Optional<AppError> &error, JNIEnv *env,
                             const JavaClass &java_callback_class) {
-        // TODO
         static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(BILjava/lang/String;Ljava/lang/String;)V");
         auto err = error.value();
         jbyte category = categoryAsJByte(err.to_status());

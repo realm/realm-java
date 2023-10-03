@@ -271,7 +271,7 @@ JNIEXPORT jstring JNICALL Java_io_realm_internal_OsRealmConfig_nativeCreateAndSe
         auto error_handler = [sync_service_object = JavaGlobalRefByCopy(env, j_java_sync_service)](std::shared_ptr<SyncSession> session, SyncError error) {
             JNIEnv* env = realm::jni_util::JniUtils::get_env(true);
             ErrorCodes::Error error_code = error.status.code();
-            auto error_code_value = static_cast<int32_t>(error_code); // TODO is this correct?
+            auto error_code_value = static_cast<int32_t>(error_code);
             jbyte error_category = categoryAsJByte(error.status);
 
             // System/Connection errors are defined by constants in
