@@ -114,6 +114,9 @@ public class User {
     }
 
     User(OsSyncUser osUser, App app) {
+        if (osUser == null) {
+            throw new IllegalStateException("Non-null user required.");
+        }
         this.osUser = osUser;
         this.app = app;
         this.profile = new UserProfile(this);
