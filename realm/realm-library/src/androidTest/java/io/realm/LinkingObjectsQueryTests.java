@@ -862,7 +862,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     break;
                 default:
                     // Do nothing
-                    // fail("Unknown type: " + type);
+                     fail("Unknown type: " + type);
             }
         }
     }
