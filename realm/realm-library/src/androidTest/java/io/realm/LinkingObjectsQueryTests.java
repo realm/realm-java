@@ -17,7 +17,6 @@ package io.realm;
 
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -401,11 +400,11 @@ public class LinkingObjectsQueryTests extends QueryTests {
                 case LINKING_OBJECTS:
                     // Rows 0 and 1 are not included as they are linked to another row through FIELD_OBJECT
                     // Row 2 is included (no link)
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
                     // Row 0 has link to row 0 which has a backlink (list); not included
                     // Row 1 has link to row 1 which has a backlink (list); not included
-                    // Row 2 has no link; included
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
+                    // Row 2 has no link; no included
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
                     break;
                 default:
                     // tested in RealmQueryTests
@@ -427,17 +426,17 @@ public class LinkingObjectsQueryTests extends QueryTests {
                 case LIST:
                     // Row 0: backlink to row 0, linklist is empty; included
                     // Row 1: backlink to row 1, linklist to row 0; not included
-                    // Row 2: no backlink; included
-                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LIST).count());
+                    // Row 2: no backlink; not included
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
                     // Both row 0 and 1 have a link/backlink; not included
-                    // row 2 has no link/backlink and an empty list; included
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
+                    // row 2 has no link/backlink and an empty list; not included
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
                     break;
                 case OBJECT:
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT).count());
                     break;
                 case INTEGER_LIST:
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_INTEGER_LIST).count());
@@ -542,7 +541,7 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_DECIMAL128_SET).count());
                     break;
                 case LINK_SET:
-                    assertEquals(3, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
+                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_LINK_SET).count());
                     break;
                 default:
                     fail("Unknown type: " + type);
@@ -565,24 +564,24 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_BINARY).count());
                     break;
                 case LIST:
-                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LIST).count());
+                    assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LIST).count());
                     break;
                 case LINKING_OBJECTS:
                     // Row 0: Backlink (list) to row 1, row 1 backlink to row 1; not included
                     // Row 1: Backlink (list) to row 2, row 2 no backlink; included
-                    // Row 2: No backlink (list); included
-                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
+                    // Row 2: No backlink (list); not included
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT).count());
 
                     // Step 1:
                     //  Row 0 skipped; FIELD_LO_LIST.count > 0
                     //  Row 1 included; FIELD_LO_LIST.count() == 0
                     //
                     // Step 2: now checking Row 2
-                    // Row 0 included: goes to Row 1 where FIELD_LO_LIST.count() == 0
-                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
+                    // Row 0 not included: goes to Row 1 where FIELD_LO_LIST.count() == 0
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_LO_LIST).count());
                     break;
                 case OBJECT:
-                    assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT).count());
+                    assertEquals(1, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_OBJECT).count());
                     break;
                 case INTEGER_LIST:
                     assertEquals(2, realm.where(AllJavaTypesUnsupportedTypes.class).isEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_LIST + "." + AllJavaTypesUnsupportedTypes.FIELD_INTEGER_LIST).count());
@@ -862,7 +861,8 @@ public class LinkingObjectsQueryTests extends QueryTests {
                     assertEquals(0, realm.where(AllJavaTypesUnsupportedTypes.class).isNotEmpty(AllJavaTypesUnsupportedTypes.FIELD_LO_OBJECT + "." + AllJavaTypesUnsupportedTypes.FIELD_REALM_ANY_SET).count());
                     break;
                 default:
-                    fail("Unknown type: " + type);
+                    // Do nothing
+                     fail("Unknown type: " + type);
             }
         }
     }

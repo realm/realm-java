@@ -22,60 +22,66 @@ import io.realm.mongodb.ErrorCode;
 
 public class ErrorCategory {
     @Native // annotate a member to force JNI header generation
-    public static final byte RLM_APP_ERROR_CATEGORY_JSON = 0;
-    public static final byte RLM_APP_ERROR_CATEGORY_SERVICE = 1;
-    public static final byte RLM_APP_ERROR_CATEGORY_HTTP = 2;
-    public static final byte RLM_APP_ERROR_CATEGORY_CUSTOM = 3;
-    public static final byte RLM_APP_ERROR_CATEGORY_CLIENT = 4;
-
-    public static final byte RLM_SYNC_ERROR_CATEGORY_CLIENT = 5;
-    public static final byte RLM_SYNC_ERROR_CATEGORY_CONNECTION = 6; // protocol
-    public static final byte RLM_SYNC_ERROR_CATEGORY_SESSION = 7;
-
-    /**
-     * System error - POSIX errno, Win32 HRESULT, etc.
-     */
-    public static final byte RLM_SYNC_ERROR_CATEGORY_SYSTEM = 8;
-
-    /**
-     * Unknown source of error.
-     */
-    public static final byte RLM_SYNC_ERROR_CATEGORY_UNKNOWN = 9;
+    public static final byte RLM_APP_ERROR_CATEGORY_LOGIC = 0;
+    public static final byte RLM_APP_ERROR_CATEGORY_RUNTIME = 1;
+    public static final byte RLM_APP_ERROR_CATEGORY_INVALID_ARGUMENT = 2;
+    public static final byte RLM_APP_ERROR_CATEGORY_FILE_ACCESS = 3;
+    public static final byte RLM_APP_ERROR_CATEGORY_SYSTEM = 4; // System error - POSIX errno, Win32 HRESULT, etc.
+    public static final byte RLM_SYNC_ERROR_CATEGORY_APP = 5;
+    public static final byte RLM_SYNC_ERROR_CATEGORY_CLIENT = 6;
+    public static final byte RLM_SYNC_ERROR_CATEGORY_JSON = 7;
+    public static final byte RLM_SYNC_ERROR_CATEGORY_SERVICE = 8;
+    public static final byte RLM_SYNC_ERROR_CATEGORY_HTTP = 9;
+    public static final byte RLM_SYNC_ERROR_CATEGORY_CUSTOM = 10;
+    public static final byte RLM_SYNC_ERROR_CATEGORY_WEBSOCKET = 11;
+    public static final byte RLM_SYNC_ERROR_CATEGORY_SYNC = 12;
+    public static final byte RLM_SYNC_ERROR_CATEGORY_UNKNOWN = 13; // Unknown source of error. This is not a category exposed by Core.
 
     public static String toCategory(byte value) {
         String category;
         switch (value) {
-            case RLM_APP_ERROR_CATEGORY_JSON:
-                category = ErrorCode.Type.JSON;
+            case RLM_APP_ERROR_CATEGORY_LOGIC:
+                category = ErrorCode.Type.LOGIC;
                 break;
-            case RLM_APP_ERROR_CATEGORY_SERVICE:
-                category = ErrorCode.Type.SERVICE;
+            case RLM_APP_ERROR_CATEGORY_RUNTIME:
+                category = ErrorCode.Type.RUNTIME;
                 break;
-            case RLM_APP_ERROR_CATEGORY_HTTP:
-                category = ErrorCode.Type.HTTP;
+            case RLM_APP_ERROR_CATEGORY_INVALID_ARGUMENT:
+                category = ErrorCode.Type.INVALID_ARGUMENT;
                 break;
-            case RLM_APP_ERROR_CATEGORY_CUSTOM:
-                category = ErrorCode.Type.JAVA;
+            case RLM_APP_ERROR_CATEGORY_SYSTEM:
+                category = ErrorCode.Type.SYSTEM;
                 break;
-            case RLM_APP_ERROR_CATEGORY_CLIENT:
+            case RLM_APP_ERROR_CATEGORY_FILE_ACCESS:
+                category = ErrorCode.Type.FILE_ACCESS;
+                break;
+            case RLM_SYNC_ERROR_CATEGORY_APP:
                 category = ErrorCode.Type.APP;
                 break;
             case RLM_SYNC_ERROR_CATEGORY_CLIENT:
                 category = ErrorCode.Type.CLIENT;
                 break;
-            case RLM_SYNC_ERROR_CATEGORY_CONNECTION:
-                category = ErrorCode.Type.PROTOCOL;
+            case RLM_SYNC_ERROR_CATEGORY_JSON:
+                category = ErrorCode.Type.JSON;
                 break;
-            case RLM_SYNC_ERROR_CATEGORY_SESSION:
-                category = ErrorCode.Type.SESSION;
+            case RLM_SYNC_ERROR_CATEGORY_SERVICE:
+                category = ErrorCode.Type.SERVICE;
                 break;
-            case RLM_SYNC_ERROR_CATEGORY_SYSTEM:
-                category = ErrorCode.Type.SYSTEM;
+            case RLM_SYNC_ERROR_CATEGORY_HTTP:
+                category = ErrorCode.Type.HTTP;
                 break;
-            default: // RLM_SYNC_ERROR_CATEGORY_UNKNOWN
+            case RLM_SYNC_ERROR_CATEGORY_CUSTOM:
+                category = ErrorCode.Type.CUSTOM;
+                break;
+            case RLM_SYNC_ERROR_CATEGORY_WEBSOCKET:
+                category = ErrorCode.Type.WEBSOCKET;
+                break;
+            case RLM_SYNC_ERROR_CATEGORY_SYNC:
+                category = ErrorCode.Type.SYNC;
+                break;
+            default:
                 category = ErrorCode.Type.UNKNOWN;
         }
-
         return category;
     }
 }

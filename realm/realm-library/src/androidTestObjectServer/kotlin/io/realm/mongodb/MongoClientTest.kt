@@ -327,7 +327,7 @@ class MongoClientTest {
             assertFailsWith<AppException> {
                 insertOne(doc1).get()!!
             }.let { e ->
-                assertEquals("insert not permitted", e.errorMessage)
+                assertContains(e.errorMessage!!, "insert not permitted")
             }
         }
     }
@@ -440,7 +440,7 @@ class MongoClientTest {
             assertFailsWith<AppException> {
                 insertMany(documents).get()!!
             }.let { e ->
-                assertEquals("insert not permitted", e.errorMessage)
+                assertContains(e.errorMessage!!, "insert not permitted")
             }
         }
     }

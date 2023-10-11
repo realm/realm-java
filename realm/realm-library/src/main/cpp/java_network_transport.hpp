@@ -93,7 +93,7 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
 
     static void handleError(const JavaGlobalRefByCopy &callback, util::Optional<AppError> &error, JNIEnv *env,
                             const JavaClass &java_callback_class) {
-        static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(BILjava/lang/String;)V");
+        static JavaMethod java_notify_onerror(env, java_callback_class, "onError", "(BILjava/lang/String;Ljava/lang/String;)V");
         auto err = error.value();
         jbyte category = categoryAsJByte(err.to_status());
         int error_code = err.is_custom_error() || err.is_http_error() ? err.additional_status_code.value() : err.code();
@@ -101,7 +101,8 @@ struct JavaNetworkTransport : public app::GenericNetworkTransport {
                             java_notify_onerror,
                             category,
                             error_code,
-                            to_jstring(env, err.what()));
+                            to_jstring(env, err.what()),
+                            to_jstring(env, err.link_to_server_logs));
     }
 
     // Helper method for constructing callbacks for REST calls that must return an actual result to Java

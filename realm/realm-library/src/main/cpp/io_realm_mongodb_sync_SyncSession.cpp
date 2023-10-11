@@ -69,10 +69,8 @@ void handleCompletion(jint callback_id, JavaMethod &java_notify_result_method,
     if (!status.is_ok()) {
         jbyte category = categoryAsJByte(status);
         java_error_category = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env,category));
-        java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env,
-                                                                                  status.get_std_error_code().value()));
-        java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF(
-                status.reason().c_str()));
+        java_error_code = JavaLocalRef<jobject>(env, JavaClassGlobalDef::new_long(env, static_cast<int32_t>(status.code())));
+        java_error_message = JavaLocalRef<jstring>(env, env->NewStringUTF( status.reason().c_str()));
     }
 
     env->CallVoidMethod(session_ref.get(), java_notify_result_method,

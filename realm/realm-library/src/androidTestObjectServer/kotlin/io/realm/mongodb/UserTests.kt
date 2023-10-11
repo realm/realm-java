@@ -29,6 +29,7 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.test.assertContains
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 
@@ -208,7 +209,7 @@ class UserTests {
             anonUser.linkCredentials(Credentials.apiKey(apiKey.value))
         }
 
-        assertEquals("invalid user link request", exception.errorMessage);
+        assertContains(exception.errorMessage!!, "invalid user link request");
         assertEquals(ErrorCode.Category.FATAL, exception.errorCode.category);
         assertEquals("realm::app::ServiceError", exception.errorCode.type);
         assertEquals(ErrorCode.INVALID_PARAMETER, exception.errorCode);

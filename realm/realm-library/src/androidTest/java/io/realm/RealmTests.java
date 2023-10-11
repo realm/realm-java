@@ -1193,6 +1193,7 @@ public class RealmTests {
         assertTrue(before >= after);
     }
 
+    // This is only supported on API level 30 and below
     @Test
     public void compactRealm_onExternalStorage() {
         final File externalFilesDir = context.getExternalFilesDir(null);
@@ -4431,6 +4432,7 @@ public class RealmTests {
         assertEquals(0, Realm.getLocalInstanceCount(config));
     }
 
+    // This is only supported on API 30 and below
     @Test
     public void namedPipeDirForExternalStorage() {
 
@@ -4851,14 +4853,14 @@ public class RealmTests {
             for (int i = 0; i < 5; i++) {
                 bgRealm.executeTransaction(r -> { /* empty */ });
             }
-            assertEquals(6, bgRealm.getNumberOfActiveVersions());
+            assertEquals(3, bgRealm.getNumberOfActiveVersions());
             bgWritesCompleted.countDown();
             TestHelper.awaitOrFail(closeBgRealm);
             bgRealm.close();
         });
         t.start();
         TestHelper.awaitOrFail(bgWritesCompleted);
-        assertEquals(6, realm.getNumberOfActiveVersions());
+        assertEquals(3, realm.getNumberOfActiveVersions());
         closeBgRealm.countDown();
         t.join();
         realm.refresh(); // Release old versions for GC

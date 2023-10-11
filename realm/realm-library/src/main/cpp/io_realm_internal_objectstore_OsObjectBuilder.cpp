@@ -224,7 +224,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativ
         auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
         JavaValue values = JavaValue(list);
         Object obj = Object::create(ctx, shared_realm, object_schema, values, policy);
-        return reinterpret_cast<jlong>(new Obj(obj.obj()));
+        return reinterpret_cast<jlong>(new Obj(obj.get_obj()));
     }
     CATCH_STD()
     return realm::npos;
@@ -249,7 +249,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsObjectBuilder_nativ
         auto list = *reinterpret_cast<OsObjectData*>(builder_ptr);
         JavaValue values = JavaValue(list);
         Object obj = Object::create(ctx, shared_realm, object_schema, values, policy, embedded_object_key);
-        return reinterpret_cast<jlong>(new Obj(obj.obj()));
+        return reinterpret_cast<jlong>(new Obj(obj.get_obj()));
     }
     CATCH_STD()
     return realm::npos;

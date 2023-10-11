@@ -7,7 +7,8 @@
 * None.
 
 ### Fixed
-* None.
+* Rare corruption causing 'Invalid streaming format cookie'-exception. Typically following compact, convert or copying to a new file. (Issue [#7775](https://github.com/realm/realm-java/issues/7775), since v10.13.0 (Core v12.12.0))
+* [RealmApp] Crash when opening a Realm with a proxy enabled. (Issue [#7828](https://github.com/realm/realm-java/issues/7828))
 
 ### Compatibility
 * File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
@@ -17,7 +18,7 @@
 * Android Gradle Plugin 7.4.0 and above.
 
 ### Internal
-* None.
+* Updated to Realm Core 13.22.0, commit 0b19887b5b25746afaf474fe298e38f450f0486e.
 
 
 ## 10.16.1 (2023-06-26)

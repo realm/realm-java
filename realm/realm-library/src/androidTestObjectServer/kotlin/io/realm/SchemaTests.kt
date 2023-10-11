@@ -19,6 +19,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.realm.entities.SyncStringOnly
 import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.close
+import io.realm.mongodb.registerUserAndLogin
 import io.realm.mongodb.sync.SyncConfiguration
 import io.realm.mongodb.sync.testSchema
 import io.realm.util.assertFailsWith
@@ -47,7 +48,7 @@ class SchemaTests {
     @Before
     fun setUp() {
         app = TestApp()
-        val user = createTestUser(app)
+        val user =  app.registerUserAndLogin(TestHelper.getRandomEmail(), "123456")
         config = configFactory
                 .createSyncConfigurationBuilder(user)
                 .testSchema(SyncStringOnly::class.java)

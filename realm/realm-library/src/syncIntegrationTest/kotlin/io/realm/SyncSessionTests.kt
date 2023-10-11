@@ -26,6 +26,7 @@ import org.junit.*
 import org.junit.Assert.*
 import org.junit.runner.RunWith
 import java.io.Closeable
+import java.lang.IllegalStateException
 import java.lang.Thread
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -657,15 +658,14 @@ class SyncSessionTests {
                 realm.executeTransaction {
                     realm.createObject(SyncDog::class.java, ObjectId())
                 }
-
-                val error = assertFailsWith<AppException> {
-                    // This throws as the server has NOT been configured to have long partitions!
+                try {
                     realm.syncSession.uploadAllLocalChanges()
-                }.also {
+                    fail()
+                } catch (ex: AppException) {
+                    assertEquals(ErrorCode.Type.SYNC, ex.errorType)
+                    assertEquals(ErrorCode.BAD_SYNC_PARTITION_VALUE, ex.errorCode)
                     looperThread.testComplete()
                 }
-                assertEquals(ErrorCode.Type.SESSION, error.errorType)
-                assertEquals(ErrorCode.ILLEGAL_REALM_PATH, error.errorCode)
             }
         }
     }
@@ -723,7 +723,9 @@ class SyncSessionTests {
     @Test
     fun session_throwOnLogoutUser() {
         user.logOut()
-        Realm.getInstance(syncConfiguration).use { }
+        assertFailsWith<IllegalStateException> {
+            Realm.getInstance(syncConfiguration).use { }
+        }
     }
 
     @Test

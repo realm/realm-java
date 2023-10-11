@@ -24,8 +24,8 @@ import io.realm.internal.OsObjectSchemaInfo
 import io.realm.internal.OsRealmConfig
 import io.realm.internal.OsSchemaInfo
 import io.realm.internal.OsSharedRealm
-import io.realm.mongodb.SyncTestUtils.Companion.createTestUser
 import io.realm.mongodb.close
+import io.realm.mongodb.registerUserAndLogin
 import io.realm.mongodb.sync.testSchema
 import io.realm.util.assertFailsWithMessage
 import org.bson.types.ObjectId
@@ -63,7 +63,7 @@ class SyncedRealmMigrationTests {
 
     @Test
     fun migrateRealm_syncConfigurationThrows() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app)).build()
+        val config = configFactory.createSyncConfigurationBuilder(app.registerUserAndLogin()).build()
         assertFailsWith<IllegalArgumentException> {
             Realm.migrateRealm(config)
         }
@@ -73,7 +73,7 @@ class SyncedRealmMigrationTests {
     // automatically.
     @Test
     fun addField_worksWithMigrationError() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
+        val config = configFactory.createSyncConfigurationBuilder(app.registerUserAndLogin())
                 .testSchema(SyncStringOnly::class.java)
                 .build()
 
@@ -95,7 +95,7 @@ class SyncedRealmMigrationTests {
     // The underlying field should not be deleted, just hidden.
     @Test
     fun missingFields_hiddenSilently() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
+        val config = configFactory.createSyncConfigurationBuilder(app.registerUserAndLogin())
                 .testSchema(SyncStringOnly::class.java)
                 .build()
 
@@ -124,7 +124,7 @@ class SyncedRealmMigrationTests {
     // Check that a Realm cannot be opened if it contain breaking schema changes, like changing a primary key
     @Test
     fun breakingSchemaChange_throws() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
+        val config = configFactory.createSyncConfigurationBuilder(app.registerUserAndLogin())
                 .testSchema(PrimaryKeyAsString::class.java)
                 .build()
 
@@ -146,7 +146,7 @@ class SyncedRealmMigrationTests {
     // Check that indexes are not being added if the schema version is the same
     @Test
     fun sameSchemaVersion_doNotRebuildIndexes() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
+        val config = configFactory.createSyncConfigurationBuilder(app.registerUserAndLogin())
                 .testSchema(IndexedFields::class.java)
                 .schemaVersion(42)
                 .build()
@@ -173,7 +173,7 @@ class SyncedRealmMigrationTests {
     // Check that indexes are being added if the schema version is different
     @Test
     fun differentSchemaVersions_rebuildIndexes() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
+        val config = configFactory.createSyncConfigurationBuilder(app.registerUserAndLogin())
                 .testSchema(IndexedFields::class.java)
                 .schemaVersion(42)
                 .build()
@@ -201,7 +201,7 @@ class SyncedRealmMigrationTests {
     // Check that indexes are being added if other fields are being added as well
     @Test
     fun addingFields_rebuildIndexes() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
+        val config = configFactory.createSyncConfigurationBuilder(app.registerUserAndLogin())
                 .testSchema(IndexedFields::class.java)
                 .schemaVersion(42)
                 .build()
@@ -228,7 +228,7 @@ class SyncedRealmMigrationTests {
 
     @Test
     fun schemaVersionUpgradedWhenMigrating() {
-        val config = configFactory.createSyncConfigurationBuilder(createTestUser(app))
+        val config = configFactory.createSyncConfigurationBuilder(app.registerUserAndLogin())
                 .testSchema(SyncStringOnly::class.java)
                 .schemaVersion(42)
                 .build()
@@ -252,7 +252,7 @@ class SyncedRealmMigrationTests {
     @Test
     fun moreFieldsThanExpectedIsAllowed() {
         val config = configFactory
-                .createSyncConfigurationBuilder(createTestUser(app))
+                .createSyncConfigurationBuilder(app.registerUserAndLogin())
                 .testSchema(SyncStringOnly::class.java)
                 .build()
 

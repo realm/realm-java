@@ -249,7 +249,14 @@ public abstract class Sync {
      * session to contact.
      */
     @SuppressWarnings("unused")
-    private void notifyErrorHandler(byte nativeErrorCategory, int nativeErrorCode, String errorMessage, String clientResetPathInfo, String path) {
+    private void notifyErrorHandler(
+            byte nativeErrorCategory,
+            int nativeErrorCode,
+            String errorMessage,
+            String logUrl,
+            String clientResetPathInfo,
+            String path
+    ) {
         ErrorCode errCode = ErrorCode.fromNativeError(ErrorCategory.toCategory(nativeErrorCategory), nativeErrorCode);
 
         if (errCode == ErrorCode.CLIENT_RESET) {

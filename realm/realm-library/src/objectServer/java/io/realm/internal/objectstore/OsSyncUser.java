@@ -87,10 +87,6 @@ public class OsSyncUser implements NativeObject {
         return nativeGetIdentity(nativePtr);
     }
 
-    public String getLocalIdentity() {
-        return nativeGetLocalIdentity(nativePtr);
-    }
-
     public String getAccessToken() {
         return nativeGetAccessToken(nativePtr);
     }
@@ -135,10 +131,6 @@ public class OsSyncUser implements NativeObject {
         }.execute();
     }
 
-    public void invalidate() {
-        nativeSetState(nativePtr, STATE_REMOVED);
-    }
-
     public String getProviderType() {
         return nativeGetProviderType(nativePtr);
     }
@@ -168,12 +160,10 @@ public class OsSyncUser implements NativeObject {
     private static native String nativeGetMinAge(long nativePtr);
     private static native String nativeGetMaxAge(long nativePtr);
     private static native String nativeGetIdentity(long nativePtr);
-    private static native String nativeGetLocalIdentity(long nativePtr);
     private static native String nativeGetAccessToken(long nativePtr);
     private static native String nativeGetRefreshToken(long nativePtr);
     private static native String[] nativeGetIdentities(long nativePtr); // Returns pairs of {id, provider}
     private static native byte nativeGetState(long nativePtr);
-    private static native void nativeSetState(long nativePtr, byte state);
     private static native String nativeGetProviderType(long nativePtr);
     private static native String nativeGetDeviceId(long nativePtr);
     private static native String nativeCustomData(long nativeUserPtr);

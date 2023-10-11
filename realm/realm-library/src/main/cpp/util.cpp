@@ -15,6 +15,7 @@
  */
 
 #include <algorithm>
+#include <iomanip>
 #include <stdexcept>
 
 #include <realm/util/assert.hpp>
