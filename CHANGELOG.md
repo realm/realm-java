@@ -18,7 +18,7 @@
 * Android Gradle Plugin 7.4.0 and above.
 
 ### Internal
-* Updated to Realm Core 13.22.0, commit 0b19887b5b25746afaf474fe298e38f450f0486e.
+* Updated to Realm Core 13.23.0, commit 5abbf7f10fb3ef6bd622877cc840ada804bccb89.
 
 
 ## 10.16.2 (2023-10-12)
