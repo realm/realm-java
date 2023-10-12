@@ -21,6 +21,30 @@
 * Updated to Realm Core 13.22.0, commit 0b19887b5b25746afaf474fe298e38f450f0486e.
 
 
+## 10.16.2 (2023-10-12)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixed
+* Realm objects accessors behave as an unmanaged object after an incremental build. (Issue [#7844](https://github.com/realm/realm-java/pull/7844))
+* [RealmApp] Crash when opening a Realm with a proxy enabled. (Issue [#7828](https://github.com/realm/realm-java/issues/7828))
+* [RealmApp] It was possible to create a `User` object with invalid state that would throw a `NullPointerException` when accessed. (Issue [#7847](https://github.com/realm/realm-java/issues/7847))
+
+### Compatibility
+* File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 13.0.0 or above is required to open Realms created by this version.
+* Gradle 7.5 and above.
+* Android Gradle Plugin 7.4.0 and above.
+
+### Internal
+* None.
+
+
 ## 10.16.1 (2023-06-26)
 
 ### Breaking Changes
