@@ -48,9 +48,7 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
     @Override
     public void onSuccess(Object result) {
         T mappedResult = mapSuccess(result);
-        if (success != null) {
-            success.set(mappedResult);
-        }
+        success.set(mappedResult);
         latch.countDown();
     }
 
@@ -87,11 +85,11 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
 
         execute(this);
         try {
-            // Wait indefinitely. Timeouts should be handled by the Network layer,
-            // so will eventually bubble up as an exception.
+            // Wait indefinitely. Timeouts should be handled by the Network layer, otherwise
+            // it can be interrupted manually by calling `RealmAsyncTask.cancel()`
             latch.await();
         } catch (InterruptedException e) {
-            RealmLog.debug("Network request interrupted.");
+            error.set(new AppException(ErrorCode.NETWORK_INTERRUPTED, "Network request interrupted."));
         }
 
         // Result of request should be available. Throw if an error happened, otherwise return
@@ -99,11 +97,7 @@ public abstract class NetworkRequest<T> extends OsJavaNetworkTransport.NetworkTr
         if (error.get() != null) {
             throw error.get();
         } else {
-            if (success != null) {
-                return success.get();
-            } else {
-                return null;
-            }
+            return success.get();
         }
     }
 }

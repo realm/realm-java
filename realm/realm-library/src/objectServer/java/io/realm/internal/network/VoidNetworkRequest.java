@@ -11,7 +11,7 @@ import io.realm.mongodb.ErrorCode;
 
 /**
  * Specialized case of {@link NetworkRequest} where we are not interested in the response value,
- * just wether or not the request succeeded.
+ * just whether or not the request succeeded.
  */
 public abstract class VoidNetworkRequest extends NetworkRequest<Void> {
 
