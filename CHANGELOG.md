@@ -1,4 +1,4 @@
-## 10.16.2 (YYYY-MM-DD)
+## 10.16.2 (2023-10-12)
 
 ### Breaking Changes
 * None.
