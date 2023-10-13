@@ -1,10 +1,10 @@
-## 10.17.0 (YYYY-MM-DD)
+## 10.17.0 (2023-10-13)
 
 ### Breaking Changes
 * None.
 
 ### Enhancements
-* None.
+* [RealmApp] Simplified the number of error codes in `ErrorCode`. A number of enum entries have been deprecated. (Issue [#7837](https://github.com/realm/realm-java/pull/7837)).
 
 ### Fixed
 * Rare corruption causing 'Invalid streaming format cookie'-exception. Typically following compact, convert or copying to a new file. (Issue [#7775](https://github.com/realm/realm-java/issues/7775), since v10.13.0 (Core v12.12.0))
