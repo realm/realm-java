@@ -19,6 +19,6 @@ do
   # Make the output SEO friendly by converting the "h2" title to the proper "h1"
   sed -i -e 's|<h2\(.* class="title".*\)</h2>|<h1\1</h1>|' "$ln"
 done
-find . -iname "*.html-e" | xargs rm
+find . -iname "*.html-e" | xargs rm || true
 
 popd
