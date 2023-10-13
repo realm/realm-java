@@ -4,7 +4,7 @@ REALM_CORE=13.23.0
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
-MONGODB_REALM_SERVER=2023-10-11
+MONGODB_REALM_SERVER=2023-05-31
 
 # `BAAS` and `BAAS-UI` projects commit hashes matching MONGODB_REALM_SERVER image version
 # note that the MONGODB_REALM_SERVER image is a nightly build, find the matching commits
