@@ -89,10 +89,10 @@ RUN chmod -R a+rwX ${ANDROID_HOME}
 
 # Ensure a new enough version of CMake is available.
 RUN cd /opt \
-    && wget -nv https://cmake.org/files/v3.22/cmake-3.22.1-linux-x86_64.tar.gz \
-    && tar zxf cmake-3.22.1-linux-x86_64.tar.gz
+    && wget -nv https://cmake.org/files/v3.22/cmake-3.27.7-linux-x86_64.tar.gz \
+    && tar zxf cmake-3.27.7-linux-x86_64.tar.gz
 
 # Workaround for https://issuetracker.google.com/issues/206099937
 RUN ln -s /usr/bin/ninja /opt/cmake-3.22.1-linux-x86_64/bin/ninja
 
-ENV PATH "/opt/cmake-3.22.1-linux-x86_64/bin:$PATH"
+ENV PATH "/opt/cmake-3.27.7-linux-x86_64/bin:$PATH"

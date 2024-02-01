@@ -22,7 +22,7 @@
 #include "jni_util/java_method.hpp"
 #include "jni_util/jni_utils.hpp"
 #include "jni_util/bson_util.hpp"
-#include <realm/object-store/util/bson/bson.hpp>
+#include <realm/util/bson/bson.hpp>
 
 #include <realm/util/optional.hpp>
 #include <realm/object-store/sync/app.hpp>

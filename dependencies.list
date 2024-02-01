@@ -1,6 +1,6 @@
 # Realm Core release used by Realm Java
 # https://github.com/realm/realm-core/releases
-REALM_CORE=13.23.0
+REALM_CORE=13.26.0
 
 # Version of MongoDB Realm used by integration tests
 # See https://github.com/realm/ci/packages/147854 for available versions
@@ -25,7 +25,7 @@ gradle=7.5
 ndkVersion=23.1.7779620
 BUILD_INFO_EXTRACTOR_GRADLE=4.17.0
 GRADLE_NEXUS_PLUGIN=1.0.0
-CMAKE=3.22.1
+CMAKE=3.27.7
 
 # Bson dependency version
 BSON_DEPENDENCY=3.12.1

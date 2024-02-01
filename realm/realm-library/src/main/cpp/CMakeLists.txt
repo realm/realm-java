@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 ###########################################################################
-cmake_minimum_required(VERSION 3.21.4)
+cmake_minimum_required(VERSION 3.27.7)
 project(RealmJava)
 
 # For debugging: Enable this to output all variables defined for the project

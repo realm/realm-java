@@ -22,7 +22,7 @@
 #include "java_network_transport.hpp"
 
 #include <realm/object-store/sync/sync_user.hpp>
-#include <realm/object-store/util/bson/bson.hpp>
+#include <realm/util/bson/bson.hpp>
 #include <jni_util/bson_util.hpp>
 
 using namespace realm;
