@@ -24,7 +24,7 @@
 #include "jni_util/bson_util.hpp"
 
 #include <realm/util/optional.hpp>
-#include <realm/object-store/util/bson/bson.hpp>
+#include <realm/util/bson/bson.hpp>
 #include <realm/object-store/sync/mongo_collection.hpp>
 #include <jni_util/bson_util.hpp>
 #include <jni.h>

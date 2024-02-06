@@ -178,7 +178,7 @@ JNIEXPORT jlong JNICALL Java_io_realm_internal_objectstore_OsApp_nativeCreate(JN
         static AndroidClientListener client_thread_listener(env);
         client_config.default_socket_provider_thread_observer = std::make_shared<BindingCallbackThreadObserver>(client_thread_listener);
 
-        SharedApp app = App::get_shared_app(app_config, client_config);
+        SharedApp app = App::get_app(app::App::CacheMode::Enabled, app_config, client_config);
         // Init logger. Must be called after .configure()
         app->sync_manager()->set_logger_factory(javaLoggerFactory);
 
