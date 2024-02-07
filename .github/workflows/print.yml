@@ -1,4 +1,4 @@
-name: Print Value
+name: Print Values
 
 on:
   workflow_dispatch:
