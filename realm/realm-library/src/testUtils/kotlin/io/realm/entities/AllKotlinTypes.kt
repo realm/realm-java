@@ -84,6 +84,9 @@ open class AllKotlinTypes : RealmObject() {
 
     @LinkingObjects("nonNullList")
     val listParents: RealmResults<AllKotlinTypes>? = null;
+
+    private var privateNonNullString: String = "";
+    private var privateNullString: String? = "";
 }
 
 open class WithRealmAnyTestEntity(
