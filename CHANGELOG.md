@@ -1,3 +1,25 @@
+## 10.19.0-SNAPSHOT (YYYY-MM-DD)
+
+### Breaking Changes
+* None.
+
+### Enhancements
+* None.
+
+### Fixed
+* None.
+
+### Compatibility
+* File format: Generates Realms with format v23. Unsynced Realms will be upgraded from Realm Java 2.0 and later. Synced Realms can only be read and upgraded if created with Realm Java v10.0.0-BETA.1.
+* APIs are backwards compatible with all previous release of realm-java in the 10.6.y series.
+* Realm Studio 13.0.0 or above is required to open Realms created by this version.
+* Gradle 7.5 and above.
+* Android Gradle Plugin 7.4.0 and above.
+
+### Internal
+* None.
+
+
 ## 10.18.0 (2024-02-06)
 
 ### Breaking Changes
@@ -171,7 +193,7 @@ This release will bump the Realm file format from version 22 to 23. Opening a fi
 * [RealmApp] As a result of a refactor on the some error codes and categories have been deleted and new ones have been added, see PR for more details. ([#7760](https://github.com/realm/realm-java/pull/7760))
 
 ### Enhancements
-* Updated OpenSSL from 1.1.1n to 3.0.8. 
+* Updated OpenSSL from 1.1.1n to 3.0.8.
 * Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
 * Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
 * Realm will now continuously track and reduce the size of the Realm file when it is in use rather that only when opening the file with Configuration.compactOnLaunch enabled. (Core Issue [#5754](https://github.com/realm/realm-core/issues/5754))
@@ -201,7 +223,7 @@ This release will bump the Realm file format from version 22 to 23. Opening a fi
 * [RealmApp] As a result of a refactor on the some error codes and categories have been deleted and new ones have been added, see PR for more details. ([#7760](https://github.com/realm/realm-java/pull/7760))
 
 ### Enhancements
-* Updated OpenSSL from 1.1.1n to 3.0.8. 
+* Updated OpenSSL from 1.1.1n to 3.0.8.
 * Realm will now use a lot less memory and disk space when different versions of realm objects are used. (Core Issue [#5440](https://github.com/realm/realm-core/issues/5440))
 * Realm will now continuously track and reduce the size of the Realm file when it is in use rather that only when opening the file with Configuration.compactOnLaunch enabled. (Core Issue [#5754](https://github.com/realm/realm-core/issues/5754))
 * Multiple processes can now access the same encrypted Realm instead of throwing `Encrypted interprocess sharing is currently unsupported`. (Core Issue [#1845](https://github.com/realm/realm-core/issues/1845))
