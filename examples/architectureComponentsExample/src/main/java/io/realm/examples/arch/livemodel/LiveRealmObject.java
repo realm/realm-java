@@ -40,7 +40,9 @@ import io.realm.RealmObjectChangeListener;
  * @param <T> the type of the RealmModel
  */
 public class LiveRealmObject<T extends RealmModel> extends LiveData<T> {
-    // The listener will listen until the object is deleted.
+    private final T object;
+
+	// The listener will listen until the object is deleted.
     // An invalidated object shouldn't be set in LiveData, null is set instead.
     private RealmObjectChangeListener<T> listener = new RealmObjectChangeListener<T>() {
         @Override
@@ -72,7 +74,7 @@ public class LiveRealmObject<T extends RealmModel> extends LiveData<T> {
         if (!RealmObject.isValid(object)) {
             throw new IllegalArgumentException("The provided RealmObject is no longer valid, and therefore cannot be observed for changes.");
         }
-        setValue(object);
+		this.object = object;
     }
 
     // We should start observing and stop observing, depending on whether we have observers.
@@ -87,7 +89,11 @@ public class LiveRealmObject<T extends RealmModel> extends LiveData<T> {
         super.onActive();
         T object = getValue();
         if (object != null && RealmObject.isValid(object)) {
+            setValue(object);
             RealmObject.addChangeListener(object, listener);
+        } else if (RealmObject.isValid(this.object)) {
+            setValue(this.object);
+            RealmObject.addChangeListener(this.object, listener);
         }
     }
 
