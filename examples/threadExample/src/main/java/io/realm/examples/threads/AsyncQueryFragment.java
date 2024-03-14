@@ -36,6 +36,7 @@ import io.realm.RealmChangeListener;
 import io.realm.RealmResults;
 import io.realm.Sort;
 import io.realm.examples.threads.model.Dot;
+import io.realm.examples.threads.R;
 
 /**
  * This fragment demonstrates how you can perform asynchronous queries with Realm.
@@ -86,45 +87,41 @@ public class AsyncQueryFragment extends Fragment implements View.OnClickListener
 
     @Override
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.translate_button: {
-                cancelAsyncTransaction();
-                // translate all points coordinates using an async transaction
-                asyncTransaction = realm.executeTransactionAsync(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        // query for all points
-                        RealmResults<Dot> dots = realm.where(Dot.class).findAll();
+        if (view.getId() == R.id.translate_button) {
+            cancelAsyncTransaction();
+            // translate all points coordinates using an async transaction
+            asyncTransaction = realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    // query for all points
+                    RealmResults<Dot> dots = realm.where(Dot.class).findAll();
 
-                        for (int i = dots.size() - 1; i >= 0; i--) {
-                            Dot dot = dots.get(i);
-                            if (dot.isValid()) {
-                                int x = dot.getX();
-                                int y = dot.getY();
-                                dot.setX(y);
-                                dot.setY(x);
-                            }
+                    for (int i = dots.size() - 1; i >= 0; i--) {
+                        Dot dot = dots.get(i);
+                        if (dot.isValid()) {
+                            int x = dot.getX();
+                            int y = dot.getY();
+                            dot.setX(y);
+                            dot.setY(x);
                         }
                     }
-                }, new Realm.Transaction.OnSuccess() {
-                    @Override
-                    public void onSuccess() {
-                        if (isAdded()) {
-                            Toast.makeText(getActivity(), "Translation completed", Toast.LENGTH_SHORT).show();
-                        }
+                }
+            }, new Realm.Transaction.OnSuccess() {
+                @Override
+                public void onSuccess() {
+                    if (isAdded()) {
+                        Toast.makeText(getActivity(), "Translation completed", Toast.LENGTH_SHORT).show();
                     }
-                }, new Realm.Transaction.OnError() {
-
-                    @Override
-                    public void onError(Throwable e) {
-                        if (isAdded()) {
-                            Toast.makeText(getActivity(), "Error while translating dots", Toast.LENGTH_SHORT).show();
-                            e.printStackTrace();
-                        }
+                }
+            }, new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable e) {
+                    if (isAdded()) {
+                        Toast.makeText(getActivity(), "Error while translating dots", Toast.LENGTH_SHORT).show();
+                        e.printStackTrace();
                     }
-                });
-                break;
-            }
+                }
+            });
         }
     }
 

@@ -31,7 +31,7 @@ open class Person(
         // If you use non-nullable types, properties must be initialized with non-null values.
         @PrimaryKey var id: Long = 0,
 
-        var name: String = "",
+        var name: String? = "",
 
         var age: Int = 0,
 
