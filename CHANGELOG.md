@@ -17,7 +17,7 @@
 * Android Gradle Plugin 7.4.0 and above.
 
 ### Internal
-* None.
+* Updated links to new documentation URL.
 
 
 ## 10.18.0 (2024-02-06)

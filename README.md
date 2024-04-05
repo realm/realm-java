@@ -16,19 +16,19 @@ The [Realm Kotlin SDK](https://github.com/realm/realm-kotlin) is now GA and can 
 ## Features
 
 * **Mobile-first:** Realm is the first database built from the ground up to run directly inside phones, tablets, and wearables.
-* **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](https://realm.io/docs/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
+* **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](https://www.mongodb.com/docs/atlas/device-sdks/sdk/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
 * **Modern:** Realm supports easy thread-safety, relationships & encryption.
 * **Fast:** Realm is faster than even raw SQLite on common operations while maintaining an extremely rich feature set.
 * **[Device Sync](https://www.mongodb.com/atlas/app-services/device-sync)**: Makes it simple to keep data in sync across users, devices, and your backend in real-time. Get started for free with [a template application](https://github.com/mongodb/template-app-react-native-todo) and [create the cloud backend](http://mongodb.com/realm/register?utm_medium=github_atlas_CTA&utm_source=realm_js_github).
 
 ## Getting Started
 
-Please see the [detailed instructions in our docs](https://docs.mongodb.com/realm/sdk/android/install/) to add Realm to your project.
+Please see the [detailed instructions in our docs](https://www.mongodb.com/docs/atlas/device-sdks/sdk/java/install/) to add Realm to your project.
 
 ## Documentation
 
-Documentation for Realm can be found at [docs.mongodb.com/realm/sdk/android/](https://docs.mongodb.com/realm/sdk/android/).
-The API reference is located at [docs.mongodb.com/realm-sdks/java/](https://docs.mongodb.com/realm-sdks/java/latest/).
+Documentation for Realm can be found at [mongodb.com/docs/atlas/device-sdks/sdk/java/](https://www.mongodb.com/docs/atlas/device-sdks/sdk/java/).
+The API reference is located at [mongodb.com/docs/atlas/device-sdks/sdk/java/api/](https://www.mongodb.com/docs/atlas/device-sdks/sdk/java/api/).
 
 ## Getting Help
 
@@ -216,7 +216,7 @@ that you can run `./gradlew :realm:realm-library:compileBaseDebugAndroidTestSour
 
 The `./examples` folder contains many example projects showing how Realm can be used. If this is the first time you checkout or pull a new version of this repository to try the examples, you must call `./gradlew installRealmJava` from the top-level directory first. Otherwise, the examples will not compile as they depend on all Realm artifacts being installed in `mavenLocal()`.
 
-Standalone examples can be [downloaded from website](https://realm.io/docs/java/latest/#getting-started).
+Standalone examples can be [downloaded from website](https://www.mongodb.com/docs/realm/sdk/java/quick-starts/quick-start-local/#complete-example).
 
 ## Running Tests on a Device
 
