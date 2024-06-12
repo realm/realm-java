@@ -28,3 +28,7 @@
 -keep class io.realm.internal.objectstore.OsApp {
     io.realm.internal.objectstore.OsJavaNetworkTransport getNetworkTransport();
 }
+
+-keep class io.realm.internal.objectstore.OsSubscriptionSet$StateChangeCallback {
+    void onChange(byte state);
+}
