@@ -1481,6 +1481,72 @@ public class RealmQueryTests extends QueryTests {
     }
 
     @Test
+    public void findFirst_limit() {
+        realm.beginTransaction();
+
+        Owner owner1 = realm.createObject(Owner.class);
+        owner1.setName("Owner 1");
+
+        Owner owner2 = realm.createObject(Owner.class);
+        owner2.setName("Owner 2");
+
+        Owner owner3 = realm.createObject(Owner.class);
+        owner3.setName("Owner 3");
+
+        Owner owner4 = realm.createObject(Owner.class);
+        owner4.setName("Owner 4");
+
+        realm.commitTransaction();
+
+        RealmResults<Owner> owners = realm.where(Owner.class).findFirst(2);
+        assertEquals(2, subQueryResult.size());
+    }
+
+    @Test
+    public void findLast_limit() {
+        realm.beginTransaction();
+
+        Owner owner1 = realm.createObject(Owner.class);
+        owner1.setName("Owner 1");
+
+        Owner owner2 = realm.createObject(Owner.class);
+        owner2.setName("Owner 2");
+
+        Owner owner3 = realm.createObject(Owner.class);
+        owner3.setName("Owner 3");
+
+        Owner owner4 = realm.createObject(Owner.class);
+        owner4.setName("Owner 4");
+
+        realm.commitTransaction();
+
+        RealmResults<Owner> owners = realm.where(Owner.class).findLast(2);
+        assertEquals(2, subQueryResult.size());
+    }
+
+    @Test
+    public void findRandom_limit() {
+        realm.beginTransaction();
+
+        Owner owner1 = realm.createObject(Owner.class);
+        owner1.setName("Owner 1");
+
+        Owner owner2 = realm.createObject(Owner.class);
+        owner2.setName("Owner 2");
+
+        Owner owner3 = realm.createObject(Owner.class);
+        owner3.setName("Owner 3");
+
+        Owner owner4 = realm.createObject(Owner.class);
+        owner4.setName("Owner 4");
+
+        realm.commitTransaction();
+
+        RealmResults<Owner> owners = realm.where(Owner.class).findRandom(2);
+        assertEquals(2, subQueryResult.size());
+    }
+
+    @Test
     public void georgian() {
         String words[] = {"მონაცემთა ბაზა", "მიწისქვეშა გადასასვლელი", "რუსთაველის გამზირი",
                 "მთავარი ქუჩა", "სადგურის მოედანი", "ველოცირაპტორების ჯოგი"};
