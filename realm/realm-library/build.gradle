@@ -121,6 +121,11 @@ android {
         // We did strip with cmake for release build.
         // Please, Gradle, you are not that smart! Pleas DO NOT strip debug symbols for debug build!
         doNotStrip "*/*/*.so"
+
+        // Use compressed shared libraries to support 16 KB ELF alignment
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 
     lintOptions {
