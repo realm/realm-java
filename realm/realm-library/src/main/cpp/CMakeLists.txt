@@ -214,6 +214,9 @@ endif()
 add_library(realm-jni SHARED ${jni_SRC})
 target_link_libraries(realm-jni log android Realm::ObjectStore)
 
+# Use 16 KB ELF alignment to support devices with page size greater than 4 KB
+target_link_options(realm-jni PRIVATE "-Wl,-z,max-page-size=16384")
+
 # Strip the release so files and backup the unstripped versions
 if (buildTypeCap STREQUAL "Release")
     set(unstripped_SO_DIR
