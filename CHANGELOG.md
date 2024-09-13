@@ -1,4 +1,4 @@
-## 10.19.0-SNAPSHOT (YYYY-MM-DD)
+## 10.19.0-SNAPSHOT (2024-09-13)
 
 ### Breaking Changes
 * None.
