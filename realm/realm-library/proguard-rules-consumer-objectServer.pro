@@ -30,5 +30,5 @@
 }
 
 -keep class io.realm.internal.objectstore.OsSubscriptionSet$StateChangeCallback {
-    void onChange(byte state);
+    *;
 }
