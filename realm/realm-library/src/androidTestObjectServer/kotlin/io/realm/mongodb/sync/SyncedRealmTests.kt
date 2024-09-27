@@ -788,8 +788,10 @@ class SyncedRealmTests {
                                 RealmFieldType.TYPED_LINK,          // Not an actual exposed type, it is used internally by RealmAny
                                 RealmFieldType.FLOAT,               // Float is not cloud compatible yet
                                 RealmFieldType.FLOAT_LIST,          // Float is not cloud compatible yet
+                                RealmFieldType.FLOAT_SET,
                                 RealmFieldType.STRING_TO_FLOAT_MAP  // Float is not cloud compatible yet
                                 -> {}
+
                             }
                         }
                     }

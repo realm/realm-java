@@ -64,6 +64,8 @@ class KotlinSchemaTests {
         // We cannot enforce this constraint inside the schema right now.
         // If people maintain the variant themselves they need a custom getter
         // assertTrue(objSchema.isNullable(AllKotlinTypes::nonNullObject.name));
+
+        assertFalse(objSchema.isNullable("privateNonNullString"));
     }
 
     @Test
@@ -81,6 +83,7 @@ class KotlinSchemaTests {
         assertTrue(objSchema.isNullable(AllKotlinTypes::nullFloat.name));
         assertFalse(objSchema.isNullable(AllKotlinTypes::nullList.name)); // Managed realm objects do not allow null lists
         assertTrue(objSchema.isNullable(AllKotlinTypes::nullObject.name));
+        assertTrue(objSchema.isNullable("privateNullString"));
     }
 
 }
