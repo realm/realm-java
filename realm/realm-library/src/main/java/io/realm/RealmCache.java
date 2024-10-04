@@ -70,8 +70,6 @@ final class RealmCache {
 
     private abstract static class ReferenceCounter {
 
-        // How many references to this Realm instance in this thread.
-        protected final ThreadLocal<Integer> localCount = new ThreadLocal<>();
         // How many threads have instances refer to this configuration.
         protected AtomicInteger globalCount = new AtomicInteger(0);
 
@@ -79,10 +77,7 @@ final class RealmCache {
         abstract boolean hasInstanceAvailableForThread();
 
         // Increment how many times an instance has been handed out for the current thread.
-        public void incrementThreadCount(int increment) {
-            Integer currentCount = localCount.get();
-            localCount.set(currentCount != null ? currentCount + increment : increment);
-        }
+        public abstract void incrementThreadCount(int increment);
 
         // Returns the Realm instance for the caller thread
         abstract BaseRealm getRealmInstance();
@@ -97,11 +92,9 @@ final class RealmCache {
         abstract int getThreadLocalCount();
 
         // Updates the number of references handed out for a given thread
-        public void setThreadCount(int refCount) {
-            localCount.set(refCount);
-        }
+        public abstract void setThreadCount(int refCount);
 
-        // Returns the number of gloal instances handed out. This is roughly equivalent
+        // Returns the number of global instances handed out. This is roughly equivalent
         // to the number of threads currently using the Realm as each thread also does
         // reference counting of Realm instances.
         public int getGlobalCount() {
@@ -119,6 +112,11 @@ final class RealmCache {
         }
 
         @Override
+        public void incrementThreadCount(int increment) {
+            globalCount.addAndGet(increment);
+        }
+
+        @Override
         BaseRealm getRealmInstance() {
             return cachedRealm;
         }
@@ -128,9 +126,9 @@ final class RealmCache {
             // The Realm instance has been created without exceptions. Cache and reference count can be updated now.
             cachedRealm = realm;
 
-            localCount.set(0);
-            // This is the first instance in current thread, increase the global count.
-            globalCount.incrementAndGet();
+            // The global count for a frozen Realm has the same role as the local count for a live
+            // Realm, so initialise it to 0.
+            globalCount.set(0);
 
         }
 
@@ -138,9 +136,7 @@ final class RealmCache {
         public void clearThreadLocalCache() {
             String canonicalPath = cachedRealm.getPath();
 
-            // The last instance in this thread.
-            // Clears local ref & counter.
-            localCount.set(null);
+            // The last instance of this frozen Realm. Clear reference.
             cachedRealm = null;
 
             // Clears global counter.
@@ -156,16 +152,31 @@ final class RealmCache {
             // of a thread local count doesn't make sense. Just return the global count instead.
             return globalCount.get();
         }
+
+        @Override
+        public void setThreadCount(int refCount) {
+            // Since the concept of a thread local count doesn't make sense, we instead set the
+            // global count here.
+            globalCount.set(refCount);
+        }
     }
 
     // Reference counter for Realms that are thread confined
     private static class ThreadConfinedReferenceCounter extends ReferenceCounter {
         // The Realm instance in this thread.
         private final ThreadLocal<BaseRealm> localRealm = new ThreadLocal<>();
+        // How many references to this Realm instance in this thread.
+        private final ThreadLocal<Integer> localCount = new ThreadLocal<>();
 
         @Override
         public boolean hasInstanceAvailableForThread() {
             return localRealm.get() != null;
+        }
+
+        @Override
+        public void incrementThreadCount(int increment)  {
+            Integer currentCount = localCount.get();
+            localCount.set(currentCount != null ? currentCount + increment : increment);
         }
 
         @Override
@@ -202,6 +213,11 @@ final class RealmCache {
         public int getThreadLocalCount() {
             Integer refCount = localCount.get();
             return (refCount != null) ? refCount : 0;
+        }
+
+        @Override
+        public void setThreadCount(int refCount)  {
+            localCount.set(refCount);
         }
     }
 
