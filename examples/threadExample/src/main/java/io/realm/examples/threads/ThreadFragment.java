@@ -32,6 +32,7 @@ import io.realm.Realm;
 import io.realm.RealmChangeListener;
 import io.realm.examples.threads.model.Dot;
 import io.realm.examples.threads.widget.DotsView;
+import io.realm.examples.threads.R;
 
 /**
  * This fragment demonstrates how Realm can interact with a background thread.
@@ -42,6 +43,9 @@ public class ThreadFragment extends Fragment {
     private Random random = new Random();
     private Thread backgroundThread;
     private DotsView dotsView;
+
+    private final int actionAdd = R.id.action_add_dot;
+    private final int actionClear = R.id.action_clear;
 
     // Realm change listener that refreshes the UI when there is changes to Realm.
     private RealmChangeListener<Realm> realmListener = new RealmChangeListener<Realm>() {
@@ -72,32 +76,28 @@ public class ThreadFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch(item.getItemId()) {
-            case R.id.action_add_dot:
-                // Add blue dot from the UI thread
-                realm.executeTransaction(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        Dot dot = realm.createObject(Dot.class);
-                        dot.setX(random.nextInt(100));
-                        dot.setY(random.nextInt(100));
-                        dot.setColor(getResources().getColor(R.color.realm_blue));
-                    }
-                });
-                return true;
-
-            case R.id.action_clear:
-                realm.executeTransaction(new Realm.Transaction() {
-                    @Override
-                    public void execute(Realm realm) {
-                        realm.delete(Dot.class);
-                    }
-                });
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == R.id.action_add_dot) {
+            // Add blue dot from the UI thread
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    Dot dot = realm.createObject(Dot.class);
+                    dot.setX(random.nextInt(100));
+                    dot.setY(random.nextInt(100));
+                    dot.setColor(getResources().getColor(R.color.realm_blue));
+                }
+            });
+            return true;
+        } else if (item.getItemId() == R.id.action_clear) {
+            realm.executeTransaction(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    realm.delete(Dot.class);
+                }
+            });
+            return true;
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 
