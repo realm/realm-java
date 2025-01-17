@@ -2444,6 +2444,56 @@ public class RealmQuery<E> {
     }
 
     /**
+     * Finds first n objects that fulfill the query conditions.
+     *
+     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     * @see io.realm.RealmResults
+     */
+    @SuppressWarnings("unchecked")
+    public RealmResults<E> findFirst(int limit) {
+        return limit(limit).findAll();
+    }
+
+    /**
+     * Finds last n objects that fulfill the query conditions.
+     *
+     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     * @see io.realm.RealmResults
+     */
+    @SuppressWarnings("unchecked")
+    public RealmResults<E> findLast(int limit) {
+        if (limit < 1) {
+            throw new IllegalArgumentException("Only positive numbers above 0 is allowed. Yours was: " + limit);
+        }
+
+        RealmResults<E> results = findAll();
+        results = results.subList(Math.max(results.size() - limit, 0), results.size());
+        Collections.reverse(results);
+        return results;
+    }
+
+    /**
+     * Finds random n objects that fulfill the query conditions.
+     *
+     * @return a {@link io.realm.RealmResults} containing objects. If no objects match the condition, a list with zero
+     * objects is returned.
+     * @see io.realm.RealmResults
+     */
+    @SuppressWarnings("unchecked")
+    public RealmResults<E> findRandom(int limit) {
+        if (limit < 1) {
+            throw new IllegalArgumentException("Only positive numbers above 0 is allowed. Yours was: " + limit);
+        }
+
+        RealmResults<E> results = findAll();
+        Collections.shuffle(results);
+        results = results.subList(0, Math.min(limit, results.size()));
+        return results;
+    }
+
+    /**
      * Finds all objects that fulfill the query conditions.
      * <p>
      * Launching heavy queries from the UI thread may result in a drop of frames or even ANRs. <b>We do not recommend
