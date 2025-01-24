@@ -5,6 +5,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'realm-android'
 
 android {
+    namespace "io.realm.examples.coroutinesexample"
     // androidx.lifecycle dependencies requires Android APIs 31 or later
     compileSdkVersion 31
     buildToolsVersion rootProject.buildTools

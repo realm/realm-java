@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'realm-android'
 
 android {
+    namespace 'io.realm.examples.intro'
     compileSdkVersion rootProject.sdkVersion
     buildToolsVersion rootProject.buildTools
 
