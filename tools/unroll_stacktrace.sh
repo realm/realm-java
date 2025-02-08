@@ -65,7 +65,8 @@ find_ndkstack() {
     	echo "$PROPS_FILE not found! NDK location cannot be determined"
     	exit 1
 	fi
-	NDK_STACK=$(grep "ndk.dir" "$PROPS_FILE" | cut -d = -f2)/ndk-stack
+	NDK_STACK=$(grep "^ndk.dir" "$PROPS_FILE" | cut -d = -f2)/ndk-stack
+	which $NDK_STACK || { echo "Could not find 'ndk_stack' at $NDK_STACK"; exit ;}
 }
 
 download_and_unzip_stripped_libs() {
