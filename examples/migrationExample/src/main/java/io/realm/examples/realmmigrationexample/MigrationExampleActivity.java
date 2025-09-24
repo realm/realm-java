@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import examples.realm.io.migration.R;
 import io.realm.Realm;
 import io.realm.RealmConfiguration;
 import io.realm.examples.realmmigrationexample.model.Migration;
@@ -49,7 +50,7 @@ public class MigrationExampleActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_realm_migration_example);
 
-        rootLayout = ((LinearLayout) findViewById(R.id.container));
+        rootLayout = ((LinearLayout) findViewById(examples.realm.io.migration.R.id.container));
         rootLayout.removeAllViews();
 
         // 3 versions of the databases for testing. Normally you would only have one.

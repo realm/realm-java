@@ -4,6 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'realm-android'
 
 android {
+    namespace 'io.realm.examples.kotlin'
     //noinspection GroovyAssignabilityCheck
     compileSdkVersion rootProject.sdkVersion
     //noinspection GroovyAssignabilityCheck

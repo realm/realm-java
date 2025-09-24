@@ -5,6 +5,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'realm-android'
 
 android {
+    namespace 'io.realm.examples.compatibility'
     compileSdkVersion rootProject.sdkVersion
     buildToolsVersion rootProject.buildTools
 

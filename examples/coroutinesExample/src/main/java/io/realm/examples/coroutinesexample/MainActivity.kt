@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity(), MainFragment.OnItemClicked {
         val detailsFragment = DetailsFragment.instantiate(DetailsFragment.ArgsBundle(id))
 
         supportFragmentManager.commit {
-            setCustomAnimations(R.anim.fragment_open_enter, R.anim.fragment_open_exit)
+//            setCustomAnimations(R.anim.fragment_open_enter, R.anim.fragment_open_exit)
             add(R.id.container, detailsFragment, DetailsFragment.TAG)
             hide(requireNotNull(mainFragment))
             addToBackStack(null)
