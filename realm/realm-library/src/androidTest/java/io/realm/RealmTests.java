@@ -3712,6 +3712,27 @@ public class RealmTests {
         }
     }
 
+    // Test for https://github.com/realm/realm-java/issues/7586
+    @Test
+    public void copyFromRealm_list_realmAny() {
+        List<AllTypes> list = new ArrayList<AllTypes>(0);
+        for (int i = 0; i < 100; i++) {
+            AllTypes obj = new AllTypes();
+            obj.setColumnRealmAnyList(new RealmList<RealmAny>());
+            for (int j = 0; j < 10; j++) {
+                obj.getColumnRealmAnyList().add(RealmAny.valueOf(123L));
+            }
+            list.add(obj);
+        }
+        realm.executeTransaction((bgRealm) -> {
+            bgRealm.insertOrUpdate(list);
+        });
+
+        RealmResults<AllTypes> res = realm.where(AllTypes.class).findAll();
+        List<AllTypes> copiedData = realm.copyFromRealm(res);
+        assertEquals(100, copiedData.size());
+    }
+
     // Tests if close can be called from Realm change listener when there is no other listeners.
     @Test
     public void closeRealmInChangeListener() {
