@@ -252,7 +252,7 @@ abstract class RealmTransformerTask : DefaultTask() {
         val jarFileOutput: FileSystem = output.get().let { jarFile ->
             // Workaround to create the Jar if does not exist, as FileSystems fails to do so.
             touchJarFile(jarFile)
-            FileSystems.newFileSystem(output.get().asFile.toPath(), null)
+            FileSystems.newFileSystem(output.get().asFile.toPath(), null as ClassLoader?)
         }
 
         val build: BuildTemplate =

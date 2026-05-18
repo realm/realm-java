@@ -12,11 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * --
+ * Modified by Butterfly Network for AGP 9 compatibility. The legacy
+ * `com.android.build.gradle.BaseExtension` API was removed in AGP 9; this file now
+ * reads `bootClasspath` from `AndroidComponentsExtension.sdkComponents` and treats the
+ * SDK-version analytics fields as best-effort (returning "unknown" if the modern DSL
+ * shape ever changes again).
  */
 
 package io.realm.transformer.ext
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.variant.AndroidComponentsExtension
 import org.gradle.api.Project
 import java.io.File
 
@@ -25,69 +33,56 @@ import java.io.File
  */
 fun Project.getAppId(): String {
     // Use the Root project name, usually set in `settings.gradle`
-    // This means that we don't treat apps with multiple flavours as different, nor
-    // if a project contains more than one app (probably unlikely).
-    // This seems acceptable. These cases would just show up as more builds for the
-    // same AppId.
     return this.rootProject.name
 }
 
 /**
  * Returns the `targetSdk` property for this project if it is available.
+ * Reflectively reads `defaultConfig.targetSdk` so the same code works against both
+ * `ApplicationExtension` (which has it) and `LibraryExtension` (which does not).
  */
-fun Project.getTargetSdk(): String {
-    return getAndroidExtension(this).defaultConfig.targetSdkVersion?.apiString ?: "unknown"
-}
+fun Project.getTargetSdk(): String = readDefaultConfigInt("getTargetSdk")
 
 /**
  * Returns the `minSdk` property for this project if it is available.
  */
-fun Project.getMinSdk(): String {
-    return getAndroidExtension(this).defaultConfig.minSdkVersion?.apiString ?: "unknown"
-}
+fun Project.getMinSdk(): String = readDefaultConfigInt("getMinSdk")
+
+private fun Project.readDefaultConfigInt(getter: String): String =
+    runCatching {
+        @Suppress("UnstableApiUsage")
+        val ext = extensions.getByType(CommonExtension::class.java)
+        val defaultConfig: Any = ext.defaultConfig
+        val method = defaultConfig.javaClass.methods.firstOrNull { it.name == getter && it.parameterCount == 0 }
+        method?.invoke(defaultConfig)?.toString() ?: "unknown"
+    }.getOrDefault("unknown")
 
 /**
  * Returns the version of the Android Gradle Plugin that is used.
  */
 fun Project.getAgpVersion(): String {
-    // This API is only available from AGP 7.0.0. And it is a bit unclear exactly which part of
-    // this is actually stable. Also, there appear to be problems with depending on AGP 7.* on
-    // the compile classpath (it cannot load BaseExtension).
-    //
-    // So for now, this code assumes that we are compiling against AGP 4.1 and uses reflection
-    // to try to grap the AGP version.
-    //
-    // This is done with a best-effort, but we just
-    // accept finding the version isn't possible if anything goes wrong.
     return try {
         val extension = this.extensions.getByName("androidComponents") as Object
         val method = extension.`class`.getMethod("getPluginVersion")
         val version = method.invoke(extension)
-        if (version != null) {
-            return version.toString()
-        } else {
-            return "unknown"
-        }
+        version?.toString() ?: "unknown"
     } catch (e: Exception) {
         "unknown"
     }
 }
 
 /**
- * Returns the `bootClasspath` for this project
+ * Returns the `bootClasspath` for this project. AGP 9 exposes this via the modern
+ * `AndroidComponentsExtension.sdkComponents.bootClasspath` provider; we resolve it
+ * eagerly here because the transformer task needs a `List<File>`.
  */
 fun Project.getBootClasspath(): List<File> {
-    return getAndroidExtension(this).bootClasspath
-}
-
-private fun getAndroidExtension(project: Project): BaseExtension {
-    // This will always be present, otherwise the android build would not be able to
-    // trigger the transformer code in the first place.
-    return project.extensions.getByName("android") as BaseExtension
+    val androidComponents = extensions.getByType(AndroidComponentsExtension::class.java)
+    return androidComponents.sdkComponents.bootClasspath.get().map { it.asFile }
 }
 
 fun Project.areIncrementalBuildsDisabled() =
-    if(extensions.extraProperties.has("io.realm.disableIncrementalBuilds")){
+    if (extensions.extraProperties.has("io.realm.disableIncrementalBuilds")) {
         extensions.extraProperties["io.realm.disableIncrementalBuilds"] == "true"
     } else {
         false
