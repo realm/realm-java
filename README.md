@@ -25,7 +25,7 @@ The [Realm Kotlin SDK](https://github.com/realm/realm-kotlin) is now GA and can 
 * **Simple:** Data is directly exposed as objects and queryable by code, removing the need for ORM's riddled with performance & maintenance issues. Plus, we've worked hard to [keep our API down to very few classes](https://www.mongodb.com/docs/atlas/device-sdks/sdk/java/): most of our users pick it up intuitively, getting simple apps up & running in minutes.
 * **Modern:** Realm supports easy thread-safety, relationships & encryption.
 * **Fast:** Realm is faster than even raw SQLite on common operations while maintaining an extremely rich feature set.
-* **[Device Sync](https://www.mongodb.com/atlas/app-services/device-sync)**: Makes it simple to keep data in sync across users, devices, and your backend in real-time. Get started for free with [a template application](https://github.com/mongodb/template-app-react-native-todo) and [create the cloud backend](http://mongodb.com/realm/register?utm_medium=github_atlas_CTA&utm_source=realm_js_github).
+* **[Device Sync](https://www.mongodb.com/atlas/app-services/device-sync)**: Makes it simple to keep data in sync across users, devices, and your backend in real-time. Get started for free with [a template application](https://github.com/mongodb/template-app-react-native-todo) and [create the cloud backend](https://mongodb.com/realm/register?utm_medium=github_atlas_CTA&utm_source=realm_js_github).
 
 ## Getting Started
 
@@ -40,7 +40,7 @@ from source.
 
 ## Getting Help
 
-- **Got a question?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](http://stackoverflow.com/questions/ask?tags=realm). We actively monitor & answer questions on StackOverflow! You can also check out our [Community Forum](https://developer.mongodb.com/community/forums/tags/c/realm/9/realm-sdk) where general questions about how to do something can be discussed.
+- **Got a question?**: Look for previous questions on the [#realm tag](https://stackoverflow.com/questions/tagged/realm?sort=newest) — or [ask a new question](https://stackoverflow.com/questions/ask?tags=realm). We actively monitor & answer questions on StackOverflow! You can also check out our [Community Forum](https://developer.mongodb.com/community/forums/tags/c/realm/9/realm-sdk) where general questions about how to do something can be discussed.
 - **Think you found a bug?** [Open an issue](https://github.com/realm/realm-java/issues/new?template=bug_report.md). If possible, include the version of Realm, a full log, the Realm file, and a project that shows the issue.
 - **Have a feature request?** [Open an issue](https://github.com/realm/realm-java/issues/new?template=feature_request.md). Tell us what the feature should do, and why you want the feature.
 
@@ -84,7 +84,7 @@ In case you don't want to use the precompiled version, you can build Realm yours
 
 ### Prerequisites
 
- * Download the [**JDK 8**](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
+ * Download the [**JDK 8**](https://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html) from Oracle and install it.
  * The latest stable version of Android Studio. Currently [4.1.1](https://developer.android.com/studio/).
  * Download & install the Android SDK **Build-Tools 29.0.3**, **Android Pie (API 29)** (for example through Android Studio’s **Android SDK Manager**).
  * Install CMake version 3.18.4 and build Ninja.
@@ -300,7 +300,7 @@ Realm Core is also published under the Apache 2.0 license and is available
 
 ## Feedback
 
-**_If you use Realm and are happy with it, all we ask is that you, please consider sending out a tweet mentioning [@realm](http://twitter.com/realm) to share your thoughts!_**
+**_If you use Realm and are happy with it, all we ask is that you, please consider sending out a tweet mentioning [@realm](https://twitter.com/realm) to share your thoughts!_**
 
 **_And if you don't like it, please let us know what you would like improved, so we can fix it!_**
 
